@@ -1,77 +1,101 @@
-# main.py
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
 from typing import List
-import uvicorn
-import mysql.connector
-from datetime import datetime
+from app.database  import SessionLocal, engine
+from app.crud  import crud_activity, crud_user, crud_checkin 
+from app.models import user, participant,checkin, activity
+from fastapi import FastAPI, HTTPException, Depends
 
 app = FastAPI()
 
-# 配置CORS
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 在生产环境中应该设置具体的域名
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# 数据库配置
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": ".Mysql@1234",
-    "database": "sdm_db"
-}
+# Dependency to get DB session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-# 签到表单模型
-class CheckInForm(BaseModel):
-    name: str
-    activity: str
+# User endpoints
+@app.post("/users/", response_model=user.UserResponse)
+def create_user(user: user.UserCreate, db: Session = Depends(get_db)):
+    return crud_user.create_user(db=db, user=user)
+
+@app.get("/users/{user_id}", response_model=user.UserResponse)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+    db_user = crud_user.get_user(db, user_id=user_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+# Activity endpoints
+@app.post("/activities/", response_model=activity.ActivityResponse)
+def create_activity(activity: activity.ActivityCreate, db: Session = Depends(get_db)):
+    return crud_activity.create_activity(db=db, activity=activity)
+
+@app.get("/activities/", response_model=List[activity.ActivityResponse])
+def list_activities(
+    skip: int = 0, 
+    limit: int = 100, 
+    status: int = None, 
+    db: Session = Depends(get_db)
+):
+    activities = crud_activity.get_activities(db, skip=skip, limit=limit, status=status)
+    return activities
+
+@app.put("/activities/{activity_id}/status")
+def update_activity_status(activity_id: int, status: int, db: Session = Depends(get_db)):
+    activity = crud_activity.update_activity_status(db, activity_id, status)
+    if activity is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    return {"status": "success", "message": "Activity status updated"}
+
+# Participant endpoints
+@app.post("/participants/", response_model=participant.ParticipantResponse)
+def create_participant(participant: participant.ParticipantCreate, db: Session = Depends(get_db)):
+    # Check if participant already exists
+    if crud.check_participant_exists(db, participant.activity_id, participant.identity_number):
+        raise HTTPException(status_code=400, detail="Participant already registered")
+    return crud.create_participant(db=db, participant=participant)
+
+@app.get("/activities/{activity_id}/participants/", response_model=List[participant.ParticipantResponse])
+def get_activity_participants(activity_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    participants = crud.get_activity_participants(db, activity_id, skip=skip, limit=limit)
+    return participants
+
+# Check-in endpoints
+@app.post("/checkin/", response_model=checkin.CheckInResponse)
+def create_checkin(checkin: checkin.CheckInCreate, db: Session = Depends(get_db)):
+    # Verify participant exists
+    if not crud.check_participant_exists(db, checkin.activity_id, checkin.identity_number):
+        raise HTTPException(status_code=404, detail="Participant not registered for this activity")
     
+    # Check if already checked in
+    if crud.check_already_checkin(db, checkin.activity_id, checkin.identity_number):
+        raise HTTPException(status_code=400, detail="Already checked in")
+    
+    return crud.create_checkin(db=db, checkin=checkin)
 
-# 数据库连接函数
-def get_db_connection():
-    try:
-        conn = mysql.connector.connect(**DB_CONFIG)
-        return conn
-    except mysql.connector.Error as err:
-        raise HTTPException(status_code=500, detail=f"数据库连接失败: {err}")
+@app.get("/activities/{activity_id}/checkins/", response_model=List[checkin.CheckInResponse])
+def get_activity_checkins(activity_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    checkins = crud.get_activity_checkins(db, activity_id, skip=skip, limit=limit)
+    return checkins
 
-# 签到接口
-@app.post("/checkin")
-async def checkin(form: CheckInForm):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        sql = """
-        INSERT INTO checkin_records (name,  activity , checkin_time)
-        VALUES (%s, %s, %s)
-        """
-        cursor.execute(sql, (form.name, form.activity,   datetime.now()))
-        conn.commit()
-        return {"status": "success", "message": "签到成功"}
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        cursor.close()
-        conn.close()
-
-# 获取签到记录
-@app.get("/records")
-async def get_records():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT * FROM checkin_records ORDER BY checkin_time DESC")
-        records = cursor.fetchall()
-        return records
-    finally:
-        cursor.close()
-        conn.close()
+# Statistics endpoint
+@app.get("/activities/{activity_id}/statistics/")
+def get_activity_stats(activity_id: int, db: Session = Depends(get_db)):
+    return crud.get_activity_statistics(db, activity_id)
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
