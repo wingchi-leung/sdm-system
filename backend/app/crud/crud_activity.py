@@ -5,18 +5,47 @@ from typing import List, Optional
 from fastapi import HTTPException
 from app.models.activity import ActivityCreate 
 from app.schemas import Activity
+from app.schemas import ActivityParticipant 
+
 
 def create_activity(db: Session, activity: ActivityCreate) -> Activity:
-    """Create a new activity record"""
+    """Create a new activity record with participants"""
     try:
-        db_activity = Activity(**activity.model_dump())
+        # Extract participants data
+        participants = activity.participants
+        
+        # Create activity
+        activity_dict = activity.model_dump(exclude={'participants'})
+        activity_dict['status'] = 1  # Set initial status as "未开始"
+        activity_dict['create_time'] = datetime.now()
+        activity_dict['update_time'] = datetime.now()
+        
+        db_activity = Activity(**activity_dict)
         db.add(db_activity)
+        db.flush()  # This gets us the activity_id without committing
+        
+        # Create participants
+        for participant in participants:
+            participant_dict = {
+                'activity_id': db_activity.id,
+                'participant_name': participant.participant_name,
+                'identity_number': participant.identity_number,
+                'phone': participant.phone,
+                'create_time': datetime.now(),
+                'update_time': datetime.now()
+            }
+            db_participant = ActivityParticipant(**participant_dict)
+            db.add(db_participant)
+        
         db.commit()
         db.refresh(db_activity)
         return db_activity
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+
+
+
 
 def get_activities(
     db: Session, 

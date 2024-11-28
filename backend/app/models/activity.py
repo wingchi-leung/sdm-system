@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional
+from .participant import ParticipantBase
 
 class ActivityBase(BaseModel):
     activity_name: str = Field(..., min_length=1, max_length=100)
@@ -14,8 +15,10 @@ class ActivityBase(BaseModel):
             raise ValueError('end_time must be after start_time')
         return v
 
-class ActivityCreate(ActivityBase):
-    pass
+class ActivityCreate(BaseModel):
+    activity_name: str
+    start_time: datetime
+    participants: list[ParticipantBase]
 
 class ActivityResponse(ActivityBase):
     id: int
@@ -23,4 +26,4 @@ class ActivityResponse(ActivityBase):
     update_time: datetime
     
     class Config:
-        from_attributes = True  # New preferred way instead of orm_mode
+        from_attributes = True   

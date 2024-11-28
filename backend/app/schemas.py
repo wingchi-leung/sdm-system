@@ -43,6 +43,7 @@ class ActivityParticipant(BaseModel):
     user_id = Column(Integer, nullable=True)
     participant_name = Column(String(255))
     identity_number = Column(String(255))
+    phone = Column(String(255))
 
 #活动签到表 - user_id 也是可有可无
 class CheckInRecord(BaseModel):

@@ -31,6 +31,8 @@ def get_db():
 def create_user(user: user.UserCreate, db: Session = Depends(get_db)):
     return crud_user.create_user(db=db, user=user)
 
+
+
 @app.get("/users/{user_id}", response_model=user.UserResponse)
 def read_user(user_id: int, db: Session = Depends(get_db)):
     db_user = crud_user.get_user(db, user_id=user_id)
@@ -46,9 +48,12 @@ def get_user_lists(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Activity endpoints
-@app.post("/activities/", response_model=activity.ActivityResponse)
+@app.post("/create-activity/", response_model=activity.ActivityResponse)
 def create_activity(activity: activity.ActivityCreate, db: Session = Depends(get_db)):
     return crud_activity.create_activity(db=db, activity=activity)
+
+
+
 
 @app.get("/activities/", response_model=List[activity.ActivityResponse])
 def list_activities(
