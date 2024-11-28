@@ -27,7 +27,7 @@ def get_db():
         db.close()
 
 # User endpoints
-@app.post("/users/", response_model=user.UserResponse)
+@app.post("/createUser/", response_model=user.UserResponse)
 def create_user(user: user.UserCreate, db: Session = Depends(get_db)):
     return crud_user.create_user(db=db, user=user)
 
@@ -37,6 +37,13 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+@app.get("/userLists", response_model=list[user.UserResponse])
+def get_user_lists(db: Session = Depends(get_db)):
+    try:
+        return crud_user.get_users(db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Activity endpoints
 @app.post("/activities/", response_model=activity.ActivityResponse)

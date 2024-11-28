@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Optional
 class UserBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    identity_number: str = Field(..., min_length=1, max_length=255)
-    phone: Optional[str] = Field(None, max_length=255, pattern=r'^\d{11}$')
+    identity_number: str = Field(None, min_length=1, max_length=255)
+    phone: Optional[str] = Field(None, max_length=255,  )
     sex: Optional[str] = Field(None, max_length=2, pattern=r'^[MF]$')
 
 class UserCreate(UserBase):
@@ -17,3 +17,14 @@ class UserResponse(UserBase):
     
     class Config:
         from_attributes = True
+
+
+class UserList(BaseModel):
+    id: int
+    name: str
+    identity_number: str
+    phone: str | None = None
+    sex: str | None = None
+
+    class Config:
+        orm_mode = True

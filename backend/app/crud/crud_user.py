@@ -5,6 +5,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, Depends
 
 
+def get_users(db: Session) -> list[User]:
+    return db.query(User).all()
+
 def create_user(db: Session, user: UserCreate) -> User:
     try:
         # Check for existing user with same identity number
