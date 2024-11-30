@@ -6,6 +6,11 @@ from app.database  import SessionLocal, engine
 from app.crud  import crud_activity, crud_user, crud_checkin 
 from app.models import user, participant,checkin, activity
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi import Query
+from app.crud import crud_participant
+from app.schemas import ActivityParticipant
+from app.models.participant import ParticipantListResponse
+
 
 app = FastAPI()
 
@@ -53,6 +58,9 @@ def create_activity(activity: activity.ActivityCreate, db: Session = Depends(get
     return crud_activity.create_activity(db=db, activity=activity)
 
 
+@app.get("/unstarted-activities/", response_model=List[activity.ActivityResponse])
+def get_unstarted_activities(db: Session = Depends(get_db)):
+    return crud_activity.get_activities(db, status=1)[0]  # status 1 = unstarted
 
 
 @app.get("/activities/", response_model=List[activity.ActivityResponse])
@@ -79,11 +87,36 @@ def create_participant(participant: participant.ParticipantCreate, db: Session =
     if crud.check_participant_exists(db, participant.activity_id, participant.identity_number):
         raise HTTPException(status_code=400, detail="Participant already registered")
     return crud.create_participant(db=db, participant=participant)
-
-@app.get("/activities/{activity_id}/participants/", response_model=List[participant.ParticipantResponse])
-def get_activity_participants(activity_id: int, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    participants = crud.get_activity_participants(db, activity_id, skip=skip, limit=limit)
-    return participants
+@app.get("/activities/{activity_id}/participants/", response_model=ParticipantListResponse)
+def get_activity_participants(
+    activity_id: int, 
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+    db: Session = Depends(get_db)
+):
+    """
+    Get paginated list of participants for a specific activity
+    Returns both participants data and total count
+    """
+    try:
+        participants, total = crud_participant.get_activity_participants(
+            db, 
+            activity_id=activity_id, 
+            skip=skip, 
+            limit=limit
+        )
+        
+        return ParticipantListResponse(
+            total=total,
+            participants=participants,
+            page=skip // limit + 1,
+            size=limit,
+            pages=(total + limit - 1) // limit
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Check-in endpoints
 @app.post("/checkin/", response_model=checkin.CheckInResponse)

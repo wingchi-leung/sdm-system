@@ -18,9 +18,8 @@ class BaseModel(Base, TimestampModel):
 # 用户
 class User(BaseModel):
     __tablename__ = "user"
-    
     name = Column(String(255))
-    identity_number = Column(String(255), unique=True)
+    identity_number = Column(String(255),nullable=True)
     phone = Column(String(255))
     sex = Column(String(2))
 

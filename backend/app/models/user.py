@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 class UserBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
-    identity_number: str = Field(None, min_length=1, max_length=255)
+    identity_number: Optional[str] = Field(None, max_length=255)
     phone: Optional[str] = Field(None, max_length=255,  )
     sex: Optional[str] = Field(None, max_length=2, pattern=r'^[MF]$')
 
