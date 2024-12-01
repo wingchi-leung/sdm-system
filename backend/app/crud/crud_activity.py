@@ -32,7 +32,8 @@ def create_activity(db: Session, activity: ActivityCreate) -> Activity:
                 'identity_number': participant.identity_number,
                 'phone': participant.phone,
                 'create_time': datetime.now(),
-                'update_time': datetime.now()
+                'update_time': datetime.now(),
+                'user_id' : participant.user_id
             }
             db_participant = ActivityParticipant(**participant_dict)
             db.add(db_participant)

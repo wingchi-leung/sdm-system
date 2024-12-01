@@ -34,7 +34,7 @@ def list_activities(
 
 @router.get("/unstarted/", response_model=activity.ActivityListResponse)
 def get_unstarted_activities(db: Session = Depends(deps.get_db)):
-    activities, total = crud_activity.get_activities(db, status=1)  # status 1 = unstarted
+    activities, total = crud_activity.get_activities(db, status=2)  # status 1 = unstarted
     return {
         "items": activities,
         "total": total

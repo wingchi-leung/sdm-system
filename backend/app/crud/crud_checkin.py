@@ -1,8 +1,8 @@
 from app.models.checkin import  CheckInCreate
 from sqlalchemy.orm import Session
+from fastapi import  HTTPException
 
-from app.schemas import CheckInRecord
-
+from app.schemas import CheckInRecord,Activity
 
 
 def create_checkin(db: Session, checkin: CheckInCreate) -> CheckInRecord:
@@ -10,9 +10,9 @@ def create_checkin(db: Session, checkin: CheckInCreate) -> CheckInRecord:
         # Verify activity exists and is active
         activity = db.query(Activity).filter(Activity.id == checkin.activity_id).first()
         if not activity:
-            raise HTTPException(status_code=404, detail="Activity not found")
+            raise HTTPException(status_code=404, detail="找不到活动")
         if activity.status != 2:
-            raise HTTPException(status_code=400, detail="Activity is not in progress")
+            raise HTTPException(status_code=400, detail="活动不在有效期内！")
             
         # Check for duplicate check-in
         existing_checkin = check_already_checkin(db, checkin.activity_id, checkin.identity_number)

@@ -1,5 +1,4 @@
-from app.models.participant  import  ParticipantCreate
-from app.models.activity  import  ActivityCreate
+from app.models.participant  import  ParticipantCreate,ParticipantResponse
 from sqlalchemy.orm import Session
 from typing import Tuple,List
 from app.schemas import Activity, ActivityParticipant
@@ -11,24 +10,13 @@ def get_activity_participants(
     activity_id: int, 
     skip: int = 0, 
     limit: int = 10
-) -> Tuple[List[ActivityParticipant], int]:
-    """
-    Get paginated list of participants for an activity with total count
-    
-    Args:
-        db: Database session
-        activity_id: ID of the activity
-        skip: Number of records to skip (offset)
-        limit: Maximum number of records to return
-        
-    Returns:
-        Tuple containing list of participants and total count
-    """
+) -> List[ParticipantResponse]:
+
     try:
         # First verify the activity exists
         activity = db.query(Activity).filter(Activity.id == activity_id).first()
         if not activity:
-            raise HTTPException(status_code=404, detail="Activity not found")
+            raise HTTPException(status_code=404, detail="找不到活动！")
             
         # Base query for participants
         query = db.query(ActivityParticipant)\
@@ -44,7 +32,7 @@ def get_activity_participants(
             .limit(limit)\
             .all()
             
-        return participants, total
+        return participants   
         
     except HTTPException:
         raise

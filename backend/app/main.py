@@ -1,15 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
 from typing import List
-from app.database  import SessionLocal, engine
-from app.crud  import crud_activity, crud_user, crud_checkin 
-from app.models import user, participant,checkin, activity
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi import Query
-from app.crud import crud_participant
-from app.schemas import ActivityParticipant
-from app.models.participant import ParticipantListResponse
+from app.database  import SessionLocal 
 from app.core.config import settings
 from app.api.v1.router import api_router
 
@@ -33,14 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Dependency to get DB session
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+ 
 
 if __name__ == "__main__":
     import uvicorn

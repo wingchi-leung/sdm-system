@@ -16,11 +16,11 @@ def create_participant(participant: participant.ParticipantCreate, db: Session =
     # Check if participant already exists
     if crud_participant.check_participant_exists(db, participant.activity_id, participant.identity_number):
         raise HTTPException(status_code=400, detail="Participant already registered")
-    return crud.create_participant(db=db, participant=participant)
+    return crud_participant.create_participant(db=db, participant=participant)
 
 
     
-@router.get("/{activity_id}/participants/", response_model=participant.ParticipantListResponse)
+@router.get("/{activity_id}/", response_model=List[participant.ParticipantBase])
 def get_activity_participants(
     activity_id: int, 
     skip: int = Query(default=0, ge=0),
@@ -32,20 +32,14 @@ def get_activity_participants(
     Returns both participants data and total count
     """
     try:
-        participants, total = crud_participant.get_activity_participants(
+        participants = crud_participant.get_activity_participants(
             db, 
             activity_id=activity_id, 
             skip=skip, 
             limit=limit
         )
+        return participants
         
-        return ParticipantListResponse(
-            total=total,
-            participants=participants,
-            page=skip // limit + 1,
-            size=limit,
-            pages=(total + limit - 1) // limit
-        )
     except HTTPException:
         raise
     except Exception as e:

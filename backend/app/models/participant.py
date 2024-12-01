@@ -9,23 +9,14 @@ class ParticipantBase(BaseModel):
     phone: str = Field(..., min_length=1, max_length=255)
     identity_number: Optional[str] = Field(  max_length=255)
 
+
 class ParticipantCreate(ParticipantBase):
     pass
 
 class ParticipantResponse(ParticipantBase):
     id: int
-    create_time: datetime
-    update_time: datetime
-    
-    class Config:
-        from_attributes = True
-
-class ParticipantListResponse(BaseModel):
-    total: int
-    participants: List[ParticipantResponse]
-    page: int
-    size: int
-    pages: int
-    
+    participant_name: str = Field(...,  max_length=255)
+    phone: str = Field(..., min_length=1, max_length=255)
+    identity_number: Optional[str] = Field(  max_length=255)    
     class Config:
         from_attributes = True
