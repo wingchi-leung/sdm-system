@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional,List
 from .participant import ParticipantBase
 
 class ActivityBase(BaseModel):
@@ -27,3 +27,8 @@ class ActivityResponse(ActivityBase):
     
     class Config:
         from_attributes = True   
+
+# 分页模型
+class ActivityListResponse(BaseModel):
+    items: List[ActivityResponse]
+    total: int

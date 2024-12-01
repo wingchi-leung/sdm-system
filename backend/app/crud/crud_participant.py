@@ -109,3 +109,26 @@ def get_activity_statistics(db: Session, activity_id: int) -> dict:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# Add this function to crud_participant.py
+def check_participant_exists(db: Session, activity_id: int, identity_number: str) -> bool:
+    """
+    Check if a participant is already registered for an activity
+    
+    Args:
+        db: Database session
+        activity_id: ID of the activity
+        identity_number: Participant's identity number
+        
+    Returns:
+        bool: True if participant exists, False otherwise
+    """
+    existing_participant = db.query(ActivityParticipant)\
+        .filter(
+            ActivityParticipant.activity_id == activity_id,
+            ActivityParticipant.identity_number == identity_number
+        ).first()
+        
+    return existing_participant is not None

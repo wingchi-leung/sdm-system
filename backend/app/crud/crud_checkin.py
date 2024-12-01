@@ -29,3 +29,23 @@ def create_checkin(db: Session, checkin: CheckInCreate) -> CheckInRecord:
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+
+def check_already_checkin(db: Session, activity_id: int, identity_number: str) -> bool:
+    """
+    Check if a participant has already checked in for an activity
+    
+    Args:
+        db: Database session
+        activity_id: ID of the activity
+        identity_number: Participant's identity number
+        
+    Returns:
+        bool: True if already checked in, False otherwise
+    """
+    existing_checkin = db.query(CheckInRecord)\
+        .filter(
+            CheckInRecord.activity_id == activity_id,
+            CheckInRecord.identity_number == identity_number
+        ).first()
+    
+    return existing_checkin is not None

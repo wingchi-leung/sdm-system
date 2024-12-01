@@ -1,19 +1,19 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from dotenv import load_dotenv
-import os
-from urllib.parse import quote_plus  # 添加这行
-
+ 
+from app.core.config import settings
 import pymysql
+from urllib.parse import quote_plus
 
 pymysql.install_as_MySQLdb()
 
 # 加载环境变量
-load_dotenv()
-password = quote_plus(os.getenv('DB_PASSWORD'))
+ 
+password = settings.MYSQL_PASSWORD
+encoded_password = quote_plus(password)
 
-SQLALCHEMY_DATABASE_URL = f"mysql://{os.getenv('DB_USER')}:{password}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+SQLALCHEMY_DATABASE_URL = f"mysql://{settings.MYSQL_USER}:{encoded_password}@{settings.MYSQL_HOST}/{settings.MYSQL_DB}"
 
 # 创建数据库引擎 
 
