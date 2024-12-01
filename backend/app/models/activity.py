@@ -8,15 +8,11 @@ class ActivityBase(BaseModel):
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     status: int = Field(1, ge=1, le=3, description="1-未开始，2-进行中，3-已结束")
-    
-    @validator('end_time')
-    def end_time_must_be_after_start_time(cls, v, values):
-        if v and 'start_time' in values and v < values['start_time']:
-            raise ValueError('end_time must be after start_time')
-        return v
+    tag: Optional[str]  = None  
 
 class ActivityCreate(BaseModel):
     activity_name: str
+    tag: str 
     start_time: datetime
     participants: list[ParticipantBase]
 

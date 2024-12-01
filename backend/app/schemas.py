@@ -27,11 +27,11 @@ class User(BaseModel):
 #活动记录表
 class Activity(BaseModel):
     __tablename__ = "activity"
-    
     activity_name = Column(String(100))
     start_time = Column(DateTime, default=datetime.now)
     end_time = Column(DateTime, nullable=True)
     status = Column(Integer, default=1)  # 1-未开始，2-进行中，3-已结束
+    tag = Column(String(255),nullable =True) 
 
 
 #活动参与人表，user_id 可有可无
