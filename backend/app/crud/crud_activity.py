@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from app.models.activity import ActivityCreate 
 from app.schemas import Activity
 from app.schemas import ActivityParticipant 
-
+from sqlalchemy import or_
 
 def create_activity(db: Session, activity: ActivityCreate) -> Activity:
     """Create a new activity record with participants"""
@@ -16,7 +16,7 @@ def create_activity(db: Session, activity: ActivityCreate) -> Activity:
         
         # Create activity
         activity_dict = activity.model_dump(exclude={'participants'})
-        activity_dict['status'] = 1  # Set initial status as "未开始"
+        activity_dict['status'] = 2  # Set initial status as "未开始"
         activity_dict['create_time'] = datetime.now()
         activity_dict['update_time'] = datetime.now()
         
