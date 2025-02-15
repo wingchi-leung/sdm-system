@@ -5,6 +5,6 @@ to run this project, download and run :
 ```
 npm install
 
-npm run dev 
+npm run start 
 
 ```
