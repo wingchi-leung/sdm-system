@@ -1,0 +1,117 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../models/activity.dart';
+
+/// API 基础地址：真机请改为电脑局域网 IP，模拟器可用 10.0.2.2:8000 (Android) 或 localhost (iOS)
+const String baseUrl = 'http://localhost:8000/api/v1';
+
+class ApiService {
+  static final ApiService _instance = ApiService._();
+  factory ApiService() => _instance;
+
+  ApiService._();
+
+  String get base => baseUrl;
+
+  /// 获取活动列表
+  Future<ActivityListResponse> getActivities({
+    int skip = 0,
+    int limit = 100,
+    int? status,
+  }) async {
+    var uri = Uri.parse('$baseUrl/activities?skip=$skip&limit=$limit');
+    if (status != null) {
+      uri = Uri.parse('$baseUrl/activities?skip=$skip&limit=$limit&status=$status');
+    }
+    final resp = await http.get(uri);
+    if (resp.statusCode != 200) {
+      throw ApiException(resp.statusCode, resp.body);
+    }
+    return ActivityListResponse.fromJson(
+      jsonDecode(utf8.decode(resp.bodyBytes)) as Map<String, dynamic>,
+    );
+  }
+
+  /// 管理员登录：POST /auth/login
+  Future<Map<String, dynamic>> login(String username, String password) async {
+    final uri = Uri.parse('$baseUrl/auth/login');
+    final resp = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+    final data = jsonDecode(utf8.decode(resp.bodyBytes));
+    if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      return data as Map<String, dynamic>;
+    }
+    final detail = data is Map ? (data['detail'] ?? resp.body) : resp.body;
+    throw ApiException(resp.statusCode, detail.toString());
+  }
+
+  /// 发布活动：POST /activities（需管理员 token）
+  Future<Map<String, dynamic>> createActivity({
+    required String activityName,
+    required String tag,
+    required DateTime startTime,
+    List<Map<String, dynamic>>? participants,
+    String? accessToken,
+  }) async {
+    final uri = Uri.parse('$baseUrl/activities/');
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    if (accessToken != null && accessToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $accessToken';
+    }
+    final body = {
+      'activity_name': activityName,
+      'tag': tag.isEmpty ? '' : tag,
+      'start_time': startTime.toIso8601String(),
+      'participants': participants ?? [],
+    };
+    final resp = await http.post(
+      uri,
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    final data = jsonDecode(utf8.decode(resp.bodyBytes));
+    if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      return data as Map<String, dynamic>;
+    }
+    final detail = data is Map ? (data['detail'] ?? resp.body) : resp.body;
+    throw ApiException(resp.statusCode, detail.toString());
+  }
+
+  /// 报名：POST /participants
+  Future<Map<String, dynamic>> registerParticipant({
+    required int activityId,
+    required String participantName,
+    required String phone,
+    String? identityNumber,
+  }) async {
+    final uri = Uri.parse('$baseUrl/participants/');
+    final body = {
+      'activity_id': activityId,
+      'participant_name': participantName,
+      'phone': phone,
+      if (identityNumber != null && identityNumber.isNotEmpty) 'identity_number': identityNumber,
+    };
+    final resp = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+    final data = jsonDecode(utf8.decode(resp.bodyBytes));
+    if (resp.statusCode >= 200 && resp.statusCode < 300) {
+      return data as Map<String, dynamic>;
+    }
+    final detail = data is Map ? (data['detail'] ?? resp.body) : resp.body;
+    throw ApiException(resp.statusCode, detail.toString());
+  }
+}
+
+class ApiException implements Exception {
+  final int statusCode;
+  final String message;
+  ApiException(this.statusCode, this.message);
+  @override
+  String toString() => 'ApiException($statusCode): $message';
+}

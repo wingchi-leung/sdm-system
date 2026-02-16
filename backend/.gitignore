@@ -1,0 +1,20 @@
+# uv / 虚拟环境
+.venv/
+venv/
+.python-version
+
+# 环境与本地配置
+.env
+.env.local
+*.pyc
+__pycache__/
+.eggs/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
