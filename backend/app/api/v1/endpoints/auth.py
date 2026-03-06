@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from app.api import deps
 from app.core.config import settings
-from app.crud import crud_admin, crud_user
+from app.crud import crud_admin, crud_user, crud_tenant
 from app.core.security import create_access_token, BCRYPT_MAX_BYTES
 from app.models.user import UserLoginRequest, UserLoginResponse
 from app.schemas import ActivityType
@@ -67,6 +67,7 @@ def _check_password_length(password: str) -> None:
 class LoginRequest(BaseModel):
     username: str
     password: str
+    tenant_code: str = "default"
 
 
 class ActivityTypeItem(BaseModel):
@@ -82,16 +83,21 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     role: str = "admin"
+    tenant_id: int
+    tenant_name: str
     is_super_admin: bool = True
     activity_types: list[ActivityTypeItem] = []
 
 
-def _admin_activity_types_for_response(db: Session, admin_id: int) -> list[dict]:
-    """返回该管理员可管理的活动类型列表（用于登录响应）"""
-    is_super, allowed_ids = crud_admin.get_admin_scope(db, admin_id)
+def _admin_activity_types_for_response(db: Session, admin_id: int, tenant_id: int) -> list[dict]:
+    """返回该管理员可管理的活动类型列表"""
+    is_super, allowed_ids = crud_admin.get_admin_scope(db, admin_id, tenant_id)
     if is_super or not allowed_ids:
         return []
-    types = db.query(ActivityType).filter(ActivityType.id.in_(allowed_ids)).all()
+    types = db.query(ActivityType).filter(
+        ActivityType.id.in_(allowed_ids),
+        ActivityType.tenant_id == tenant_id
+    ).all()
     return [{"id": t.id, "name": t.type_name, "code": t.code} for t in types]
 
 
@@ -101,22 +107,34 @@ def login(
     body: LoginRequest,
     db: Session = Depends(deps.get_db),
 ):
-    """管理员登录：用户名 + 密码。返回 is_super_admin 与 activity_types 供前端分级展示。"""
+    """管理员登录"""
     _enforce_https_and_rate_limit(request)
     _check_password_length(body.password)
+    
+    tenant = crud_tenant.get_tenant_by_code(db, body.tenant_code)
+    if not tenant:
+        raise HTTPException(status_code=400, detail="租户不存在")
+    if tenant.status != 1:
+        raise HTTPException(status_code=403, detail="租户已禁用或已过期")
+    
     try:
-        admin = crud_admin.authenticate_admin(db, body.username, body.password)
+        admin = crud_admin.authenticate_admin(db, body.username, body.password, tenant.id)
     except ValueError as e:
         if "72" in str(e) or "bytes" in str(e).lower():
             raise HTTPException(status_code=400, detail="密码校验异常，请确认密码长度正常") from e
         raise
+    
     if not admin:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
-    token = create_access_token(sub=str(admin.id), role="admin")
+    
+    token = create_access_token(sub=str(admin.id), role="admin", tenant_id=tenant.id)
     is_super = getattr(admin, "is_super_admin", 0) == 1
-    activity_types = _admin_activity_types_for_response(db, admin.id)
+    activity_types = _admin_activity_types_for_response(db, admin.id, tenant.id)
+    
     return LoginResponse(
         access_token=token,
+        tenant_id=tenant.id,
+        tenant_name=tenant.name,
         is_super_admin=is_super,
         activity_types=[ActivityTypeItem(**t) for t in activity_types],
     )
@@ -128,16 +146,23 @@ def user_login(
     body: UserLoginRequest,
     db: Session = Depends(deps.get_db),
 ):
-    """普通用户登录：手机号 + 密码"""
+    """普通用户登录"""
     _enforce_https_and_rate_limit(request)
     _check_password_length(body.password)
-    user = crud_user.authenticate_user(db, body.phone.strip(), body.password)
+    
+    tenant_code = getattr(body, 'tenant_code', None) or 'default'
+    tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
+    if not tenant or tenant.status != 1:
+        raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+    
+    user = crud_user.authenticate_user(db, body.phone.strip(), body.password, tenant.id)
     if not user:
         raise HTTPException(status_code=401, detail="手机号或密码错误")
     if user.isblock == 1:
         reason = user.block_reason or "账号已被禁用"
         raise HTTPException(status_code=403, detail=f"账号已被拉黑：{reason}")
-    token = create_access_token(sub=str(user.id), role="user")
+    
+    token = create_access_token(sub=str(user.id), role="user", tenant_id=tenant.id)
     return UserLoginResponse(
         access_token=token,
         user_id=user.id,
@@ -146,12 +171,11 @@ def user_login(
 
 
 class WeChatLoginRequest(BaseModel):
-    """微信小程序授权登录：wx.login() 得到的 code"""
     code: str
+    tenant_code: str = "default"
 
 
 def _wechat_code2session(code: str) -> dict:
-    """调用微信 jscode2session，返回 openid、session_key 或抛出 HTTPException"""
     appid = settings.WECHAT_APPID
     secret = settings.WECHAT_SECRET
     if not appid or not secret:
@@ -175,7 +199,7 @@ def _wechat_code2session(code: str) -> dict:
         errmsg = data.get("errmsg", "unknown")
         detail = f"微信登录失败：{errmsg}"
         if errcode == 40029 or "invalid code" in (errmsg or "").lower():
-            detail += "。请检查：① 后端 .env 中 WECHAT_APPID 是否与小程序 project.config.json 的 appid 一致；② 每个 code 仅能使用一次且约 5 分钟有效，请勿重复点击或重试过久。"
+            detail += "。请检查小程序配置。"
         raise HTTPException(status_code=400, detail=detail)
     openid = data.get("openid")
     if not openid:
@@ -189,18 +213,25 @@ def wechat_login(
     body: WeChatLoginRequest,
     db: Session = Depends(deps.get_db),
 ):
-    """微信小程序授权登录：用 code 换 openid，自动注册或登录为普通用户"""
+    """微信小程序授权登录"""
     _check_login_rate_limit(_get_client_ip(request))
     code = (body.code or "").strip()
     if not code:
         raise HTTPException(status_code=400, detail="缺少 code")
+    
     data = _wechat_code2session(code)
     openid = data["openid"]
-    user = crud_user.get_or_create_user_wechat(db, openid, nickname=None)
+    
+    tenant = crud_tenant.get_tenant_by_code(db, body.tenant_code)
+    if not tenant or tenant.status != 1:
+        raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+    
+    user = crud_user.get_or_create_user_wechat(db, openid, tenant.id, nickname=None)
     if user.isblock == 1:
         reason = user.block_reason or "账号已被禁用"
         raise HTTPException(status_code=403, detail=f"账号已被拉黑：{reason}")
-    token = create_access_token(sub=str(user.id), role="user")
+    
+    token = create_access_token(sub=str(user.id), role="user", tenant_id=tenant.id)
     return UserLoginResponse(
         access_token=token,
         user_id=user.id,
