@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from app.main import app
-from app.database import Base
+from app.database import SessionLocal
+from app.schemas import Base  # 使用 schemas 的 Base，包含所有模型
 from app.core.security import hash_password, create_access_token
 from app.schemas import (
     AdminUser,
@@ -311,9 +312,20 @@ def activity_admin_no_permission_token(no_perm_admin_token: str) -> str:
 
 
 # 设置 factories 的 session
-@pytest.fixture(scope="session", autouse=True)
-def set_factory_session():
+@pytest.fixture(autouse=True)
+def set_factory_session(db_session: Session):
     """为测试数据工厂设置数据库会话"""
     from tests import factories
-    # 不需要设置全局 session，每个测试使用自己的 db_session
+    # 设置所有工厂的 session
+    factories.ActivityTypeFactory._meta.sqlalchemy_session = db_session
+    factories.AdminUserFactory._meta.sqlalchemy_session = db_session
+    factories.SuperAdminFactory._meta.sqlalchemy_session = db_session
+    factories.ActivityAdminFactory._meta.sqlalchemy_session = db_session
+    factories.UserFactory._meta.sqlalchemy_session = db_session
+    factories.BlockedUserFactory._meta.sqlalchemy_session = db_session
+    factories.ActivityFactory._meta.sqlalchemy_session = db_session
+    factories.ActiveActivityFactory._meta.sqlalchemy_session = db_session
+    factories.EndedActivityFactory._meta.sqlalchemy_session = db_session
+    factories.ParticipantFactory._meta.sqlalchemy_session = db_session
+    factories.CheckInFactory._meta.sqlalchemy_session = db_session
     yield
