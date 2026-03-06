@@ -47,6 +47,7 @@ markers = [
     "unit: 单元测试",
     "api: API 集成测试",
     "integration: 业务流程集成测试",
+    "e2e: 端到端测试",
 ]
 filterwarnings = [
     "ignore::DeprecationWarning",

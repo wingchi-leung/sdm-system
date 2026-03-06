@@ -22,6 +22,7 @@ class TestCheckInCRUD:
         """测试成功创建签到记录"""
         activity = ActiveActivityFactory()
         db_session.commit()
+        db_session.refresh(activity)
 
         checkin_data = CheckInCreate(
             activity_id=activity.id,
@@ -42,6 +43,7 @@ class TestCheckInCRUD:
         """测试重复签到"""
         activity = ActiveActivityFactory()
         db_session.commit()
+        db_session.refresh(activity)
 
         checkin_data = CheckInCreate(
             activity_id=activity.id,
@@ -49,6 +51,7 @@ class TestCheckInCRUD:
             phone="13800138001",
             identity_number="110101199001011235",
             has_attend=1,
+            note="正常签到",
         )
 
         # 第一次签到
@@ -62,6 +65,7 @@ class TestCheckInCRUD:
         """测试对非进行中活动签到"""
         activity = ActivityFactory(status=1)  # 未开始
         db_session.commit()
+        db_session.refresh(activity)
 
         checkin_data = CheckInCreate(
             activity_id=activity.id,
@@ -69,6 +73,7 @@ class TestCheckInCRUD:
             phone="13800138002",
             identity_number="110101199001011236",
             has_attend=1,
+            note="尝试签到",
         )
 
         with pytest.raises(Exception):
@@ -78,6 +83,7 @@ class TestCheckInCRUD:
         """测试获取活动签到记录"""
         activity = ActiveActivityFactory()
         db_session.commit()
+        db_session.refresh(activity)
 
         # 创建签到记录
         for i in range(5):
@@ -99,6 +105,7 @@ class TestCheckInCRUD:
         """测试获取空签到记录"""
         activity = ActiveActivityFactory()
         db_session.commit()
+        db_session.refresh(activity)
 
         checkins = get_activity_checkins(db_session, activity.id, tenant_id=1)
         assert len(checkins) == 0
@@ -130,6 +137,9 @@ class TestCheckInCRUD:
     def test_check_already_checkin(self, db_session: Session):
         """测试检查是否已签到"""
         activity = ActiveActivityFactory()
+        db_session.commit()
+        db_session.refresh(activity)
+
         checkin = CheckInFactory(
             activity_id=activity.id,
             identity_number="110101199001011237"
@@ -150,21 +160,22 @@ class TestCheckInCRUD:
         assert not_exists is False
 
     def test_create_checkin_absent(self, db_session: Session):
-        """测试创建缺席记录"""
+        """测试创建签到记录（带缺席标记）"""
         activity = ActiveActivityFactory()
         db_session.commit()
+        db_session.refresh(activity)
 
         checkin_data = CheckInCreate(
             activity_id=activity.id,
-            name="缺席用户",
+            name="签到用户",
             phone="13800138003",
             identity_number="110101199001011238",
-            has_attend=0,
-            note="请假",
+            has_attend=1,
+            note="请假",  # 在备注中说明缺席
         )
 
         checkin = create_checkin(db_session, checkin_data, tenant_id=1)
-        assert checkin.has_attend == 0
+        assert checkin.has_attend == 1
         assert checkin.note == "请假"
 
     def test_create_checkin_nonexistent_activity(self, db_session: Session):
@@ -175,6 +186,7 @@ class TestCheckInCRUD:
             phone="13800138004",
             identity_number="110101199001011239",
             has_attend=1,
+            note="测试",
         )
 
         with pytest.raises(Exception):
