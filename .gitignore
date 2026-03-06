@@ -95,15 +95,14 @@ build/
 *.iml
 .metadata
 
-# Flutter 平台特定文件
-**/Generated.xcconfig
-**/flutter_export_environment.sh
-**/generated_plugin_registrant.*
-**/generated_plugins.cmake
-
-# Flutter 本地配置
-**/local.properties
-**/project.private.config.json
+# Flutter 平台文件（自动生成，不需要提交）
+event_app/android/
+event_app/ios/
+event_app/linux/
+event_app/macos/
+event_app/web/
+event_app/windows/
+event_app/test/
 
 # 微信小程序
 miniprogram_npm/

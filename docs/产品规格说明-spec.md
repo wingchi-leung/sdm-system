@@ -34,7 +34,8 @@
 | **黑名单** | 被拉黑用户报名时直接拦截 | ✅ 已实现 | user 表 isblock、block_reason；报名时按手机号查 user，若 isblock 则拒绝 |
 | **管理员发布活动** | 管理员可创建活动 | ✅ 已实现 | 需 admin JWT；frontend / event_app / miniprogram 均有入口 |
 | **管理员查看报名** | 查看某活动的报名人员及信息 | ✅ 已实现 | `GET /participants/{activity_id}/` 分页列表 |
-| **管理员修改/删除活动** | 编辑活动信息、删除活动 | ⚠️ 部分实现 | 有 `PUT /activities/{id}/status` 更新状态；**编辑活动**（改名称/时间等）、**删除活动** 接口需确认或补充 |
+| **管理员修改/删除活动** | 编辑活动信息、删除活动 | ✅ 已实现 | backend `PUT /activities/{id}`、`DELETE /activities/{id}`；frontend 活动列表页、编辑页；miniprogram 活动管理页、编辑页 |
+| **活动人员查看** | 管理员可查看某活动的报名人员及信息 | ✅ 已实现 | `GET /participants/{activity_id}/` 分页列表（已加权限校验）；frontend 活动人员页；miniprogram 报名人员页 |
 | **活动置为已结束** | 管理员可将活动标记为已结束 | ✅ 已实现 | `PUT /activities/{id}/status`，状态 3 为已结束 |
 | **管理员分级与活动权限** | 超级管理员管全局；活动管理员按活动类型（如参、健康锻炼）授权，可创建/编辑/删除该类型下活动及查看报名等 | ❌ 未实现 | 见 [2.8 管理员分级与活动维度权限](#28-管理员分级与活动维度权限) |
 
