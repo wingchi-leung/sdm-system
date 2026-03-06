@@ -1,0 +1,59 @@
+<view class="page">
+  <view class="header">
+    <text class="title">{{isAdminMode ? '管理员登录' : '欢迎回来'}}</text>
+    <text class="subtitle">{{isAdminMode ? '请输入管理员账号和密码' : '使用手机号和密码登录'}}</text>
+  </view>
+
+  <view class="unsafe-tip" wx:if="{{unsafeTip}}">
+    <text>当前使用非加密连接，请仅在可信网络下使用。</text>
+  </view>
+
+  <view class="form">
+    <view class="field">
+      <text class="label">{{isAdminMode ? '用户名' : '手机号'}}</text>
+      <input
+        class="input"
+        placeholder="{{isAdminMode ? '请输入管理员账号' : '请输入手机号'}}"
+        value="{{account}}"
+        bindinput="onAccountInput"
+        type="{{isAdminMode ? 'text' : 'number'}}"
+      />
+    </view>
+    <view class="field">
+      <text class="label">密码</text>
+      <input
+        class="input"
+        password
+        placeholder="请输入密码"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+      />
+    </view>
+
+    <view class="error-box" wx:if="{{error}}">
+      <text class="error-text">{{error}}</text>
+    </view>
+
+    <button class="btn-primary submit-btn" disabled="{{submitting}}" bindtap="submit">
+      {{submitting ? '登录中…' : '登录'}}
+    </button>
+
+    <view class="wechat-row" wx:if="{{!isAdminMode}}">
+      <button class="btn-wechat" disabled="{{submitting}}" bindtap="wechatLogin">
+        <text class="btn-wechat-icon">微信</text>
+        <text>微信一键登录</text>
+      </button>
+    </view>
+
+    <view class="register-row" wx:if="{{!isAdminMode}}">
+      <text class="hint">还没有账号？</text>
+      <text class="link" bindtap="goRegister">立即注册</text>
+    </view>
+
+    <view class="toggle-row">
+      <text class="toggle-link" bindtap="toggleMode">
+        {{isAdminMode ? '← 普通用户登录' : '管理员登录 →'}}
+      </text>
+    </view>
+  </view>
+</view>

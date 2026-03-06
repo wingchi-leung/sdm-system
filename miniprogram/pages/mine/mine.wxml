@@ -1,0 +1,86 @@
+<!-- 未登录 -->
+<view class="page guest" wx:if="{{view === 'guest'}}">
+  <view class="center-wrap">
+    <text class="guest-title">登录后使用更多功能</text>
+    <text class="guest-subtitle">登录后可以更方便地报名活动、查看记录</text>
+    <button class="btn-primary login-btn" bindtap="goLogin">登录 / 注册</button>
+  </view>
+</view>
+
+<!-- 普通用户 -->
+<view class="page user" wx:elif="{{view === 'user'}}">
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <view class="loading"></view>
+  </view>
+  <view wx:else class="content">
+    <view class="card profile-card">
+      <view class="avatar-wrap">
+        <view class="avatar">用户</view>
+      </view>
+      <view class="profile-info">
+        <text class="name">{{profile.name || userName}}</text>
+        <text class="subtitle">{{profile.phone || '普通用户'}}</text>
+      </view>
+    </view>
+    <view class="card section">
+      <view class="info-row">
+        <text class="info-label">姓名</text>
+        <text class="info-value">{{profile.name || '-'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">手机</text>
+        <text class="info-value">{{profile.phone || '-'}}</text>
+      </view>
+      <view class="info-row" wx:if="{{profile.email}}">
+        <text class="info-label">邮箱</text>
+        <text class="info-value">{{profile.email}}</text>
+      </view>
+    </view>
+    <view class="card section">
+      <view class="menu-item" bindtap="logout">
+        <text class="menu-title secondary">退出登录</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 管理员 -->
+<view class="page admin" wx:elif="{{view === 'admin'}}">
+  <view class="content">
+    <view class="card profile-card">
+      <view class="avatar-wrap admin">
+        <view class="avatar">管</view>
+      </view>
+      <view class="profile-info">
+        <text class="name">{{adminProfile.levelText || '管理员'}}</text>
+        <text class="subtitle" wx:if="{{adminProfile && adminProfile.isSuper}}">拥有全部活动与管理权限</text>
+        <text class="subtitle" wx:elif="{{adminProfile && adminProfile.typeNamesText}}">已授权类型：{{adminProfile.typeNamesText}}</text>
+        <text class="subtitle" wx:else>当前未绑定活动类型权限</text>
+      </view>
+    </view>
+<view class="card section">
+      <view class="menu-item {{!(adminProfile && adminProfile.canCreateActivity) ? 'menu-item-disabled' : ''}}" bindtap="goCreateActivity">
+        <text class="menu-title">发布活动</text>
+        <text class="menu-subtitle">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
+        <text class="arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="goActivityManage">
+        <text class="menu-title">活动管理</text>
+        <text class="menu-subtitle">编辑、删除活动及查看人员</text>
+        <text class="arrow">›</text>
+      </view>
+      <view class="menu-item" bindtap="goActivityList">
+        <text class="menu-title">查看活动</text>
+        <text class="menu-subtitle">{{adminProfile && adminProfile.isSuper ? '管理全部活动' : '仅查看授权类型活动'}}</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+    <view class="card section">
+      <view class="menu-item" bindtap="logout">
+        <text class="menu-title secondary">退出登录</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

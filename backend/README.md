@@ -70,4 +70,12 @@ python3 -m venv .venv
 
 ---
 
+## 微信小程序授权登录（可选）
+
+- 接口：`POST /api/v1/auth/wechat-login`，Body：`{ "code": "小程序 wx.login() 返回的 code" }`，成功返回与 `user-login` 相同的 `access_token`、`user_id`、`user_name`。
+- 需在 **user 表** 增加字段：执行 `table.sql` 末尾的 `ALTER TABLE user ADD COLUMN wx_openid ...` 及唯一索引。
+- 在 `.env` 中配置 **WECHAT_APPID**、**WECHAT_SECRET**（小程序后台「开发 → 开发管理 → 开发设置」）。不配置时该接口返回 503。
+
+---
+
 依赖以 **`pyproject.toml`** 为准；`requirements.txt` 与之同步，供 pip 使用。

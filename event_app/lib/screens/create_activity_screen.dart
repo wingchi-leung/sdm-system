@@ -76,12 +76,13 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: const Text('发布活动'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
         child: Form(
           key: _formKey,
           child: Column(
@@ -92,8 +93,7 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                 decoration: const InputDecoration(
                   labelText: '活动名称 *',
                   hintText: '请输入活动名称',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.event),
+                  prefixIcon: Icon(Icons.event_rounded),
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return '请输入活动名称';
@@ -106,18 +106,17 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                 decoration: const InputDecoration(
                   labelText: '标签（选填）',
                   hintText: '如：线下、培训',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.label_outline),
+                  prefixIcon: Icon(Icons.label_outline_rounded),
                 ),
               ),
               const SizedBox(height: 16),
               InkWell(
                 onTap: _submitting ? null : _pickDateTime,
+                borderRadius: BorderRadius.circular(10),
                 child: InputDecorator(
                   decoration: const InputDecoration(
                     labelText: '开始时间 *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.schedule),
+                    prefixIcon: Icon(Icons.schedule_rounded),
                   ),
                   child: Text(
                     '${_startTime.year}-${_startTime.month.toString().padLeft(2, '0')}-${_startTime.day.toString().padLeft(2, '0')} '
@@ -131,18 +130,18 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
+                    color: const Color(0xFFFF3B30).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFF3B30).withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red[700], size: 22),
+                      Icon(Icons.error_outline_rounded, color: Theme.of(context).colorScheme.error, size: 22),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _error!,
-                          style: TextStyle(color: Colors.red[800], fontSize: 14),
+                          style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 14),
                         ),
                       ),
                     ],
@@ -154,13 +153,13 @@ class _CreateActivityScreenState extends State<CreateActivityScreen> {
                 onPressed: _submitting ? null : _submit,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 child: _submitting
                     ? const SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
                     : const Text('发布活动'),
               ),

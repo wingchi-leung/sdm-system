@@ -1,0 +1,60 @@
+.page {
+  min-height: 100vh;
+  padding: 32rpx;
+  background: var(--background);
+}
+
+.info-card {
+  margin-bottom: 32rpx;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 28rpx;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  width: 152rpx;
+  flex-shrink: 0;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.value {
+  flex: 1;
+  font-size: 28rpx;
+  color: var(--text-primary);
+}
+
+.value.status {
+  font-weight: 500;
+}
+
+.status-not-started { color: var(--status-not-started); }
+.status-ongoing { color: var(--status-ongoing); }
+.status-ended { color: var(--status-ended); }
+
+.btn-wrap {
+  margin-top: 24rpx;
+}
+
+.full {
+  width: 100%;
+  padding: 32rpx;
+  font-size: 32rpx;
+}
+
+.disabled-tip {
+  margin-top: 24rpx;
+  padding: 32rpx;
+  background: rgba(0,0,0,0.04);
+  border-radius: 16rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}

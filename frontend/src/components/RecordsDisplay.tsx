@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "./ui/table"
 import { format } from 'date-fns';
+import { API_PATHS, apiRequest } from '../config/api';
 
 interface CheckInRecord {
   name: string;
@@ -23,18 +24,21 @@ const RecordsDisplay = () => {
 
   useEffect(() => {
     const fetchRecords = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/records');
-        if (!response.ok) {
-          throw new Error('Failed to fetch records');
-        }
-        const data = await response.json();
-        setRecords(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch records');
-      } finally {
-        setIsLoading(false);
+      const res = await apiRequest<Array<{ name: string; activity_name?: string; checkin_time: string }>>(
+        API_PATHS.checkins.list
+      );
+      if (res.error) {
+        setError(res.error);
+      } else if (Array.isArray(res.data)) {
+        setRecords(
+          res.data.map((r) => ({
+            name: r.name,
+            activity: r.activity_name ?? '',
+            checkin_time: r.checkin_time,
+          }))
+        );
       }
+      setIsLoading(false);
     };
 
     fetchRecords();

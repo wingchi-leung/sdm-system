@@ -1,0 +1,32 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  
+  <view wx:elif="{{activities.length === 0}}" class="empty">暂无活动</view>
+  
+  <view wx:else class="activity-list">
+    <view wx:for="{{activities}}" wx:key="id" class="activity-item">
+      <view class="activity-header">
+        <text class="activity-name">{{item.activity_name}}</text>
+        <text class="activity-status" style="color: {{item.status === 1 ? '#3b82f6' : item.status === 2 ? '#10b981' : '#6b7280'}}">
+          {{item.status === 1 ? '未开始' : item.status === 2 ? '进行中' : '已结束'}}
+        </text>
+      </view>
+      
+      <view class="activity-info">
+        <text class="info-label">开始时间：</text>
+        <text class="info-value">{{item.start_time}}</text>
+      </view>
+      
+      <view wx:if="{{item.tag}}" class="activity-info">
+        <text class="info-label">标签：</text>
+        <text class="info-value">{{item.tag}}</text>
+      </view>
+      
+      <view wx:if="{{isAdmin}}" class="activity-actions">
+        <button class="action-btn" size="mini" bindtap="onViewParticipants" data-id="{{item.id}}">查看人员</button>
+        <button class="action-btn" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>
+        <button class="action-btn delete" size="mini" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">删除</button>
+      </view>
+    </view>
+  </view>
+</view>

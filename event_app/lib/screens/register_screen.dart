@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/activity.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   final Activity activity;
@@ -40,6 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         identityNumber: _idController.text.trim().isEmpty
             ? null
             : _idController.text.trim(),
+        accessToken: AuthService.instance.token,
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -65,12 +67,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: const Text('报名'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         child: Form(
           key: _formKey,
           child: Column(
@@ -79,7 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 widget.activity.activityName,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.grey[700],
+                      color: const Color(0xFF191919),
                     ),
               ),
               const SizedBox(height: 24),
@@ -88,8 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const InputDecoration(
                   labelText: '姓名 *',
                   hintText: '请输入姓名',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.person),
+                  prefixIcon: Icon(Icons.person_outline_rounded),
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return '请输入姓名';
@@ -103,8 +105,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const InputDecoration(
                   labelText: '手机号 *',
                   hintText: '请输入手机号',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.phone),
+                  prefixIcon: Icon(Icons.phone_outlined),
                 ),
                 keyboardType: TextInputType.phone,
                 validator: (v) {
@@ -119,8 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 decoration: const InputDecoration(
                   labelText: '证件号（选填）',
                   hintText: '身份证等',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.badge),
+                  prefixIcon: Icon(Icons.badge_outlined),
                 ),
                 textInputAction: TextInputAction.done,
               ),
@@ -129,18 +129,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
+                    color: const Color(0xFFFF3B30).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: const Color(0xFFFF3B30).withOpacity(0.3)),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red[700], size: 22),
+                      Icon(Icons.error_outline_rounded, color: Theme.of(context).colorScheme.error, size: 22),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _error!,
-                          style: TextStyle(color: Colors.red[800], fontSize: 14),
+                          style: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 14),
                         ),
                       ),
                     ],
@@ -152,13 +152,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 onPressed: _submitting ? null : _submit,
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  textStyle: const TextStyle(fontSize: 16),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 child: _submitting
                     ? const SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
                     : const Text('提交报名'),
               ),

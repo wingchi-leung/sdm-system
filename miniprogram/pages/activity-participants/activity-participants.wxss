@@ -1,0 +1,93 @@
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+.header {
+  padding: 20rpx;
+  background: #fff;
+  margin-bottom: 20rpx;
+  border-radius: 12rpx;
+}
+
+.total {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+}
+
+.participant-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.participant-item {
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.participant-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.participant-row.detail {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 4rpx;
+}
+
+.index {
+  width: 48rpx;
+  height: 48rpx;
+  background: #007AFF;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  margin-right: 16rpx;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.label {
+  color: #999;
+  margin-right: 8rpx;
+}
+
+.value {
+  color: #333;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  margin-top: 32rpx;
+  padding: 20rpx;
+}
+
+.page-btn {
+  padding: 0 32rpx;
+}
+
+.page-info {
+  font-size: 28rpx;
+  color: #666;
+}

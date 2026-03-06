@@ -15,6 +15,15 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    # 生产环境建议设为 True：仅允许通过 HTTPS 发起的登录请求，避免密码明文传输
+    REQUIRE_HTTPS_FOR_LOGIN: bool = False
+    # 登录限流：每个 IP 在此时间窗内最多允许的登录尝试次数
+    LOGIN_RATE_LIMIT_COUNT: int = 10
+    LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = 60
+
+    # 微信小程序：用于 code 换 openid（微信授权登录）
+    WECHAT_APPID: Optional[str] = None
+    WECHAT_SECRET: Optional[str] = None
 
     class Config:
         env_file = ".env"

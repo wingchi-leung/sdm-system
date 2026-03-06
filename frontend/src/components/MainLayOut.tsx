@@ -1,18 +1,21 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "../lib/utils"
 import { Button } from './ui/button';
-import {
-  LayoutDashboard,
-  ClipboardList,
-  BarChart,
-  User
-} from "lucide-react"
+import { LogIn, LogOut, ClipboardList, BarChart, User, Calendar } from "lucide-react";
+import { isAuthenticated, clearToken } from '../lib/auth';
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
-  
-  const menuItems = [
+  const navigate = useNavigate();
+  const authenticated = isAuthenticated();
+
+  const handleLogout = () => {
+    clearToken();
+    navigate('/login', { replace: true });
+  };
+
+const menuItems = [
     {
       href: '/signin',
       title: '活动签到',
@@ -24,6 +27,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       icon: BarChart
     },
     {
+      href: '/activities',
+      title: '活动管理',
+      icon: Calendar
+    },
+    {
       href: '/createactivity',
       title: '创建活动',
       icon: BarChart
@@ -31,7 +39,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     {
       href: '/users',
       title: '用户管理',
-      icon: User  // Add import from lucide-react
+      icon: User
     }
   ];
 
@@ -68,6 +76,31 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               </Link>
             );
           })}
+          <div className="pt-4 border-t mt-2">
+            {authenticated ? (
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-2 text-muted-foreground"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4" />
+                退出登录
+              </Button>
+            ) : (
+              <Link to="/login">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start gap-2",
+                    location.pathname === '/login' && "bg-gray-200"
+                  )}
+                >
+                  <LogIn className="h-4 w-4" />
+                  登录
+                </Button>
+              </Link>
+            )}
+          </div>
         </nav>
       </div>
 

@@ -92,6 +92,22 @@ build/
 *.mocks.dart
 .flutter-plugins
 .flutter-plugins-dependencies
+*.iml
+.metadata
+
+# Flutter 平台特定文件
+**/Generated.xcconfig
+**/flutter_export_environment.sh
+**/generated_plugin_registrant.*
+**/generated_plugins.cmake
+
+# Flutter 本地配置
+**/local.properties
+**/project.private.config.json
+
+# 微信小程序
+miniprogram_npm/
+miniprogram/log/
 
 # ========== 数据库与本地数据 ==========
 *.db

@@ -19,9 +19,14 @@ class CheckInResponse(CheckInBase):
     checkin_time: datetime
     create_time: datetime
     update_time: datetime
-    
+
     class Config:
         from_attributes = True
 
 
- 
+class CheckInRecordWithActivity(CheckInResponse):
+    """签到记录 + 活动名称，用于统计列表"""
+    activity_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True

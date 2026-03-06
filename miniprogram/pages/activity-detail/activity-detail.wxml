@@ -1,0 +1,27 @@
+<view class="page" wx:if="{{activity}}">
+  <view class="card info-card">
+    <view class="info-row">
+      <text class="label">状态</text>
+      <text class="value status {{activity.status === 1 ? 'status-not-started' : (activity.status === 2 ? 'status-ongoing' : 'status-ended')}}">{{activity.status_text}}</text>
+    </view>
+    <view class="info-row" wx:if="{{activity.start_display}}">
+      <text class="label">开始时间</text>
+      <text class="value">{{activity.start_display}}</text>
+    </view>
+    <view class="info-row" wx:if="{{activity.end_display}}">
+      <text class="label">结束时间</text>
+      <text class="value">{{activity.end_display}}</text>
+    </view>
+    <view class="info-row" wx:if="{{activity.tag}}">
+      <text class="label">标签</text>
+      <text class="value">{{activity.tag}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{canEnroll}}" class="btn-wrap">
+    <button class="btn-primary full" bindtap="goRegister">我要报名</button>
+  </view>
+  <view wx:else class="disabled-tip">
+    <text>活动已结束，无法报名</text>
+  </view>
+</view>

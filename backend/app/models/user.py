@@ -1,22 +1,74 @@
-from pydantic import BaseModel, Field, validator
+import re
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional
+
+
 class UserBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     identity_number: Optional[str] = Field(None, max_length=255)
     phone: Optional[str] = Field(None, max_length=255)
+    email: Optional[str] = Field(None, max_length=255)
     sex: Optional[str] = Field(None, max_length=2, pattern=r'^[MF]$')
     isblock: int = Field(0, ge=0, le=1, description="0-正常 1-拉黑")
     block_reason: Optional[str] = Field(None, max_length=255)
 
+
 class UserCreate(UserBase):
     pass
+
+
+class RegisterRequest(BaseModel):
+    """用户注册：姓名、手机、密码必填，邮箱选填"""
+    name: str = Field(..., min_length=1, max_length=255)
+    phone: str = Field(..., min_length=1, max_length=255)
+    password: str = Field(..., min_length=6, max_length=64)
+    email: Optional[str] = Field(None, max_length=255)
+
+    @field_validator('email')
+    @classmethod
+    def email_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or not v.strip():
+            return None
+        pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        if not re.match(pattern, v.strip()):
+            raise ValueError('邮箱格式不正确')
+        return v.strip()
+
+    @field_validator('phone')
+    @classmethod
+    def phone_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('手机号不能为空')
+        return v.strip()
+
+    @field_validator('name')
+    @classmethod
+    def name_non_empty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('姓名不能为空')
+        return v.strip()
+
+
+class UserLoginRequest(BaseModel):
+    """普通用户登录：手机 + 密码"""
+    phone: str = Field(..., min_length=1, max_length=255)
+    password: str = Field(..., min_length=1, max_length=64)
+
+
+class UserLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str = "user"
+    user_id: int
+    user_name: str
+
 
 class UserResponse(UserBase):
     id: int
     create_time: datetime
     update_time: datetime
-    
+
     class Config:
         from_attributes = True
 

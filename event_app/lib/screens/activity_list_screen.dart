@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import '../models/activity.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 import 'activity_detail_screen.dart';
 import 'create_activity_screen.dart';
 import 'login_screen.dart';
+import 'user_register_screen.dart';
 
+/// 管理员「查看活动」：全部活动列表（从「我的」进入）
 class ActivityListScreen extends StatefulWidget {
   const ActivityListScreen({super.key});
 
@@ -55,90 +58,100 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _auth,
-      builder: (context, _) {
-        final isAdmin = _auth.isAdmin;
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('活动报名'),
-            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-            actions: [
-              if (isAdmin)
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  tooltip: '发布活动',
-                  onPressed: () async {
-                    final ok = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => const CreateActivityScreen(),
-                      ),
-                    );
-                    if (ok == true) _load();
-                  },
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      appBar: AppBar(
+        title: const Text('活动列表'),
+        backgroundColor: AppTheme.surface,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline_rounded),
+            tooltip: '发布活动',
+            onPressed: () async {
+              final ok = await Navigator.of(context).push<bool>(
+                MaterialPageRoute(
+                  builder: (context) => const CreateActivityScreen(),
                 ),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: '刷新',
-                onPressed: _loading ? null : _load,
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
-                onSelected: (value) async {
-                  if (value == 'login') {
-                    final ok = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                    if (ok == true) setState(() {});
-                  } else if (value == 'logout') {
-                    await _auth.logout();
-                    setState(() {});
-                  }
-                },
-                itemBuilder: (context) => [
-                  if (isAdmin)
-                    const PopupMenuItem(value: 'logout', child: Text('退出')),
-                  if (!isAdmin)
-                    const PopupMenuItem(value: 'login', child: Text('未登录')),
-                ],
-              ),
+              );
+              if (ok == true && mounted) _load();
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: '刷新',
+            onPressed: _loading ? null : _load,
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded),
+            onSelected: (value) async {
+              if (value == 'logout') {
+                await _auth.logout();
+                if (mounted) setState(() {});
+              } else if (value == 'login') {
+                final ok = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                );
+                if (ok == true && mounted) setState(() {});
+              } else if (value == 'register') {
+                await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (context) => const UserRegisterScreen(),
+                  ),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              if (_auth.isAdmin)
+                const PopupMenuItem(value: 'logout', child: Text('退出登录')),
+              if (!_auth.isAdmin) ...[
+                const PopupMenuItem(value: 'login', child: Text('登录')),
+                const PopupMenuItem(value: 'register', child: Text('用户注册')),
+              ],
             ],
           ),
-          body: _buildBody(),
-        );
-      },
+        ],
+      ),
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: AppTheme.primary, strokeWidth: 2),
+      );
     }
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+              Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Theme.of(context).colorScheme.error,
+              ),
               const SizedBox(height: 16),
               Text(
                 '加载失败',
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
               Text(
                 _error!,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: _load,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh_rounded, size: 20),
                 label: const Text('重试'),
               ),
             ],
@@ -149,41 +162,43 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
     if (_activities.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.event_busy, size: 64, color: Colors.grey[400]),
-              const SizedBox(height: 16),
+              Icon(
+                Icons.event_busy_rounded,
+                size: 72,
+                color: AppTheme.textTertiary,
+              ),
+              const SizedBox(height: 20),
               Text(
                 '暂无活动',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.grey[600],
+                      color: AppTheme.textSecondary,
                     ),
               ),
               const SizedBox(height: 8),
               Text(
-                _auth.isAdmin ? '点击右上角 + 发布活动，或下拉刷新' : '下拉刷新',
+                '点击右上角 + 发布活动，或下拉刷新',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[500],
+                      color: AppTheme.textTertiary,
                     ),
                 textAlign: TextAlign.center,
               ),
-              if (_auth.isAdmin) ...[
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: () async {
-                    final ok = await Navigator.of(context).push<bool>(
-                      MaterialPageRoute(
-                        builder: (context) => const CreateActivityScreen(),
-                      ),
-                    );
-                    if (ok == true) _load();
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('发布活动'),
-                ),
-              ],
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () async {
+                  final ok = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) => const CreateActivityScreen(),
+                    ),
+                  );
+                  if (ok == true && mounted) _load();
+                },
+                icon: const Icon(Icons.add_rounded, size: 20),
+                label: const Text('发布活动'),
+              ),
             ],
           ),
         ),
@@ -191,73 +206,84 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
     }
     return RefreshIndicator(
       onRefresh: _load,
+      color: AppTheme.primary,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         itemCount: _activities.length,
         itemBuilder: (context, index) {
           final a = _activities[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12),
-            child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              title: Text(
-                a.activityName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
+          final statusColor = _statusColor(a.status);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Material(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.event_rounded, color: statusColor, size: 26),
                 ),
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (a.startTime != null)
-                      Text(
-                        '开始: ${_formatDate(a.startTime!)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
+                title: Text(
+                  a.activityName,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (a.startTime != null)
+                        Text(
+                          _formatDate(a.startTime!),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppTheme.textSecondary,
+                              ),
+                        ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          a.statusText,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: statusColor,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: _statusColor(a.status).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            a.statusText,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: _statusColor(a.status),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () async {
-                final needRefresh = await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(
-                    builder: (context) => ActivityDetailScreen(activity: a),
+                    ],
                   ),
-                );
-                if (needRefresh == true) _load();
-              },
+                ),
+                trailing: Icon(
+                  Icons.chevron_right_rounded,
+                  color: AppTheme.textTertiary,
+                  size: 22,
+                ),
+                onTap: () async {
+                  final needRefresh = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (context) => ActivityDetailScreen(activity: a),
+                    ),
+                  );
+                  if (needRefresh == true && mounted) _load();
+                },
+              ),
             ),
           );
         },
@@ -268,18 +294,17 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
   Color _statusColor(int status) {
     switch (status) {
       case 1:
-        return Colors.orange;
+        return AppTheme.statusNotStarted;
       case 2:
-        return Colors.green;
+        return AppTheme.statusOngoing;
       case 3:
-        return Colors.grey;
+        return AppTheme.statusEnded;
       default:
-        return Colors.grey;
+        return AppTheme.statusEnded;
     }
   }
 
   String _formatDate(DateTime d) {
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')} '
-        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    return '${d.month}月${d.day}日 ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
   }
 }

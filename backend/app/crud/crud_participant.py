@@ -6,6 +6,37 @@ from app.schemas import Activity, ActivityParticipant, CheckInRecord
 from fastapi import HTTPException
 from sqlalchemy import desc
 
+def get_activity_participants_with_count(
+    db: Session, 
+    activity_id: int, 
+    skip: int = 0, 
+    limit: int = 10
+) -> tuple:
+    """Get activity participants with total count"""
+    try:
+        activity = db.query(Activity).filter(Activity.id == activity_id).first()
+        if not activity:
+            raise HTTPException(status_code=404, detail="找不到活动！")
+            
+        query = db.query(ActivityParticipant)\
+            .filter(ActivityParticipant.activity_id == activity_id)
+            
+        total = query.count()
+        
+        participants = query\
+            .order_by(ActivityParticipant.create_time.desc())\
+            .offset(skip)\
+            .limit(limit)\
+            .all()
+            
+        return participants, total
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 def get_activity_participants(
     db: Session, 
     activity_id: int, 

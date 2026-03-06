@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'screens/activity_list_screen.dart';
+import 'theme/app_theme.dart';
+import 'screens/main_shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,11 +15,8 @@ class EventApp extends StatelessWidget {
     return MaterialApp(
       title: '活动报名',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-      ),
-      home: const ActivityListScreen(),
+      theme: AppTheme.light,
+      home: const MainShell(),
     );
   }
 }

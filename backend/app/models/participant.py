@@ -17,6 +17,13 @@ class ParticipantResponse(ParticipantBase):
     id: int
     participant_name: str = Field(...,  max_length=255)
     phone: str = Field(..., min_length=1, max_length=255)
-    identity_number: Optional[str] = Field(  max_length=255)    
+    create_time: datetime
+    update_time: datetime
+    
     class Config:
         from_attributes = True
+
+
+class ParticipantListResponse(BaseModel):
+    items: List[ParticipantResponse]
+    total: int

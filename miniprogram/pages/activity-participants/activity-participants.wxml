@@ -1,0 +1,36 @@
+<view class="container">
+  <view class="header">
+    <text class="total">共 {{total}} 人报名</text>
+  </view>
+
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+  
+  <view wx:elif="{{participants.length === 0}}" class="empty">暂无报名人员</view>
+  
+  <view wx:else class="participant-list">
+    <view wx:for="{{participants}}" wx:key="id" class="participant-item">
+      <view class="participant-row">
+        <text class="index">{{currentPage * pageSize + index + 1}}</text>
+        <text class="name">{{item.participant_name}}</text>
+      </view>
+      <view class="participant-row detail">
+        <text class="label">电话：</text>
+        <text class="value">{{item.phone || '-'}}</text>
+      </view>
+      <view class="participant-row detail">
+        <text class="label">身份证：</text>
+        <text class="value">{{item.identity_number || '-'}}</text>
+      </view>
+      <view class="participant-row detail">
+        <text class="label">报名时间：</text>
+        <text class="value">{{item.create_time}}</text>
+      </view>
+    </view>
+
+    <view class="pagination">
+      <button class="page-btn" size="mini" bindtap="onPrevPage" disabled="{{currentPage === 0}}">上一页</button>
+      <text class="page-info">第 {{currentPage + 1}} 页</text>
+      <button class="page-btn" size="mini" bindtap="onNextPage" disabled="{{currentPage >= Math.ceil(total / pageSize) - 1}}">下一页</button>
+    </view>
+  </view>
+</view>

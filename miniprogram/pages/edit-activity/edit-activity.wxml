@@ -1,0 +1,34 @@
+<view class="container">
+  <view class="form">
+    <view class="form-item">
+      <text class="label">活动名称 *</text>
+      <input class="input" value="{{activityName}}" bindinput="onNameInput" placeholder="请输入活动名称" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">活动类型</text>
+      <input class="input" value="{{activityTypeName}}" bindinput="onTypeNameInput" placeholder="请输入活动类型" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">开始时间 *</text>
+      <picker mode="multiSelector" range="{{[years, months, days, hours, minutes]}}" value="{{[yearIndex, monthIndex, dayIndex, hourIndex, minuteIndex]}}" bindchange="onStartTimeChange">
+        <view class="picker">{{startTime || '请选择开始时间'}}</view>
+      </picker>
+    </view>
+
+    <view class="form-item">
+      <text class="label">结束时间</text>
+      <input class="input" type="text" value="{{endTime}}" bindinput="onEndTimeChange" placeholder="YYYY-MM-DDTHH:mm" />
+    </view>
+
+    <view class="form-item">
+      <text class="label">标签</text>
+      <input class="input" value="{{tag}}" bindinput="onTagInput" placeholder="请输入标签" />
+    </view>
+
+    <button class="submit-btn" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '提交中...' : '保存修改'}}
+    </button>
+  </view>
+</view>
