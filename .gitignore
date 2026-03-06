@@ -107,6 +107,8 @@ event_app/test/
 # 微信小程序
 miniprogram_npm/
 miniprogram/log/
+**/project.private.config.json
+**/project.private.config.json
 
 # ========== 数据库与本地数据 ==========
 *.db
