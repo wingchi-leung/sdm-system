@@ -4,33 +4,33 @@ from datetime import datetime
 from typing import List, Optional
 from fastapi import HTTPException
 from app.models.activity import ActivityCreate, ActivityUpdate
-from app.schemas import Activity
-from app.schemas import ActivityParticipant, CheckInRecord
+from app.schemas import Activity, ActivityParticipant, CheckInRecord
 from app.crud import crud_activity_type
 
 
-def _resolve_activity_type_id(db: Session, activity: ActivityCreate) -> Optional[int]:
+def _resolve_activity_type_id(db: Session, activity: ActivityCreate, tenant_id: int) -> Optional[int]:
     """从 activity_type_id 或 activity_type_name 解析出 activity_type_id"""
     if activity.activity_type_id is not None:
-        t = crud_activity_type.get_by_id(db, activity.activity_type_id)
-        if t:
+        t = crud_activity_type.get_by_id(db, activity.activity_type_id, tenant_id)
+        if t and t.tenant_id == tenant_id:
             return t.id
     name = (activity.activity_type_name or "").strip()
     if name:
-        t = crud_activity_type.get_or_create_by_name(db, name)
+        t = crud_activity_type.get_or_create_by_name(db, name, tenant_id)
         return t.id
     return None
 
 
-def create_activity(db: Session, activity: ActivityCreate) -> Activity:
-    """Create a new activity record with participants"""
+def create_activity(db: Session, activity: ActivityCreate, tenant_id: int) -> Activity:
+    """创建活动（租户隔离）"""
     try:
         participants = activity.participants or []
-        activity_type_id = _resolve_activity_type_id(db, activity)
+        activity_type_id = _resolve_activity_type_id(db, activity, tenant_id)
 
         activity_dict = activity.model_dump(exclude={"participants", "activity_type_name"})
         activity_dict["activity_type_id"] = activity_type_id
-        activity_dict["status"] = 1  # 1-未开始 2-进行中 3-已结束
+        activity_dict["tenant_id"] = tenant_id
+        activity_dict["status"] = 1
         activity_dict["create_time"] = datetime.now()
         activity_dict["update_time"] = datetime.now()
         if activity_dict.get("tag") is None:
@@ -42,6 +42,7 @@ def create_activity(db: Session, activity: ActivityCreate) -> Activity:
 
         for participant in participants:
             participant_dict = {
+                "tenant_id": tenant_id,
                 "activity_id": db_activity.id,
                 "participant_name": participant.participant_name,
                 "identity_number": participant.identity_number or "",
@@ -61,27 +62,25 @@ def create_activity(db: Session, activity: ActivityCreate) -> Activity:
         raise HTTPException(status_code=400, detail=str(e))
 
 
-
-
-def get_activity(db: Session, activity_id: int) -> Optional[Activity]:
-    """Get a single activity by id"""
-    return db.query(Activity).filter(Activity.id == activity_id).first()
+def get_activity(db: Session, activity_id: int, tenant_id: int) -> Optional[Activity]:
+    """获取单个活动（租户隔离）"""
+    return db.query(Activity).filter(
+        Activity.id == activity_id,
+        Activity.tenant_id == tenant_id
+    ).first()
 
 
 def get_activities(
     db: Session,
+    tenant_id: int,
     skip: int = 0,
     limit: int = 10,
     status: Optional[int] = None,
     allowed_activity_type_ids: Optional[List[int]] = None,
 ) -> tuple:
-    """
-    Get list of activities with optional filtering and pagination.
-    allowed_activity_type_ids: 若为 None 表示不按类型过滤；若为 [] 表示超级管理员也不过滤；
-    若为非空列表则仅返回 activity_type_id 在该列表中的活动（活动管理员可见范围）。
-    """
+    """获取活动列表（租户隔离）"""
     try:
-        query = db.query(Activity)
+        query = db.query(Activity).filter(Activity.tenant_id == tenant_id)
         if status is not None:
             query = query.filter(Activity.status == status)
         if allowed_activity_type_ids is not None and len(allowed_activity_type_ids) > 0:
@@ -96,21 +95,21 @@ def get_activities(
 def update_activity_status(
     db: Session,
     activity_id: int,
-    status: int
+    status: int,
+    tenant_id: int,
 ) -> Activity:
-    """Update activity status and handle automatic status transitions"""
+    """更新活动状态（租户隔离）"""
     try:
-        db_activity = get_activity(db, activity_id)
+        db_activity = get_activity(db, activity_id, tenant_id)
         if not db_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
         
         current_time = datetime.now()
         
-        # Automatic status transitions based on time
-        if status == 2:  # Starting activity
+        if status == 2:
             if current_time < db_activity.start_time:
                 raise HTTPException(status_code=400, detail="Cannot start activity before start time")
-        elif status == 3:  # Ending activity
+        elif status == 3:
             db_activity.end_time = current_time
             
         db_activity.status = status
@@ -127,24 +126,23 @@ def update_activity_status(
 def update_activity(
     db: Session,
     activity_id: int,
-    activity_update: ActivityUpdate
+    activity_update: ActivityUpdate,
+    tenant_id: int,
 ) -> Activity:
-    """Update activity information"""
+    """更新活动信息（租户隔离）"""
     try:
-        db_activity = get_activity(db, activity_id)
+        db_activity = get_activity(db, activity_id, tenant_id)
         if not db_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
         
         update_data = activity_update.model_dump(exclude_unset=True)
         
-        # Handle activity_type_name to activity_type_id conversion
         if "activity_type_name" in update_data:
             type_name = update_data.pop("activity_type_name")
             if type_name:
-                t = crud_activity_type.get_or_create_by_name(db, type_name.strip())
+                t = crud_activity_type.get_or_create_by_name(db, type_name.strip(), tenant_id)
                 update_data["activity_type_id"] = t.id
         
-        # Update fields
         for field, value in update_data.items():
             if value is not None:
                 setattr(db_activity, field, value)
@@ -160,24 +158,23 @@ def update_activity(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def delete_activity(db: Session, activity_id: int) -> bool:
-    """Delete an activity and its related participants"""
+def delete_activity(db: Session, activity_id: int, tenant_id: int) -> bool:
+    """删除活动（租户隔离）"""
     try:
-        db_activity = get_activity(db, activity_id)
+        db_activity = get_activity(db, activity_id, tenant_id)
         if not db_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
         
-        # Delete related participants first
         db.query(ActivityParticipant).filter(
-            ActivityParticipant.activity_id == activity_id
+            ActivityParticipant.activity_id == activity_id,
+            ActivityParticipant.tenant_id == tenant_id
         ).delete()
         
-        # Delete related check-in records
         db.query(CheckInRecord).filter(
-            CheckInRecord.activity_id == activity_id
+            CheckInRecord.activity_id == activity_id,
+            CheckInRecord.tenant_id == tenant_id
         ).delete()
         
-        # Delete the activity
         db.delete(db_activity)
         db.commit()
         return True

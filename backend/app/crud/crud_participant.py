@@ -6,20 +6,27 @@ from app.schemas import Activity, ActivityParticipant, CheckInRecord
 from fastapi import HTTPException
 from sqlalchemy import desc
 
+
 def get_activity_participants_with_count(
-    db: Session, 
-    activity_id: int, 
-    skip: int = 0, 
+    db: Session,
+    activity_id: int,
+    tenant_id: int,
+    skip: int = 0,
     limit: int = 10
 ) -> tuple:
-    """Get activity participants with total count"""
+    """获取活动参与人（租户隔离）"""
     try:
-        activity = db.query(Activity).filter(Activity.id == activity_id).first()
+        activity = db.query(Activity).filter(
+            Activity.id == activity_id,
+            Activity.tenant_id == tenant_id
+        ).first()
         if not activity:
             raise HTTPException(status_code=404, detail="找不到活动！")
             
-        query = db.query(ActivityParticipant)\
-            .filter(ActivityParticipant.activity_id == activity_id)
+        query = db.query(ActivityParticipant).filter(
+            ActivityParticipant.activity_id == activity_id,
+            ActivityParticipant.tenant_id == tenant_id
+        )
             
         total = query.count()
         
@@ -38,33 +45,35 @@ def get_activity_participants_with_count(
 
 
 def get_activity_participants(
-    db: Session, 
-    activity_id: int, 
-    skip: int = 0, 
+    db: Session,
+    activity_id: int,
+    tenant_id: int,
+    skip: int = 0,
     limit: int = 10
 ) -> List[ParticipantResponse]:
-
+    """获取活动参与人列表（租户隔离）"""
     try:
-        # First verify the activity exists
-        activity = db.query(Activity).filter(Activity.id == activity_id).first()
+        activity = db.query(Activity).filter(
+            Activity.id == activity_id,
+            Activity.tenant_id == tenant_id
+        ).first()
         if not activity:
             raise HTTPException(status_code=404, detail="找不到活动！")
             
-        # Base query for participants
-        query = db.query(ActivityParticipant)\
-            .filter(ActivityParticipant.activity_id == activity_id)
+        query = db.query(ActivityParticipant).filter(
+            ActivityParticipant.activity_id == activity_id,
+            ActivityParticipant.tenant_id == tenant_id
+        )
             
-        # Get total count
         total = query.count()
         
-        # Get paginated results
         participants = query\
             .order_by(ActivityParticipant.create_time.desc())\
             .offset(skip)\
             .limit(limit)\
             .all()
             
-        return participants   
+        return participants
         
     except HTTPException:
         raise
@@ -72,21 +81,25 @@ def get_activity_participants(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-def create_participant(db: Session, participant: ParticipantCreate) -> ActivityParticipant:
+def create_participant(db: Session, participant: ParticipantCreate, tenant_id: int) -> ActivityParticipant:
+    """创建参与人（租户隔离）"""
     try:
-        # Verify activity exists
-        activity = db.query(Activity).filter(Activity.id == participant.activity_id).first()
+        activity = db.query(Activity).filter(
+            Activity.id == participant.activity_id,
+            Activity.tenant_id == tenant_id
+        ).first()
         if not activity:
             raise HTTPException(status_code=404, detail="Activity not found")
             
-        # Check for duplicate participant
         existing_participant = check_participant_exists(
-            db, participant.activity_id, participant.identity_number
+            db, participant.activity_id, participant.identity_number, tenant_id
         )
         if existing_participant:
             raise HTTPException(status_code=400, detail="Already registered")
-            
-        db_participant = ActivityParticipant(**participant.model_dump())
+        
+        participant_data = participant.model_dump()
+        participant_data["tenant_id"] = tenant_id
+        db_participant = ActivityParticipant(**participant_data)
         db.add(db_participant)
         db.commit()
         db.refresh(db_participant)
@@ -97,18 +110,26 @@ def create_participant(db: Session, participant: ParticipantCreate) -> ActivityP
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-def get_activity_statistics(db: Session, activity_id: int) -> dict:
-    """Get comprehensive activity statistics"""
+
+def get_activity_statistics(db: Session, activity_id: int, tenant_id: int) -> dict:
+    """获取活动统计（租户隔离）"""
     try:
-        activity = db.query(Activity).filter(Activity.id == activity_id).first()
+        activity = db.query(Activity).filter(
+            Activity.id == activity_id,
+            Activity.tenant_id == tenant_id
+        ).first()
         if not activity:
             raise HTTPException(status_code=404, detail="Activity not found")
             
-        total_participants = db.query(ActivityParticipant)\
-            .filter(ActivityParticipant.activity_id == activity_id).count()
+        total_participants = db.query(ActivityParticipant).filter(
+            ActivityParticipant.activity_id == activity_id,
+            ActivityParticipant.tenant_id == tenant_id
+        ).count()
         
-        total_checkins = db.query(CheckInRecord)\
-            .filter(CheckInRecord.activity_id == activity_id).count()
+        total_checkins = db.query(CheckInRecord).filter(
+            CheckInRecord.activity_id == activity_id,
+            CheckInRecord.tenant_id == tenant_id
+        ).count()
         
         current_time = datetime.now()
         is_active = activity.status == 2 and (
@@ -131,24 +152,12 @@ def get_activity_statistics(db: Session, activity_id: int) -> dict:
         raise HTTPException(status_code=500, detail=str(e))
 
 
-
-# Add this function to crud_participant.py
-def check_participant_exists(db: Session, activity_id: int, identity_number: str) -> bool:
-    """
-    Check if a participant is already registered for an activity
-    
-    Args:
-        db: Database session
-        activity_id: ID of the activity
-        identity_number: Participant's identity number
-        
-    Returns:
-        bool: True if participant exists, False otherwise
-    """
-    existing_participant = db.query(ActivityParticipant)\
-        .filter(
-            ActivityParticipant.activity_id == activity_id,
-            ActivityParticipant.identity_number == identity_number
-        ).first()
+def check_participant_exists(db: Session, activity_id: int, identity_number: str, tenant_id: int) -> bool:
+    """检查参与人是否存在（租户隔离）"""
+    existing_participant = db.query(ActivityParticipant).filter(
+        ActivityParticipant.activity_id == activity_id,
+        ActivityParticipant.identity_number == identity_number,
+        ActivityParticipant.tenant_id == tenant_id
+    ).first()
         
     return existing_participant is not None

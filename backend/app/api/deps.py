@@ -24,92 +24,117 @@ def _parse_token(credentials: HTTPAuthorizationCredentials | None) -> dict | Non
     return decode_access_token(credentials.credentials)
 
 
-def get_current_admin(
+class TenantContext:
+    """租户上下文"""
+    def __init__(self, user_id: int, role: str, tenant_id: int):
+        self.user_id = user_id
+        self.role = role
+        self.tenant_id = tenant_id
+
+
+def get_tenant_context(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
-) -> int:
-    """校验管理员 JWT，返回 admin_user.id"""
+) -> TenantContext:
+    """解析 JWT，返回租户上下文"""
     payload = _parse_token(credentials)
-    if not payload or payload.get("role") != "admin":
+    if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    
+    role = payload.get("role")
+    if role not in ("admin", "user"):
+        raise HTTPException(status_code=401, detail="无效的登录状态")
+    
     try:
-        return int(payload["sub"])
+        user_id = int(payload["sub"])
+        tenant_id = int(payload["tenant_id"])
     except (KeyError, ValueError):
+        raise HTTPException(status_code=401, detail="无效的登录状态")
+    
+    return TenantContext(user_id=user_id, role=role, tenant_id=tenant_id)
+
+
+def get_current_admin(
+    ctx: TenantContext = Depends(get_tenant_context),
+) -> TenantContext:
+    """仅管理员可访问"""
+    if ctx.role != "admin":
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    return ctx
 
 
 def get_current_admin_optional(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
-) -> int | None:
-    """可选管理员鉴权：有 token 且为 admin 则返回 admin_id，否则 None（用于列表按权限过滤）"""
+) -> TenantContext | None:
+    """可选管理员鉴权"""
     payload = _parse_token(credentials)
     if not payload or payload.get("role") != "admin":
         return None
     try:
-        return int(payload["sub"])
+        user_id = int(payload["sub"])
+        tenant_id = int(payload["tenant_id"])
+        return TenantContext(user_id=user_id, role="admin", tenant_id=tenant_id)
+    except (KeyError, ValueError):
+        return None
+
+
+def get_current_user(
+    ctx: TenantContext = Depends(get_tenant_context),
+) -> TenantContext:
+    """任意已登录用户可访问"""
+    return ctx
+
+
+def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+) -> TenantContext | None:
+    """可选鉴权"""
+    payload = _parse_token(credentials)
+    if not payload:
+        return None
+    role = payload.get("role")
+    if role not in ("admin", "user"):
+        return None
+    try:
+        user_id = int(payload["sub"])
+        tenant_id = int(payload["tenant_id"])
+        return TenantContext(user_id=user_id, role=role, tenant_id=tenant_id)
     except (KeyError, ValueError):
         return None
 
 
 def get_admin_scope(
     db: Session = Depends(get_db),
-    admin_id: int = Depends(get_current_admin),
+    ctx: TenantContext = Depends(get_current_admin),
 ) -> dict:
-    """
-    依赖：需已为管理员。返回 {"admin_id": int, "is_super": bool, "allowed_activity_type_ids": list[int]}。
-    用于活动创建时的类型校验与列表过滤。
-    """
-    is_super, allowed_ids = crud_admin.get_admin_scope(db, admin_id)
-    return {"admin_id": admin_id, "is_super": is_super, "allowed_activity_type_ids": allowed_ids}
+    """返回管理员权限范围"""
+    is_super, allowed_ids = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    return {
+        "admin_id": ctx.user_id,
+        "is_super": is_super,
+        "allowed_activity_type_ids": allowed_ids,
+        "tenant_id": ctx.tenant_id
+    }
 
 
 def require_activity_admin(
     activity_id: int,
     db: Session = Depends(get_db),
-    admin_id: int = Depends(get_current_admin),
+    ctx: TenantContext = Depends(get_current_admin),
 ) -> int:
-    """
-    依赖：当前管理员必须有该活动的管理权限（超级管理员或该活动所属类型在授权范围内）。
-    返回 activity_id；无权限则 403。
-    """
-    activity = crud_activity.get_activity(db, activity_id)
+    """校验活动管理权限"""
+    activity = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
-    is_super, allowed_ids = crud_admin.get_admin_scope(db, admin_id)
+    
+    if activity.tenant_id != ctx.tenant_id:
+        raise HTTPException(status_code=403, detail="无该活动的访问权限")
+    
+    is_super, allowed_ids = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
     if is_super:
         return activity_id
+    
     atid = getattr(activity, "activity_type_id", None)
     if atid is not None and atid in allowed_ids:
         return activity_id
+    
     raise HTTPException(status_code=403, detail="无该活动的管理权限")
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-) -> dict:
-    """校验任意角色的 JWT，返回 {"id": int, "role": str}"""
-    payload = _parse_token(credentials)
-    if not payload:
-        raise HTTPException(status_code=401, detail="未登录或登录已过期")
-    role = payload.get("role")
-    if role not in ("admin", "user"):
-        raise HTTPException(status_code=401, detail="未登录或登录已过期")
-    try:
-        return {"id": int(payload["sub"]), "role": role}
-    except (KeyError, ValueError):
-        raise HTTPException(status_code=401, detail="未登录或登录已过期")
-
-
-def get_current_user_optional(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-) -> dict | None:
-    """可选鉴权：有 token 则解析，无 token 返回 None（用于不强制登录的接口）"""
-    payload = _parse_token(credentials)
-    if not payload:
-        return None
-    role = payload.get("role")
-    if role not in ("admin", "user"):
-        return None
-    try:
-        return {"id": int(payload["sub"]), "role": role}
-    except (KeyError, ValueError):
-        return None
