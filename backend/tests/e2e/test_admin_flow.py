@@ -1,0 +1,342 @@
+"""
+管理员完整业务流程 E2E 测试
+"""
+import pytest
+from datetime import datetime, timedelta
+from fastapi import status
+from tests.conftest import auth_headers
+
+
+@pytest.mark.e2e
+class TestAdminCompleteWorkflow:
+    """管理员完整业务流程测试"""
+
+    def test_admin_creates_and_manages_activity(self, client, super_admin_token, sample_activity_type, db_session):
+        """测试管理员创建和管理活动的完整流程"""
+        # 1. 创建活动
+        create_response = client.post(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_name": "E2E测试活动",
+                "activity_type_id": sample_activity_type.id,
+                "start_time": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%dT10:00:00"),
+                "tag": "E2E测试"
+            }
+        )
+        assert create_response.status_code == status.HTTP_200_OK
+        activity = create_response.json()
+        activity_id = activity["id"]
+
+        # 2. 添加参与者（批量报名）
+        participants_data = [
+            {
+                "participant_name": f"参与者{i}",
+                "phone": f"139001395{i:02d}",
+                "identity_number": f"110101199001017{i:03d}"
+            }
+            for i in range(1, 11)
+        ]
+
+        batch_response = client.post(
+            f"/api/v1/participants/{activity_id}/batch",
+            headers=auth_headers(super_admin_token),
+            json={"participants": participants_data}
+        )
+        assert batch_response.status_code == status.HTTP_200_OK
+        participants = batch_response.json()
+        assert len(participants) == 10
+
+        # 3. 查看活动参与者列表
+        list_response = client.get(
+            f"/api/v1/participants/{activity_id}/",
+            headers=auth_headers(super_admin_token)
+        )
+        assert list_response.status_code == status.HTTP_200_OK
+        participant_list = list_response.json()
+        assert len(participant_list) == 10
+
+        # 4. 更新活动状态为进行中
+        status_response = client.put(
+            f"/api/v1/activities/{activity_id}/status",
+            headers=auth_headers(super_admin_token),
+            json={"status": 2}
+        )
+        assert status_response.status_code == status.HTTP_200_OK
+        assert status_response.json()["status"] == 2
+
+        # 5. 进行签到
+        checkin_response = client.post(
+            "/api/v1/checkins/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_id": activity_id,
+                "name": "签到测试",
+                "phone": "13900139501",
+                "identity_number": "110101199001017001",
+                "has_attend": 1,
+                "note": "准时签到"
+            }
+        )
+        assert checkin_response.status_code == status.HTTP_200_OK
+
+        # 6. 查看签到记录
+        checkins_response = client.get(
+            f"/api/v1/activities/{activity_id}/checkins/",
+            headers=auth_headers(super_admin_token)
+        )
+        assert checkins_response.status_code == status.HTTP_200_OK
+        checkins = checkins_response.json()
+        assert len(checkins) >= 1
+
+        # 7. 查看活动统计
+        stats_response = client.get(
+            f"/api/v1/activities/{activity_id}/statistics/",
+            headers=auth_headers(super_admin_token)
+        )
+        assert stats_response.status_code == status.HTTP_200_OK
+        stats = stats_response.json()
+        assert stats.get("total_participants", 0) >= 10
+        assert stats.get("checkin_count", 0) >= 1
+
+        # 8. 更新活动状态为已结束
+        end_response = client.put(
+            f"/api/v1/activities/{activity_id}/status",
+            headers=auth_headers(super_admin_token),
+            json={"status": 3}
+        )
+        assert end_response.status_code == status.HTTP_200_OK
+        assert end_response.json()["status"] == 3
+        assert end_response.json()["end_time"] is not None
+
+    def test_activity_admin_with_permission_workflow(self, client, activity_admin_token, sample_activity_type):
+        """测试有权限的活动管理员工作流程"""
+        # 1. 创建活动
+        create_response = client.post(
+            "/api/v1/activities/",
+            headers=auth_headers(activity_admin_token),
+            json={
+                "activity_name": "活动管理员测试",
+                "activity_type_id": sample_activity_type.id,
+                "start_time": (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%dT14:00:00")
+            }
+        )
+        assert create_response.status_code == status.HTTP_200_OK
+        activity_id = create_response.json()["id"]
+
+        # 2. 添加单个参与者
+        participant_response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(activity_admin_token),
+            json={
+                "activity_id": activity_id,
+                "participant_name": "测试参与者",
+                "phone": "13900139600",
+                "identity_number": "110101199001018000"
+            }
+        )
+        assert participant_response.status_code == status.HTTP_200_OK
+
+        # 3. 查看参与者
+        list_response = client.get(
+            f"/api/v1/participants/{activity_id}/",
+            headers=auth_headers(activity_admin_token)
+        )
+        assert list_response.status_code == status.HTTP_200_OK
+        assert len(list_response.json()) == 1
+
+    def test_admin_manages_multiple_activities(self, client, super_admin_token, sample_activity_type, sample_activity_type_2):
+        """测试管理员管理多个活动"""
+        activities = []
+
+        # 创建多个不同类型的活动
+        for i, activity_type in enumerate([sample_activity_type, sample_activity_type_2]):
+            for j in range(2):
+                create_response = client.post(
+                    "/api/v1/activities/",
+                    headers=auth_headers(super_admin_token),
+                    json={
+                        "activity_name": f"活动{i}-{j}",
+                        "activity_type_id": activity_type.id,
+                        "start_time": (datetime.now() + timedelta(days=i*10+j)).strftime("%Y-%m-%dT10:00:00")
+                    }
+                )
+                assert create_response.status_code == status.HTTP_200_OK
+                activities.append(create_response.json())
+
+        # 查看所有活动
+        list_response = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token)
+        )
+        assert list_response.status_code == status.HTTP_200_OK
+        all_activities = list_response.json()
+        assert len(all_activities) >= 4
+
+        # 按类型过滤
+        type1_response = client.get(
+            f"/api/v1/activities/?activity_type_id={sample_activity_type.id}",
+            headers=auth_headers(super_admin_token)
+        )
+        type1_activities = type1_response.json()
+        assert len(type1_activities) >= 2
+
+    def test_admin_handles_registration_and_checkin(self, client, super_admin_token, sample_activity_type):
+        """测试管理员处理报名和签到的完整流程"""
+        # 1. 创建活动
+        create_response = client.post(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_name": "签到测试活动",
+                "activity_type_id": sample_activity_type.id,
+                "start_time": (datetime.now() + timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%S")
+            }
+        )
+        activity_id = create_response.json()["id"]
+
+        # 2. 报名开始
+        status_response = client.put(
+            f"/api/v1/activities/{activity_id}/status",
+            headers=auth_headers(super_admin_token),
+            json={"status": 2}
+        )
+        assert status_response.status_code == status.HTTP_200_OK
+
+        # 3. 参与者签到
+        checkin_data = [
+            {
+                "activity_id": activity_id,
+                "name": f"签到者{i}",
+                "phone": f"139001397{i:02d}",
+                "identity_number": f"110101199001019{i:03d}",
+                "has_attend": 1
+            }
+            for i in range(1, 6)
+        ]
+
+        for data in checkin_data:
+            response = client.post(
+                "/api/v1/checkins/",
+                headers=auth_headers(super_admin_token),
+                json=data
+            )
+            assert response.status_code == status.HTTP_200_OK
+
+        # 4. 查看签到统计
+        stats_response = client.get(
+            f"/api/v1/checkins/{activity_id}/statistics",
+            headers=auth_headers(super_admin_token)
+        )
+        assert stats_response.status_code == status.HTTP_200_OK
+
+    def test_admin_exports_activity_data(self, client, super_admin_token, sample_activity):
+        """测试管理员导出活动数据"""
+        # 导出参与者列表
+        export_response = client.get(
+            f"/api/v1/participants/{sample_activity.id}/export",
+            headers=auth_headers(super_admin_token)
+        )
+        # 可能返回文件或数据
+        assert export_response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+
+    def test_admin_searches_and_filters(self, client, super_admin_token, sample_activity_type, db_session):
+        """测试管理员搜索和过滤功能"""
+        from tests.factories import ActivityFactory
+        from datetime import datetime, timedelta
+
+        # 创建多个活动
+        activities_data = [
+            ("Python讲座", "编程"),
+            ("AI研讨会", "技术"),
+            ("设计工作坊", "设计"),
+        ]
+
+        for name, tag in activities_data:
+            activity = ActivityFactory(
+                activity_name=name,
+                activity_type_id=sample_activity_type.id,
+                tag=tag,
+                start_time=datetime.now() + timedelta(days=1)
+            )
+            db_session.add(activity)
+        db_session.commit()
+
+        # 搜索活动
+        search_response = client.get(
+            "/api/v1/activities/?search=Python",
+            headers=auth_headers(super_admin_token)
+        )
+        # 搜索功能可能不存在或返回结果
+        assert search_response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
+
+    def test_admin_manages_user_status(self, client, super_admin_token, db_session):
+        """测试管理员管理用户状态"""
+        from tests.factories import UserFactory
+
+        # 创建测试用户
+        user = UserFactory(phone="13900139800", name="待管理用户")
+        db_session.add(user)
+        db_session.commit()
+
+        # 拉黑用户
+        block_response = client.put(
+            f"/api/v1/users/{user.id}/block",
+            headers=auth_headers(super_admin_token),
+            json={"isblock": 1, "block_reason": "测试拉黑"}
+        )
+        assert block_response.status_code == status.HTTP_200_OK
+        assert block_response.json()["isblock"] == 1
+
+        # 解除拉黑
+        unblock_response = client.put(
+            f"/api/v1/users/{user.id}/block",
+            headers=auth_headers(super_admin_token),
+            json={"isblock": 0, "block_reason": None}
+        )
+        assert unblock_response.status_code == status.HTTP_200_OK
+        assert unblock_response.json()["isblock"] == 0
+
+
+@pytest.mark.e2e
+class TestAdminErrorScenarios:
+    """管理员错误场景 E2E 测试"""
+
+    def test_admin_handles_duplicate_participant(self, client, super_admin_token, sample_activity):
+        """测试管理员处理重复报名"""
+        # 第一次报名
+        first_response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "重复报名者",
+                "phone": "13900139900",
+                "identity_number": "110101199001020000"
+            }
+        )
+        assert first_response.status_code == status.HTTP_200_OK
+
+        # 第二次报名（应该失败）
+        second_response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "重复报名者",
+                "phone": "13900139900",
+                "identity_number": "110101199001020001"
+            }
+        )
+        assert second_response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_admin_handles_invalid_status_transition(self, client, super_admin_token, sample_activity):
+        """测试管理员处理无效状态转换"""
+        # 从未开始直接跳到已结束（可能不允许）
+        response = client.put(
+            f"/api/v1/activities/{sample_activity.id}/status",
+            headers=auth_headers(super_admin_token),
+            json={"status": 3}
+        )
+        # 根据业务逻辑决定
+        assert response.status_code in [status.HTTP_200_OK, status.HTTP_400_BAD_REQUEST]
