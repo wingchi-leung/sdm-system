@@ -91,19 +91,24 @@ export const apiRequest = async <T>(
 /** 管理员登录（不附带 Token），成功返回 access_token */
 export const loginApi = async (
   username: string,
-  password: string
-): Promise<ApiResponse<{ access_token: string }>> => {
+  password: string,
+  tenantCode: string = 'default'
+): Promise<ApiResponse<{ access_token: string; tenant_id: number; tenant_name: string }>> => {
   try {
     const response = await fetch(API_PATHS.auth.login, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, tenant_code: tenantCode }),
     });
     const data = await response.json();
     if (!response.ok) {
       return { error: data.detail || '登录失败' };
     }
-    return { data: { access_token: data.access_token } };
+    return { data: { 
+      access_token: data.access_token,
+      tenant_id: data.tenant_id,
+      tenant_name: data.tenant_name
+    } };
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : '网络错误',

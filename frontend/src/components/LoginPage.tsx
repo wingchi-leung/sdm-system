@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { loginApi, isUnsafeApiUrl } from '../config/api';
-import { setToken, isAuthenticated } from '../lib/auth';
+import { setToken, setTenantId, setTenantName, isAuthenticated } from '../lib/auth';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -37,8 +37,19 @@ const LoginPage = () => {
       setError(res.error);
       return;
     }
-    if (res.data?.access_token) {
+if (res.data?.access_token) {
       setToken(res.data.access_token);
+      if (res.data.tenant_id) {
+        setTenantId(res.data.tenant_id);
+      }
+      if (res.data.tenant_name) {
+        setTenantName(res.data.tenant_name);
+      }
+      navigate(redirectTo, { replace: true });
+    }
+      if (res.data.tenant_name) {
+        setTenantName(res.data.tenant_name);
+      }
       navigate(redirectTo, { replace: true });
     }
   };

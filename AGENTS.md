@@ -18,7 +18,9 @@ SDM System是一个包含后端，web前端，flutter，小程序的一个管理
 
 # 开发者准则 (Sole Developer Mode)
 
-1. **唯一事实来源**: backend/app/schemas 是所有终端的数据标准。
+1. **模型分层规范**:
+   - `backend/app/schemas.py`: SQLAlchemy ORM 数据库模型（唯一事实来源）
+   - `backend/app/models/`: Pydantic 模型（API 请求/响应数据传输对象）
 2. **测试先行**: 修改业务逻辑必须伴随测试用例。
 3. **静默失败禁令**: 任何异步调用必须有 try-catch 和用户友好的提示。
 4. **代码风格**: 
