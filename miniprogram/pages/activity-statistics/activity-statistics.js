@@ -28,8 +28,13 @@ Page({
   async loadStatistics() {
     try {
       const statistics = await api.getActivityStatistics(this.data.activityId);
+      // 计算签到率
+      const checkinRate = statistics.total_participants > 0
+        ? (statistics.total_checkins / statistics.total_participants * 100).toFixed(1)
+        : '0.0';
       this.setData({
         statistics: statistics,
+        checkinRate: checkinRate,
         loading: false,
       });
     } catch (err) {

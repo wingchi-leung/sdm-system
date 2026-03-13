@@ -26,9 +26,7 @@
         <view class="stat-divider"></view>
         <view class="stat-item">
           <text class="stat-label">签到率</text>
-          <text class="stat-value highlight">
-            {{statistics.total_participants > 0 ? (statistics.total_checkins / statistics.total_participants * 100).toFixed(1) : 0}}%
-          </text>
+          <text class="stat-value highlight">{{checkinRate}}%</text>
         </view>
       </view>
     </view>
