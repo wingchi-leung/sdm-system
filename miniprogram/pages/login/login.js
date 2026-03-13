@@ -11,8 +11,55 @@ Page({
     unsafeTip: false,
   },
 
+  // 快速点击计数
+  gateTapCount: 0,
+  gateTapTimer: null,
+
   onLoad() {
     this.setData({ unsafeTip: api.isUnsafeBaseUrl() });
+  },
+
+  /**
+   * 图标点击：快速点击3次进入管理员模式
+   */
+  onGateIconTap() {
+    this.gateTapCount++;
+    // 清除之前的定时器
+    if (this.gateTapTimer) {
+      clearTimeout(this.gateTapTimer);
+    }
+    // 1秒后重置计数
+    this.gateTapTimer = setTimeout(() => {
+      this.gateTapCount = 0;
+    }, 1000);
+
+    // 达到3次点击
+    if (this.gateTapCount === 3) {
+      this.gateTapCount = 0;
+      if (this.gateTapTimer) {
+        clearTimeout(this.gateTapTimer);
+        this.gateTapTimer = null;
+      }
+      wx.vibrateShort({ type: 'light' });
+      this.setData({
+        isAdminMode: true,
+        account: '',
+        password: '',
+        error: null,
+      });
+    }
+  },
+
+  /**
+   * 退出管理员模式
+   */
+  exitAdminMode() {
+    this.setData({
+      isAdminMode: false,
+      account: '',
+      password: '',
+      error: null,
+    });
   },
 
   toggleMode() {

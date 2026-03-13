@@ -15,6 +15,12 @@
   margin-bottom: var(--space-lg);
 }
 
+.gate-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: var(--space-md);
+}
+
 .title {
   font-size: 40rpx;
   font-weight: 700;
@@ -129,6 +135,17 @@
 .link {
   color: var(--primary);
   font-weight: 500;
+}
+
+/* 切换链接 */
+.toggle-row {
+  margin-top: var(--space-lg);
+  text-align: center;
+}
+
+.toggle-link {
+  font-size: 28rpx;
+  color: var(--text-secondary);
 }
 
 /* 角色切换 */
