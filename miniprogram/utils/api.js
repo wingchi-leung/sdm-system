@@ -351,6 +351,39 @@ function getUserDetail(userId) {
   });
 }
 
+/** 绑定用户信息 */
+function bindUserInfo(bindInfo) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/bind-info`,
+      method: 'PUT',
+      header: getHeader(true),
+      data: bindInfo,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 检查绑定状态 */
+function checkBindStatus() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/check-bind-status`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   getToken,
@@ -373,5 +406,7 @@ module.exports = {
   getActivityCheckins,
   getActivityStatistics,
   getUserDetail,
+  bindUserInfo,
+  checkBindStatus,
   ApiError,
 };

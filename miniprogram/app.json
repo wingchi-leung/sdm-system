@@ -1,10 +1,9 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/bind-user-info/bind-user-info",
     "pages/activity-detail/activity-detail",
-    "pages/register/register",
     "pages/login/login",
-    "pages/user-register/user-register",
     "pages/mine/mine",
     "pages/create-activity/create-activity",
     "pages/activity-list/activity-list",

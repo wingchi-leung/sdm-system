@@ -13,7 +13,7 @@ from app.api import deps
 from app.core.config import settings
 from app.crud import crud_admin, crud_user, crud_tenant
 from app.core.security import create_access_token, BCRYPT_MAX_BYTES
-from app.models.user import UserLoginRequest, UserLoginResponse
+from app.models.user import UserLoginRequest, UserLoginResponse, WechatLoginResponse
 from app.schemas import ActivityType
 
 logger = logging.getLogger(__name__)
@@ -207,7 +207,7 @@ def _wechat_code2session(code: str) -> dict:
     return data
 
 
-@router.post("/wechat-login", response_model=UserLoginResponse)
+@router.post("/wechat-login", response_model=WechatLoginResponse)
 def wechat_login(
     request: Request,
     body: WeChatLoginRequest,
@@ -218,22 +218,28 @@ def wechat_login(
     code = (body.code or "").strip()
     if not code:
         raise HTTPException(status_code=400, detail="缺少 code")
-    
+
     data = _wechat_code2session(code)
     openid = data["openid"]
-    
+
     tenant = crud_tenant.get_tenant_by_code(db, body.tenant_code)
     if not tenant or tenant.status != 1:
         raise HTTPException(status_code=400, detail="租户不存在或已禁用")
-    
+
     user = crud_user.get_or_create_user_wechat(db, openid, tenant.id, nickname=None)
     if user.isblock == 1:
         reason = user.block_reason or "账号已被禁用"
         raise HTTPException(status_code=403, detail=f"账号已被拉黑：{reason}")
-    
+
     token = create_access_token(sub=str(user.id), role="user", tenant_id=tenant.id)
-    return UserLoginResponse(
+
+    # 判断是否首次登录（检查关键信息是否完整）
+    is_first_login = crud_user.is_user_profile_incomplete(db, user.id, tenant.id)
+
+    return WechatLoginResponse(
         access_token=token,
         user_id=user.id,
         user_name=user.name or "微信用户",
+        is_first_login=is_first_login,
+        require_bind_info=is_first_login,
     )

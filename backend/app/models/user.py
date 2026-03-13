@@ -84,3 +84,52 @@ class UserList(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class WechatLoginResponse(BaseModel):
+    """微信登录响应"""
+    access_token: str
+    token_type: str = "bearer"
+    role: str = "user"
+    user_id: int
+    user_name: str
+    is_first_login: bool = False
+    require_bind_info: bool = False
+
+
+class UserBindInfoRequest(BaseModel):
+    """用户信息绑定请求"""
+    name: str = Field(..., min_length=1, max_length=255)
+    sex: str = Field(..., pattern=r'^(male|female|other)$')
+    age: int = Field(..., ge=0, le=150)
+    occupation: str = Field(..., min_length=1, max_length=100)
+    phone: str = Field(..., min_length=11, max_length=11)
+    email: Optional[str] = Field(None, max_length=255)
+    industry: str = Field(..., min_length=1, max_length=100)
+    identity_number: Optional[str] = Field(None, max_length=255)
+    identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+
+    @field_validator('email')
+    @classmethod
+    def email_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or not v.strip():
+            return None
+        pattern = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+        if not re.match(pattern, v.strip()):
+            raise ValueError('邮箱格式不正确')
+        return v.strip()
+
+    @field_validator('phone')
+    @classmethod
+    def phone_format(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError('手机号不能为空')
+        if not re.match(r'^1[3-9]\d{9}$', v.strip()):
+            raise ValueError('手机号格式不正确')
+        return v.strip()
+
+
+class UserBindInfoResponse(BaseModel):
+    """用户信息绑定响应"""
+    success: bool
+    message: str = ""

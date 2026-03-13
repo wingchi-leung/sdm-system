@@ -140,3 +140,44 @@ def authenticate_user(db: Session, phone: str, password: str, tenant_id: int) ->
     if not verify_password(password, user.password_hash):
         return None
     return user
+
+
+def is_user_profile_incomplete(db: Session, user_id: int, tenant_id: int) -> bool:
+    """检查用户信息是否不完整"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        return True
+    # 检查关键信息是否缺失
+    if not user.name or user.name == "微信用户":
+        return True
+    if not user.sex:
+        return True
+    if not user.phone or user.phone.startswith("wx_"):
+        return True
+    return False
+
+
+def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: dict) -> User:
+    """更新用户绑定信息"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    # 检查手机号是否被其他用户占用
+    if bind_info.get("phone"):
+        existing = db.query(User).filter(
+            User.phone == bind_info["phone"],
+            User.id != user_id,
+            User.tenant_id == tenant_id
+        ).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="该手机号已被使用")
+
+    # 更新字段
+    for field in ["name", "sex", "age", "occupation", "phone", "email", "industry", "identity_number", "identity_type"]:
+        if field in bind_info and bind_info[field] is not None:
+            setattr(user, field, bind_info[field])
+
+    db.commit()
+    db.refresh(user)
+    return user
