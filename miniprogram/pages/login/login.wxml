@@ -1,7 +1,7 @@
 <view class="page">
   <view class="header">
-    <image class="gate-icon" src="/assets/icons/gate_welcome.svg" />
-    <text class="title">欢迎</text>
+    <image class="gate-icon" src="/assets/icons/gate_welcome.svg" bindtap="onGateIconTap" />
+    <text class="title">{{isAdminMode ? '管理员登录' : '欢迎'}}</text>
   </view>
 
   <view class="unsafe-tip" wx:if="{{unsafeTip}}">
@@ -13,8 +13,29 @@
       <text class="error-text">{{error}}</text>
     </view>
 
-    <button class="btn-wechat" disabled="{{submitting}}" bindtap="wechatLogin">
-      <text>微信一键登录</text>
-    </button>
+    <!-- 管理员登录表单 -->
+    <block wx:if="{{isAdminMode}}">
+      <view class="field">
+        <text class="field-label required">用户名</text>
+        <input class="input" type="text" placeholder="请输入用户名" value="{{account}}" bindinput="onAccountInput" />
+      </view>
+      <view class="field">
+        <text class="field-label required">密码</text>
+        <input class="input" type="password" placeholder="请输入密码" value="{{password}}" bindinput="onPasswordInput" />
+      </view>
+      <button class="btn-primary submit-btn" disabled="{{submitting}}" bindtap="submit">
+        {{submitting ? '登录中...' : '登录'}}
+      </button>
+      <view class="toggle-row">
+        <text class="toggle-link" bindtap="exitAdminMode">返回微信登录</text>
+      </view>
+    </block>
+
+    <!-- 微信登录 -->
+    <block wx:else>
+      <button class="btn-wechat" disabled="{{submitting}}" bindtap="wechatLogin">
+        <text>微信一键登录</text>
+      </button>
+    </block>
   </view>
 </view>
