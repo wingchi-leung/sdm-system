@@ -18,9 +18,10 @@
 
 .activity-item {
   background: #fff;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   padding: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+  transition: all 0.2s;
 }
 
 .activity-header {
@@ -34,11 +35,30 @@
   font-size: 32rpx;
   font-weight: 600;
   color: #333;
+  flex: 1;
 }
 
 .activity-status {
-  font-size: 24rpx;
+  font-size: 22rpx;
   font-weight: 500;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  flex-shrink: 0;
+}
+
+.activity-status.status-1 {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.activity-status.status-2 {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.activity-status.status-3 {
+  background: #dbeafe;
+  color: #2563eb;
 }
 
 .activity-info {
@@ -49,22 +69,37 @@
 
 .info-label {
   color: #999;
+  margin-right: 8rpx;
 }
 
 .activity-actions {
-  display: flex;
-  gap: 16rpx;
   margin-top: 16rpx;
   padding-top: 16rpx;
-  border-top: 1rpx solid #eee;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.action-row {
+  display: flex;
+  gap: 12rpx;
 }
 
 .action-btn {
   flex: 1;
   font-size: 26rpx;
+  border-radius: 8rpx;
+  padding: 12rpx 20rpx;
+  height: auto;
+  line-height: 1.4;
+}
+
+.action-btn.edit {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1rpx solid #e5e7eb;
 }
 
 .action-btn.delete {
-  color: #ef4444;
-  border-color: #ef4444;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1rpx solid #fecaca;
 }

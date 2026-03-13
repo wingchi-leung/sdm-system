@@ -3,10 +3,17 @@ const auth = require('../../utils/auth');
 
 Page({
   data: {
+    activityId: null,
     activity: null,
     canEnroll: false,
+    isAdmin: false,
     loading: true,
     error: null,
+    statusOptions: [
+      { value: 1, label: '未开始' },
+      { value: 2, label: '进行中' },
+      { value: 3, label: '已结束' },
+    ],
   },
 
   onLoad(options) {
@@ -18,6 +25,10 @@ Page({
       return;
     }
 
+    this.setData({
+      activityId: activityId,
+      isAdmin: auth.isAdmin(),
+    });
     this.loadActivity(activityId);
   },
 
@@ -77,5 +88,47 @@ Page({
     if (prev && prev.route === 'pages/index/index' && prev.load) {
       prev.load();
     }
+  },
+
+  // 管理员功能
+  onViewParticipants() {
+    wx.navigateTo({ url: `/pages/activity-participants/activity-participants?id=${this.data.activityId}` });
+  },
+
+  onViewCheckins() {
+    const name = encodeURIComponent(this.data.activity.activity_name);
+    wx.navigateTo({ url: `/pages/activity-checkins/activity-checkins?id=${this.data.activityId}&name=${name}` });
+  },
+
+  onViewStatistics() {
+    const name = encodeURIComponent(this.data.activity.activity_name);
+    wx.navigateTo({ url: `/pages/activity-statistics/activity-statistics?id=${this.data.activityId}&name=${name}` });
+  },
+
+  onChangeStatus() {
+    const currentStatus = this.data.activity.status;
+    const items = this.data.statusOptions.map(s => s.label);
+
+    wx.showActionSheet({
+      itemList: items,
+      success: async (res) => {
+        const newStatus = this.data.statusOptions[res.tapIndex].value;
+        if (newStatus === currentStatus) {
+          wx.showToast({ title: '当前已是该状态', icon: 'none' });
+          return;
+        }
+        try {
+          await api.updateActivityStatus(this.data.activityId, newStatus);
+          wx.showToast({ title: '状态更新成功', icon: 'success' });
+          this.loadActivity(this.data.activityId);
+        } catch (err) {
+          wx.showToast({ title: err.message || '更新失败', icon: 'none' });
+        }
+      },
+    });
+  },
+
+  onEditActivity() {
+    wx.navigateTo({ url: `/pages/edit-activity/edit-activity?id=${this.data.activityId}` });
   },
 });

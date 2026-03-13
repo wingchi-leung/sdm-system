@@ -4,7 +4,7 @@ from app.core.security import verify_password
 from typing import List
 
 
-def get_admin_by_username(db: Session, username: str, tenant_id: int) -> AdminUser | None:
+def get_admin_by_username(db: Session, username: str, tenant_id: int =1 ) -> AdminUser | None:
     """根据用户名获取管理员（租户隔离）"""
     return db.query(AdminUser).filter(
         AdminUser.username == username,

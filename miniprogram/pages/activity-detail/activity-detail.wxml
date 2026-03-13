@@ -15,6 +15,10 @@
   <view wx:elif="{{activity}}">
     <view class="info-card">
       <view class="info-row">
+        <text class="label">活动名称</text>
+        <text class="value">{{activity.activity_name}}</text>
+      </view>
+      <view class="info-row">
         <text class="label">状态</text>
         <text class="value status {{activity.status === 1 ? 'status-not-started' : (activity.status === 2 ? 'status-ongoing' : 'status-ended')}}">{{activity.status_text}}</text>
       </view>
@@ -30,13 +34,47 @@
         <text class="label">标签</text>
         <text class="value">{{activity.tag}}</text>
       </view>
+      <view class="info-row" wx:if="{{activity.activity_type_name}}">
+        <text class="label">活动类型</text>
+        <text class="value">{{activity.activity_type_name}}</text>
+      </view>
     </view>
 
-    <view wx:if="{{canEnroll}}" class="btn-wrap">
-      <button class="btn-primary full" bindtap="goRegister">我要报名</button>
+    <!-- 管理员面板 -->
+    <view wx:if="{{isAdmin}}" class="admin-panel">
+      <view class="panel-title">管理功能</view>
+      <view class="admin-actions">
+        <view class="admin-action-item" bindtap="onViewParticipants">
+          <view class="action-icon">👥</view>
+          <text class="action-text">查看人员</text>
+        </view>
+        <view class="admin-action-item" bindtap="onViewCheckins">
+          <view class="action-icon">✓</view>
+          <text class="action-text">签到记录</text>
+        </view>
+        <view class="admin-action-item" bindtap="onViewStatistics">
+          <view class="action-icon">📊</view>
+          <text class="action-text">报名统计</text>
+        </view>
+        <view class="admin-action-item" bindtap="onChangeStatus">
+          <view class="action-icon">🔄</view>
+          <text class="action-text">更改状态</text>
+        </view>
+        <view class="admin-action-item" bindtap="onEditActivity">
+          <view class="action-icon">✏️</view>
+          <text class="action-text">编辑活动</text>
+        </view>
+      </view>
     </view>
-    <view wx:else class="disabled-tip">
-      <text>活动已结束，无法报名</text>
+
+    <!-- 普通用户报名按钮 -->
+    <view wx:if="{{!isAdmin}}">
+      <view wx:if="{{canEnroll}}" class="btn-wrap">
+        <button class="btn-primary full" bindtap="goRegister">我要报名</button>
+      </view>
+      <view wx:else class="disabled-tip">
+        <text>活动已结束，无法报名</text>
+      </view>
     </view>
   </view>
 </view>

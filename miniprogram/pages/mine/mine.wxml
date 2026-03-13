@@ -54,9 +54,7 @@
       </view>
       <view class="profile-info">
         <text class="name">{{adminProfile.levelText || '管理员'}}</text>
-        <text class="subtitle" wx:if="{{adminProfile && adminProfile.isSuper}}">拥有全部活动与管理权限</text>
-        <text class="subtitle" wx:elif="{{adminProfile && adminProfile.typeNamesText}}">已授权类型：{{adminProfile.typeNamesText}}</text>
-        <text class="subtitle" wx:else>当前未绑定活动类型权限</text>
+        <text class="subtitle" wx:if="{{adminProfile && adminProfile.typeNamesText}}">已授权类型：{{adminProfile.typeNamesText}}</text>
       </view>
     </view>
 <view class="card section">

@@ -4,10 +4,10 @@
   <view wx:elif="{{activities.length === 0}}" class="empty">暂无活动</view>
 
   <view wx:else class="activity-list">
-    <view wx:for="{{activities}}" wx:key="id" class="activity-item">
+    <view wx:for="{{activities}}" wx:key="id" class="activity-item" bindtap="onViewDetail" data-id="{{item.id}}">
       <view class="activity-header">
         <text class="activity-name">{{item.activity_name}}</text>
-        <text class="activity-status" style="color: {{item.status === 1 ? '#9B9B9B' : item.status === 2 ? '#27AE60' : '#355CC2'}}">
+        <text class="activity-status status-{{item.status}}">
           {{item.status === 1 ? '未开始' : item.status === 2 ? '进行中' : '已结束'}}
         </text>
       </view>
@@ -22,13 +22,11 @@
         <text class="info-value">{{item.tag}}</text>
       </view>
 
-      <view wx:if="{{isAdmin}}" class="activity-actions">
-        <button class="action-btn" size="mini" bindtap="onViewParticipants" data-id="{{item.id}}">查看人员</button>
-        <button class="action-btn" size="mini" bindtap="onViewCheckins" data-id="{{item.id}}" data-name="{{item.activity_name}}">签到记录</button>
-        <button class="action-btn" size="mini" bindtap="onViewStatistics" data-id="{{item.id}}" data-name="{{item.activity_name}}">报名统计</button>
-        <button class="action-btn" size="mini" bindtap="onChangeStatus" data-id="{{item.id}}" data-status="{{item.status}}" data-name="{{item.activity_name}}">更改状态</button>
-        <button class="action-btn" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>
-        <button class="action-btn delete" size="mini" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">删除</button>
+      <view wx:if="{{isAdmin}}" class="activity-actions" catchtap="stopPropagation">
+        <view class="action-row">
+          <button class="action-btn edit" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>
+          <button class="action-btn delete" size="mini" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">删除</button>
+        </view>
       </view>
     </view>
   </view>
