@@ -218,7 +218,7 @@ class _GuestMineContent extends StatelessWidget {
                   );
                 },
                 icon: const Icon(Icons.login_rounded, size: 20),
-                label: const Text('登录 / 注册'),
+                label: const Text('登录'),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
                 ),

@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const auth = require('../../utils/auth');
 
 Page({
   data: {
@@ -29,6 +30,28 @@ Page({
     identityTypeIndex: 0,
     submitting: false,
     error: null,
+  },
+
+  onLoad() {
+    // 记录进入绑定页面的时间
+    this._enterTime = Date.now();
+  },
+
+  onUnload() {
+    // 如果用户没有完成绑定就退出，清除登录状态
+    if (!this._hasSubmitted) {
+      auth.logout();
+      wx.removeStorageSync('require_bind_info');
+
+      // 延迟显示提示（因为页面正在卸载）
+      setTimeout(() => {
+        wx.showToast({
+          title: '请完成信息绑定',
+          icon: 'none',
+          duration: 2000
+        });
+      }, 100);
+    }
   },
 
   // 表单输入处理
@@ -111,6 +134,7 @@ Page({
 
     api.bindUserInfo(submitData)
       .then(() => {
+        this._hasSubmitted = true;
         wx.removeStorageSync('require_bind_info');
         wx.showToast({ title: '绑定成功', icon: 'success' });
         setTimeout(() => {
