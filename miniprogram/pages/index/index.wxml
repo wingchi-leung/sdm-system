@@ -29,8 +29,8 @@
       bindtap="goDetail"
     >
       <view class="activity-icon">
-        <text class="icon-date">{{date_day || '--'}}</text>
-        <text class="icon-month">{{date_month || '未知'}}</text>
+        <text class="icon-date">{{item.date_day || '--'}}</text>
+        <text class="icon-month">{{item.date_month || '未知'}}</text>
       </view>
       <view class="activity-body">
         <text class="activity-name">{{item.activity_name}}</text>
