@@ -8,9 +8,9 @@
 
 page {
   /* 主色调 - 蓝色 */
-  --primary: #355CC2;
-  --primary-dark: #2A4A9E;
-  --primary-light: rgba(53, 92, 194, 0.1);
+  --primary: #4988FC;
+  --primary-dark: #3A6FE8;
+  --primary-light: rgba(73, 136, 252, 0.1);
 
   /* 背景色 */
   --background: #FAFAF8;
