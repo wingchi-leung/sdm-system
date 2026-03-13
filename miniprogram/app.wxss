@@ -7,10 +7,10 @@
  */
 
 page {
-  /* 主色调 - 陶土橙 */
-  --primary: #FF6B35;
-  --primary-dark: #E85A2A;
-  --primary-light: rgba(255, 107, 53, 0.1);
+  /* 主色调 - 蓝色 */
+  --primary: #355CC2;
+  --primary-dark: #2A4A9E;
+  --primary-light: rgba(53, 92, 194, 0.1);
 
   /* 背景色 */
   --background: #FAFAF8;
