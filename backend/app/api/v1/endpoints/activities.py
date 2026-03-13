@@ -84,6 +84,20 @@ def get_unstarted_activities(
     return {"items": activities, "total": total}
 
 
+@router.get("/{activity_id}", response_model=activity.ActivityResponse)
+def get_activity(
+    activity_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext | None = Depends(deps.get_current_admin_optional),
+):
+    """获取活动详情"""
+    tenant_id = ctx.tenant_id if ctx else 1
+    act = crud_activity.get_activity(db, activity_id, tenant_id)
+    if act is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+    return act
+
+
 @router.put("/{activity_id}/status")
 def update_activity_status(
     activity_id: int,
