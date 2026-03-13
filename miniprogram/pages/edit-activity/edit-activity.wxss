@@ -1,46 +1,88 @@
 .container {
-  padding: 20rpx;
-  background: #f5f5f5;
+  padding: 24rpx;
+  background: #f7f8fa;
   min-height: 100vh;
 }
 
 .form {
   background: #fff;
-  border-radius: 12rpx;
-  padding: 24rpx;
+  border-radius: 20rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 
 .form-item {
-  margin-bottom: 32rpx;
+  margin-bottom: 36rpx;
+}
+
+.form-item:last-child {
+  margin-bottom: 0;
 }
 
 .label {
   display: block;
   font-size: 28rpx;
-  color: #333;
-  margin-bottom: 12rpx;
+  color: #1f2937;
+  margin-bottom: 16rpx;
+  font-weight: 500;
 }
 
 .input {
   width: 100%;
-  padding: 20rpx;
-  border: 1rpx solid #ddd;
-  border-radius: 8rpx;
+  padding: 24rpx 20rpx;
+  background: #f9fafb;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 12rpx;
   font-size: 28rpx;
+  color: #1f2937;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: #9ca3af;
 }
 
 .picker {
-  padding: 20rpx;
-  border: 1rpx solid #ddd;
-  border-radius: 8rpx;
+  padding: 24rpx 20rpx;
+  background: #f9fafb;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 12rpx;
   font-size: 28rpx;
-  color: #333;
+  color: #1f2937;
+  transition: all 0.2s;
+}
+
+.picker:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
 }
 
 .submit-btn {
   width: 100%;
-  margin-top: 40rpx;
-  background: #007AFF;
+  margin-top: 48rpx;
+  padding: 28rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #fff;
-  border-radius: 8rpx;
+  border-radius: 14rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  transition: all 0.3s;
+}
+
+.submit-btn::after {
+  border: none;
+}
+
+.submit-btn:active {
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+}
+
+.submit-btn[disabled] {
+  background: #e5e7eb;
+  color: #9ca3af;
+  box-shadow: none;
 }
