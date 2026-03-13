@@ -23,12 +23,12 @@ page {
   --text-tertiary: #9B9B9B;
 
   /* 状态色 */
-  --status-not-started: #27AE60;
-  --status-not-started-bg: rgba(39, 174, 96, 0.1);
-  --status-ongoing: #FF6B35;
-  --status-ongoing-bg: rgba(255, 107, 53, 0.1);
-  --status-ended: #9B9B9B;
-  --status-ended-bg: rgba(155, 155, 155, 0.08);
+  --status-not-started: #9B9B9B;
+  --status-not-started-bg: rgba(155, 155, 155, 0.1);
+  --status-ongoing: #27AE60;
+  --status-ongoing-bg: rgba(39, 174, 96, 0.1);
+  --status-ended: #355CC2;
+  --status-ended-bg: rgba(53, 92, 194, 0.1);
 
   /* 语义色 */
   --error: #E74C3C;

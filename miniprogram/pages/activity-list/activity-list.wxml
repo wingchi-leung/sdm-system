@@ -7,7 +7,7 @@
     <view wx:for="{{activities}}" wx:key="id" class="activity-item">
       <view class="activity-header">
         <text class="activity-name">{{item.activity_name}}</text>
-        <text class="activity-status" style="color: {{item.status === 1 ? '#3b82f6' : item.status === 2 ? '#10b981' : '#6b7280'}}">
+        <text class="activity-status" style="color: {{item.status === 1 ? '#9B9B9B' : item.status === 2 ? '#27AE60' : '#355CC2'}}">
           {{item.status === 1 ? '未开始' : item.status === 2 ? '进行中' : '已结束'}}
         </text>
       </view>
