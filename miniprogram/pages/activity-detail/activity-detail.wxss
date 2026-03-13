@@ -1,17 +1,42 @@
+/**
+ * 活动详情页 - Linear风格设计
+ */
 .page {
   min-height: 100vh;
-  padding: 32rpx;
+  padding: @space-lg);
+  padding-bottom: @space-2xl);
   background: var(--background);
 }
 
+/* ====== Linear风格信息卡片 ====== */
 .info-card {
-  margin-bottom: 32rpx;
+  margin-bottom: @space-2xl);
+  background: var(--background-card);
+  border-radius: 24rpx;
+  padding: @space-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: @space-lg);
+  margin-bottom: @space-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.info-card-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.4rpx;
 }
 
 .info-row {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 28rpx;
+  margin-bottom: @space-lg);
 }
 
 .info-row:last-child {
@@ -19,42 +44,119 @@
 }
 
 .label {
-  width: 152rpx;
+  width: 160rpx;
   flex-shrink: 0;
   font-size: 28rpx;
   color: var(--text-secondary);
+  font-weight: 500;
+  padding-top: 4rpx;
 }
 
 .value {
   flex: 1;
   font-size: 28rpx;
   color: var(--text-primary);
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .value.status {
-  font-weight: 500;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
 }
 
-.status-not-started { color: var(--status-not-started); }
-.status-ongoing { color: var(--status-ongoing); }
-.status-ended { color: var(--status-ended); }
+/* ====== Linear风格状态显示 ====== */
+.status-not-started {
+  color: var(--status-not-started);
+}
 
+.status-ongoing {
+  color: var(--status-ongoing);
+}
+
+.status-ended {
+  color: var(--status-ended);
+}
+
+/* ====== Linear风格按钮区域 ====== */
 .btn-wrap {
-  margin-top: 24rpx;
+  margin-top: @space-lg);
+  position: sticky;
+  bottom: 0;
+  background: var(--background);
+  padding: @space-lg);
+  margin: 0 -@space-lg);
+  border-top: 1px solid var(--border);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
 }
 
 .full {
   width: 100%;
-  padding: 32rpx;
+  padding: @space-lg);
   font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
 }
 
 .disabled-tip {
-  margin-top: 24rpx;
-  padding: 32rpx;
-  background: rgba(0,0,0,0.04);
+  margin-top: @space-lg);
+  padding: @space-lg);
+  background: var(--background-input);
   border-radius: 16rpx;
   text-align: center;
   font-size: 28rpx;
   color: var(--text-secondary);
+  border: 1px solid var(--border);
+  line-height: 1.6;
+}
+
+/* ====== Linear风格描述文本 ====== */
+.description {
+  background: var(--background-card);
+  border-radius: 24rpx;
+  padding: @space-xl);
+  margin-bottom: @space-2xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.description-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: @space-md);
+  letter-spacing: 0.5rpx;
+  text-transform: uppercase;
+}
+
+.description-content {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  line-height: 1.8;
+  font-weight: 400;
+}
+
+/* ====== Linear风格操作按钮组 ====== */
+.action-buttons {
+  display: flex;
+  gap: @space-md);
+  margin-top: @space-lg);
+}
+
+.action-buttons .btn-primary,
+.action-buttons .btn-secondary {
+  flex: 1;
+}
+
+/* ====== Linear风格标签展示 ====== */
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: @space-sm);
+}
+
+.tags-row .tag {
+  margin: 0;
 }

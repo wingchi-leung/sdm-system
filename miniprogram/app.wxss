@@ -1,61 +1,264 @@
-/** 全局样式 - 参考 Flutter 主题与现代 UI */
+/**
+ * 全局样式系统 - Linear风格设计
+ * 特点：深色模式友好、微妙渐变、玻璃态效果、精致阴影
+ */
 page {
-  --primary: #007AFF;
-  --primary-light: rgba(0, 122, 255, 0.12);
-  --background: #f5f5f7;
-  --surface: #ffffff;
-  --text-primary: #191919;
-  --text-secondary: #8e8e93;
-  --text-tertiary: #c7c7cc;
-  --status-not-started: #34c759;
-  --status-ongoing: #007AFF;
-  --status-ended: #8e8e93;
-  --error: #ff3b30;
-  --error-bg: rgba(255, 59, 48, 0.08);
-  --warning-bg: rgba(255, 149, 0, 0.1);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  /* 主色调 - Linear风格的去饱和蓝 */
+  --primary: #5E6AD2;
+  --primary-hover: #4E5BC2;
+  --primary-light: rgba(94, 106, 210, 0.08);
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #5E6AD2 100%);
+
+  /* 背景色系 */
+  --background: #0F1014;           /* 深色背景 - Linear核心 */
+  --background-elevated: #16171C;  /* 悬浮元素背景 */
+  --background-card: #1C1D24;      /* 卡片背景 */
+  --background-input: #252630;     /* 输入框背景 */
+
+  /* 文字色系 */
+  --text-primary: #F5F5F7;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+  --text-muted: #52525B;
+
+  /* 状态色 - 柔和版本 */
+  --status-not-started: #22C55E;
+  --status-not-started-bg: rgba(34, 197, 94, 0.1);
+  --status-ongoing: #5E6AD2;
+  --status-ongoing-bg: rgba(94, 106, 210, 0.1);
+  --status-ended: #71717A;
+  --status-ended-bg: rgba(113, 113, 122, 0.1);
+
+  /* 语义色 */
+  --error: #EF4444;
+  --error-bg: rgba(239, 68, 68, 0.1);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, 0.1);
+  --success: #22C55E;
+  --success-bg: rgba(34, 197, 94, 0.1);
+  --info: #3B82F6;
+  --info-bg: rgba(59, 130, 246, 0.1);
+
+  /* 边框和分隔线 */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.03);
+  --divider: rgba(255, 255, 255, 0.05);
+
+  /* 阴影系统 - Linear风格的微妙阴影 */
+  --shadow-sm: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8rpx 24rpx rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 16rpx 48rpx rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 40rpx rgba(94, 106, 210, 0.15);
+
+  /* 模糊效果 */
+  --blur-sm: blur(20rpx);
+  --blur-md: blur(40rpx);
+  --blur-lg: blur(60rpx);
+
+  /* 字体系统 - Inter优先 */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   background-color: var(--background);
-  font-size: 16px;
+  font-size: 28rpx;
   color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* 间距系统 - 8px基准 */
+@space-xs: 8rpx;
+@space-sm: 16rpx;
+@space-md: 24rpx;
+@space-lg: 32rpx;
+@space-xl: 48rpx;
+@space-2xl: 64rpx;
 
 .container {
   box-sizing: border-box;
   min-height: 100vh;
-  padding: 0 32rpx;
+  padding: 0 @space-lg;
 }
 
-/* 卡片 */
+/* ====== Linear风格卡片系统 ====== */
 .card {
-  background: var(--surface);
-  border-radius: 24rpx;
-  padding: 32rpx;
-  margin-bottom: 24rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+  background: var(--background-card);
+  border-radius: 20rpx;
+  padding: @space-lg;
+  margin-bottom: @space-md;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 主按钮 */
+.card-elevated {
+  background: var(--background-card);
+  border-radius: 24rpx;
+  padding: @space-xl;
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  border: 1px solid var(--border);
+}
+
+.card-glass {
+  background: rgba(28, 29, 36, 0.6);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  border-radius: 20rpx;
+  padding: @space-lg;
+  border: 1px solid var(--border);
+}
+
+/* ====== Linear风格按钮系统 ====== */
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary-gradient);
   color: #fff;
-  border-radius: 16rpx;
+  border-radius: 14rpx;
   font-weight: 600;
   border: none;
+  padding: 28rpx @space-xl;
+  font-size: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(94, 106, 210, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  opacity: 0;
+  transition: opacity 0.2s;
 }
 
 .btn-primary:active {
   opacity: 0.9;
+  transform: scale(0.98);
 }
 
-/* 状态标签 */
+.btn-primary:active::before {
+  opacity: 1;
+}
+
+/* 次要按钮 */
+.btn-secondary {
+  background: var(--background-input);
+  color: var(--text-primary);
+  border-radius: 14rpx;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  padding: 24rpx @space-lg);
+  font-size: 28rpx;
+  transition: all 0.2s;
+}
+
+.btn-secondary:active {
+  background: var(--background-elevated);
+  border-color: var(--primary);
+}
+
+/* 文本按钮 */
+.btn-text {
+  background: none;
+  color: var(--primary);
+  border: none;
+  padding: 16rpx 24rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  transition: opacity 0.2s;
+}
+
+.btn-text:active {
+  opacity: 0.7;
+}
+
+/* ====== Linear风格标签系统 ====== */
 .tag {
-  display: inline-block;
-  padding: 8rpx 16rpx;
-  border-radius: 12rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 20rpx;
+  border-radius: 8rpx;
   font-size: 24rpx;
   font-weight: 500;
+  letter-spacing: 0.2rpx;
+  transition: all 0.2s;
 }
 
-.tag-not-started { background: rgba(52, 199, 89, 0.12); color: var(--status-not-started); }
-.tag-ongoing { background: var(--primary-light); color: var(--status-ongoing); }
-.tag-ended { background: rgba(142, 142, 147, 0.2); color: var(--status-ended); }
+.tag-not-started {
+  background: var(--status-not-started-bg);
+  color: var(--status-not-started);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.tag-ongoing {
+  background: var(--status-ongoing-bg);
+  color: var(--status-ongoing);
+  border: 1px solid rgba(94, 106, 210, 0.2);
+}
+
+.tag-ended {
+  background: var(--status-ended-bg);
+  color: var(--status-ended);
+  border: 1px solid rgba(113, 113, 122, 0.2);
+}
+
+/* ====== 输入框系统 ====== */
+.input {
+  background: var(--background-input);
+  border: 1px solid var(--border);
+  border-radius: 12rpx;
+  padding: 24rpx @space-md);
+  font-size: 28rpx;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
+}
+
+.input::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* ====== 分割线 ====== */
+.divider {
+  height: 1px;
+  background: var(--divider);
+  margin: @space-md 0;
+}
+
+/* ====== 加载动画 - Linear风格 ====== */
+@keyframes linear-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading {
+  width: 64rpx;
+  height: 64rpx;
+  border: 3rpx solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: linear-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* ====== 渐变文字 ====== */
+.text-gradient {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ====== 玻璃态导航栏 ====== */
+.nav-bar {
+  background: rgba(15, 16, 20, 0.8);
+  backdrop-filter: var(--blur-lg);
+  -webkit-backdrop-filter: var(--blur-lg);
+  border-bottom: 1px solid var(--border);
+}

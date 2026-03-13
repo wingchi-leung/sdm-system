@@ -1,85 +1,123 @@
+/**
+ * 我的页面 - Linear风格设计
+ */
 .page {
   min-height: 100vh;
-  padding: 32rpx;
+  padding: @space-lg);
   background: var(--background);
 }
 
+/* ====== Linear风格登录引导 ====== */
 .center-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80rpx 64rpx;
+  padding: @space-2xl) @space-xl);
+  min-height: 60vh;
 }
 
 .guest-title {
-  font-size: 34rpx;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: 16rpx;
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: @space-sm);
+  letter-spacing: -0.5rpx;
 }
 
 .guest-subtitle {
   font-size: 28rpx;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   text-align: center;
-  margin-bottom: 64rpx;
+  margin-bottom: @space-2xl);
+  line-height: 1.6;
+  max-width: 480rpx;
 }
 
 .login-btn {
-  padding: 28rpx 56rpx;
+  padding: 28rpx @space-2xl);
   font-size: 30rpx;
+  min-width: 240rpx;
+  box-shadow: var(--shadow-glow);
 }
 
+/* ====== Linear风格加载动画 ====== */
 .loading-wrap {
   display: flex;
   justify-content: center;
-  padding: 80rpx;
+  padding: @space-2xl);
 }
 
 .loading {
-  width: 64rpx;
-  height: 64rpx;
-  border: 4rpx solid var(--primary-light);
+  width: 72rpx;
+  height: 72rpx;
+  border: 3rpx solid var(--border);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
+  animation: linear-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 .content {
-  padding-bottom: 48rpx;
+  padding-bottom: @space-2xl);
 }
 
+/* ====== Linear风格个人信息卡片 ====== */
 .profile-card {
   display: flex;
   align-items: center;
-  padding: 40rpx;
-  margin-bottom: 40rpx;
+  padding: @space-xl);
+  margin-bottom: @space-2xl);
+  background: var(--background-card);
+  border-radius: 24rpx;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rpx;
+  background: var(--primary-gradient);
 }
 
 .avatar-wrap {
-  width: 112rpx;
-  height: 112rpx;
-  border-radius: 56rpx;
-  background: var(--primary-light);
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 60rpx;
+  background: var(--background-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 32rpx;
+  margin-right: @space-lg);
+  border: 2px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.avatar-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--primary-gradient);
+  opacity: 0.15;
 }
 
 .avatar-wrap.admin {
-  background: rgba(0,122,255,0.15);
+  border-color: var(--primary);
+  box-shadow: 0 0 20rpx rgba(94, 106, 210, 0.3);
 }
 
 .avatar {
-  font-size: 32rpx;
+  font-size: 40rpx;
   color: var(--primary);
-  font-weight: 500;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
 }
 
 .profile-info {
@@ -89,78 +127,219 @@
 
 .profile-info .name {
   display: block;
-  font-size: 34rpx;
-  font-weight: 600;
+  font-size: 36rpx;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 8rpx;
+  margin-bottom: @space-xs);
+  letter-spacing: -0.4rpx;
 }
 
 .profile-info .subtitle {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: var(--text-secondary);
+  font-weight: 400;
 }
 
+/* ====== Linear风格信息区块 ====== */
 .section {
   padding: 0;
-  margin-bottom: 40rpx;
+  margin-bottom: @space-2xl);
   overflow: hidden;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0 @space-md);
+  margin-bottom: @space-sm);
+  letter-spacing: 0.5rpx;
+  text-transform: uppercase;
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid rgba(0,0,0,0.06);
+  padding: @space-lg) @space-lg);
+  background: var(--background-card);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+
+.info-row:first-child {
+  border-radius: 20rpx 20rpx 0 0;
 }
 
 .info-row:last-child {
   border-bottom: none;
+  border-radius: 0 0 20rpx 20rpx;
+}
+
+.info-row:only-child {
+  border-radius: 20rpx;
+}
+
+.info-row:active {
+  background: var(--background-elevated);
 }
 
 .info-label {
-  width: 128rpx;
+  width: 140rpx;
   font-size: 28rpx;
   color: var(--text-secondary);
+  font-weight: 500;
 }
 
 .info-value {
   flex: 1;
   font-size: 28rpx;
   color: var(--text-primary);
+  font-weight: 400;
+}
+
+/* ====== Linear风格菜单项 ====== */
+.menu-list {
+  background: var(--background-card);
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 28rpx 32rpx;
-  border-bottom: 1rpx solid rgba(0,0,0,0.06);
+  padding: @space-lg) @space-lg);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.menu-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4rpx;
+  background: var(--primary-gradient);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.menu-item:active {
+  background: var(--background-elevated);
+}
+
+.menu-item:active::before {
+  opacity: 1;
 }
 
 .menu-item-disabled {
-  opacity: 0.6;
+  opacity: 0.5;
+}
+
+.menu-item-disabled:active {
+  background: transparent;
+}
+
+.menu-item-disabled::before {
+  display: none;
 }
 
 .menu-item:last-child {
   border-bottom: none;
 }
 
+.menu-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: @space-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+}
+
 .menu-title {
   flex: 1;
   font-size: 30rpx;
   color: var(--text-primary);
+  font-weight: 500;
+  letter-spacing: -0.2rpx;
 }
 
 .menu-title.secondary {
   color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .menu-subtitle {
   font-size: 26rpx;
-  color: var(--text-secondary);
-  margin-right: 16rpx;
+  color: var(--text-tertiary);
+  margin-right: @space-sm);
+  font-weight: 400;
 }
 
 .arrow {
-  font-size: 36rpx;
-  color: var(--text-tertiary);
+  font-size: 32rpx;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+
+.menu-item:active .arrow {
+  transform: translateX(4rpx);
+}
+
+/* ====== Linear风格徽章 ====== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 12rpx;
+  background: var(--primary);
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: 600;
+  border-radius: 8rpx;
+  margin-left: @space-sm);
+  min-width: 32rpx;
+  justify-content: center;
+}
+
+/* ====== Linear风格分割线组 ====== */
+.menu-group {
+  margin-bottom: @space-2xl);
+}
+
+.menu-group:last-child {
+  margin-bottom: 0;
+}
+
+.group-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0 @space-md);
+  margin-bottom: @space-sm);
+  letter-spacing: 0.5rpx;
+  text-transform: uppercase;
+}
+
+/* ====== Linear风格退出登录按钮 ====== */
+.logout-btn {
+  width: 100%;
+  margin-top: @space-2xl);
+  padding: 28rpx;
+  font-size: 30rpx;
+  background: transparent;
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14rpx;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.logout-btn:active {
+  background: var(--error-bg);
+  border-color: var(--error);
 }

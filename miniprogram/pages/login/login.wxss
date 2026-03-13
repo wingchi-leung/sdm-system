@@ -1,99 +1,168 @@
+/**
+ * 登录页 - Linear风格设计
+ */
 .page {
   min-height: 100vh;
-  padding: 48rpx 48rpx 64rpx;
+  padding: @space-2xl) @space-xl) @space-2xl);
   background: var(--background);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   text-align: center;
-  margin-bottom: 48rpx;
+  margin-bottom: @space-2xl);
+  padding-top: @space-2xl);
 }
 
 .title {
   display: block;
-  font-size: 40rpx;
-  font-weight: 600;
+  font-size: 48rpx;
+  font-weight: 700;
   color: var(--text-primary);
-  margin-bottom: 8rpx;
+  margin-bottom: @space-sm);
+  letter-spacing: -1rpx;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .subtitle {
   font-size: 28rpx;
   color: var(--text-secondary);
+  font-weight: 400;
 }
 
+/* ====== Linear风格警告提示 ====== */
 .unsafe-tip {
-  margin-bottom: 32rpx;
-  padding: 28rpx;
+  margin-bottom: @space-2xl);
+  padding: @space-lg);
   background: var(--warning-bg);
   border-radius: 16rpx;
-  border: 1rpx solid rgba(255,149,0,0.3);
+  border: 1px solid rgba(245, 158, 11, 0.3);
   font-size: 26rpx;
-  color: #b86a00;
+  color: var(--warning);
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+  gap: @space-sm);
 }
 
+.unsafe-tip::before {
+  content: '⚠️';
+  font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+/* ====== Linear风格表单卡片 ====== */
 .form {
-  background: var(--surface);
+  background: var(--background-card);
   border-radius: 24rpx;
-  padding: 40rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+  padding: @space-2xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
 }
 
 .field {
-  margin-bottom: 32rpx;
+  margin-bottom: @space-2xl);
+}
+
+.field:last-child {
+  margin-bottom: 0;
 }
 
 .label {
   display: block;
   font-size: 28rpx;
   color: var(--text-secondary);
-  margin-bottom: 16rpx;
+  margin-bottom: @space-sm);
+  font-weight: 500;
 }
 
 .input {
   width: 100%;
-  height: 88rpx;
-  padding: 0 24rpx;
+  height: 96rpx;
+  padding: 0 @space-md);
   font-size: 30rpx;
-  background: var(--background);
-  border-radius: 16rpx;
+  background: var(--background-input);
+  border-radius: 14rpx;
   box-sizing: border-box;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  transition: all 0.2s;
 }
 
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
+}
+
+/* ====== Linear风格错误提示 ====== */
 .error-box {
-  margin: 24rpx 0;
-  padding: 24rpx;
+  margin: @space-lg) 0;
+  padding: @space-lg);
   background: var(--error-bg);
-  border-radius: 16rpx;
+  border-radius: 14rpx;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  align-items: center;
+  gap: @space-sm);
+}
+
+.error-box::before {
+  content: '✕';
+  font-size: 24rpx;
+  width: 32rpx;
+  height: 32rpx;
+  background: var(--error);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .error-text {
   font-size: 28rpx;
   color: var(--error);
+  flex: 1;
 }
 
+/* ====== Linear风格提交按钮 ====== */
 .submit-btn {
   width: 100%;
-  margin-top: 32rpx;
-  padding: 32rpx;
+  margin-top: @space-2xl);
+  padding: @space-lg);
   font-size: 32rpx;
+  font-weight: 600;
+  box-shadow: var(--shadow-glow);
 }
 
+/* ====== Linear风格微信登录 ====== */
 .wechat-row {
-  margin-top: 24rpx;
+  margin-top: @space-lg);
 }
 
 .btn-wechat {
   width: 100%;
-  padding: 28rpx;
+  padding: @space-lg);
   font-size: 30rpx;
-  color: #07c160;
-  background: #fff;
-  border: 2rpx solid #07c160;
-  border-radius: 16rpx;
+  color: #22C55E;
+  background: transparent;
+  border: 2px solid rgba(34, 197, 94, 0.3);
+  border-radius: 14rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-wechat:active {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: #22C55E;
 }
 
 .btn-wechat::after {
@@ -101,32 +170,87 @@
 }
 
 .btn-wechat-icon {
-  margin-right: 12rpx;
+  margin-right: @space-sm);
   font-weight: 600;
+  font-size: 32rpx;
 }
 
+/* ====== Linear风格注册引导 ====== */
 .register-row {
-  margin-top: 32rpx;
+  margin-top: @space-2xl);
   text-align: center;
+  padding-top: @space-2xl);
+  border-top: 1px solid var(--border);
 }
 
 .hint {
   font-size: 28rpx;
   color: var(--text-secondary);
+  font-weight: 400;
 }
 
 .link {
   font-size: 28rpx;
   color: var(--primary);
-  margin-left: 8rpx;
+  margin-left: @space-sm);
+  font-weight: 600;
+  text-decoration: none;
+  position: relative;
 }
 
+.link::after {
+  content: '';
+  position: absolute;
+  bottom: -4rpx;
+  left: 0;
+  right: 0;
+  height: 2rpx;
+  background: var(--primary-gradient);
+  opacity: 0.5;
+}
+
+/* ====== Linear风格切换链接 ====== */
 .toggle-row {
-  margin-top: 24rpx;
+  margin-top: @space-lg);
   text-align: center;
+  padding: @space-md);
+  background: var(--background-input);
+  border-radius: 12rpx;
 }
 
 .toggle-link {
   font-size: 28rpx;
   color: var(--text-secondary);
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+.toggle-link:active {
+  color: var(--primary);
+}
+
+/* ====== Linear风格角色切换 ====== */
+.role-toggle {
+  display: flex;
+  background: var(--background-input);
+  border-radius: 14rpx;
+  padding: 6rpx;
+  margin-bottom: @space-2xl);
+}
+
+.role-toggle-item {
+  flex: 1;
+  text-align: center;
+  padding: @space-sm);
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  border-radius: 10rpx;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.role-toggle-item.active {
+  background: var(--background-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
 }
