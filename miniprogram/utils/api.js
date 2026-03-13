@@ -305,21 +305,5 @@ module.exports = {
   updateActivity,
   deleteActivity,
   getActivityParticipants,
-};
-
-module.exports = {
-  baseUrl,
-  getToken,
-  isUnsafeBaseUrl,
-  getActivities,
-  getEnrollableActivities,
-  getUnstartedActivities,
-  adminLogin,
-  userLogin,
-  registerUser,
-  getUserProfile,
-  registerParticipant,
-  createActivity,
-  wechatLogin,
   ApiError,
 };
