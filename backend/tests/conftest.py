@@ -2,6 +2,12 @@
 测试配置文件 - 提供数据库、客户端、认证等核心 fixtures
 """
 import os
+os.environ["JWT_SECRET"] = "test-secret-key-for-testing-only"
+os.environ["MYSQL_HOST"] = "localhost"
+os.environ["MYSQL_USER"] = "test"
+os.environ["MYSQL_PASSWORD"] = "test"
+os.environ["MYSQL_DB"] = "test"
+
 from datetime import datetime
 from typing import Generator
 
@@ -25,13 +31,6 @@ from app.schemas import (
     CheckInRecord,
 )
 from app.api.deps import get_db
-
-
-os.environ["JWT_SECRET"] = "test-secret-key-for-testing-only"
-os.environ["MYSQL_HOST"] = "localhost"
-os.environ["MYSQL_USER"] = "test"
-os.environ["MYSQL_PASSWORD"] = "test"
-os.environ["MYSQL_DB"] = "test"
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

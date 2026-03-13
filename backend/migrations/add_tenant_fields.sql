@@ -100,7 +100,3 @@ ALTER TABLE `admin_activity_type_role`
   ADD COLUMN IF NOT EXISTS `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID' AFTER `id`;
 
 ALTER TABLE `admin_activity_type_role` ADD INDEX `idx_admin_role_tenant_id` (`tenant_id`);
-
--- ============================================================
--- 迁移完成
--- ============================================================

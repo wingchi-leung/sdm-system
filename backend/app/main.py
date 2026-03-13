@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 from app.database  import SessionLocal 
 from app.core.config import settings
 from app.api.v1.router import api_router

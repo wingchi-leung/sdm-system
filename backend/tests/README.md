@@ -68,8 +68,13 @@ pytest -vv -s
 
 ## 待完成
 
-部分单元测试需要根据实际 CRUD 实现进行调整：
-- crud_activity.py: 需要适配新的函数签名
-- crud_participant.py: 需要查看实际实现
-- crud_checkin.py: 需要查看实际实现
-- crud_admin.py: 需要适配租户隔离
+测试套件已完整覆盖所有 CRUD 模块，租户隔离已全部适配。
+
+单元测试覆盖情况：
+- crud_user.py: 用户 CRUD 测试
+- crud_activity.py: 活动 CRUD 测试 (已完成)
+- crud_participant.py: 参与者 CRUD 测试 (已完成)
+- crud_checkin.py: 签到 CRUD 测试 (已完成)
+- crud_admin.py: 管理员 CRUD 测试 (已完成)
+- crud_activity_type.py: 活动类型 CRUD 测试
+- security.py: 安全功能测试

@@ -17,7 +17,6 @@ SQLALCHEMY_DATABASE_URL = f"mysql://{settings.MYSQL_USER}:{encoded_password}@{se
 
 # 创建数据库引擎 
 
-# 定义引擎
 engine = create_engine(
     # 数据库地址
     SQLALCHEMY_DATABASE_URL,
@@ -32,5 +31,5 @@ engine = create_engine(
 # commit()是指提交事务，将变更保存到数据库文件
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
-# 创建基本映射类 -- 生成数据库
+
 Base = declarative_base()
