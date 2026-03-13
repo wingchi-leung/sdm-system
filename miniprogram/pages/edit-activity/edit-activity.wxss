@@ -62,13 +62,13 @@
   width: 100%;
   margin-top: 48rpx;
   padding: 28rpx;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #4988FC;
   color: #fff;
   border-radius: 14rpx;
   font-size: 30rpx;
   font-weight: 600;
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8rpx 24rpx rgba(73, 136, 252, 0.3);
   transition: all 0.3s;
 }
 
@@ -78,7 +78,7 @@
 
 .submit-btn:active {
   transform: translateY(2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4rpx 12rpx rgba(73, 136, 252, 0.3);
 }
 
 .submit-btn[disabled] {
