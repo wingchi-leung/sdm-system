@@ -6,7 +6,9 @@ Page({
     id: null,
     activityName: '',
     tag: '',
+    startDate: '',
     startTime: '',
+    endDate: '',
     endTime: '',
     activityTypeName: '',
     submitting: false,
@@ -27,18 +29,47 @@ Page({
   async loadActivity(id) {
     try {
       const activity = await api.getActivity(id);
-      const startTime = activity.start_time ? activity.start_time.slice(0, 16) : '';
-      const endTime = activity.end_time ? activity.end_time.slice(0, 16) : '';
+      // 解析开始时间
+      let startDate = '';
+      let startTime = '';
+      if (activity.start_time) {
+        const startDt = new Date(activity.start_time);
+        startDate = this.formatDate(startDt);
+        startTime = this.formatTime(startDt);
+      }
+      // 解析结束时间
+      let endDate = '';
+      let endTime = '';
+      if (activity.end_time) {
+        const endDt = new Date(activity.end_time);
+        endDate = this.formatDate(endDt);
+        endTime = this.formatTime(endDt);
+      }
       this.setData({
         activityName: activity.activity_name,
         tag: activity.tag || '',
+        startDate,
         startTime,
+        endDate,
         endTime,
         activityTypeName: activity.activity_type_name || '',
       });
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
+  },
+
+  formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  },
+
+  formatTime(date) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
   },
 
   onNameInput(e) {
@@ -53,8 +84,16 @@ Page({
     this.setData({ activityTypeName: e.detail.value });
   },
 
+  onStartDateChange(e) {
+    this.setData({ startDate: e.detail.value });
+  },
+
   onStartTimeChange(e) {
     this.setData({ startTime: e.detail.value });
+  },
+
+  onEndDateChange(e) {
+    this.setData({ endDate: e.detail.value });
   },
 
   onEndTimeChange(e) {
@@ -62,26 +101,28 @@ Page({
   },
 
   async submit() {
-    const { id, activityName, tag, startTime, endTime, activityTypeName } = this.data;
+    const { id, activityName, tag, startDate, startTime, endDate, endTime, activityTypeName } = this.data;
 
     if (!activityName.trim()) {
       wx.showToast({ title: '请输入活动名称', icon: 'none' });
       return;
     }
 
-    if (!startTime) {
+    if (!startDate || !startTime) {
       wx.showToast({ title: '请选择开始时间', icon: 'none' });
       return;
     }
 
+    const startDateTime = new Date(`${startDate}T${startTime}:00`);
     const updateData = {
       activity_name: activityName.trim(),
-      start_time: new Date(startTime).toISOString(),
+      start_time: startDateTime.toISOString(),
       tag: tag.trim() || null,
     };
 
-    if (endTime) {
-      updateData.end_time = new Date(endTime).toISOString();
+    if (endDate && endTime) {
+      const endDateTime = new Date(`${endDate}T${endTime}:00`);
+      updateData.end_time = endDateTime.toISOString();
     }
 
     if (activityTypeName.trim()) {
