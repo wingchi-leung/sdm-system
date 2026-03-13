@@ -1,0 +1,24 @@
+<view class="container">
+  <view wx:if="{{loading}}" class="loading">加载中...</view>
+
+  <view wx:elif="{{isEmpty}}" class="empty">
+    <text class="empty-text">暂无签到记录</text>
+  </view>
+
+  <view wx:else class="checkins-list">
+    <view class="list-header">
+      <text class="header-item">姓名</text>
+      <text class="header-item">手机号</text>
+      <text class="header-item">签到时间</text>
+    </view>
+    <view wx:for="{{checkins}}" wx:key="id" class="checkin-item">
+      <text class="item-name">{{item.participant_name}}</text>
+      <text class="item-phone">{{item.phone}}</text>
+      <text class="item-time">{{item.checkin_time}}</text>
+    </view>
+  </view>
+
+  <view class="refresh-btn">
+    <button bindtap="onRefresh" size="mini">刷新</button>
+  </view>
+</view>

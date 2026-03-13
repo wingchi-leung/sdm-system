@@ -59,6 +59,45 @@ Page({
     });
   },
 
+  onChangeStatus(e) {
+    const { id, status, name } = e.currentTarget.dataset;
+    const statusMap = { 1: '未开始', 2: '进行中', 3: '已结束' };
+    const statusOptions = [
+      { value: 1, label: '未开始' },
+      { value: 2, label: '进行中' },
+      { value: 3, label: '已结束' },
+    ];
+    const items = statusOptions.map(s => s.label);
+
+    wx.showActionSheet({
+      itemList: items,
+      success: async (res) => {
+        const newStatus = statusOptions[res.tapIndex].value;
+        if (newStatus === status) {
+          wx.showToast({ title: '当前已是该状态', icon: 'none' });
+          return;
+        }
+        try {
+          await api.updateActivityStatus(id, newStatus);
+          wx.showToast({ title: '状态更新成功', icon: 'success' });
+          this.loadActivities();
+        } catch (err) {
+          wx.showToast({ title: err.message || '更新失败', icon: 'none' });
+        }
+      },
+    });
+  },
+
+  onViewCheckins(e) {
+    const { id, name } = e.currentTarget.dataset;
+    wx.navigateTo({ url: `/pages/activity-checkins/activity-checkins?id=${id}&name=${name}` });
+  },
+
+  onViewStatistics(e) {
+    const { id, name } = e.currentTarget.dataset;
+    wx.navigateTo({ url: `/pages/activity-statistics/activity-statistics?id=${id}&name=${name}` });
+  },
+
   getStatusText(status) {
     const statusMap = { 1: '未开始', 2: '进行中', 3: '已结束' };
     return statusMap[status] || '未知';

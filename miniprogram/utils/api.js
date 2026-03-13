@@ -287,6 +287,70 @@ function getActivityParticipants(activityId, skip = 0, limit = 10) {
   });
 }
 
+/** 更新活动状态（需管理员权限） */
+function updateActivityStatus(activityId, status) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activities/${activityId}/status?status=${status}`,
+      method: 'PUT',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取活动签到记录（需管理员权限） */
+function getActivityCheckins(activityId, skip = 0, limit = 100) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activities/${activityId}/checkins/?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取活动报名统计（需管理员权限） */
+function getActivityStatistics(activityId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activities/${activityId}/statistics/`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取用户详情（需管理员权限） */
+function getUserDetail(userId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/${userId}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   getToken,
@@ -305,5 +369,9 @@ module.exports = {
   updateActivity,
   deleteActivity,
   getActivityParticipants,
+  updateActivityStatus,
+  getActivityCheckins,
+  getActivityStatistics,
+  getUserDetail,
   ApiError,
 };
