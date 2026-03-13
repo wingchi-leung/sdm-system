@@ -21,6 +21,9 @@ router = APIRouter()
 
 _login_attempts: dict[str, list[float]] = defaultdict(list)
 
+# 微信 access_token 缓存
+_wechat_access_token_cache: dict[str, dict] = {}
+
 
 def _get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("X-Forwarded-For")
@@ -240,6 +243,127 @@ def wechat_login(
         access_token=token,
         user_id=user.id,
         user_name=user.name or "微信用户",
+        is_first_login=is_first_login,
+        require_bind_info=is_first_login,
+    )
+
+
+def _get_wechat_access_token() -> str:
+    """获取微信 access_token（带缓存，有效期 2 小时）"""
+    appid = settings.WECHAT_APPID
+    secret = settings.WECHAT_SECRET
+    if not appid or not secret:
+        raise HTTPException(
+            status_code=503,
+            detail="服务未配置微信登录，请设置 WECHAT_APPID 与 WECHAT_SECRET",
+        )
+
+    # 检查缓存
+    cache_key = f"token_{appid}"
+    cached = _wechat_access_token_cache.get(cache_key, {})
+    if cached.get("token") and cached.get("expire_time", 0) > time.time() + 300:
+        return cached["token"]
+
+    # 请求新的 access_token
+    url = f"https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid={appid}&secret={secret}"
+    try:
+        req = UrllibRequest(url, method="GET")
+        with urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+    except (HTTPError, URLError, json.JSONDecodeError) as e:
+        logger.exception("wechat get access_token error: %s", e)
+        raise HTTPException(status_code=502, detail="微信服务暂时不可用，请稍后重试")
+
+    errcode = data.get("errcode", 0)
+    if errcode != 0:
+        errmsg = data.get("errmsg", "unknown")
+        raise HTTPException(status_code=500, detail=f"获取微信 access_token 失败：{errmsg}")
+
+    access_token = data.get("access_token")
+    expires_in = data.get("expires_in", 7200)
+
+    # 缓存 token
+    _wechat_access_token_cache[cache_key] = {
+        "token": access_token,
+        "expire_time": time.time() + expires_in,
+    }
+
+    return access_token
+
+
+def _get_phone_number_from_wechat(code: str) -> str:
+    """通过微信 code 获取用户手机号"""
+    access_token = _get_wechat_access_token()
+    url = f"https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token={access_token}"
+
+    try:
+        req = UrllibRequest(
+            url,
+            data=json.dumps({"code": code}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+    except (HTTPError, URLError, json.JSONDecodeError) as e:
+        logger.exception("wechat get phone number error: %s", e)
+        raise HTTPException(status_code=502, detail="微信服务暂时不可用，请稍后重试")
+
+    errcode = data.get("errcode", 0)
+    if errcode != 0:
+        errmsg = data.get("errmsg", "unknown")
+        detail = f"获取手机号失败：{errmsg}"
+        if errcode == 40029:
+            detail = "code 无效或已过期，请重新授权"
+        raise HTTPException(status_code=400, detail=detail)
+
+    phone_info = data.get("phone_info", {})
+    phone = phone_info.get("phoneNumber") or phone_info.get("purePhoneNumber")
+    if not phone:
+        raise HTTPException(status_code=400, detail="微信未返回手机号")
+
+    return phone
+
+
+class PhoneLoginRequest(BaseModel):
+    code: str
+    tenant_code: str = "default"
+
+
+@router.post("/phone-login", response_model=WechatLoginResponse)
+def phone_login(
+    request: Request,
+    body: PhoneLoginRequest,
+    db: Session = Depends(deps.get_db),
+):
+    """手机号授权登录"""
+    _check_login_rate_limit(_get_client_ip(request))
+    code = (body.code or "").strip()
+    if not code:
+        raise HTTPException(status_code=400, detail="缺少 code")
+
+    # 获取手机号
+    phone = _get_phone_number_from_wechat(code)
+
+    tenant = crud_tenant.get_tenant_by_code(db, body.tenant_code)
+    if not tenant or tenant.status != 1:
+        raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+
+    # 查找或创建用户
+    user = crud_user.get_or_create_user_by_phone(db, phone, tenant.id)
+    if user.isblock == 1:
+        reason = user.block_reason or "账号已被禁用"
+        raise HTTPException(status_code=403, detail=f"账号已被拉黑：{reason}")
+
+    token = create_access_token(sub=str(user.id), role="user", tenant_id=tenant.id)
+
+    # 判断是否首次登录
+    is_first_login = crud_user.is_user_profile_incomplete(db, user.id, tenant.id)
+
+    return WechatLoginResponse(
+        access_token=token,
+        user_id=user.id,
+        user_name=user.name or f"用户{phone[-4:]}",
         is_first_login=is_first_login,
         require_bind_info=is_first_login,
     )

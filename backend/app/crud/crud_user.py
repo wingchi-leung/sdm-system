@@ -181,3 +181,30 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     db.commit()
     db.refresh(user)
     return user
+
+
+def get_or_create_user_by_phone(db: Session, phone: str, tenant_id: int, name: str | None = None) -> User:
+    """根据手机号查找或创建用户（用于手机号授权登录）"""
+    user = get_user_by_phone(db, phone, tenant_id)
+    if user:
+        return user
+    try:
+        db_user = User(
+            tenant_id=tenant_id,
+            name=name or f"用户{phone[-4:]}",
+            phone=phone,
+            email=None,
+            password_hash=None,
+            identity_number=None,
+            sex=None,
+            isblock=0,
+            block_reason=None,
+            wx_openid=None,
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return db_user
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"创建用户失败: {str(e)}")
