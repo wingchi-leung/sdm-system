@@ -47,11 +47,16 @@ Page({
     return api
       .getEnrollableActivities()
       .then((res) => {
-        let items = (res.items || []).map((a) => ({
-          ...a,
-          start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
-          status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
-        }));
+        let items = (res.items || []).map((a) => {
+          const dateDisplay = this.formatDateForDisplay(a.start_time);
+          return {
+            ...a,
+            start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
+            status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
+            date_day: dateDisplay.day,
+            date_month: dateDisplay.month,
+          };
+        });
         if (auth.isActivityTypeAdmin()) {
           items = items.filter((a) => auth.canManageActivityType(a));
         }
@@ -92,5 +97,15 @@ Page({
     const h = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
     return `${m}月${day}日 ${h}:${min}`;
+  },
+
+  // 格式化日期为大号数字显示
+  formatDateForDisplay(iso) {
+    if (!iso) return { day: '--', month: '未知' };
+    const d = new Date(iso);
+    const day = d.getDate();
+    const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+    const month = months[d.getMonth()];
+    return { day, month };
   },
 });

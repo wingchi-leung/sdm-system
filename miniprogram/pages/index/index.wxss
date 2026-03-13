@@ -1,230 +1,130 @@
 /**
- * 活动列表页 - Linear风格设计
+ * 活动列表页
  */
+
 .page {
   min-height: 100vh;
-  padding: 24rpx @space-lg 48rpx;
+  padding: var(--space-lg);
   background: var(--background);
 }
 
-/* 顶部导航区域 */
+/* 导航 */
 .nav-actions {
-  margin-bottom: @space-md;
+  margin-bottom: var(--space-md);
   text-align: right;
-  padding: @space-sm 0;
 }
 
-/* ====== Linear风格状态展示 ====== */
-.loading-wrap, .error-wrap, .empty-wrap {
+/* 状态展示 */
+.loading-wrap,
+.error-wrap,
+.empty-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: @space-2xl @space-lg;
-  min-height: 60vh;
-}
-
-.loading {
-  width: 72rpx;
-  height: 72rpx;
-  border: 3rpx solid var(--border);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: linear-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  padding: var(--space-xl) var(--space-lg);
+  min-height: 50vh;
 }
 
 .loading-tip {
-  margin-top: @space-md;
+  margin-top: var(--space-md);
   font-size: 28rpx;
   color: var(--text-secondary);
-  font-weight: 400;
 }
 
-.error-title, .empty-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: @space-sm;
-  letter-spacing: -0.4rpx;
-}
-
-.error-msg, .empty-tip {
-  margin-top: @space-sm;
-  font-size: 28rpx;
-  color: var(--text-secondary);
-  text-align: center;
-  line-height: 1.6;
-  max-width: 480rpx;
-}
-
-.retry-btn {
-  margin-top: @space-xl;
-  padding: 24rpx @space-xl);
-  font-size: 30rpx;
-  min-width: 200rpx;
-}
-
-.empty-wrap .btn-text {
-  margin-top: @space-lg);
-  font-size: 30rpx;
-}
-
-/* ====== Linear风格活动卡片 ====== */
-.activity-item {
-  display: flex;
-  align-items: center;
-  padding: @space-lg);
-  margin-bottom: @space-md);
-  background: var(--background-card);
-  border-radius: 20rpx;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.activity-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4rpx;
-  background: var(--primary-gradient);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.activity-item:active {
-  transform: scale(0.99);
-  box-shadow: var(--shadow-lg);
-}
-
-.activity-item:active::before {
-  opacity: 1;
-}
-
-/* 活动图标 - Linear风格 */
-.activity-icon {
-  width: 104rpx;
-  height: 104rpx;
-  border-radius: 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-right: @space-lg);
-  background: var(--background-elevated);
-  border: 1px solid var(--border);
-  position: relative;
-  overflow: hidden;
-}
-
-.activity-icon::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--primary-gradient);
-  opacity: 0.1;
-}
-
-.icon-text {
-  font-size: 48rpx;
-  color: var(--primary);
-  font-weight: 600;
-  position: relative;
-  z-index: 1;
-}
-
-.activity-body {
-  flex: 1;
-  min-width: 0;
-  padding-right: @space-sm);
-}
-
-.activity-name {
-  display: block;
+.error-title,
+.empty-title {
   font-size: 32rpx;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: @space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.error-msg,
+.empty-tip {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: var(--space-sm);
+}
+
+.retry-btn {
+  margin-top: var(--space-lg);
+}
+
+/* 活动卡片 - 简洁设计 */
+.activity-item {
+  display: flex;
+  align-items: center;
+  padding: var(--space-lg);
+  margin-bottom: var(--space-md);
+  background: var(--background-card);
+  border-radius: 12rpx;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.activity-item:active {
+  background: var(--background-input);
+}
+
+/* 日期方块 */
+.activity-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-input);
+  margin-right: var(--space-md);
+  flex-shrink: 0;
+}
+
+.icon-date {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.icon-month {
+  font-size: 20rpx;
+  color: var(--text-tertiary);
+  margin-top: 4rpx;
+}
+
+/* 活动信息 */
+.activity-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  letter-spacing: -0.3rpx;
-  line-height: 1.4;
 }
 
 .activity-time {
-  display: flex;
-  align-items: center;
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--text-secondary);
-  margin-bottom: @space-sm);
-  font-weight: 400;
-}
-
-.activity-time::before {
-  content: '';
-  width: 28rpx;
-  height: 28rpx;
-  margin-right: 8rpx;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23A1A1AA'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'/%3E%3C/svg%3E");
-  background-size: contain;
-  background-repeat: no-repeat;
+  margin-bottom: 8rpx;
 }
 
 .activity-body .tag {
-  display: inline-flex;
   font-size: 22rpx;
-  padding: 8rpx 16rpx;
-  letter-spacing: 0.3rpx;
+  padding: 4rpx 10rpx;
 }
 
+/* 箭头 */
 .arrow {
-  font-size: 36rpx;
+  font-size: 32rpx;
   color: var(--text-tertiary);
-  margin-left: @space-sm);
-  transition: transform 0.2s;
-}
-
-.activity-item:active .arrow {
-  transform: translateX(4rpx);
-}
-
-/* ====== Linear风格列表头部 ====== */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: @space-md) 0 @space-lg);
-  margin-bottom: @space-md);
-  border-bottom: 1px solid var(--border);
-}
-
-.section-title {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.5rpx;
-}
-
-.section-count {
-  font-size: 26rpx;
-  color: var(--text-tertiary);
-  font-weight: 500;
-  padding: 8rpx 16rpx;
-  background: var(--background-input);
-  border-radius: 8rpx;
-}
-
-/* ====== Linear风格刷新动画 ====== */
-@keyframes linear-pull {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.refreshing .loading {
-  animation: linear-pull 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  margin-left: var(--space-sm);
 }

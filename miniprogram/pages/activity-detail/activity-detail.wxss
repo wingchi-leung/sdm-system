@@ -1,42 +1,28 @@
 /**
- * 活动详情页 - Linear风格设计
+ * 活动详情页
  */
+
 .page {
   min-height: 100vh;
-  padding: @space-lg);
-  padding-bottom: @space-2xl);
+  padding: var(--space-lg);
+  padding-bottom: var(--space-xl);
   background: var(--background);
 }
 
-/* ====== Linear风格信息卡片 ====== */
+/* 信息卡片 */
 .info-card {
-  margin-bottom: @space-2xl);
+  margin-bottom: var(--space-lg);
   background: var(--background-card);
-  border-radius: 24rpx;
-  padding: @space-xl);
-  box-shadow: var(--shadow-md);
+  border-radius: 12rpx;
+  padding: var(--space-lg);
+  box-shadow: var(--shadow);
   border: 1px solid var(--border);
-}
-
-.info-card-header {
-  display: flex;
-  align-items: center;
-  padding-bottom: @space-lg);
-  margin-bottom: @space-lg);
-  border-bottom: 1px solid var(--border);
-}
-
-.info-card-title {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.4rpx;
 }
 
 .info-row {
   display: flex;
   align-items: flex-start;
-  margin-bottom: @space-lg);
+  margin-bottom: var(--space-md);
 }
 
 .info-row:last-child {
@@ -44,29 +30,23 @@
 }
 
 .label {
-  width: 160rpx;
+  width: 140rpx;
   flex-shrink: 0;
   font-size: 28rpx;
   color: var(--text-secondary);
-  font-weight: 500;
-  padding-top: 4rpx;
 }
 
 .value {
   flex: 1;
   font-size: 28rpx;
   color: var(--text-primary);
-  line-height: 1.6;
-  font-weight: 400;
+  line-height: 1.5;
 }
 
 .value.status {
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
+  font-weight: 500;
 }
 
-/* ====== Linear风格状态显示 ====== */
 .status-not-started {
   color: var(--status-not-started);
 }
@@ -79,84 +59,28 @@
   color: var(--status-ended);
 }
 
-/* ====== Linear风格按钮区域 ====== */
+/* 按钮区域 */
 .btn-wrap {
-  margin-top: @space-lg);
-  position: sticky;
-  bottom: 0;
-  background: var(--background);
-  padding: @space-lg);
-  margin: 0 -@space-lg);
-  border-top: 1px solid var(--border);
-  backdrop-filter: var(--blur-md);
-  -webkit-backdrop-filter: var(--blur-md);
+  margin-top: var(--space-md);
+  padding: var(--space-md);
+  background: var(--background-card);
+  border-radius: 12rpx;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
 }
 
 .full {
   width: 100%;
-  padding: @space-lg);
-  font-size: 32rpx;
-  font-weight: 600;
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  padding: 24rpx;
+  font-size: 30rpx;
 }
 
 .disabled-tip {
-  margin-top: @space-lg);
-  padding: @space-lg);
+  margin-top: var(--space-md);
+  padding: var(--space-md);
   background: var(--background-input);
-  border-radius: 16rpx;
+  border-radius: 8rpx;
   text-align: center;
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: var(--text-secondary);
-  border: 1px solid var(--border);
-  line-height: 1.6;
-}
-
-/* ====== Linear风格描述文本 ====== */
-.description {
-  background: var(--background-card);
-  border-radius: 24rpx;
-  padding: @space-xl);
-  margin-bottom: @space-2xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border);
-}
-
-.description-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: @space-md);
-  letter-spacing: 0.5rpx;
-  text-transform: uppercase;
-}
-
-.description-content {
-  font-size: 30rpx;
-  color: var(--text-primary);
-  line-height: 1.8;
-  font-weight: 400;
-}
-
-/* ====== Linear风格操作按钮组 ====== */
-.action-buttons {
-  display: flex;
-  gap: @space-md);
-  margin-top: @space-lg);
-}
-
-.action-buttons .btn-primary,
-.action-buttons .btn-secondary {
-  flex: 1;
-}
-
-/* ====== Linear风格标签展示 ====== */
-.tags-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: @space-sm);
-}
-
-.tags-row .tag {
-  margin: 0;
 }

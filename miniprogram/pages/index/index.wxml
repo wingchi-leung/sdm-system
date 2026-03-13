@@ -22,14 +22,15 @@
 
   <view wx:else class="list">
     <view
-      class="card activity-item"
+      class="activity-item"
       wx:for="{{activities}}"
       wx:key="id"
       data-activity="{{item}}"
       bindtap="goDetail"
     >
-      <view class="activity-icon {{item.status === 1 ? 'tag-not-started' : (item.status === 2 ? 'tag-ongoing' : 'tag-ended')}}">
-        <text class="icon-text">活动</text>
+      <view class="activity-icon">
+        <text class="icon-date">{{date_day || '--'}}</text>
+        <text class="icon-month">{{date_month || '未知'}}</text>
       </view>
       <view class="activity-body">
         <text class="activity-name">{{item.activity_name}}</text>
