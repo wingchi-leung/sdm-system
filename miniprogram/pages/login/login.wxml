@@ -1,6 +1,6 @@
 <view class="page">
   <view class="header">
-    <image class="gate-icon" src="/assets/icons/gate_welcome.png" bindtap="onGateIconTap" />
+    <image class="gate-icon" src="/assets/icons/gate_welcome.svg" bindtap="onGateIconTap" />
     <text class="title">{{isAdminMode ? '管理员登录' : '欢迎回来'}}</text>
   </view>
 
