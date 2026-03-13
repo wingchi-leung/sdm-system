@@ -29,8 +29,8 @@
       {
         "pagePath": "pages/index/index",
         "text": "活动",
-        "iconPath": "assets/icons/event.svg",
-        "selectedIconPath": "assets/icons/event-active.svg"
+        "iconPath": "assets/icons/event.png",
+        "selectedIconPath": "assets/icons/event-active.png"
       },
       {
         "pagePath": "pages/mine/mine",
