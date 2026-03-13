@@ -75,8 +75,9 @@ Page({
   goDetail(e) {
     const a = e.currentTarget.dataset.activity;
     if (!a) return;
+    // 只传递ID，详情页重新获取数据
     wx.navigateTo({
-      url: '/pages/activity-detail/activity-detail?data=' + encodeURIComponent(JSON.stringify(a)),
+      url: '/pages/activity-detail/activity-detail?id=' + a.id,
     });
   },
 

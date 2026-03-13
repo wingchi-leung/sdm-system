@@ -9,6 +9,37 @@
   background: var(--background);
 }
 
+/* 状态展示 */
+.loading-wrap,
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-lg);
+  min-height: 50vh;
+}
+
+.loading-tip {
+  margin-top: var(--space-md);
+  font-size: 28rpx;
+  color: var(--text-secondary);
+}
+
+.error-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.error-msg {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: var(--space-sm);
+}
+
 /* 信息卡片 */
 .info-card {
   margin-bottom: var(--space-lg);
