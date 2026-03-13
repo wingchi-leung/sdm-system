@@ -1,0 +1,128 @@
+<view class="page">
+  <view class="header">
+    <text class="title">完善个人信息</text>
+    <text class="subtitle">首次登录需要绑定以下信息</text>
+  </view>
+
+  <view class="form">
+    <!-- 姓名 -->
+    <view class="field">
+      <text class="label required">姓名</text>
+      <input
+        class="input"
+        placeholder="请输入真实姓名"
+        value="{{formData.name}}"
+        bindinput="onNameInput"
+      />
+    </view>
+
+    <!-- 性别 -->
+    <view class="field">
+      <text class="label required">性别</text>
+      <picker
+        mode="selector"
+        range="{{sexOptions}}"
+        range-key="label"
+        value="{{sexIndex}}"
+        bindchange="onSexChange"
+      >
+        <view class="picker">
+          {{sexOptions[sexIndex].label || '请选择性别'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 年龄 -->
+    <view class="field">
+      <text class="label required">年龄</text>
+      <input
+        class="input"
+        type="number"
+        placeholder="请输入年龄"
+        value="{{formData.age}}"
+        bindinput="onAgeInput"
+      />
+    </view>
+
+    <!-- 职业 -->
+    <view class="field">
+      <text class="label required">职业</text>
+      <input
+        class="input"
+        placeholder="请输入职业"
+        value="{{formData.occupation}}"
+        bindinput="onOccupationInput"
+      />
+    </view>
+
+    <!-- 行业 -->
+    <view class="field">
+      <text class="label required">行业</text>
+      <input
+        class="input"
+        placeholder="请输入所在行业"
+        value="{{formData.industry}}"
+        bindinput="onIndustryInput"
+      />
+    </view>
+
+    <!-- 电话 -->
+    <view class="field">
+      <text class="label required">手机号</text>
+      <input
+        class="input"
+        type="number"
+        maxlength="11"
+        placeholder="请输入11位手机号"
+        value="{{formData.phone}}"
+        bindinput="onPhoneInput"
+      />
+    </view>
+
+    <!-- 邮箱 -->
+    <view class="field">
+      <text class="label">邮箱（选填）</text>
+      <input
+        class="input"
+        placeholder="请输入邮箱"
+        value="{{formData.email}}"
+        bindinput="onEmailInput"
+      />
+    </view>
+
+    <!-- 身份证类型 -->
+    <view class="field">
+      <text class="label">证件类型</text>
+      <picker
+        mode="selector"
+        range="{{identityTypeOptions}}"
+        range-key="label"
+        value="{{identityTypeIndex}}"
+        bindchange="onIdentityTypeChange"
+      >
+        <view class="picker">
+          {{identityTypeOptions[identityTypeIndex].label || '请选择证件类型'}}
+        </view>
+      </picker>
+    </view>
+
+    <!-- 身份证号 -->
+    <view class="field" wx:if="{{identityTypeIndex > 0}}">
+      <text class="label">证件号码</text>
+      <input
+        class="input"
+        placeholder="请输入证件号码"
+        value="{{formData.identity_number}}"
+        bindinput="onIdentityNumberInput"
+      />
+    </view>
+
+    <view class="error-box" wx:if="{{error}}">
+      <text class="error-text">{{error}}</text>
+    </view>
+
+    <button class="btn-primary submit-btn" disabled="{{submitting}}" bindtap="submit">
+      {{submitting ? '提交中…' : '提交'}}
+    </button>
+  </view>
+</view>
