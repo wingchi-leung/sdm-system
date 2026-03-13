@@ -12,6 +12,14 @@
     <view class="loading"></view>
   </view>
   <view wx:else class="content">
+    <view class="card profile-card">
+      <view class="avatar-wrap">
+        <view class="avatar">{{userName ? userName[0] : '用'}}</view>
+      </view>
+      <view class="profile-info">
+        <text class="name">{{userName || '用户'}}</text>
+      </view>
+    </view>
     <view class="card section">
       <view class="menu-item" bindtap="logout">
         <text class="menu-title secondary">退出登录</text>
