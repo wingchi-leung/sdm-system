@@ -93,10 +93,11 @@
 }
 
 .user-status {
-  font-size: 22rpx;
+  font-size: 20rpx;
   font-weight: 500;
-  padding: 6rpx 16rpx;
-  border-radius: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  line-height: 1.2;
 }
 
 .user-status.normal {
