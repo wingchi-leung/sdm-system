@@ -29,6 +29,7 @@ from app.schemas import (
     ActivityType,
     ActivityParticipant,
     CheckInRecord,
+    Tenant,
 )
 from app.api.deps import get_db
 
@@ -72,27 +73,56 @@ def db_session() -> Generator[Session, None, None]:
 
 @pytest.fixture(scope="function")
 def client(db_session: Session) -> TestClient:
-    """创建测试客户端"""
+    """创建测试客户端，并自动创建默认租户"""
+    # 自动创建默认租户
+    tenant = Tenant(
+        name="测试租户",
+        code="default",
+        status=1,
+        plan="basic",
+    )
+    db_session.add(tenant)
+    db_session.commit()
+
     def override_get_db():
         try:
             yield db_session
         finally:
             pass
-    
+
     app.dependency_overrides[get_db] = override_get_db
-    
+
     with TestClient(app) as test_client:
         yield test_client
-    
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
-def sample_activity_type(db_session: Session) -> ActivityType:
+def default_tenant(db_session: Session) -> Tenant:
+    """获取默认租户（由 client fixture 创建）"""
+    tenant = db_session.query(Tenant).filter(Tenant.code == "default").first()
+    if not tenant:
+        # 如果不存在则创建（用于不使用 client fixture 的测试）
+        tenant = Tenant(
+            name="测试租户",
+            code="default",
+            status=1,
+            plan="basic",
+        )
+        db_session.add(tenant)
+        db_session.commit()
+        db_session.refresh(tenant)
+    return tenant
+
+
+@pytest.fixture
+def sample_activity_type(db_session: Session, default_tenant: Tenant) -> ActivityType:
     """创建示例活动类型"""
     activity_type = ActivityType(
         type_name="测试活动类型",
-        code="TEST001"
+        code="TEST001",
+        tenant_id=default_tenant.id,
     )
     db_session.add(activity_type)
     db_session.commit()
@@ -101,11 +131,12 @@ def sample_activity_type(db_session: Session) -> ActivityType:
 
 
 @pytest.fixture
-def sample_activity_type_2(db_session: Session) -> ActivityType:
+def sample_activity_type_2(db_session: Session, default_tenant: Tenant) -> ActivityType:
     """创建第二个活动类型"""
     activity_type = ActivityType(
         type_name="测试活动类型2",
-        code="TEST002"
+        code="TEST002",
+        tenant_id=default_tenant.id,
     )
     db_session.add(activity_type)
     db_session.commit()
@@ -114,12 +145,13 @@ def sample_activity_type_2(db_session: Session) -> ActivityType:
 
 
 @pytest.fixture
-def super_admin(db_session: Session) -> AdminUser:
+def super_admin(db_session: Session, default_tenant: Tenant) -> AdminUser:
     """创建超级管理员"""
     admin = AdminUser(
         username="super_admin",
         password_hash=hash_password("admin123"),
         is_super_admin=1,
+        tenant_id=default_tenant.id,
     )
     db_session.add(admin)
     db_session.commit()
@@ -128,12 +160,13 @@ def super_admin(db_session: Session) -> AdminUser:
 
 
 @pytest.fixture
-def activity_admin(db_session: Session, sample_activity_type: ActivityType) -> AdminUser:
+def activity_admin(db_session: Session, sample_activity_type: ActivityType, default_tenant: Tenant) -> AdminUser:
     """创建活动管理员（有特定类型权限）"""
     admin = AdminUser(
         username="activity_admin",
         password_hash=hash_password("admin123"),
         is_super_admin=0,
+        tenant_id=default_tenant.id,
     )
     db_session.add(admin)
     db_session.commit()
@@ -150,12 +183,13 @@ def activity_admin(db_session: Session, sample_activity_type: ActivityType) -> A
 
 
 @pytest.fixture
-def activity_admin_no_permission(db_session: Session) -> AdminUser:
+def activity_admin_no_permission(db_session: Session, default_tenant: Tenant) -> AdminUser:
     """创建无权限的活动管理员"""
     admin = AdminUser(
         username="no_perm_admin",
         password_hash=hash_password("admin123"),
         is_super_admin=0,
+        tenant_id=default_tenant.id,
     )
     db_session.add(admin)
     db_session.commit()
@@ -166,23 +200,23 @@ def activity_admin_no_permission(db_session: Session) -> AdminUser:
 @pytest.fixture
 def super_admin_token(super_admin: AdminUser) -> str:
     """超级管理员 token"""
-    return create_access_token(sub=str(super_admin.id), role="admin")
+    return create_access_token(sub=str(super_admin.id), role="admin", tenant_id=super_admin.tenant_id)
 
 
 @pytest.fixture
 def activity_admin_token(activity_admin: AdminUser) -> str:
     """活动管理员 token"""
-    return create_access_token(sub=str(activity_admin.id), role="admin")
+    return create_access_token(sub=str(activity_admin.id), role="admin", tenant_id=activity_admin.tenant_id)
 
 
 @pytest.fixture
 def no_perm_admin_token(activity_admin_no_permission: AdminUser) -> str:
     """无权限管理员 token"""
-    return create_access_token(sub=str(activity_admin_no_permission.id), role="admin")
+    return create_access_token(sub=str(activity_admin_no_permission.id), role="admin", tenant_id=activity_admin_no_permission.tenant_id)
 
 
 @pytest.fixture
-def sample_user(db_session: Session) -> User:
+def sample_user(db_session: Session, default_tenant: Tenant) -> User:
     """创建示例普通用户"""
     user = User(
         name="测试用户",
@@ -190,6 +224,7 @@ def sample_user(db_session: Session) -> User:
         password_hash=hash_password("user123"),
         identity_number="110101199001011234",
         isblock=0,
+        tenant_id=default_tenant.id,
     )
     db_session.add(user)
     db_session.commit()
@@ -198,7 +233,7 @@ def sample_user(db_session: Session) -> User:
 
 
 @pytest.fixture
-def blocked_user(db_session: Session) -> User:
+def blocked_user(db_session: Session, default_tenant: Tenant) -> User:
     """创建被拉黑的用户"""
     user = User(
         name="被拉黑用户",
@@ -207,6 +242,7 @@ def blocked_user(db_session: Session) -> User:
         identity_number="110101199001011235",
         isblock=1,
         block_reason="测试拉黑",
+        tenant_id=default_tenant.id,
     )
     db_session.add(user)
     db_session.commit()
@@ -217,7 +253,7 @@ def blocked_user(db_session: Session) -> User:
 @pytest.fixture
 def user_token(sample_user: User) -> str:
     """普通用户 token"""
-    return create_access_token(sub=str(sample_user.id), role="user")
+    return create_access_token(sub=str(sample_user.id), role="user", tenant_id=sample_user.tenant_id)
 
 
 @pytest.fixture

@@ -312,7 +312,7 @@ class TestMultiUserInteraction:
         from tests.conftest import create_access_token
         from app.crud.crud_admin import get_admin_by_username
         admin = get_admin_by_username(db_session, "super_admin")
-        admin_token = create_access_token(sub=str(admin.id), role="admin")
+        admin_token = create_access_token(sub=str(admin.id), role="admin", tenant_id=admin.tenant_id)
 
         list_response = client.get(
             f"/api/v1/participants/{sample_activity.id}/",
