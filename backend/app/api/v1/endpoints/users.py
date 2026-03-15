@@ -108,7 +108,7 @@ def check_bind_status(
 
 @router.get("/admin/all", response_model=user.UserListForAdminResponse)
 def get_all_users_for_super_admin(
-    tenant_id: Optional[int] = Query(None, description="租户ID，不传则查询所有租户"),
+    tenant_code: str = Query("default", description="租户编码，默认default"),
     skip: int = Query(0, ge=0, description="跳过记录数"),
     limit: int = Query(20, ge=1, le=100, description="每页记录数"),
     keyword: Optional[str] = Query(None, description="搜索关键字（姓名、手机号）"),
@@ -116,7 +116,7 @@ def get_all_users_for_super_admin(
     ctx: deps.TenantContext = Depends(deps.get_current_admin),
 ):
     """
-    超级管理员查看所有用户（支持分租户筛选）
+    超级管理员查看所有用户（按租户筛选）
     仅超级管理员可访问
     """
     # 检查是否为超级管理员
@@ -124,9 +124,14 @@ def get_all_users_for_super_admin(
     if not is_super:
         raise HTTPException(status_code=403, detail="仅超级管理员可访问")
 
+    # 根据租户code获取租户
+    tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
+    if not tenant:
+        raise HTTPException(status_code=400, detail="租户不存在")
+
     users, total = crud_user.get_all_users_for_super_admin(
         db,
-        tenant_id=tenant_id,
+        tenant_id=tenant.id,
         skip=skip,
         limit=limit,
         keyword=keyword,

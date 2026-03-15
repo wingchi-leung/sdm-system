@@ -212,20 +212,16 @@ def get_or_create_user_by_phone(db: Session, phone: str, tenant_id: int, name: s
 
 def get_all_users_for_super_admin(
     db: Session,
-    tenant_id: int | None = None,
+    tenant_id: int,
     skip: int = 0,
     limit: int = 20,
     keyword: str | None = None,
 ) -> tuple[list[User], int]:
     """
-    超级管理员查看所有用户（支持租户筛选和分页）
+    超级管理员查看指定租户的用户（支持分页和搜索）
     返回 (用户列表, 总数)
     """
-    query = db.query(User)
-
-    # 按租户筛选
-    if tenant_id is not None:
-        query = query.filter(User.tenant_id == tenant_id)
+    query = db.query(User).filter(User.tenant_id == tenant_id)
 
     # 关键字搜索（姓名、手机号）
     if keyword:

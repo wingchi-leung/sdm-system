@@ -403,9 +403,8 @@ function phoneLogin(code) {
 
 /** 获取所有用户列表（超级管理员专用） */
 function getAllUsersForAdmin(opts = {}) {
-  const { tenantId, skip = 0, limit = 20, keyword } = opts;
-  let url = `${baseUrl}/users/admin/all?skip=${skip}&limit=${limit}`;
-  if (tenantId != null) url += `&tenant_id=${tenantId}`;
+  const { tenantCode = 'default', skip = 0, limit = 20, keyword } = opts;
+  let url = `${baseUrl}/users/admin/all?tenant_code=${tenantCode}&skip=${skip}&limit=${limit}`;
   if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
   return new Promise((resolve, reject) => {
     wx.request({

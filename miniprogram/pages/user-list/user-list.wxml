@@ -62,10 +62,6 @@
           <text class="info-value">{{item.industry || '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">租户ID：</text>
-          <text class="info-value">{{item.tenant_id}}</text>
-        </view>
-        <view class="info-row">
           <text class="info-label">注册时间：</text>
           <text class="info-value">{{item.create_time}}</text>
         </view>
