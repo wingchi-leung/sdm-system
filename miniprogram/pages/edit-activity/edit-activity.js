@@ -72,6 +72,11 @@ Page({
     return `${hours}:${minutes}`;
   },
 
+  // 构造本地时间 ISO 字符串（不带时区转换）
+  toLocalISOString(dateStr, timeStr) {
+    return `${dateStr}T${timeStr}:00`;
+  },
+
   onNameInput(e) {
     this.setData({ activityName: e.detail.value });
   },
@@ -113,16 +118,24 @@ Page({
       return;
     }
 
-    const startDateTime = new Date(`${startDate}T${startTime}:00`);
+    // 验证开始时间必须早于结束时间
+    if (endDate && endTime) {
+      const start = new Date(`${startDate}T${startTime}`);
+      const end = new Date(`${endDate}T${endTime}`);
+      if (start >= end) {
+        wx.showToast({ title: '开始时间必须早于结束时间', icon: 'none' });
+        return;
+      }
+    }
+
     const updateData = {
       activity_name: activityName.trim(),
-      start_time: startDateTime.toISOString(),
+      start_time: this.toLocalISOString(startDate, startTime),
       tag: tag.trim() || null,
     };
 
     if (endDate && endTime) {
-      const endDateTime = new Date(`${endDate}T${endTime}:00`);
-      updateData.end_time = endDateTime.toISOString();
+      updateData.end_time = this.toLocalISOString(endDate, endTime);
     }
 
     if (activityTypeName.trim()) {
