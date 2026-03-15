@@ -45,23 +45,23 @@
       <view class="panel-title">管理功能</view>
       <view class="admin-actions">
         <view class="admin-action-item" bindtap="onViewParticipants">
-          <view class="action-icon">👥</view>
+          <image class="action-icon" src="/assets/icons/people.svg" mode="aspectFit" />
           <text class="action-text">查看人员</text>
         </view>
         <view class="admin-action-item" bindtap="onViewCheckins">
-          <view class="action-icon">✓</view>
+          <image class="action-icon" src="/assets/icons/checkindata.svg" mode="aspectFit" />
           <text class="action-text">签到记录</text>
         </view>
         <view class="admin-action-item" bindtap="onViewStatistics">
-          <view class="action-icon">📊</view>
+          <image class="action-icon" src="/assets/icons/static.svg" mode="aspectFit" />
           <text class="action-text">报名统计</text>
         </view>
         <view class="admin-action-item" bindtap="onChangeStatus">
-          <view class="action-icon">🔄</view>
+          <image class="action-icon" src="/assets/icons/changestatus.svg" mode="aspectFit" />
           <text class="action-text">更改状态</text>
         </view>
         <view class="admin-action-item" bindtap="onEditActivity">
-          <view class="action-icon">✏️</view>
+          <image class="action-icon" src="/assets/icons/edit.svg" mode="aspectFit" />
           <text class="action-text">编辑活动</text>
         </view>
       </view>
