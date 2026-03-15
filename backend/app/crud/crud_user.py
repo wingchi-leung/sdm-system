@@ -208,3 +208,37 @@ def get_or_create_user_by_phone(db: Session, phone: str, tenant_id: int, name: s
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"创建用户失败: {str(e)}")
+
+
+def get_all_users_for_super_admin(
+    db: Session,
+    tenant_id: int | None = None,
+    skip: int = 0,
+    limit: int = 20,
+    keyword: str | None = None,
+) -> tuple[list[User], int]:
+    """
+    超级管理员查看所有用户（支持租户筛选和分页）
+    返回 (用户列表, 总数)
+    """
+    query = db.query(User)
+
+    # 按租户筛选
+    if tenant_id is not None:
+        query = query.filter(User.tenant_id == tenant_id)
+
+    # 关键字搜索（姓名、手机号）
+    if keyword:
+        keyword_pattern = f"%{keyword}%"
+        query = query.filter(
+            (User.name.ilike(keyword_pattern)) |
+            (User.phone.ilike(keyword_pattern))
+        )
+
+    # 获取总数
+    total = query.count()
+
+    # 分页
+    users = query.order_by(User.id.desc()).offset(skip).limit(limit).all()
+
+    return users, total

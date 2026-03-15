@@ -133,3 +133,42 @@ class UserBindInfoResponse(BaseModel):
     """用户信息绑定响应"""
     success: bool
     message: str = ""
+
+
+class AdminUserListItem(BaseModel):
+    """管理员列表项（用于超级管理员查看）"""
+    id: int
+    tenant_id: int
+    username: str
+    is_super_admin: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class UserListItemForAdmin(BaseModel):
+    """用户列表项（用于超级管理员查看）"""
+    id: int
+    tenant_id: int
+    name: str | None = None
+    phone: str | None = None
+    email: str | None = None
+    sex: str | None = None
+    age: int | None = None
+    occupation: str | None = None
+    industry: str | None = None
+    isblock: int = 0
+    block_reason: str | None = None
+    create_time: datetime
+    update_time: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserListForAdminResponse(BaseModel):
+    """用户列表响应（超级管理员查看）"""
+    items: list[UserListItemForAdmin]
+    total: int
+    skip: int
+    limit: int

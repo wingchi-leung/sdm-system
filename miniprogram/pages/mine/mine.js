@@ -93,4 +93,8 @@ goActivityList() {
   goActivityManage() {
     wx.navigateTo({ url: '/pages/activity-list/activity-list' });
   },
+
+  goUserList() {
+    wx.navigateTo({ url: '/pages/user-list/user-list' });
+  },
 });

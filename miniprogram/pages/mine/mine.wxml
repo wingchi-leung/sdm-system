@@ -52,6 +52,12 @@
         <text class="menu-subtitle">编辑、删除活动</text>
         <text class="arrow">›</text>
       </view>
+      <!-- 超级管理员专属入口 -->
+      <view wx:if="{{adminProfile && adminProfile.isSuper}}" class="menu-item" bindtap="goUserList">
+        <text class="menu-title">用户管理</text>
+        <text class="menu-subtitle">查看平台所有用户</text>
+        <text class="arrow">›</text>
+      </view>
 
     </view>
     <view class="card section">

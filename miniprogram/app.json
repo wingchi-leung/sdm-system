@@ -10,7 +10,8 @@
     "pages/edit-activity/edit-activity",
     "pages/activity-participants/activity-participants",
     "pages/activity-checkins/activity-checkins",
-    "pages/activity-statistics/activity-statistics"
+    "pages/activity-statistics/activity-statistics",
+    "pages/user-list/user-list"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -1,0 +1,153 @@
+.container {
+  padding: 20rpx;
+  background: #f5f5f5;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* 搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 20rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.search-input {
+  flex: 1;
+  height: 64rpx;
+  padding: 0 20rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+}
+
+.search-btn {
+  background: #4988FC;
+  color: #fff;
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+}
+
+.clear-btn {
+  background: #f5f5f5;
+  color: #666;
+  border-radius: 8rpx;
+  padding: 0 24rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+}
+
+/* 统计栏 */
+.stats-bar {
+  padding: 12rpx 0;
+  margin-bottom: 12rpx;
+}
+
+.stats-text {
+  font-size: 26rpx;
+  color: #999;
+}
+
+/* 加载和空状态 */
+.loading, .empty {
+  text-align: center;
+  padding: 100rpx 0;
+  color: #999;
+  font-size: 28rpx;
+}
+
+/* 用户列表 */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.user-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0,0,0,0.06);
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.user-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.user-status {
+  font-size: 22rpx;
+  font-weight: 500;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.user-status.normal {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.user-status.blocked {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.info-row {
+  display: flex;
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.info-label {
+  color: #999;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.info-value {
+  color: #333;
+  flex: 1;
+}
+
+.block-reason {
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f0f0f0;
+  font-size: 26rpx;
+  display: flex;
+}
+
+.info-value.warning {
+  color: #dc2626;
+}
+
+/* 加载更多 */
+.load-more, .no-more {
+  text-align: center;
+  padding: 30rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}

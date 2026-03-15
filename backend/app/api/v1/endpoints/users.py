@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
-from app.crud import crud_user, crud_tenant
+from app.crud import crud_user, crud_tenant, crud_admin
 from app.api import deps
 from app.models import user
 from app.schemas import User
@@ -104,3 +104,37 @@ def check_bind_status(
         "require_bind_info": is_incomplete,
         "is_bound": not is_incomplete
     }
+
+
+@router.get("/admin/all", response_model=user.UserListForAdminResponse)
+def get_all_users_for_super_admin(
+    tenant_id: Optional[int] = Query(None, description="租户ID，不传则查询所有租户"),
+    skip: int = Query(0, ge=0, description="跳过记录数"),
+    limit: int = Query(20, ge=1, le=100, description="每页记录数"),
+    keyword: Optional[str] = Query(None, description="搜索关键字（姓名、手机号）"),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """
+    超级管理员查看所有用户（支持分租户筛选）
+    仅超级管理员可访问
+    """
+    # 检查是否为超级管理员
+    is_super, _ = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可访问")
+
+    users, total = crud_user.get_all_users_for_super_admin(
+        db,
+        tenant_id=tenant_id,
+        skip=skip,
+        limit=limit,
+        keyword=keyword,
+    )
+
+    return user.UserListForAdminResponse(
+        items=[user.UserListItemForAdmin.model_validate(u) for u in users],
+        total=total,
+        skip=skip,
+        limit=limit,
+    )

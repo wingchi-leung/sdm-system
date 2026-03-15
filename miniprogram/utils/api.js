@@ -2,7 +2,7 @@
  * API 封装 - 与后端 backend /api/v1 对接
  * 真机/体验版请修改 baseUrl 为实际服务器地址（需在小程序后台配置 request 合法域名）
  */
-const baseUrl = 'http://172.20.10.6:8000/api/v1';
+const baseUrl = 'http://192.168.1.35:8000/api/v1';
 
 function getToken() {
   return wx.getStorageSync('access_token') || '';
@@ -401,6 +401,26 @@ function phoneLogin(code) {
   });
 }
 
+/** 获取所有用户列表（超级管理员专用） */
+function getAllUsersForAdmin(opts = {}) {
+  const { tenantId, skip = 0, limit = 20, keyword } = opts;
+  let url = `${baseUrl}/users/admin/all?skip=${skip}&limit=${limit}`;
+  if (tenantId != null) url += `&tenant_id=${tenantId}`;
+  if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   getToken,
@@ -426,5 +446,6 @@ module.exports = {
   getUserDetail,
   bindUserInfo,
   checkBindStatus,
+  getAllUsersForAdmin,
   ApiError,
 };
