@@ -7,6 +7,9 @@ os.environ["MYSQL_HOST"] = "localhost"
 os.environ["MYSQL_USER"] = "test"
 os.environ["MYSQL_PASSWORD"] = "test"
 os.environ["MYSQL_DB"] = "test"
+# 禁用登录限流用于测试
+os.environ["LOGIN_RATE_LIMIT_COUNT"] = "1000"
+os.environ["LOGIN_RATE_LIMIT_WINDOW_SECONDS"] = "1"
 
 from datetime import datetime
 from typing import Generator
@@ -363,4 +366,13 @@ def set_factory_session(db_session: Session):
     factories.EndedActivityFactory._meta.sqlalchemy_session = db_session
     factories.ParticipantFactory._meta.sqlalchemy_session = db_session
     factories.CheckInFactory._meta.sqlalchemy_session = db_session
+    yield
+
+
+# 重置登录限流状态
+@pytest.fixture(autouse=True)
+def reset_login_rate_limit():
+    """每个测试前重置登录限流状态"""
+    from app.api.v1.endpoints.auth import _login_attempts
+    _login_attempts.clear()
     yield
