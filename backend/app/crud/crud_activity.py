@@ -134,22 +134,25 @@ def update_activity(
         db_activity = get_activity(db, activity_id, tenant_id)
         if not db_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
-        
+
         update_data = activity_update.model_dump(exclude_unset=True)
-        
+        print(f"[DEBUG] 更新活动 {activity_id}, 收到数据: {update_data}")
+
         if "activity_type_name" in update_data:
             type_name = update_data.pop("activity_type_name")
             if type_name:
                 t = crud_activity_type.get_or_create_by_name(db, type_name.strip(), tenant_id)
                 update_data["activity_type_id"] = t.id
-        
+
         for field, value in update_data.items():
             if value is not None:
+                print(f"[DEBUG] 设置字段 {field} = {value}")
                 setattr(db_activity, field, value)
-        
+
         db_activity.update_time = datetime.now()
         db.commit()
         db.refresh(db_activity)
+        print(f"[DEBUG] 更新后 start_time = {db_activity.start_time}, end_time = {db_activity.end_time}")
         return db_activity
     except HTTPException:
         raise

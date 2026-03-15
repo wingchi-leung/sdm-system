@@ -16,6 +16,8 @@ Page({
     ],
   },
 
+  isFirstLoad: true,
+
   onLoad(options) {
     const activityId = options.id;
     if (!activityId) {
@@ -30,6 +32,17 @@ Page({
       isAdmin: auth.isAdmin(),
     });
     this.loadActivity(activityId);
+  },
+
+  onShow() {
+    // 从编辑页返回时刷新数据（首次加载跳过）
+    if (this.isFirstLoad) {
+      this.isFirstLoad = false;
+      return;
+    }
+    if (this.data.activityId) {
+      this.loadActivity(this.data.activityId);
+    }
   },
 
   loadActivity(activityId) {
