@@ -3,7 +3,7 @@ const auth = require('../../utils/auth');
 
 Page({
   data: {
-    view: 'guest', // guest | user | admin
+    view: 'user', // user | admin
     profile: null,
     adminProfile: null,
     loading: true,
@@ -51,7 +51,8 @@ Page({
         });
       return;
     }
-    this.setData({ view: 'guest', profile: null, adminProfile: null, loading: false });
+    // 未登录直接跳转登录页
+    wx.navigateTo({ url: '/pages/login/login' });
   },
 
   buildAdminProfile() {
@@ -67,14 +68,10 @@ Page({
     };
   },
 
-  goLogin() {
-    wx.navigateTo({ url: '/pages/login/login' });
-  },
-
   logout() {
     auth.logout();
     wx.showToast({ title: '已退出', icon: 'none' });
-    this.setData({ view: 'guest', profile: null, adminProfile: null });
+    wx.navigateTo({ url: '/pages/login/login' });
   },
 
   goCreateActivity() {

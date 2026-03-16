@@ -8,34 +8,6 @@
   background: var(--background);
 }
 
-/* 登录引导 */
-.center-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-xl) var(--space-lg);
-  min-height: 50vh;
-}
-
-.guest-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-sm);
-}
-
-.guest-subtitle {
-  font-size: 28rpx;
-  color: var(--text-secondary);
-  text-align: center;
-  margin-bottom: var(--space-xl);
-}
-
-.login-btn {
-  padding: 24rpx var(--space-xl);
-}
-
 /* 个人信息卡片 */
 .profile-card {
   display: flex;
