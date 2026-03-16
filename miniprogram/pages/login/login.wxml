@@ -36,9 +36,6 @@
       <button class="btn-wechat" disabled="{{submitting}}" bindtap="wechatLogin">
         <text>微信一键登录</text>
       </button>
-      <button class="btn-phone" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber" disabled="{{submitting}}">
-        <text>手机号登录</text>
-      </button>
     </block>
   </view>
 </view>
