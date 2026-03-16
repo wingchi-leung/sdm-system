@@ -1,5 +1,5 @@
 <!-- 普通用户 -->
-<view class="page user" wx:elif="{{view === 'user'}}">
+<view class="page user" wx:if="{{view === 'user'}}">
   <view wx:if="{{loading}}" class="loading-wrap">
     <view class="loading"></view>
   </view>
