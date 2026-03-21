@@ -3,6 +3,7 @@
 """
 import json
 import logging
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -14,7 +15,7 @@ from app.models.payment import (
     PaymentOrderResponse,
     PaymentOrderDetail,
 )
-from app.schemas import Activity, User, PaymentOrder
+from app.schemas import Activity, User, PaymentOrder, ActivityParticipant
 from app.services.wechat_pay import get_wechat_pay_service, WeChatPayService
 
 router = APIRouter()
@@ -156,8 +157,6 @@ async def payment_notify(
         pay_service = get_wechat_pay_service()
         decrypted_data = pay_service.decrypt_callback(headers, body_str)
 
-        logger.info(f"支付回调数据: {decrypted_data}")
-
         # 解析回调数据
         resource = decrypted_data.get("resource", {})
         order_no = resource.get("out_trade_no")
@@ -168,11 +167,10 @@ async def payment_notify(
             logger.error("回调数据缺少订单号")
             return {"code": "FAIL", "message": "缺少订单号"}
 
-        # 获取订单信息以确定租户ID
-        # 由于回调是匿名的，需要通过订单号查询
+        # 使用行锁获取订单，防止并发处理
         order = db.query(PaymentOrder).filter(
             PaymentOrder.order_no == order_no
-        ).first()
+        ).with_for_update().first()
 
         if not order:
             logger.error(f"订单不存在: {order_no}")
@@ -180,46 +178,49 @@ async def payment_notify(
 
         tenant_id = order.tenant_id
 
+        # 幂等处理：如果订单已成功，直接返回成功
+        if order.status == 1:
+            logger.info(f"订单 {order_no} 已处理，跳过重复回调")
+            return {"code": "SUCCESS", "message": "已处理"}
+
         if trade_state == "SUCCESS":
-            # 支付成功，更新订单状态
-            crud_payment.update_payment_order_success(
-                db=db,
-                order_no=order_no,
-                transaction_id=transaction_id,
-                callback_raw=json.dumps(decrypted_data, ensure_ascii=False),
-                tenant_id=tenant_id,
-            )
+            try:
+                # 支付成功，在事务中更新订单状态和创建参与者
+                order.status = 1  # 成功
+                order.transaction_id = transaction_id
+                order.callback_raw = json.dumps(decrypted_data, ensure_ascii=False)
+                order.paid_at = datetime.now()
 
-            # 创建参与者记录
-            participant = crud_payment.create_participant_with_payment(
-                db=db,
-                activity_id=order.activity_id,
-                participant_name="",  # 需要从其他地方获取
-                phone="",
-                identity_number=None,
-                user_id=order.user_id,
-                payment_order_id=order.id,
-                paid_amount=order.actual_fee,
-                tenant_id=tenant_id,
-            )
+                # 创建参与者记录
+                participant = ActivityParticipant(
+                    tenant_id=tenant_id,
+                    activity_id=order.activity_id,
+                    user_id=order.user_id,
+                    participant_name="",  # TODO: 需要从订单中获取
+                    phone="",
+                    identity_number="",
+                    payment_status=2,  # 已支付
+                    payment_order_id=order.id,
+                    paid_amount=order.actual_fee,
+                )
+                db.add(participant)
+                db.flush()  # 获取 participant.id
 
-            # 更新订单关联的参与者ID
-            crud_payment.update_payment_order_participant(
-                db=db,
-                order_id=order.id,
-                participant_id=participant.id,
-                tenant_id=tenant_id,
-            )
+                # 更新订单关联的参与者ID
+                order.participant_id = participant.id
 
-            logger.info(f"订单 {order_no} 支付成功，已创建参与者记录")
+                db.commit()
+                logger.info(f"订单 {order_no} 支付成功，已创建参与者记录")
+
+            except Exception as e:
+                db.rollback()
+                logger.exception(f"处理支付成功回调异常: {e}")
+                return {"code": "FAIL", "message": "处理失败"}
 
         else:
             # 支付失败
-            crud_payment.update_payment_order_failed(
-                db=db,
-                order_no=order_no,
-                tenant_id=tenant_id,
-            )
+            order.status = 2  # 失败
+            db.commit()
             logger.warning(f"订单 {order_no} 支付失败: {trade_state}")
 
         return {"code": "SUCCESS", "message": "成功"}

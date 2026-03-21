@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
 from functools import lru_cache
+import sys
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "SDM system"
@@ -12,7 +14,8 @@ class Settings(BaseSettings):
     MYSQL_PASSWORD: str
     MYSQL_DB: str
     MYSQL_PORT: int = 3306
-    JWT_SECRET: str = "change-me-in-production"
+    # JWT 密钥：必须通过环境变量配置，不提供默认值
+    JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     # 生产环境建议设为 True：仅允许通过 HTTPS 发起的登录请求，避免密码明文传输
@@ -32,13 +35,31 @@ class Settings(BaseSettings):
     WECHAT_PAY_PRIVATE_KEY_PATH: Optional[str] = None # 私钥文件路径
     WECHAT_PAY_NOTIFY_URL: Optional[str] = None       # 支付回调地址
 
+    # 数据库配置
+    DB_ECHO: bool = False  # 是否打印 SQL 日志，生产环境应设为 False
+
     class Config:
         env_file = ".env"
+
+
+# 默认 JWT 密钥值，用于检测是否配置
+_DEFAULT_JWT_SECRET = "change-me-in-production"
+
 
 # 创建设置实例
 @lru_cache()
 def get_settings() -> Settings:
-    return Settings()
+    try:
+        settings_instance = Settings()
+        # 检查 JWT_SECRET 是否为不安全的默认值
+        if settings_instance.JWT_SECRET == _DEFAULT_JWT_SECRET:
+            print("[ERROR] JWT_SECRET 不能使用默认值，请配置环境变量 JWT_SECRET")
+            sys.exit(1)
+        return settings_instance
+    except Exception as e:
+        print(f"[ERROR] 配置加载失败: {e}")
+        sys.exit(1)
+
 
 # 导出设置实例
 settings = get_settings()
