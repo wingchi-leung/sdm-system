@@ -168,12 +168,16 @@ function createActivity({
   participants,
   activity_type_id,
   activity_type_name,
+  suggested_fee,
+  require_payment,
 }) {
   const data = {
     activity_name,
     tag: tag || '',
     start_time: typeof start_time === 'string' ? start_time : (start_time && start_time.toISOString ? start_time.toISOString() : start_time),
     participants: participants || [],
+    suggested_fee: suggested_fee || 0,
+    require_payment: require_payment || 0,
   };
   if (activity_type_id != null && activity_type_id !== '') {
     data.activity_type_id = activity_type_id;
@@ -420,6 +424,41 @@ function getAllUsersForAdmin(opts = {}) {
   });
 }
 
+/** 创建支付订单 */
+function createPaymentOrder({ activity_id, participant_name, phone, identity_number, actual_fee }) {
+  const data = { activity_id, participant_name, phone, actual_fee };
+  if (identity_number) data.identity_number = identity_number;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/payments/create`,
+      method: 'POST',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 查询支付订单状态 */
+function queryPaymentOrder(orderNo) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/payments/order/${orderNo}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   getToken,
@@ -446,5 +485,7 @@ module.exports = {
   bindUserInfo,
   checkBindStatus,
   getAllUsersForAdmin,
+  createPaymentOrder,
+  queryPaymentOrder,
   ApiError,
 };

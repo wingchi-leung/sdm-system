@@ -44,6 +44,26 @@
       />
     </view>
 
+    <!-- 支付金额（需要支付时显示） -->
+    <view class="field fee-field" wx:if="{{requirePayment}}">
+      <text class="field-label">支付金额</text>
+      <view class="fee-info">
+        <text class="fee-hint">建议费用：¥{{suggestedFeeYuan}}，可支付更高金额</text>
+      </view>
+      <view class="fee-input-wrapper">
+        <text class="fee-currency">¥</text>
+        <input
+          class="input fee-input"
+          type="digit"
+          placeholder="{{suggestedFeeYuan}}"
+          placeholder-class="input-placeholder"
+          value="{{actualFeeYuan}}"
+          bindinput="onFeeInput"
+          bindblur="onFeeBlur"
+        />
+      </view>
+    </view>
+
     <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
       <text class="error-text">{{error}}</text>
@@ -51,7 +71,7 @@
 
     <!-- 提交按钮 -->
     <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
-      <text class="btn-text">{{submitting ? '提交中…' : '提交报名'}}</text>
+      <text class="btn-text">{{submitting ? '处理中…' : (requirePayment ? '立即支付' : '提交报名')}}</text>
     </button>
   </view>
 </view>

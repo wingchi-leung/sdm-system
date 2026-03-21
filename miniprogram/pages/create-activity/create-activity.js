@@ -16,6 +16,10 @@ Page({
     startTime: '',
     submitting: false,
     error: null,
+    // 支付相关
+    requirePayment: false,
+    suggestedFeeYuan: '',
+    suggestedFee: 0,
   },
 
   onLoad() {
@@ -88,6 +92,39 @@ Page({
     this.setData({ startTime: e.detail.value, error: null });
   },
 
+  // 支付相关
+  onRequirePaymentChange(e) {
+    const checked = e.detail.value;
+    this.setData({
+      requirePayment: checked,
+      // 如果取消支付，清空费用
+      suggestedFeeYuan: checked ? this.data.suggestedFeeYuan : '',
+      suggestedFee: checked ? this.data.suggestedFee : 0,
+      error: null,
+    });
+  },
+
+  onSuggestedFeeInput(e) {
+    const value = e.detail.value;
+    const feeYuan = parseFloat(value) || 0;
+    const feeFen = Math.round(feeYuan * 100);
+    this.setData({
+      suggestedFeeYuan: value,
+      suggestedFee: feeFen,
+      error: null,
+    });
+  },
+
+  onSuggestedFeeBlur() {
+    // 失焦时格式化金额
+    const feeYuan = parseFloat(this.data.suggestedFeeYuan) || 0;
+    const feeFen = Math.round(feeYuan * 100);
+    this.setData({
+      suggestedFeeYuan: feeYuan > 0 ? feeYuan.toFixed(2) : '',
+      suggestedFee: feeFen,
+    });
+  },
+
   getSelectedActivityType() {
     const options = this.data.activityTypeOptions || [];
     const idx = this.data.activityTypeIndex;
@@ -98,7 +135,7 @@ Page({
   },
 
   submit() {
-    const { activityName, startDate, startTime } = this.data;
+    const { activityName, startDate, startTime, requirePayment, suggestedFee } = this.data;
     const tag = (this.data.tag || '').trim();
     const activityType = this.getSelectedActivityType();
     if (!activityName || !activityName.trim()) {
@@ -122,6 +159,13 @@ Page({
       this.setData({ error: '时间格式有误' });
       return;
     }
+
+    // 验证支付金额
+    if (requirePayment && suggestedFee <= 0) {
+      this.setData({ error: '请输入建议费用' });
+      return;
+    }
+
     this.setData({ submitting: true, error: null });
     api
       .createActivity({
@@ -131,6 +175,8 @@ Page({
         activity_type_id: activityType.id,
         activity_type_name: activityType.name || '',
         participants: [],
+        suggested_fee: requirePayment ? suggestedFee : 0,
+        require_payment: requirePayment ? 1 : 0,
       })
       .then(() => {
         wx.showToast({ title: '发布成功', icon: 'success' });

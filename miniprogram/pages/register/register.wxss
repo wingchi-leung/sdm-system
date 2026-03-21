@@ -140,3 +140,38 @@
   color: #FFFFFF;
   letter-spacing: 0.12em;
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * 支付金额
+ * ───────────────────────────────────────────────────────────── */
+.fee-field {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--divider);
+}
+
+.fee-info {
+  margin-bottom: var(--space-sm);
+}
+
+.fee-hint {
+  font-size: 24rpx;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.fee-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.fee-currency {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-right: var(--space-sm);
+}
+
+.fee-input {
+  flex: 1;
+}

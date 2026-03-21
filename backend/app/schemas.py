@@ -96,6 +96,8 @@ class Activity(BaseModel):
     end_time = Column(DateTime, nullable=True)
     status = Column(Integer, default=1)
     tag = Column(String(255), nullable=True)
+    suggested_fee = Column(Integer, default=0)       # 建议费用（分），0 表示免费
+    require_payment = Column(Integer, default=0)    # 是否需要支付：0-否 1-是
 
 
 # ============================================================
@@ -109,6 +111,9 @@ class ActivityParticipant(BaseModel):
     participant_name = Column(String(255))
     identity_number = Column(String(255))
     phone = Column(String(255))
+    payment_status = Column(Integer, default=0)     # 0-无需支付 1-待支付 2-已支付
+    payment_order_id = Column(Integer, nullable=True)
+    paid_amount = Column(Integer, default=0)        # 实际支付金额（分）
 
 
 # ============================================================
@@ -125,3 +130,24 @@ class CheckInRecord(BaseModel):
     checkin_time = Column(DateTime, default=datetime.now)
     has_attend = Column(Integer, default=0)
     note = Column(String(255))
+
+
+# ============================================================
+# 支付订单表
+# ============================================================
+class PaymentOrder(BaseModel):
+    __tablename__ = "payment_order"
+    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    order_no = Column(String(64), unique=True, nullable=False, index=True)   # 商户订单号
+    transaction_id = Column(String(64), nullable=True, index=True)           # 微信交易号
+    activity_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=True, index=True)
+    participant_id = Column(Integer, nullable=True, index=True)
+    suggested_fee = Column(Integer, nullable=False)      # 建议费用（分）
+    actual_fee = Column(Integer, nullable=False)         # 实际支付金额（分）
+    status = Column(Integer, default=0, index=True)      # 0-待支付 1-成功 2-失败 3-关闭
+    openid = Column(String(64), nullable=True)            # 付款用户 openid
+    prepay_id = Column(String(128), nullable=True)        # 预支付ID
+    paid_at = Column(DateTime, nullable=True)             # 支付成功时间
+    expire_at = Column(DateTime, nullable=False)          # 过期时间
+    callback_raw = Column(String(2000), nullable=True)    # 回调原始数据

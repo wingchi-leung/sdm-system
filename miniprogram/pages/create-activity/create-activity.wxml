@@ -60,6 +60,34 @@
       </picker>
     </view>
 
+    <!-- 支付设置 -->
+    <view class="field payment-section">
+      <view class="payment-header">
+        <text class="field-label">支付设置</text>
+      </view>
+      <view class="switch-row">
+        <text class="switch-label">需要支付</text>
+        <switch checked="{{requirePayment}}" bindchange="onRequirePaymentChange" color="var(--primary)" />
+      </view>
+      <!-- 费用输入（开启支付时显示） -->
+      <view class="fee-input-section" wx:if="{{requirePayment}}">
+        <text class="fee-label">建议费用（元）</text>
+        <view class="fee-input-wrapper">
+          <text class="fee-currency">¥</text>
+          <input
+            class="input fee-input"
+            type="digit"
+            placeholder="0.00"
+            placeholder-class="input-placeholder"
+            value="{{suggestedFeeYuan}}"
+            bindinput="onSuggestedFeeInput"
+            bindblur="onSuggestedFeeBlur"
+          />
+        </view>
+        <text class="fee-hint">用户可支付等于或高于此金额</text>
+      </view>
+    </view>
+
     <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
       <text class="error-text">{{error}}</text>

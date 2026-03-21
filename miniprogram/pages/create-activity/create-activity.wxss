@@ -131,3 +131,65 @@
   color: #FFFFFF;
   letter-spacing: 0.12em;
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * 支付设置
+ * ───────────────────────────────────────────────────────────── */
+.payment-section {
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--divider);
+}
+
+.payment-header {
+  margin-bottom: var(--space-md);
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 88rpx;
+  border-bottom: 1px solid var(--border);
+}
+
+.switch-label {
+  font-size: 28rpx;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.fee-input-section {
+  margin-top: var(--space-lg);
+}
+
+.fee-label {
+  display: block;
+  font-size: 24rpx;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+  letter-spacing: 0.02em;
+}
+
+.fee-input-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.fee-currency {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-right: var(--space-sm);
+}
+
+.fee-input {
+  flex: 1;
+}
+
+.fee-hint {
+  display: block;
+  font-size: 22rpx;
+  color: var(--text-tertiary);
+  margin-top: var(--space-xs);
+  letter-spacing: 0.02em;
+}

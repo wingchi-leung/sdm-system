@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     WECHAT_APPID: Optional[str] = None
     WECHAT_SECRET: Optional[str] = None
 
+    # 微信支付配置
+    WECHAT_PAY_MCH_ID: Optional[str] = None           # 商户号
+    WECHAT_PAY_API_V3_KEY: Optional[str] = None       # API v3 密钥
+    WECHAT_PAY_SERIAL_NO: Optional[str] = None        # 商户证书序列号
+    WECHAT_PAY_PRIVATE_KEY_PATH: Optional[str] = None # 私钥文件路径
+    WECHAT_PAY_NOTIFY_URL: Optional[str] = None       # 支付回调地址
+
     class Config:
         env_file = ".env"
 
