@@ -1,5 +1,5 @@
 <view class="page">
-  <view class="form-card">
+  <view class="form">
     <!-- 活动名称 -->
     <view class="field">
       <text class="field-label">活动名称</text>
@@ -22,38 +22,42 @@
         value="{{activityTypeIndex}}"
         bindchange="onActivityTypeChange"
       >
-        <view class="picker-field">
-          <text class="picker-text {{activityTypeName ? '' : 'placeholder'}}">
-            {{activityTypeName || (isTypeAdmin ? '请选择活动类型' : '常见类型快速选择（可选）')}}
-          </text>
+        <view class="picker-row">
+          <text class="picker-value">{{activityTypeName || '请选择活动类型'}}</text>
           <text class="picker-arrow">→</text>
         </view>
       </picker>
       <input
         wx:if="{{isSuperAdmin}}"
-        class="input type-input"
+        class="input"
         placeholder="超级管理员可直接输入类型"
         placeholder-class="input-placeholder"
         value="{{activityTypeName}}"
         bindinput="onActivityTypeInput"
+        style="margin-top: 16rpx;"
       />
+    </view>
+
+    <!-- 开始日期 -->
+    <view class="field">
+      <text class="field-label">开始日期</text>
+      <picker mode="date" value="{{startDate}}" bindchange="onDateChange">
+        <view class="picker-row">
+          <text class="picker-value">{{startDate || '请选择日期'}}</text>
+          <text class="picker-arrow">→</text>
+        </view>
+      </picker>
     </view>
 
     <!-- 开始时间 -->
     <view class="field">
       <text class="field-label">开始时间</text>
-      <view class="picker-field">
-        <picker mode="date" value="{{startDate}}" bindchange="onDateChange">
-          <text class="picker-text {{startDate ? '' : 'placeholder'}}">
-            {{startDate || '请选择日期'}}
-          </text>
-        </picker>
-        <picker mode="time" value="{{startTime}}" bindchange="onTimeChange">
-          <text class="picker-text {{startTime ? '' : 'placeholder'}}">
-            {{startTime || '请选择时间'}}
-          </text>
-        </picker>
-      </view>
+      <picker mode="time" value="{{startTime}}" bindchange="onTimeChange">
+        <view class="picker-row">
+          <text class="picker-value">{{startTime || '请选择时间'}}</text>
+          <text class="picker-arrow">→</text>
+        </view>
+      </picker>
     </view>
 
     <!-- 错误提示 -->
