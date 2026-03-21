@@ -1,0 +1,22 @@
+<view class="tab-bar">
+  <view
+    class="tab-item {{selected === 0 ? 'active' : ''}}"
+    data-index="0"
+    bindtap="switchTab"
+  >
+    <view class="tab-icon">
+      <text class="icon-text">☰</text>
+    </view>
+    <text class="tab-label">活动</text>
+  </view>
+  <view
+    class="tab-item {{selected === 1 ? 'active' : ''}}"
+    data-index="1"
+    bindtap="switchTab"
+  >
+    <view class="tab-icon">
+      <text class="icon-text">○</text>
+    </view>
+    <text class="tab-label">我的</text>
+  </view>
+</view>
