@@ -8,7 +8,6 @@
     <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
       <button class="btn-publish" bindtap="goCreateActivity">
         <text class="publish-icon">+</text>
-        <text class="publish-text">发布</text>
       </button>
     </view>
   </view>
