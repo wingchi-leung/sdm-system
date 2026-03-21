@@ -39,42 +39,21 @@
       />
     </view>
 
-    <!-- 标签 -->
-    <view class="field">
-      <text class="field-label optional">标签</text>
-      <input
-        class="input"
-        placeholder="如：培训、沙龙"
-        placeholder-class="input-placeholder"
-        value="{{tag}}"
-        bindinput="onTagInput"
-      />
-    </view>
-
-    <!-- 开始日期 -->
-    <view class="field">
-      <text class="field-label">开始日期</text>
-      <picker mode="date" value="{{startDate}}" bindchange="onDateChange">
-        <view class="picker-field">
-          <text class="picker-text {{startDate ? '' : 'placeholder'}}">
-            {{startDate || '请选择日期'}}
-          </text>
-          <text class="picker-arrow">→</text>
-        </view>
-      </picker>
-    </view>
-
     <!-- 开始时间 -->
     <view class="field">
       <text class="field-label">开始时间</text>
-      <picker mode="time" value="{{startTime}}" bindchange="onTimeChange">
-        <view class="picker-field">
+      <view class="picker-field">
+        <picker mode="date" value="{{startDate}}" bindchange="onDateChange">
+          <text class="picker-text {{startDate ? '' : 'placeholder'}}">
+            {{startDate || '请选择日期'}}
+          </text>
+        </picker>
+        <picker mode="time" value="{{startTime}}" bindchange="onTimeChange">
           <text class="picker-text {{startTime ? '' : 'placeholder'}}">
             {{startTime || '请选择时间'}}
           </text>
-          <text class="picker-arrow">→</text>
-        </view>
-      </picker>
+        </picker>
+      </view>
     </view>
 
     <!-- 错误提示 -->

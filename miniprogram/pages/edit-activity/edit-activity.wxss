@@ -1,101 +1,115 @@
-.container {
-  padding: 24rpx;
-  background: #f7f8fa;
+/**
+ * 编辑活动页 - 高级简约风格
+ */
+
+.page {
   min-height: 100vh;
+  padding: var(--space-xl) var(--space-lg);
+  background: var(--background);
 }
 
 .form {
-  background: #fff;
-  border-radius: 20rpx;
-  padding: 32rpx 28rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  animation: fadeIn 0.4s ease;
 }
 
-.form-item {
-  margin-bottom: 36rpx;
+/* ─────────────────────────────────────────────────────────────
+ * 表单字段
+ * ───────────────────────────────────────────────────────────── */
+.field {
+  margin-bottom: var(--space-xl);
 }
 
-.form-item:last-child {
+.field:last-child {
   margin-bottom: 0;
 }
 
-.label {
+.field-label {
   display: block;
-  font-size: 28rpx;
-  color: #1f2937;
-  margin-bottom: 16rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
   font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field-label.optional::after {
+  content: '';
 }
 
 .input {
   width: 100%;
-  padding: 24rpx 20rpx;
-  background: #f9fafb;
-  border: 2rpx solid #e5e7eb;
-  border-radius: 12rpx;
+  height: 88rpx;
+  padding: 0 0;
   font-size: 28rpx;
-  color: #1f2937;
-  transition: all 0.2s;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
   box-sizing: border-box;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  letter-spacing: 0.04em;
 }
 
-.input::placeholder {
-  color: #9ca3af;
+.input:focus {
+  border-bottom-color: var(--text-primary);
 }
 
-.picker {
-  padding: 24rpx 20rpx;
-  background: #f9fafb;
-  border: 2rpx solid #e5e7eb;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: #1f2937;
-  transition: all 0.2s;
+.input-placeholder {
+  color: var(--text-muted);
 }
 
-.datetime-picker {
+/* ─────────────────────────────────────────────────────────────
+ * 日期时间选择
+ * ───────────────────────────────────────────────────────────── */
+.datetime-row {
   display: flex;
-  gap: 16rpx;
+  gap: var(--space-lg);
 }
 
-.datetime-picker picker {
+.datetime-row picker {
   flex: 1;
 }
 
-.datetime-picker .picker {
-  text-align: center;
+.picker-value {
+  height: 88rpx;
+  line-height: 88rpx;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
 }
 
-.picker:empty::before {
-  content: attr(data-placeholder);
-  color: #9ca3af;
-}
-
-.submit-btn {
+/* ─────────────────────────────────────────────────────────────
+ * 提交按钮
+ * ───────────────────────────────────────────────────────────── */
+.btn-submit {
   width: 100%;
-  margin-top: 48rpx;
-  padding: 28rpx;
-  background: #4988FC;
-  color: #fff;
-  border-radius: 14rpx;
-  font-size: 30rpx;
-  font-weight: 600;
+  height: 96rpx;
+  background: var(--primary);
+  border-radius: var(--radius-xs);
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(73, 136, 252, 0.3);
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: var(--space-2xl);
 }
 
-.submit-btn::after {
+.btn-submit::after {
   border: none;
 }
 
-.submit-btn:active {
-  transform: translateY(2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(73, 136, 252, 0.3);
+.btn-submit:active {
+  opacity: 0.85;
 }
 
-.submit-btn[disabled] {
-  background: #e5e7eb;
-  color: #9ca3af;
-  box-shadow: none;
+.btn-submit[disabled] {
+  opacity: 0.5;
+}
+
+.btn-submit .btn-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #FFFFFF;
+  letter-spacing: 0.12em;
 }

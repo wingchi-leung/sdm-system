@@ -8,6 +8,7 @@ Page({
     total: 0,
     currentPage: 0,
     pageSize: 10,
+    totalPages: 1,
     loading: true,
     isAdmin: false,
   },
@@ -30,9 +31,12 @@ Page({
 
     try {
       const result = await api.getActivityParticipants(activityId, currentPage * pageSize, pageSize);
+      const total = result.total || 0;
+      const totalPages = Math.max(1, Math.ceil(total / pageSize));
       this.setData({
         participants: result.items || [],
-        total: result.total || 0,
+        total: total,
+        totalPages: totalPages,
         loading: false,
       });
     } catch (err) {

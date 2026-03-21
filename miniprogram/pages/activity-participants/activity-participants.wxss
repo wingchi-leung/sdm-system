@@ -1,93 +1,154 @@
-.container {
-  padding: 20rpx;
-  background: #f5f5f5;
+/**
+ * 报名人员列表 - 高级简约风格
+ */
+
+.page {
   min-height: 100vh;
+  padding: var(--space-xl) var(--space-lg);
+  background: var(--background);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 统计头部
+ * ───────────────────────────────────────────────────────────── */
 .header {
-  padding: 20rpx;
-  background: #fff;
-  margin-bottom: 20rpx;
-  border-radius: 12rpx;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: var(--space-lg);
 }
 
-.total {
-  font-size: 28rpx;
-  color: #666;
+.total-label {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
-.loading, .empty {
-  text-align: center;
-  padding: 100rpx 0;
-  color: #999;
+.total-count {
+  font-family: var(--font-display);
+  font-size: 48rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
 }
 
-.participant-list {
+/* ─────────────────────────────────────────────────────────────
+ * 状态页面
+ * ───────────────────────────────────────────────────────────── */
+.state-wrap {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.state-title {
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 人员列表
+ * ───────────────────────────────────────────────────────────── */
+.list {
+  display: flex;
+  flex-direction: column;
 }
 
 .participant-item {
-  background: #fff;
-  border-radius: 12rpx;
-  padding: 20rpx;
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--divider);
 }
 
-.participant-row {
+.participant-item:last-of-type {
+  border-bottom: none;
+}
+
+.participant-header {
   display: flex;
   align-items: center;
-  margin-bottom: 8rpx;
+  gap: var(--space-md);
+  margin-bottom: var(--space-sm);
 }
 
-.participant-row.detail {
-  font-size: 26rpx;
-  color: #666;
-  margin-bottom: 4rpx;
+.participant-index {
+  width: 40rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
 }
 
-.index {
-  width: 48rpx;
-  height: 48rpx;
-  background: #007AFF;
-  color: #fff;
-  border-radius: 50%;
+.participant-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+.participant-info {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: baseline;
+  padding-left: 56rpx;
+  margin-bottom: var(--space-xs);
+}
+
+.participant-info .info-label {
+  width: 100rpx;
+  font-size: 22rpx;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.participant-info .info-value {
   font-size: 24rpx;
-  margin-right: 16rpx;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
 }
 
-.name {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.label {
-  color: #999;
-  margin-right: 8rpx;
-}
-
-.value {
-  color: #333;
-}
-
+/* ─────────────────────────────────────────────────────────────
+ * 分页
+ * ───────────────────────────────────────────────────────────── */
 .pagination {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20rpx;
-  margin-top: 32rpx;
-  padding: 20rpx;
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--divider);
 }
 
 .page-btn {
-  padding: 0 32rpx;
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.page-btn:active {
+  background: var(--background-subtle);
+}
+
+.page-btn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
 }
 
 .page-info {
-  font-size: 28rpx;
-  color: #666;
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
 }

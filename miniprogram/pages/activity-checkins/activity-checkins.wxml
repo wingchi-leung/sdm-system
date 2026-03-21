@@ -1,24 +1,35 @@
-<view class="container">
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
-
-  <view wx:elif="{{isEmpty}}" class="empty">
-    <text class="empty-text">暂无签到记录</text>
+<view class="page">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
   </view>
 
-  <view wx:else class="checkins-list">
-    <view class="list-header">
-      <text class="header-item">姓名</text>
-      <text class="header-item">手机号</text>
-      <text class="header-item">签到时间</text>
-    </view>
-    <view wx:for="{{checkins}}" wx:key="id" class="checkin-item">
-      <text class="item-name">{{item.participant_name}}</text>
-      <text class="item-phone">{{item.phone}}</text>
-      <text class="item-time">{{item.checkin_time}}</text>
-    </view>
+  <!-- 空状态 -->
+  <view wx:elif="{{isEmpty}}" class="state-wrap empty">
+    <text class="state-title">暂无签到记录</text>
   </view>
 
-  <view class="refresh-btn">
-    <button bindtap="onRefresh" size="mini">刷新</button>
+  <!-- 签到列表 -->
+  <view wx:else>
+    <!-- 表头 -->
+    <view class="table-header">
+      <text class="col-name">姓名</text>
+      <text class="col-phone">手机号</text>
+      <text class="col-time">签到时间</text>
+    </view>
+
+    <!-- 表格内容 -->
+    <view class="table-body">
+      <view wx:for="{{checkins}}" wx:key="id" class="table-row">
+        <text class="col-name">{{item.participant_name}}</text>
+        <text class="col-phone">{{item.phone}}</text>
+        <text class="col-time">{{item.checkin_time}}</text>
+      </view>
+    </view>
+
+    <!-- 刷新按钮 -->
+    <view class="refresh-section">
+      <view class="refresh-btn" bindtap="onRefresh">刷新</view>
+    </view>
   </view>
 </view>

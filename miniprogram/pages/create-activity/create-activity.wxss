@@ -74,31 +74,26 @@
 .picker-field {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.picker-field picker {
+  flex: 1;
+}
+
+.picker-field .picker-text {
+  display: block;
   height: 88rpx;
-  padding: 0 0;
+  line-height: 88rpx;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
   border-bottom: 1px solid var(--border);
   transition: all 0.3s ease;
 }
 
-.picker-field:active {
-  opacity: 0.6;
-}
-
-.picker-text {
-  font-size: 28rpx;
-  color: var(--text-primary);
-  letter-spacing: 0.04em;
-}
-
 .picker-text.placeholder {
   color: var(--text-muted);
-}
-
-.picker-arrow {
-  font-size: 20rpx;
-  color: var(--text-muted);
-  font-weight: 300;
 }
 
 /* ─────────────────────────────────────────────────────────────

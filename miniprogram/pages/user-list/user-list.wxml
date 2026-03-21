@@ -1,6 +1,6 @@
-<view class="container">
+<view class="page">
   <!-- 搜索栏 -->
-  <view class="search-bar">
+  <view class="search-section">
     <input
       class="search-input"
       placeholder="搜索姓名或手机号"
@@ -8,79 +8,75 @@
       bindinput="onSearchInput"
       bindconfirm="onSearch"
     />
-    <button class="search-btn" size="mini" bindtap="onSearch">搜索</button>
-    <button wx:if="{{keyword}}" class="clear-btn" size="mini" bindtap="onClearSearch">清除</button>
+    <view class="search-actions">
+      <text class="search-btn" bindtap="onSearch">搜索</text>
+      <text wx:if="{{keyword}}" class="clear-btn" bindtap="onClearSearch">清除</text>
+    </view>
   </view>
 
-  <!-- 统计信息 -->
-  <view class="stats-bar">
-    <text class="stats-text">共 {{total}} 位用户</text>
+  <!-- 统计 -->
+  <view class="stats-header">
+    <text class="stats-label">用户总数</text>
+    <text class="stats-count">{{total}}</text>
   </view>
 
   <!-- 加载中 -->
-  <view wx:if="{{loading && users.length === 0}}" class="loading">加载中...</view>
+  <view wx:if="{{loading && users.length === 0}}" class="state-wrap">
+    <view class="loading"></view>
+  </view>
 
   <!-- 空状态 -->
-  <view wx:elif="{{users.length === 0}}" class="empty">
-    <text wx:if="{{keyword}}">未找到匹配的用户</text>
-    <text wx:else>暂无用户数据</text>
+  <view wx:elif="{{users.length === 0}}" class="state-wrap empty">
+    <text class="state-title">{{keyword ? '未找到匹配用户' : '暂无用户数据'}}</text>
   </view>
 
   <!-- 用户列表 -->
-  <view wx:else class="user-list">
+  <view wx:else class="list">
     <view wx:for="{{users}}" wx:key="id" class="user-item">
       <view class="user-header">
         <text class="user-name">{{item.name || '未设置姓名'}}</text>
-        <text class="user-status {{item.isblock === 1 ? 'blocked' : 'normal'}}">
+        <text class="user-status {{item.isblock === 1 ? 'blocked' : ''}}">
           {{item.isblock === 1 ? '已拉黑' : '正常'}}
         </text>
       </view>
-
       <view class="user-info">
         <view class="info-row">
-          <text class="info-label">手机号：</text>
+          <text class="info-label">手机号</text>
           <text class="info-value">{{item.phone || '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">邮箱：</text>
+          <text class="info-label">邮箱</text>
           <text class="info-value">{{item.email || '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">性别：</text>
+          <text class="info-label">性别</text>
           <text class="info-value">{{item.sex === 'M' ? '男' : item.sex === 'F' ? '女' : '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">年龄：</text>
+          <text class="info-label">年龄</text>
           <text class="info-value">{{item.age || '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">职业：</text>
+          <text class="info-label">职业</text>
           <text class="info-value">{{item.occupation || '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">行业：</text>
+          <text class="info-label">行业</text>
           <text class="info-value">{{item.industry || '-'}}</text>
         </view>
         <view class="info-row">
-          <text class="info-label">注册时间：</text>
+          <text class="info-label">注册时间</text>
           <text class="info-value">{{item.create_time}}</text>
         </view>
-      </view>
-
-      <view wx:if="{{item.isblock === 1 && item.block_reason}}" class="block-reason">
-        <text class="info-label">拉黑原因：</text>
-        <text class="info-value warning">{{item.block_reason}}</text>
       </view>
     </view>
 
     <!-- 加载更多 -->
     <view wx:if="{{hasMore}}" class="load-more">
-      <text wx:if="{{loading}}">加载中...</text>
-      <text wx:else>上拉加载更多</text>
+      <text>{{loading ? '加载中...' : '上拉加载更多'}}</text>
     </view>
-
     <view wx:if="{{!hasMore && users.length > 0}}" class="no-more">
-      <text>没有更多了</text>
+      <text>— 没有更多了 —</text>
     </view>
   </view>
 </view>

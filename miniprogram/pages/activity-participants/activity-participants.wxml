@@ -1,36 +1,46 @@
-<view class="container">
+<view class="page">
+  <!-- 统计 -->
   <view class="header">
-    <text class="total">共 {{total}} 人报名</text>
+    <text class="total-label">报名人数</text>
+    <text class="total-count">{{total}}</text>
   </view>
 
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
-  
-  <view wx:elif="{{participants.length === 0}}" class="empty">暂无报名人员</view>
-  
-  <view wx:else class="participant-list">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:elif="{{participants.length === 0}}" class="state-wrap empty">
+    <text class="state-title">暂无报名人员</text>
+  </view>
+
+  <!-- 人员列表 -->
+  <view wx:else class="list">
     <view wx:for="{{participants}}" wx:key="id" class="participant-item">
-      <view class="participant-row">
-        <text class="index">{{currentPage * pageSize + index + 1}}</text>
-        <text class="name">{{item.participant_name}}</text>
+      <view class="participant-header">
+        <text class="participant-index">{{currentPage * pageSize + index + 1}}</text>
+        <text class="participant-name">{{item.participant_name}}</text>
       </view>
-      <view class="participant-row detail">
-        <text class="label">电话：</text>
-        <text class="value">{{item.phone || '-'}}</text>
+      <view class="participant-info">
+        <text class="info-label">电话</text>
+        <text class="info-value">{{item.phone || '-'}}</text>
       </view>
-      <view class="participant-row detail">
-        <text class="label">身份证：</text>
-        <text class="value">{{item.identity_number || '-'}}</text>
+      <view class="participant-info" wx:if="{{item.identity_number}}">
+        <text class="info-label">证件</text>
+        <text class="info-value">{{item.identity_number}}</text>
       </view>
-      <view class="participant-row detail">
-        <text class="label">报名时间：</text>
-        <text class="value">{{item.create_time}}</text>
+      <view class="participant-info">
+        <text class="info-label">报名时间</text>
+        <text class="info-value">{{item.create_time}}</text>
       </view>
     </view>
 
+    <!-- 分页 -->
     <view class="pagination">
-      <button class="page-btn" size="mini" bindtap="onPrevPage" disabled="{{currentPage === 0}}">上一页</button>
-      <text class="page-info">第 {{currentPage + 1}} 页</text>
-      <button class="page-btn" size="mini" bindtap="onNextPage" disabled="{{currentPage >= Math.ceil(total / pageSize) - 1}}">下一页</button>
+      <view class="page-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="onPrevPage">←</view>
+      <text class="page-info">{{currentPage + 1}} / {{totalPages}}</text>
+      <view class="page-btn {{currentPage >= totalPages - 1 ? 'disabled' : ''}}" bindtap="onNextPage">→</view>
     </view>
   </view>
 </view>

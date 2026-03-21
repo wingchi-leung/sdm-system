@@ -1,46 +1,41 @@
-<view class="container">
+<view class="page">
   <view class="form">
-    <view class="form-item">
-      <text class="label">活动名称 *</text>
-      <input class="input" value="{{activityName}}" bindinput="onNameInput" placeholder="请输入活动名称" />
+    <view class="field">
+      <text class="field-label">活动名称</text>
+      <input class="input" value="{{activityName}}" bindinput="onNameInput" placeholder="请输入活动名称" placeholder-class="input-placeholder" />
     </view>
 
-    <view class="form-item">
-      <text class="label">活动类型</text>
-      <input class="input" value="{{activityTypeName}}" bindinput="onTypeNameInput" placeholder="请输入活动类型" />
+    <view class="field">
+      <text class="field-label">活动类型</text>
+      <input class="input" value="{{activityTypeName}}" bindinput="onTypeNameInput" placeholder="请输入活动类型" placeholder-class="input-placeholder" />
     </view>
 
-    <view class="form-item">
-      <text class="label">开始时间 *</text>
-      <view class="datetime-picker">
+    <view class="field">
+      <text class="field-label">开始时间</text>
+      <view class="datetime-row">
         <picker mode="date" value="{{startDate}}" start="2020-01-01" end="2030-12-31" bindchange="onStartDateChange">
-          <view class="picker">{{startDate || '选择日期'}}</view>
+          <view class="picker-value">{{startDate || '选择日期'}}</view>
         </picker>
         <picker mode="time" value="{{startTime}}" start="00:00" end="23:59" bindchange="onStartTimeChange">
-          <view class="picker">{{startTime || '选择时间'}}</view>
+          <view class="picker-value">{{startTime || '选择时间'}}</view>
         </picker>
       </view>
     </view>
 
-    <view class="form-item">
-      <text class="label">结束时间</text>
-      <view class="datetime-picker">
+    <view class="field">
+      <text class="field-label optional">结束时间</text>
+      <view class="datetime-row">
         <picker mode="date" value="{{endDate}}" start="2020-01-01" end="2030-12-31" bindchange="onEndDateChange">
-          <view class="picker">{{endDate || '选择日期'}}</view>
+          <view class="picker-value">{{endDate || '选择日期'}}</view>
         </picker>
         <picker mode="time" value="{{endTime}}" start="00:00" end="23:59" bindchange="onEndTimeChange">
-          <view class="picker">{{endTime || '选择时间'}}</view>
+          <view class="picker-value">{{endTime || '选择时间'}}</view>
         </picker>
       </view>
     </view>
 
-    <view class="form-item">
-      <text class="label">标签</text>
-      <input class="input" value="{{tag}}" bindinput="onTagInput" placeholder="请输入标签" />
-    </view>
-
-    <button class="submit-btn" bindtap="submit" disabled="{{submitting}}">
-      {{submitting ? '提交中...' : '保存修改'}}
+    <button class="btn-submit" bindtap="submit" disabled="{{submitting}}">
+      <text class="btn-text">{{submitting ? '提交中…' : '保存修改'}}</text>
     </button>
   </view>
 </view>
