@@ -38,11 +38,6 @@
         <text class="info-value">{{item.start_time}}</text>
       </view>
 
-      <view class="item-info" wx:if="{{item.tag}}">
-        <text class="info-label">标签：</text>
-        <text class="info-value">{{item.tag}}</text>
-      </view>
-
       <!-- 操作按钮 -->
       <view wx:if="{{isAdmin}}" class="item-actions" catchtap="stopPropagation">
         <button class="action-btn edit" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>

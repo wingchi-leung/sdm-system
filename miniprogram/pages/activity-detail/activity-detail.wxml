@@ -36,10 +36,6 @@
         <text class="info-label">活动类型</text>
         <text class="info-value">{{activity.activity_type_name}}</text>
       </view>
-      <view class="info-item" wx:if="{{activity.tag}}">
-        <text class="info-label">标签</text>
-        <text class="info-value tag-value">{{activity.tag}}</text>
-      </view>
     </view>
 
     <!-- 管理员面板 -->
