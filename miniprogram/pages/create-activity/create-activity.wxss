@@ -1,24 +1,27 @@
 /**
- * 创建活动页
+ * 创建活动页 - 高级简约风格
  */
 
 .page {
   min-height: 100vh;
-  padding: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
   background: var(--background);
 }
 
-/* 表单 */
-.form {
+.form-card {
   background: var(--background-card);
-  border-radius: 12rpx;
-  padding: var(--space-lg);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  animation: fadeIn 0.4s ease;
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 表单字段
+ * ───────────────────────────────────────────────────────────── */
 .field {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
 .field:last-child {
@@ -27,67 +30,133 @@
 
 .field-label {
   display: block;
-  font-size: 28rpx;
-  color: var(--text-secondary);
+  font-size: 26rpx;
+  color: var(--text-primary);
   margin-bottom: var(--space-sm);
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.field-label.required::after {
+.field-label::after {
   content: ' *';
-  color: var(--error);
+  color: var(--primary);
 }
 
-/* 选择器 */
-.picker-value {
-  height: 88rpx;
-  line-height: 88rpx;
+.field-label.optional::after {
+  content: '';
+}
+
+.input {
+  width: 100%;
+  height: 96rpx;
   padding: 0 var(--space-md);
-  font-size: 28rpx;
+  font-size: 30rpx;
   background: var(--background-input);
-  border-radius: 8rpx;
-  color: var(--text-primary);
   border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-sizing: border-box;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
 }
 
-.picker-value:empty::before {
-  content: '请选择';
-  color: var(--text-tertiary);
+.input:focus {
+  border-color: var(--primary);
+  background: var(--background-card);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
 }
 
-/* 错误提示 */
+.input-placeholder {
+  color: var(--text-muted);
+}
+
+.type-input {
+  margin-top: var(--space-sm);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 选择器
+ * ───────────────────────────────────────────────────────────── */
+.picker-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 96rpx;
+  padding: 0 var(--space-md);
+  background: var(--background-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+
+.picker-field:active {
+  background: var(--background-warm);
+}
+
+.picker-text {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+.picker-text.placeholder {
+  color: var(--text-muted);
+}
+
+.picker-arrow {
+  font-size: 28rpx;
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 错误提示
+ * ───────────────────────────────────────────────────────────── */
 .error-box {
-  margin: var(--space-md) 0;
+  margin-bottom: var(--space-lg);
   padding: var(--space-md);
   background: var(--error-bg);
-  border-radius: 8rpx;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(196, 112, 90, 0.2);
+}
+
+.error-text {
   font-size: 26rpx;
   color: var(--error);
-  border: 1px solid rgba(231, 76, 60, 0.2);
+  letter-spacing: 0.02em;
 }
 
-/* 提交按钮 */
-.submit-btn {
+/* ─────────────────────────────────────────────────────────────
+ * 提交按钮
+ * ───────────────────────────────────────────────────────────── */
+.btn-submit {
   width: 100%;
-  margin-top: var(--space-lg);
-  padding: 24rpx;
-  font-size: 30rpx;
+  height: 100rpx;
+  background: var(--primary);
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: var(--space-xl);
 }
 
-/* 文本域 */
-.textarea {
-  width: 100%;
-  min-height: 180rpx;
-  padding: var(--space-md);
-  font-size: 28rpx;
-  background: var(--background-input);
-  border-radius: 8rpx;
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  line-height: 1.5;
-  box-sizing: border-box;
+.btn-submit::after {
+  border: none;
 }
 
-.textarea:focus {
-  border-color: var(--primary);
+.btn-submit:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-submit[disabled] {
+  opacity: 0.5;
+  transform: none;
+}
+
+.btn-submit .btn-text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #FFFFFF;
+  letter-spacing: 0.04em;
 }

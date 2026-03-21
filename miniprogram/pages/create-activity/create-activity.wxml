@@ -1,16 +1,20 @@
 <view class="page">
-  <view class="form">
+  <view class="form-card">
+    <!-- 活动名称 -->
     <view class="field">
-      <text class="field-label">活动名称 *</text>
+      <text class="field-label">活动名称</text>
       <input
         class="input"
         placeholder="请输入活动名称"
+        placeholder-class="input-placeholder"
         value="{{activityName}}"
         bindinput="onNameInput"
       />
     </view>
+
+    <!-- 活动类型 -->
     <view class="field">
-      <text class="field-label">活动类型 *</text>
+      <text class="field-label">活动类型</text>
       <picker
         mode="selector"
         range="{{activityTypeOptions}}"
@@ -18,44 +22,69 @@
         value="{{activityTypeIndex}}"
         bindchange="onActivityTypeChange"
       >
-        <view class="picker-value">{{activityTypeName || (isTypeAdmin ? '请选择活动类型' : '常见类型快速选择（可选）')}}</view>
+        <view class="picker-field">
+          <text class="picker-text {{activityTypeName ? '' : 'placeholder'}}">
+            {{activityTypeName || (isTypeAdmin ? '请选择活动类型' : '常见类型快速选择（可选）')}}
+          </text>
+          <text class="picker-arrow">→</text>
+        </view>
       </picker>
       <input
         wx:if="{{isSuperAdmin}}"
         class="input type-input"
-        placeholder="超级管理员可直接输入类型，如：参、健康锻炼"
+        placeholder="超级管理员可直接输入类型"
+        placeholder-class="input-placeholder"
         value="{{activityTypeName}}"
         bindinput="onActivityTypeInput"
       />
     </view>
+
+    <!-- 标签 -->
     <view class="field">
-      <text class="field-label">标签（选填）</text>
+      <text class="field-label optional">标签</text>
       <input
         class="input"
         placeholder="如：培训、沙龙"
+        placeholder-class="input-placeholder"
         value="{{tag}}"
         bindinput="onTagInput"
       />
     </view>
+
+    <!-- 开始日期 -->
     <view class="field">
-      <text class="field-label">开始日期 *</text>
+      <text class="field-label">开始日期</text>
       <picker mode="date" value="{{startDate}}" bindchange="onDateChange">
-        <view class="picker-value">{{startDate || '请选择日期'}}</view>
-      </picker>
-    </view>
-    <view class="field">
-      <text class="field-label">开始时间 *</text>
-      <picker mode="time" value="{{startTime}}" bindchange="onTimeChange">
-        <view class="picker-value">{{startTime || '请选择时间'}}</view>
+        <view class="picker-field">
+          <text class="picker-text {{startDate ? '' : 'placeholder'}}">
+            {{startDate || '请选择日期'}}
+          </text>
+          <text class="picker-arrow">→</text>
+        </view>
       </picker>
     </view>
 
+    <!-- 开始时间 -->
+    <view class="field">
+      <text class="field-label">开始时间</text>
+      <picker mode="time" value="{{startTime}}" bindchange="onTimeChange">
+        <view class="picker-field">
+          <text class="picker-text {{startTime ? '' : 'placeholder'}}">
+            {{startTime || '请选择时间'}}
+          </text>
+          <text class="picker-arrow">→</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
       <text class="error-text">{{error}}</text>
     </view>
 
-    <button class="btn-primary submit-btn" disabled="{{submitting}}" bindtap="submit">
-      {{submitting ? '发布中…' : '发布活动'}}
+    <!-- 提交按钮 -->
+    <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
+      <text class="btn-text">{{submitting ? '发布中…' : '发布活动'}}</text>
     </button>
   </view>
 </view>

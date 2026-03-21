@@ -1,76 +1,90 @@
 <view class="page">
-  <!-- 加载中 -->
-  <view wx:if="{{loading}}" class="loading-wrap">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>
-    <text class="loading-tip">加载中…</text>
+    <text class="state-text">加载中…</text>
   </view>
 
   <!-- 错误状态 -->
-  <view wx:elif="{{error}}" class="error-wrap">
-    <text class="error-title">加载失败</text>
-    <text class="error-msg">{{error}}</text>
+  <view wx:elif="{{error}}" class="state-wrap error">
+    <view class="state-icon">!</view>
+    <text class="state-title">加载失败</text>
+    <text class="state-text">{{error}}</text>
   </view>
 
   <!-- 活动详情 -->
-  <view wx:elif="{{activity}}">
+  <view wx:elif="{{activity}}" class="content">
+    <!-- 活动标题区域 -->
+    <view class="header-section">
+      <view class="status-badge {{activity.status === 1 ? 'not-started' : (activity.status === 2 ? 'ongoing' : 'ended')}}">
+        {{activity.status_text}}
+      </view>
+      <text class="activity-title">{{activity.activity_name}}</text>
+    </view>
+
+    <!-- 活动信息卡片 -->
     <view class="info-card">
-      <view class="info-row">
-        <text class="label">活动名称</text>
-        <text class="value">{{activity.activity_name}}</text>
+      <view class="info-item" wx:if="{{activity.start_display}}">
+        <text class="info-label">开始时间</text>
+        <text class="info-value">{{activity.start_display}}</text>
       </view>
-      <view class="info-row">
-        <text class="label">状态</text>
-        <text class="value status {{activity.status === 1 ? 'status-not-started' : (activity.status === 2 ? 'status-ongoing' : 'status-ended')}}">{{activity.status_text}}</text>
+      <view class="info-item" wx:if="{{activity.end_display}}">
+        <text class="info-label">结束时间</text>
+        <text class="info-value">{{activity.end_display}}</text>
       </view>
-      <view class="info-row" wx:if="{{activity.start_display}}">
-        <text class="label">开始时间</text>
-        <text class="value">{{activity.start_display}}</text>
+      <view class="info-item" wx:if="{{activity.activity_type_name}}">
+        <text class="info-label">活动类型</text>
+        <text class="info-value">{{activity.activity_type_name}}</text>
       </view>
-      <view class="info-row" wx:if="{{activity.end_display}}">
-        <text class="label">结束时间</text>
-        <text class="value">{{activity.end_display}}</text>
-      </view>
-      <view class="info-row" wx:if="{{activity.tag}}">
-        <text class="label">标签</text>
-        <text class="value">{{activity.tag}}</text>
-      </view>
-      <view class="info-row" wx:if="{{activity.activity_type_name}}">
-        <text class="label">活动类型</text>
-        <text class="value">{{activity.activity_type_name}}</text>
+      <view class="info-item" wx:if="{{activity.tag}}">
+        <text class="info-label">标签</text>
+        <text class="info-value tag-value">{{activity.tag}}</text>
       </view>
     </view>
 
     <!-- 管理员面板 -->
-    <view wx:if="{{isAdmin}}" class="admin-panel">
-      <view class="panel-title">管理功能</view>
-      <view class="admin-actions">
-        <view class="admin-action-item" bindtap="onViewParticipants">
-          <image class="action-icon" src="/assets/icons/people.svg" mode="aspectFit" />
+    <view wx:if="{{isAdmin}}" class="admin-section">
+      <text class="section-title">管理功能</text>
+      <view class="admin-grid">
+        <view class="admin-action" bindtap="onViewParticipants">
+          <view class="action-icon-wrap">
+            <text class="action-icon">◉</text>
+          </view>
           <text class="action-text">查看人员</text>
         </view>
-        <view class="admin-action-item" bindtap="onViewCheckins">
-          <image class="action-icon" src="/assets/icons/checkindata.svg" mode="aspectFit" />
+        <view class="admin-action" bindtap="onViewCheckins">
+          <view class="action-icon-wrap">
+            <text class="action-icon">✓</text>
+          </view>
           <text class="action-text">签到记录</text>
         </view>
-        <view class="admin-action-item" bindtap="onViewStatistics">
-          <image class="action-icon" src="/assets/icons/static.svg" mode="aspectFit" />
+        <view class="admin-action" bindtap="onViewStatistics">
+          <view class="action-icon-wrap">
+            <text class="action-icon">◫</text>
+          </view>
           <text class="action-text">报名统计</text>
         </view>
-        <view class="admin-action-item" bindtap="onChangeStatus">
-          <image class="action-icon" src="/assets/icons/changestatus.svg" mode="aspectFit" />
+        <view class="admin-action" bindtap="onChangeStatus">
+          <view class="action-icon-wrap">
+            <text class="action-icon">⟳</text>
+          </view>
           <text class="action-text">更改状态</text>
         </view>
-        <view class="admin-action-item" bindtap="onEditActivity">
-          <image class="action-icon" src="/assets/icons/edit.svg" mode="aspectFit" />
+        <view class="admin-action" bindtap="onEditActivity">
+          <view class="action-icon-wrap">
+            <text class="action-icon">✎</text>
+          </view>
           <text class="action-text">编辑活动</text>
         </view>
       </view>
     </view>
 
     <!-- 普通用户报名按钮 -->
-    <view wx:if="{{!isAdmin}}">
+    <view wx:if="{{!isAdmin}}" class="action-section">
       <view wx:if="{{canEnroll}}" class="btn-wrap">
-        <button class="btn-primary full" bindtap="goRegister">我要报名</button>
+        <button class="btn-enroll" bindtap="goRegister">
+          <text class="btn-text">立即报名</text>
+        </button>
       </view>
       <view wx:else class="disabled-tip">
         <text>活动已结束，无法报名</text>

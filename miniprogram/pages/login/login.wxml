@@ -1,14 +1,24 @@
 <view class="page">
-  <view class="header">
-    <image class="gate-icon" src="/assets/icons/gate_welcome.svg" bindtap="onGateIconTap" />
-    <text class="title">{{isAdminMode ? '管理员登录' : '欢迎'}}</text>
+  <!-- 品牌区域 -->
+  <view class="brand-section">
+    <view class="brand-icon" bindtap="onGateIconTap">
+      <image class="gate-icon" src="/assets/icons/gate_welcome.svg" mode="aspectFit" />
+    </view>
+    <text class="brand-title">{{isAdminMode ? '管理员登录' : '欢迎回来'}}</text>
+    <text class="brand-subtitle" wx:if="{{!isAdminMode}}">使用微信一键登录</text>
   </view>
 
+  <!-- 安全提示 -->
   <view class="unsafe-tip" wx:if="{{unsafeTip}}">
-    <text>当前使用非加密连接，请仅在可信网络下使用。</text>
+    <view class="tip-icon">
+      <text>!</text>
+    </view>
+    <text class="tip-text">当前使用非加密连接，请仅在可信网络下使用。</text>
   </view>
 
-  <view class="form">
+  <!-- 登录表单 -->
+  <view class="form-section">
+    <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
       <text class="error-text">{{error}}</text>
     </view>
@@ -16,26 +26,52 @@
     <!-- 管理员登录表单 -->
     <block wx:if="{{isAdminMode}}">
       <view class="field">
-        <text class="field-label required">用户名</text>
-        <input class="input" type="text" placeholder="请输入用户名" value="{{account}}" bindinput="onAccountInput" />
+        <text class="field-label">用户名</text>
+        <view class="input-wrap">
+          <input
+            class="input"
+            type="text"
+            placeholder="请输入用户名"
+            placeholder-class="input-placeholder"
+            value="{{account}}"
+            bindinput="onAccountInput"
+          />
+        </view>
       </view>
       <view class="field">
-        <text class="field-label required">密码</text>
-        <input class="input" type="password" placeholder="请输入密码" value="{{password}}" bindinput="onPasswordInput" />
+        <text class="field-label">密码</text>
+        <view class="input-wrap">
+          <input
+            class="input"
+            type="password"
+            placeholder="请输入密码"
+            placeholder-class="input-placeholder"
+            value="{{password}}"
+            bindinput="onPasswordInput"
+          />
+        </view>
       </view>
-      <button class="btn-primary submit-btn" disabled="{{submitting}}" bindtap="submit">
-        {{submitting ? '登录中...' : '登录'}}
+      <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
+        <text class="btn-text">{{submitting ? '登录中...' : '登录'}}</text>
       </button>
-      <view class="toggle-row">
-        <text class="toggle-link" bindtap="exitAdminMode">返回微信登录</text>
+      <view class="switch-mode">
+        <text class="switch-link" bindtap="exitAdminMode">返回微信登录</text>
       </view>
     </block>
 
     <!-- 微信登录 -->
     <block wx:else>
       <button class="btn-wechat" disabled="{{submitting}}" bindtap="wechatLogin">
-        <text>微信一键登录</text>
+        <view class="wechat-icon">
+          <text>W</text>
+        </view>
+        <text class="wechat-text">微信一键登录</text>
       </button>
     </block>
+  </view>
+
+  <!-- 底部装饰 -->
+  <view class="footer-decoration">
+    <view class="decoration-line"></view>
   </view>
 </view>

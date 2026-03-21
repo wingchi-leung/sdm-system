@@ -1,174 +1,280 @@
 /**
- * 登录页
+ * 登录页 - 高级简约风格
  */
 
 .page {
   min-height: 100vh;
-  padding: var(--space-lg);
+  padding: 0 var(--space-xl);
   background: var(--background);
+  display: flex;
+  flex-direction: column;
 }
 
-/* 头部 */
-.header {
-  text-align: center;
-  padding: var(--space-xl) 0;
-  margin-bottom: var(--space-lg);
+/* ─────────────────────────────────────────────────────────────
+ * 品牌区域
+ * ───────────────────────────────────────────────────────────── */
+.brand-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3xl) 0;
+}
+
+.brand-icon {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: var(--radius-xl);
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xl);
+  box-shadow: var(--shadow-sm);
 }
 
 .gate-icon {
-  width: 80rpx;
-  height: 80rpx;
-  display: block;
-  margin: 0 auto var(--space-md) auto;
+  width: 72rpx;
+  height: 72rpx;
 }
 
-.title {
-  font-size: 40rpx;
-  font-weight: 700;
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 48rpx;
+  font-weight: 600;
   color: var(--text-primary);
+  letter-spacing: -0.02em;
   margin-bottom: var(--space-sm);
 }
 
-.subtitle {
+.brand-subtitle {
   font-size: 28rpx;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
 }
 
-/* 警告提示 */
+/* ─────────────────────────────────────────────────────────────
+ * 安全提示
+ * ───────────────────────────────────────────────────────────── */
 .unsafe-tip {
-  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
   padding: var(--space-md);
   background: var(--warning-bg);
-  border-radius: 8rpx;
-  font-size: 26rpx;
-  color: var(--warning);
-  border: 1px solid rgba(243, 156, 18, 0.3);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(196, 163, 90, 0.2);
 }
 
-/* 表单 */
-.form {
-  background: var(--background-card);
-  border-radius: 12rpx;
-  padding: var(--space-lg);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+.tip-icon {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: var(--warning);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tip-icon text {
+  font-size: 24rpx;
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.tip-text {
+  font-size: 24rpx;
+  color: var(--warning);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 表单区域
+ * ───────────────────────────────────────────────────────────── */
+.form-section {
+  padding-bottom: var(--space-3xl);
 }
 
 .field {
   margin-bottom: var(--space-lg);
 }
 
-.field:last-child {
-  margin-bottom: 0;
-}
-
 .field-label {
   display: block;
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: var(--text-secondary);
   margin-bottom: var(--space-sm);
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.field-label.required::after {
-  content: ' *';
-  color: var(--error);
+.input-wrap {
+  position: relative;
 }
 
-/* 错误提示 */
+.input {
+  width: 100%;
+  height: 100rpx;
+  padding: 0 var(--space-md);
+  font-size: 30rpx;
+  background: var(--background-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-sizing: border-box;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+.input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
+}
+
+.input-placeholder {
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 错误提示
+ * ───────────────────────────────────────────────────────────── */
 .error-box {
-  margin: var(--space-md) 0;
+  margin-bottom: var(--space-lg);
   padding: var(--space-md);
   background: var(--error-bg);
-  border-radius: 8rpx;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(196, 112, 90, 0.2);
+}
+
+.error-text {
   font-size: 26rpx;
   color: var(--error);
-  border: 1px solid rgba(231, 76, 60, 0.2);
+  letter-spacing: 0.02em;
 }
 
-/* 按钮 */
-.submit-btn {
+/* ─────────────────────────────────────────────────────────────
+ * 提交按钮
+ * ───────────────────────────────────────────────────────────── */
+.btn-submit {
   width: 100%;
+  height: 100rpx;
+  background: var(--primary);
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   margin-top: var(--space-lg);
-  padding: 24rpx;
-  font-size: 30rpx;
 }
 
-/* 微信登录 */
-.wechat-row {
-  margin-top: var(--space-md);
+.btn-submit::after {
+  border: none;
 }
 
+.btn-submit:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-submit[disabled] {
+  opacity: 0.5;
+  transform: none;
+}
+
+.btn-submit .btn-text {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #FFFFFF;
+  letter-spacing: 0.04em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 微信登录按钮
+ * ───────────────────────────────────────────────────────────── */
 .btn-wechat {
   width: 100%;
-  padding: 24rpx;
-  font-size: 28rpx;
-  color: #07C160;
-  background: transparent;
-  border: 1px solid #07C160;
-  border-radius: 8rpx;
+  height: 108rpx;
+  background: var(--background-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 500;
+  gap: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-wechat::after {
   border: none;
 }
 
-.btn-wechat-icon {
-  margin-right: var(--space-sm);
-  font-size: 28rpx;
+.btn-wechat:active {
+  transform: scale(0.98);
+  background: var(--background-warm);
 }
 
-/* 注册引导 */
-.register-row {
-  margin-top: var(--space-lg);
-  text-align: center;
+.btn-wechat[disabled] {
+  opacity: 0.5;
 }
 
-.hint {
-  font-size: 28rpx;
-  color: var(--text-secondary);
-}
-
-.link {
-  color: var(--primary);
-  font-weight: 500;
-}
-
-/* 切换链接 */
-.toggle-row {
-  margin-top: var(--space-lg);
-  text-align: center;
-}
-
-.toggle-link {
-  font-size: 28rpx;
-  color: var(--text-secondary);
-}
-
-/* 角色切换 */
-.role-toggle {
+.wechat-icon {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: var(--radius-sm);
+  background: #07C160;
   display: flex;
-  background: var(--background-input);
-  border-radius: 8rpx;
-  padding: 4rpx;
-  margin-bottom: var(--space-lg);
+  align-items: center;
+  justify-content: center;
 }
 
-.role-toggle-item {
-  flex: 1;
-  text-align: center;
-  padding: 12rpx;
-  font-size: 26rpx;
-  color: var(--text-secondary);
-  border-radius: 6rpx;
+.wechat-icon text {
+  font-size: 28rpx;
+  color: #FFFFFF;
+  font-weight: 700;
 }
 
-.role-toggle-item.active {
-  background: var(--background-card);
-  color: var(--text-primary);
+.wechat-text {
+  font-size: 32rpx;
   font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 切换模式
+ * ───────────────────────────────────────────────────────────── */
+.switch-mode {
+  margin-top: var(--space-xl);
+  text-align: center;
+}
+
+.switch-link {
+  font-size: 28rpx;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease;
+}
+
+.switch-link:active {
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 底部装饰
+ * ───────────────────────────────────────────────────────────── */
+.footer-decoration {
+  padding: var(--space-2xl) 0;
+  display: flex;
+  justify-content: center;
+}
+
+.decoration-line {
+  width: 80rpx;
+  height: 6rpx;
+  background: var(--border);
+  border-radius: var(--radius-full);
 }

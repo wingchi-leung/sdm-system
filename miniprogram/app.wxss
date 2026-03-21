@@ -1,120 +1,204 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * SDM 小程序 - 简洁设计系统
+ * SDM 小程序 - 高级简约设计系统
  * ═══════════════════════════════════════════════════════════════
- * 简洁 · 干净 · 经典
+ * 灵感来源：Hermès × Apple
+ * 设计理念：优雅 · 简约 · 质感
  * ═══════════════════════════════════════════════════════════════
  */
 
 page {
-  /* 主色调 - 蓝色 */
-  --primary: #4988FC;
-  --primary-dark: #3A6FE8;
-  --primary-light: rgba(73, 136, 252, 0.1);
+  /* ─────────────────────────────────────────────────────────────
+   * 色彩系统 - 温暖中性色调
+   * ───────────────────────────────────────────────────────────── */
 
-  /* 背景色 */
-  --background: #FAFAF8;
+  /* 品牌色 - 源自 Hermès 橙棕，优雅温暖 */
+  --primary: #C17F59;
+  --primary-dark: #A66B48;
+  --primary-light: rgba(193, 127, 89, 0.12);
+  --primary-glow: rgba(193, 127, 89, 0.25);
+
+  /* 背景色 - 奶油白，温暖舒适 */
+  --background: #FAF8F5;
+  --background-warm: #F5F2ED;
   --background-card: #FFFFFF;
-  --background-input: #f9fafb;
+  --background-elevated: #FEFEFE;
+  --background-input: #F9F7F4;
 
-  /* 文字色 */
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6B6B;
-  --text-tertiary: #9B9B9B;
+  /* 文字色 - 层次分明 */
+  --text-primary: #1A1714;
+  --text-secondary: #6B6560;
+  --text-tertiary: #A09A94;
+  --text-muted: #C5C0BA;
 
-  /* 状态色 */
-  --status-not-started: #9B9B9B;
-  --status-not-started-bg: rgba(155, 155, 155, 0.1);
-  --status-ongoing: #27AE60;
-  --status-ongoing-bg: rgba(39, 174, 96, 0.1);
-  --status-ended: #355CC2;
-  --status-ended-bg: rgba(53, 92, 194, 0.1);
+  /* 状态色 - 柔和不刺眼 */
+  --status-not-started: #8A8580;
+  --status-not-started-bg: rgba(138, 133, 128, 0.1);
+  --status-ongoing: #6B9B7A;
+  --status-ongoing-bg: rgba(107, 155, 122, 0.1);
+  --status-ended: #7A8BA8;
+  --status-ended-bg: rgba(122, 139, 168, 0.1);
 
   /* 语义色 */
-  --error: #E74C3C;
-  --error-bg: rgba(231, 76, 60, 0.1);
-  --warning: #F39C12;
-  --warning-bg: rgba(243, 156, 18, 0.1);
+  --success: #6B9B7A;
+  --success-bg: rgba(107, 155, 122, 0.1);
+  --error: #C4705A;
+  --error-bg: rgba(196, 112, 90, 0.1);
+  --warning: #C4A35A;
+  --warning-bg: rgba(196, 163, 90, 0.1);
+  --info: #7A8BA8;
+  --info-bg: rgba(122, 139, 168, 0.1);
 
-  /* 边框 */
-  --border: rgba(0, 0, 0, 0.08);
-  --divider: rgba(0, 0, 0, 0.06);
+  /* 边框与分割 */
+  --border: rgba(26, 23, 20, 0.06);
+  --border-light: rgba(26, 23, 20, 0.04);
+  --divider: rgba(26, 23, 20, 0.04);
 
-  /* 阴影 */
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  /* ─────────────────────────────────────────────────────────────
+   * 阴影系统 - 柔和细腻
+   * ───────────────────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 2px rgba(26, 23, 20, 0.03);
+  --shadow-sm: 0 2px 8px rgba(26, 23, 20, 0.04);
+  --shadow-md: 0 4px 16px rgba(26, 23, 20, 0.06);
+  --shadow-lg: 0 8px 32px rgba(26, 23, 20, 0.08);
+  --shadow-elevated: 0 12px 48px rgba(26, 23, 20, 0.12);
 
-  /* 间距 */
+  /* ─────────────────────────────────────────────────────────────
+   * 间距系统 - 黄金比例
+   * ───────────────────────────────────────────────────────────── */
+  --space-xs: 8rpx;
   --space-sm: 16rpx;
   --space-md: 24rpx;
   --space-lg: 32rpx;
   --space-xl: 48rpx;
+  --space-2xl: 64rpx;
+  --space-3xl: 96rpx;
 
-  /* 字体 */
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  /* ─────────────────────────────────────────────────────────────
+   * 圆角系统 - 柔和优雅
+   * ───────────────────────────────────────────────────────────── */
+  --radius-xs: 4rpx;
+  --radius-sm: 8rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 16rpx;
+  --radius-xl: 24rpx;
+  --radius-full: 9999rpx;
+
+  /* ─────────────────────────────────────────────────────────────
+   * 字体系统 - 现代优雅
+   * ───────────────────────────────────────────────────────────── */
+  --font-display: "SF Pro Display", -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+  --font-body: "SF Pro Text", -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+
+  font-family: var(--font-body);
   background-color: var(--background);
   font-size: 28rpx;
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* 容器 */
+/* ─────────────────────────────────────────────────────────────
+ * 容器布局
+ * ───────────────────────────────────────────────────────────── */
 .container {
   padding: 0 var(--space-lg);
 }
 
-/* 卡片 */
+/* ─────────────────────────────────────────────────────────────
+ * 卡片组件 - 柔和精致
+ * ───────────────────────────────────────────────────────────── */
 .card {
   background: var(--background-card);
-  border-radius: 12rpx;
+  border-radius: var(--radius-lg);
   padding: var(--space-lg);
   margin-bottom: var(--space-md);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 按钮 */
+.card:active {
+  transform: scale(0.995);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 按钮系统 - 优雅触感
+ * ───────────────────────────────────────────────────────────── */
 .btn-primary {
   background: var(--primary);
   color: #FFFFFF;
-  border-radius: 8rpx;
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  font-weight: 500;
   border: none;
-  padding: 24rpx var(--space-lg);
+  padding: 28rpx var(--space-xl);
   font-size: 30rpx;
+  letter-spacing: 0.04em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:active {
-  opacity: 0.8;
+  opacity: 0.85;
+  transform: scale(0.98);
+  box-shadow: var(--shadow-xs);
+}
+
+.btn-primary[disabled] {
+  opacity: 0.5;
+  transform: none;
 }
 
 .btn-secondary {
   background: transparent;
   color: var(--text-primary);
-  border-radius: 8rpx;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  padding: 22rpx var(--space-md);
+  padding: 26rpx var(--space-lg);
   font-size: 28rpx;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:active {
+  background: var(--background-warm);
+  border-color: var(--text-tertiary);
 }
 
 .btn-text {
   background: none;
   color: var(--primary);
   border: none;
-  padding: 12rpx 20rpx;
+  padding: var(--space-sm) var(--space-md);
   font-size: 28rpx;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
 }
 
 .btn-text::after {
   border: none;
 }
 
-/* 标签 */
+.btn-text:active {
+  opacity: 0.7;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 标签组件 - 精致小巧
+ * ───────────────────────────────────────────────────────────── */
 .tag {
-  display: inline-block;
-  padding: 6rpx 12rpx;
-  border-radius: 4rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 16rpx;
+  border-radius: var(--radius-xs);
   font-size: 22rpx;
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .tag-not-started {
@@ -132,41 +216,92 @@ page {
   color: var(--status-ended);
 }
 
-/* 输入框 */
+/* ─────────────────────────────────────────────────────────────
+ * 输入框组件 - 简洁优雅
+ * ───────────────────────────────────────────────────────────── */
 .input {
   width: 100%;
-  height: 88rpx;
+  height: 96rpx;
   padding: 0 var(--space-md);
   font-size: 28rpx;
   background: var(--background-input);
-  border: 2rpx solid #e5e7eb;
-  border-radius: 12rpx;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   box-sizing: border-box;
-  color: #1f2937;
-  transition: all 0.2s;
+  color: var(--text-primary);
+  transition: all 0.25s ease;
+  letter-spacing: 0.02em;
 }
 
 .input:focus {
   border-color: var(--primary);
+  background: var(--background-card);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-/* 分割线 */
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 分割线
+ * ───────────────────────────────────────────────────────────── */
 .divider {
   height: 1px;
   background: var(--divider);
   margin: var(--space-md) 0;
 }
 
-/* 加载 */
+/* ─────────────────────────────────────────────────────────────
+ * 加载动画 - 优雅旋转
+ * ───────────────────────────────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 .loading {
   width: 48rpx;
   height: 48rpx;
-  border: 3rpx solid var(--border);
+  border: 2rpx solid var(--border);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * 安全区域
+ * ───────────────────────────────────────────────────────────── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 动画辅助类
+ * ───────────────────────────────────────────────────────────── */
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }

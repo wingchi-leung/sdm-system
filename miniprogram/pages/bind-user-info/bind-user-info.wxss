@@ -1,89 +1,182 @@
+/**
+ * 绑定用户信息页 - 高级简约风格
+ */
+
 .page {
   min-height: 100vh;
-  background-color: #FAFAF8;
-  padding: 40rpx;
+  padding: var(--space-xl) var(--space-lg);
+  background: var(--background);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 头部
+ * ───────────────────────────────────────────────────────────── */
 .header {
   text-align: center;
-  margin-bottom: 60rpx;
+  margin-bottom: var(--space-2xl);
+  padding: var(--space-xl) 0;
 }
 
-.title {
+.header-title {
   display: block;
+  font-family: var(--font-display);
   font-size: 48rpx;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 16rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-sm);
 }
 
-.subtitle {
+.header-subtitle {
   display: block;
-  font-size: 28rpx;
-  color: #999;
+  font-size: 26rpx;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
 }
 
-.form {
-  background-color: #fff;
-  border-radius: 16rpx;
-  padding: 32rpx;
+/* ─────────────────────────────────────────────────────────────
+ * 表单卡片
+ * ───────────────────────────────────────────────────────────── */
+.form-card {
+  background: var(--background-card);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 表单字段
+ * ───────────────────────────────────────────────────────────── */
 .field {
-  margin-bottom: 32rpx;
+  margin-bottom: var(--space-lg);
 }
 
-.label {
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.field-label {
   display: block;
-  font-size: 28rpx;
-  color: #666;
-  margin-bottom: 16rpx;
+  font-size: 26rpx;
+  color: var(--text-primary);
+  margin-bottom: var(--space-sm);
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.label.required::before {
-  content: '*';
-  color: #ff4d4f;
-  margin-right: 4rpx;
+.field-label::after {
+  content: ' *';
+  color: var(--primary);
+}
+
+.field-label.optional::after {
+  content: '';
 }
 
 .input {
   width: 100%;
-  height: 80rpx;
-  border: 1rpx solid #e5e5e5;
-  border-radius: 8rpx;
-  padding: 0 24rpx;
-  font-size: 28rpx;
+  height: 96rpx;
+  padding: 0 var(--space-md);
+  font-size: 30rpx;
+  background: var(--background-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   box-sizing: border-box;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
 }
 
-.picker {
-  height: 80rpx;
-  border: 1rpx solid #e5e5e5;
-  border-radius: 8rpx;
-  padding: 0 24rpx;
-  line-height: 80rpx;
+.input:focus {
+  border-color: var(--primary);
+  background: var(--background-card);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
+}
+
+.input-placeholder {
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 选择器
+ * ───────────────────────────────────────────────────────────── */
+.picker-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 96rpx;
+  padding: 0 var(--space-md);
+  background: var(--background-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 0.3s ease;
+}
+
+.picker-field:active {
+  background: var(--background-warm);
+}
+
+.picker-text {
+  font-size: 30rpx;
+  color: var(--text-primary);
+  letter-spacing: 0.02em;
+}
+
+.picker-arrow {
   font-size: 28rpx;
-  color: #333;
+  color: var(--text-muted);
+  font-weight: 300;
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 错误提示
+ * ───────────────────────────────────────────────────────────── */
 .error-box {
-  margin: 32rpx 0;
-  padding: 16rpx 24rpx;
-  background-color: #fff2f0;
-  border-radius: 8rpx;
+  margin: var(--space-lg) 0;
+  padding: var(--space-md);
+  background: var(--error-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(196, 112, 90, 0.2);
 }
 
 .error-text {
-  color: #ff4d4f;
-  font-size: 24rpx;
+  font-size: 26rpx;
+  color: var(--error);
+  letter-spacing: 0.02em;
 }
 
-.submit-btn {
+/* ─────────────────────────────────────────────────────────────
+ * 提交按钮
+ * ───────────────────────────────────────────────────────────── */
+.btn-submit {
   width: 100%;
-  height: 88rpx;
-  background-color: #4988FC;
-  color: #fff;
-  border-radius: 44rpx;
+  height: 100rpx;
+  background: var(--primary);
+  border-radius: var(--radius-lg);
+  border: none;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: var(--space-xl);
+}
+
+.btn-submit::after {
+  border: none;
+}
+
+.btn-submit:active {
+  transform: scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-submit[disabled] {
+  opacity: 0.5;
+  transform: none;
+}
+
+.btn-submit .btn-text {
   font-size: 32rpx;
-  margin-top: 48rpx;
+  font-weight: 500;
+  color: #FFFFFF;
+  letter-spacing: 0.04em;
 }

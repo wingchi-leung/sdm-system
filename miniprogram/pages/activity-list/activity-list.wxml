@@ -1,32 +1,52 @@
-<view class="container">
-  <view wx:if="{{loading}}" class="loading">加载中...</view>
+<view class="page">
+  <!-- 加载状态 -->
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
 
-  <view wx:elif="{{activities.length === 0}}" class="empty">暂无活动</view>
+  <!-- 空状态 -->
+  <view wx:elif="{{activities.length === 0}}" class="state-wrap empty">
+    <view class="empty-illustration">
+      <view class="empty-circle"></view>
+      <view class="empty-line"></view>
+      <view class="empty-line short"></view>
+    </view>
+    <text class="state-title">暂无活动</text>
+  </view>
 
-  <view wx:else class="activity-list">
-    <view wx:for="{{activities}}" wx:key="id" class="activity-item" bindtap="onViewDetail" data-id="{{item.id}}">
-      <view class="activity-header">
-        <text class="activity-name">{{item.activity_name}}</text>
-        <text class="activity-status status-{{item.status}}">
+  <!-- 活动列表 -->
+  <view wx:else class="list">
+    <view
+      class="activity-item slide-up delay-{{index % 4 + 1}}"
+      wx:for="{{activities}}"
+      wx:key="id"
+      bindtap="onViewDetail"
+      data-id="{{item.id}}"
+    >
+      <!-- 头部 -->
+      <view class="item-header">
+        <text class="item-name">{{item.activity_name}}</text>
+        <view class="status-tag status-{{item.status}}">
           {{item.status === 1 ? '未开始' : item.status === 2 ? '进行中' : '已结束'}}
-        </text>
+        </view>
       </view>
 
-      <view class="activity-info">
-        <text class="info-label">开始时间：</text>
+      <!-- 信息 -->
+      <view class="item-info">
+        <text class="info-label">时间：</text>
         <text class="info-value">{{item.start_time}}</text>
       </view>
 
-      <view wx:if="{{item.tag}}" class="activity-info">
+      <view class="item-info" wx:if="{{item.tag}}">
         <text class="info-label">标签：</text>
         <text class="info-value">{{item.tag}}</text>
       </view>
 
-      <view wx:if="{{isAdmin}}" class="activity-actions" catchtap="stopPropagation">
-        <view class="action-row">
-          <button class="action-btn edit" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>
-          <button class="action-btn delete" size="mini" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">删除</button>
-        </view>
+      <!-- 操作按钮 -->
+      <view wx:if="{{isAdmin}}" class="item-actions" catchtap="stopPropagation">
+        <button class="action-btn edit" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>
+        <button class="action-btn delete" size="mini" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">删除</button>
       </view>
     </view>
   </view>

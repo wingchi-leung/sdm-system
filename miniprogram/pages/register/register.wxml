@@ -1,30 +1,57 @@
 <view class="page" wx:if="{{activity}}">
-  <view class="title">{{activity.activity_name}}</view>
+  <!-- 活动标题 -->
+  <view class="header">
+    <text class="header-title">{{activity.activity_name}}</text>
+    <text class="header-subtitle">填写报名信息</text>
+  </view>
 
-  <view class="form">
+  <!-- 表单 -->
+  <view class="form-card">
+    <!-- 姓名 -->
     <view class="field">
-      <text class="field-label">姓名 *</text>
-      <input class="input" placeholder="请输入姓名" value="{{name}}" bindinput="onNameInput" />
-    </view>
-    <view class="field">
-      <text class="field-label">手机号 *</text>
-      <input class="input" type="number" placeholder="请输入手机号" value="{{phone}}" bindinput="onPhoneInput" />
-    </view>
-    <view class="field">
-      <text class="field-label">证件号（选填）</text>
-      <input class="input" placeholder="身份证等" value="{{identityNumber}}" bindinput="onIdInput" />
+      <text class="field-label">姓名</text>
+      <input
+        class="input"
+        placeholder="请输入姓名"
+        placeholder-class="input-placeholder"
+        value="{{name}}"
+        bindinput="onNameInput"
+      />
     </view>
 
+    <!-- 手机号 -->
+    <view class="field">
+      <text class="field-label">手机号</text>
+      <input
+        class="input"
+        type="number"
+        placeholder="请输入手机号"
+        placeholder-class="input-placeholder"
+        value="{{phone}}"
+        bindinput="onPhoneInput"
+      />
+    </view>
+
+    <!-- 证件号 -->
+    <view class="field">
+      <text class="field-label optional">证件号</text>
+      <input
+        class="input"
+        placeholder="身份证等（选填）"
+        placeholder-class="input-placeholder"
+        value="{{identityNumber}}"
+        bindinput="onIdInput"
+      />
+    </view>
+
+    <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
       <text class="error-text">{{error}}</text>
     </view>
 
-    <button
-      class="btn-primary submit-btn"
-      disabled="{{submitting}}"
-      bindtap="submit"
-    >
-      {{submitting ? '提交中…' : '提交报名'}}
+    <!-- 提交按钮 -->
+    <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
+      <text class="btn-text">{{submitting ? '提交中…' : '提交报名'}}</text>
     </button>
   </view>
 </view>
