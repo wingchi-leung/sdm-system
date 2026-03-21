@@ -1,18 +1,17 @@
 /**
- * 登录页 - Bold Minimal
- * 设计亮点：大胆的品牌展示 + 极简登录
+ * 登录页 - 高级简约风格
  */
 
 .page {
   min-height: 100vh;
   padding: 0 var(--space-xl);
-  background: var(--bg-primary);
+  background: var(--background);
   display: flex;
   flex-direction: column;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 品牌区域 - 戏剧性设计
+ * 品牌区域
  * ───────────────────────────────────────────────────────────── */
 .brand-section {
   flex: 1;
@@ -23,76 +22,69 @@
   padding: var(--space-3xl) 0;
 }
 
-.brand-logo {
-  width: 140rpx;
-  height: 140rpx;
-  border-radius: var(--radius-2xl);
-  background: var(--text-primary);
+.brand-icon {
+  width: 80rpx;
+  height: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-2xl);
-  box-shadow: var(--shadow-bold);
+  margin-bottom: var(--space-xl);
 }
 
-.logo-text {
-  font-family: var(--font-display);
-  font-size: 44rpx;
-  font-weight: 800;
-  color: #FFFFFF;
-  letter-spacing: -0.02em;
+.gate-icon {
+  width: 64rpx;
+  height: 64rpx;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 52rpx;
-  font-weight: 700;
+  font-size: 44rpx;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.03em;
+  letter-spacing: 0.08em;
   margin-bottom: var(--space-sm);
 }
 
 .brand-subtitle {
-  font-size: 28rpx;
+  font-size: 24rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 警告提示
+ * 安全提示
  * ───────────────────────────────────────────────────────────── */
-.warning-tip {
+.unsafe-tip {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-sm);
   margin-bottom: var(--space-xl);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-md);
   background: var(--warning-bg);
-  border-radius: var(--radius-lg);
-  border-left: 6rpx solid var(--warning);
+  border-left: 2px solid var(--warning);
 }
 
-.warning-icon {
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 50%;
-  background: var(--warning);
+.tip-icon {
+  width: 32rpx;
+  height: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.warning-icon text {
-  font-size: 24rpx;
-  color: #FFFFFF;
-  font-weight: 700;
+.tip-icon text {
+  font-size: 20rpx;
+  color: var(--warning);
+  font-weight: 600;
 }
 
-.warning-text {
-  font-size: 26rpx;
+.tip-text {
+  font-size: 22rpx;
   color: var(--warning);
-  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -102,44 +94,41 @@
   padding-bottom: var(--space-3xl);
 }
 
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-xl);
+.field {
+  margin-bottom: var(--space-lg);
 }
 
-.input-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.input-label {
-  font-size: 24rpx;
-  font-weight: 600;
-  color: var(--text-secondary);
-  letter-spacing: 0.04em;
+.field-label {
+  display: block;
+  font-size: 22rpx;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.input-wrap {
+  position: relative;
 }
 
 .input {
   width: 100%;
-  height: 104rpx;
-  padding: 0 var(--space-lg);
-  font-size: 32rpx;
-  background: var(--bg-secondary);
-  border: 2rpx solid transparent;
-  border-radius: var(--radius-xl);
+  height: 96rpx;
+  padding: 0 var(--space-md);
+  font-size: 28rpx;
+  background: var(--background);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
   box-sizing: border-box;
   color: var(--text-primary);
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
+  letter-spacing: 0.04em;
 }
 
 .input:focus {
-  background: var(--bg-primary);
-  border-color: var(--accent);
-  box-shadow: 0 0 0 6rpx var(--accent-light);
+  border-bottom-color: var(--text-primary);
 }
 
 .input-placeholder {
@@ -151,16 +140,15 @@
  * ───────────────────────────────────────────────────────────── */
 .error-box {
   margin-bottom: var(--space-lg);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-md);
   background: var(--error-bg);
-  border-radius: var(--radius-lg);
-  border-left: 6rpx solid var(--error);
+  border-left: 2px solid var(--error);
 }
 
 .error-text {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--error);
-  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -168,15 +156,12 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 108rpx;
-  background: var(--text-primary);
-  border-radius: var(--radius-full);
+  height: 96rpx;
+  background: var(--primary);
+  border-radius: var(--radius-xs);
   border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-bold);
+  margin-top: var(--space-xl);
 }
 
 .btn-submit::after {
@@ -184,48 +169,34 @@
 }
 
 .btn-submit:active {
-  transform: scale(0.97);
-  box-shadow: var(--shadow-md);
+  opacity: 0.85;
 }
 
 .btn-submit[disabled] {
   opacity: 0.5;
-  transform: none;
 }
 
-.submit-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #FFFFFF;
-  letter-spacing: 0.04em;
-}
-
-/* 切换链接 */
-.switch-row {
-  margin-top: var(--space-xl);
-  text-align: center;
-}
-
-.switch-text {
+.btn-submit .btn-text {
   font-size: 28rpx;
-  color: var(--text-tertiary);
   font-weight: 500;
+  color: #FFFFFF;
+  letter-spacing: 0.12em;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 微信登录按钮 - 大胆设计
+ * 微信登录按钮
  * ───────────────────────────────────────────────────────────── */
 .btn-wechat {
   width: 100%;
-  height: 112rpx;
-  background: var(--accent);
-  border-radius: var(--radius-full);
+  height: 96rpx;
+  background: var(--background);
+  border-radius: 0;
   border: none;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-md);
-  box-shadow: var(--shadow-accent);
+  gap: var(--space-sm);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -234,8 +205,7 @@
 }
 
 .btn-wechat:active {
-  transform: scale(0.97);
-  box-shadow: var(--shadow-sm);
+  background: var(--background-subtle);
 }
 
 .btn-wechat[disabled] {
@@ -243,10 +213,8 @@
 }
 
 .wechat-icon {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.25);
+  width: 36rpx;
+  height: 36rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -254,15 +222,34 @@
 
 .wechat-icon text {
   font-size: 24rpx;
+  color: #07C160;
   font-weight: 700;
-  color: #FFFFFF;
 }
 
 .wechat-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #FFFFFF;
-  letter-spacing: 0.04em;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.08em;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 切换模式
+ * ───────────────────────────────────────────────────────────── */
+.switch-mode {
+  margin-top: var(--space-xl);
+  text-align: center;
+}
+
+.switch-link {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  letter-spacing: 0.06em;
+  transition: color 0.2s ease;
+}
+
+.switch-link:active {
+  color: var(--text-secondary);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -274,20 +261,8 @@
   justify-content: center;
 }
 
-.deco-dots {
-  display: flex;
-  gap: var(--space-sm);
-}
-
-.deco-dots .dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: var(--border-strong);
-}
-
-.deco-dots .dot.active {
-  width: 24rpx;
-  border-radius: 4rpx;
-  background: var(--accent);
+.decoration-line {
+  width: 40rpx;
+  height: 1px;
+  background: var(--border);
 }

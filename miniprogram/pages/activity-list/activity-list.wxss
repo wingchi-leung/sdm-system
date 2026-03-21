@@ -1,13 +1,16 @@
 /**
- * 活动列表页 - Bold Minimal
+ * 活动列表页 - 高级简约风格
  */
 
 .page {
   min-height: 100vh;
   padding: var(--space-xl) var(--space-lg);
-  background: var(--bg-secondary);
+  background: var(--background);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 状态页面
+ * ───────────────────────────────────────────────────────────── */
 .state-wrap {
   display: flex;
   flex-direction: column;
@@ -17,156 +20,167 @@
 }
 
 .state-text {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--text-tertiary);
   margin-top: var(--space-md);
+  letter-spacing: 0.04em;
 }
 
 .state-title {
-  font-size: 36rpx;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 32rpx;
+  font-weight: 500;
   color: var(--text-primary);
   margin-top: var(--space-lg);
+  letter-spacing: 0.04em;
 }
 
-.empty-graphic {
+/* ─────────────────────────────────────────────────────────────
+ * 空状态插画
+ * ───────────────────────────────────────────────────────────── */
+.empty-illustration {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-sm);
 }
 
 .empty-circle {
   width: 80rpx;
   height: 80rpx;
-  border: 4rpx solid var(--border-strong);
   border-radius: 50%;
+  background: var(--background-subtle);
+  border: 1px solid var(--border);
+  margin-bottom: var(--space-md);
 }
 
 .empty-line {
   width: 120rpx;
-  height: 4rpx;
-  background: var(--border-strong);
-  border-radius: 2rpx;
+  height: 2rpx;
+  background: var(--border);
+  margin-bottom: var(--space-sm);
 }
 
-.activity-list {
+.empty-line.short {
+  width: 80rpx;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 活动列表
+ * ───────────────────────────────────────────────────────────── */
+.list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
 }
 
 .activity-item {
-  position: relative;
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: var(--space-lg);
-  padding-left: var(--space-xl);
-  box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--divider);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
-  transition: all 0.3s ease;
 }
 
 .activity-item:active {
-  transform: translateY(4rpx);
+  background: var(--background-subtle);
+  margin: 0 calc(-1 * var(--space-lg));
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
 }
 
-.item-indicator {
-  position: absolute;
-  left: 0;
-  top: 20rpx;
-  bottom: 20rpx;
-  width: 6rpx;
-  border-radius: 0 3rpx 3rpx 0;
-}
-
-.item-indicator.pending { background: var(--status-pending); }
-.item-indicator.active { background: var(--accent); }
-.item-indicator.ended { background: var(--text-primary); }
-
-.item-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
+/* 头部 */
 .item-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: var(--space-sm);
+  align-items: center;
+  margin-bottom: var(--space-sm);
 }
 
 .item-name {
-  font-size: 32rpx;
-  font-weight: 600;
+  font-size: 28rpx;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.04em;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  margin-right: var(--space-md);
 }
 
+/* 状态标签 */
 .status-tag {
   font-size: 20rpx;
-  font-weight: 600;
-  padding: 6rpx 14rpx;
-  border-radius: var(--radius-sm);
-  letter-spacing: 0.04em;
+  font-weight: 500;
+  padding: 4rpx 12rpx;
+  letter-spacing: 0.08em;
   flex-shrink: 0;
+  text-transform: uppercase;
 }
 
-.status-tag.pending { background: var(--status-pending-bg); color: var(--status-pending); }
-.status-tag.active { background: var(--status-active-bg); color: var(--status-active); }
-.status-tag.ended { background: var(--status-ended-bg); color: var(--status-ended); }
+.status-tag.status-1 {
+  color: var(--status-not-started);
+}
 
-.item-time {
+.status-tag.status-2 {
+  color: var(--status-ongoing);
+}
+
+.status-tag.status-3 {
+  color: var(--status-ended);
+}
+
+/* 信息行 */
+.item-info {
   font-size: 24rpx;
   color: var(--text-tertiary);
+  margin-bottom: var(--space-xs);
+  letter-spacing: 0.02em;
 }
 
-.item-tag {
-  font-size: 22rpx;
-  color: var(--accent);
-  font-weight: 500;
+.info-label {
+  color: var(--text-muted);
 }
 
+.info-value {
+  color: var(--text-secondary);
+}
+
+/* 操作按钮 */
 .item-actions {
+  margin-top: var(--space-lg);
   display: flex;
   gap: var(--space-sm);
-  margin-top: var(--space-lg);
-  padding-top: var(--space-md);
-  border-top: 1rpx solid var(--border);
 }
 
 .action-btn {
   flex: 1;
-  font-size: 26rpx;
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  padding: 16rpx 24rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  padding: 16rpx 0;
   height: auto;
   line-height: 1.4;
+  border-radius: 0;
+  transition: all 0.2s ease;
 }
 
 .action-btn.edit {
-  background: var(--bg-secondary);
+  background: transparent;
   color: var(--text-primary);
   border: none;
+  border-top: 1px solid var(--border);
 }
 
 .action-btn.edit:active {
-  background: var(--bg-tertiary);
+  background: var(--background-subtle);
 }
 
 .action-btn.delete {
-  background: var(--error-bg);
+  background: transparent;
   color: var(--error);
   border: none;
+  border-top: 1px solid var(--error);
 }
 
 .action-btn.delete:active {
-  opacity: 0.8;
+  background: var(--error-bg);
 }

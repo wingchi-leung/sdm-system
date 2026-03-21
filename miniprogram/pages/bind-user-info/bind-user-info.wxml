@@ -7,14 +7,28 @@
 
   <!-- 表单 -->
   <view class="form-card">
+    <!-- 姓名 -->
     <view class="field">
       <text class="field-label">姓名</text>
-      <input class="input" placeholder="请输入真实姓名" placeholder-class="input-placeholder" value="{{formData.name}}" bindinput="onNameInput" />
+      <input
+        class="input"
+        placeholder="请输入真实姓名"
+        placeholder-class="input-placeholder"
+        value="{{formData.name}}"
+        bindinput="onNameInput"
+      />
     </view>
 
+    <!-- 性别 -->
     <view class="field">
       <text class="field-label">性别</text>
-      <picker mode="selector" range="{{sexOptions}}" range-key="label" value="{{sexIndex}}" bindchange="onSexChange">
+      <picker
+        mode="selector"
+        range="{{sexOptions}}"
+        range-key="label"
+        value="{{sexIndex}}"
+        bindchange="onSexChange"
+      >
         <view class="picker-field">
           <text class="picker-text">{{sexOptions[sexIndex].label || '请选择性别'}}</text>
           <text class="picker-arrow">→</text>
@@ -22,34 +36,79 @@
       </picker>
     </view>
 
+    <!-- 年龄 -->
     <view class="field">
       <text class="field-label">年龄</text>
-      <input class="input" type="number" placeholder="请输入年龄" placeholder-class="input-placeholder" value="{{formData.age}}" bindinput="onAgeInput" />
+      <input
+        class="input"
+        type="number"
+        placeholder="请输入年龄"
+        placeholder-class="input-placeholder"
+        value="{{formData.age}}"
+        bindinput="onAgeInput"
+      />
     </view>
 
+    <!-- 职业 -->
     <view class="field">
       <text class="field-label">职业</text>
-      <input class="input" placeholder="请输入职业" placeholder-class="input-placeholder" value="{{formData.occupation}}" bindinput="onOccupationInput" />
+      <input
+        class="input"
+        placeholder="请输入职业"
+        placeholder-class="input-placeholder"
+        value="{{formData.occupation}}"
+        bindinput="onOccupationInput"
+      />
     </view>
 
+    <!-- 行业 -->
     <view class="field">
       <text class="field-label">行业</text>
-      <input class="input" placeholder="请输入所在行业" placeholder-class="input-placeholder" value="{{formData.industry}}" bindinput="onIndustryInput" />
+      <input
+        class="input"
+        placeholder="请输入所在行业"
+        placeholder-class="input-placeholder"
+        value="{{formData.industry}}"
+        bindinput="onIndustryInput"
+      />
     </view>
 
+    <!-- 手机号 -->
     <view class="field">
       <text class="field-label">手机号</text>
-      <input class="input" type="number" maxlength="11" placeholder="请输入11位手机号" placeholder-class="input-placeholder" value="{{formData.phone}}" bindinput="onPhoneInput" />
+      <input
+        class="input"
+        type="number"
+        maxlength="11"
+        placeholder="请输入11位手机号"
+        placeholder-class="input-placeholder"
+        value="{{formData.phone}}"
+        bindinput="onPhoneInput"
+      />
     </view>
 
+    <!-- 邮箱 -->
     <view class="field">
       <text class="field-label optional">邮箱</text>
-      <input class="input" placeholder="请输入邮箱" placeholder-class="input-placeholder" value="{{formData.email}}" bindinput="onEmailInput" />
+      <input
+        class="input"
+        placeholder="请输入邮箱"
+        placeholder-class="input-placeholder"
+        value="{{formData.email}}"
+        bindinput="onEmailInput"
+      />
     </view>
 
+    <!-- 证件类型 -->
     <view class="field">
       <text class="field-label optional">证件类型</text>
-      <picker mode="selector" range="{{identityTypeOptions}}" range-key="label" value="{{identityTypeIndex}}" bindchange="onIdentityTypeChange">
+      <picker
+        mode="selector"
+        range="{{identityTypeOptions}}"
+        range-key="label"
+        value="{{identityTypeIndex}}"
+        bindchange="onIdentityTypeChange"
+      >
         <view class="picker-field">
           <text class="picker-text">{{identityTypeOptions[identityTypeIndex].label || '请选择证件类型'}}</text>
           <text class="picker-arrow">→</text>
@@ -57,17 +116,26 @@
       </picker>
     </view>
 
+    <!-- 身份证号 -->
     <view class="field" wx:if="{{identityTypeIndex > 0}}">
       <text class="field-label optional">证件号码</text>
-      <input class="input" placeholder="请输入证件号码" placeholder-class="input-placeholder" value="{{formData.identity_number}}" bindinput="onIdentityNumberInput" />
+      <input
+        class="input"
+        placeholder="请输入证件号码"
+        placeholder-class="input-placeholder"
+        value="{{formData.identity_number}}"
+        bindinput="onIdentityNumberInput"
+      />
     </view>
 
+    <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
       <text class="error-text">{{error}}</text>
     </view>
 
+    <!-- 提交按钮 -->
     <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
-      <text class="submit-text">{{submitting ? '提交中…' : '提交'}}</text>
+      <text class="btn-text">{{submitting ? '提交中…' : '提交'}}</text>
     </button>
   </view>
 </view>

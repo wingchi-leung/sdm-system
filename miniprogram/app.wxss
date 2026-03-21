@@ -1,69 +1,74 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * SDM 小程序 - Bold Minimal 设计系统
+ * SDM 小程序 - 高级简约设计系统
  * ═══════════════════════════════════════════════════════════════
- * 设计理念：极致简约 · 大胆强调 · 戏剧性元素
- * 强调色：电光绿 - 充满活力，高级且独特
+ * 灵感来源：Jil Sander × Aesop
+ * 设计理念：纯粹 · 精致 · 克制
  * ═══════════════════════════════════════════════════════════════
  */
 
 page {
   /* ─────────────────────────────────────────────────────────────
-   * 色彩系统 - 极简黑白 + 电光绿强调
+   * 色彩系统 - 纯粹克制
    * ───────────────────────────────────────────────────────────── */
 
-  /* 强调色 - 电光绿，充满活力 */
-  --accent: #00C853;
-  --accent-dark: #00A844;
-  --accent-light: rgba(0, 200, 83, 0.12);
-  --accent-glow: rgba(0, 200, 83, 0.3);
+  /* 品牌色 - 深邃墨绿，自然高级 */
+  --primary: #2C5545;
+  --primary-dark: #1E3D2F;
+  --primary-light: rgba(44, 85, 69, 0.08);
+  --primary-glow: rgba(44, 85, 69, 0.15);
 
-  /* 辅助强调色 */
-  --accent-secondary: #FF5722;
+  /* 强调色 - 暖金点缀 */
+  --accent: #B8956B;
+  --accent-light: rgba(184, 149, 107, 0.1);
 
-  /* 背景色 - 纯净白 */
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F8F9FA;
-  --bg-tertiary: #F1F3F5;
-  --bg-card: #FFFFFF;
+  /* 背景色 - 纯净留白 */
+  --background: #FFFFFF;
+  --background-subtle: #FAFAFA;
+  --background-card: #FFFFFF;
+  --background-elevated: #FEFEFE;
+  --background-input: #F7F7F7;
 
-  /* 文字色 - 黑白层次 */
-  --text-primary: #0A0A0A;
-  --text-secondary: #4A4A4A;
-  --text-tertiary: #8A8A8A;
-  --text-muted: #CACACA;
+  /* 文字色 - 层次分明 */
+  --text-primary: #1A1A1A;
+  --text-secondary: #5C5C5C;
+  --text-tertiary: #8C8C8C;
+  --text-muted: #C2C2C2;
 
-  /* 状态色 - 柔和但有辨识度 */
-  --status-pending: #8A8A8A;
-  --status-pending-bg: rgba(138, 138, 138, 0.1);
-  --status-active: #00C853;
-  --status-active-bg: rgba(0, 200, 83, 0.1);
-  --status-ended: #0A0A0A;
-  --status-ended-bg: rgba(10, 10, 10, 0.06);
+  /* 状态色 - 低饱和度 */
+  --status-not-started: #7A7A7A;
+  --status-not-started-bg: rgba(122, 122, 122, 0.08);
+  --status-ongoing: #4A7C6B;
+  --status-ongoing-bg: rgba(74, 124, 107, 0.08);
+  --status-ended: #5A6B7A;
+  --status-ended-bg: rgba(90, 107, 122, 0.08);
 
   /* 语义色 */
-  --success: #00C853;
-  --success-bg: rgba(0, 200, 83, 0.1);
-  --error: #E53935;
-  --error-bg: rgba(229, 57, 53, 0.08);
-  --warning: #FF9800;
-  --warning-bg: rgba(255, 152, 0, 0.1);
+  --success: #4A7C6B;
+  --success-bg: rgba(74, 124, 107, 0.08);
+  --error: #A65D5D;
+  --error-bg: rgba(166, 93, 93, 0.08);
+  --warning: #A68B5D;
+  --warning-bg: rgba(166, 139, 93, 0.08);
+  --info: #5A6B7A;
+  --info-bg: rgba(90, 107, 122, 0.08);
 
-  /* 边框 */
-  --border: rgba(10, 10, 10, 0.08);
-  --border-strong: rgba(10, 10, 10, 0.15);
+  /* 边框与分割 */
+  --border: rgba(0, 0, 0, 0.06);
+  --border-light: rgba(0, 0, 0, 0.04);
+  --divider: rgba(0, 0, 0, 0.04);
 
   /* ─────────────────────────────────────────────────────────────
-   * 阴影系统 - 大胆但精致
+   * 阴影系统 - 轻盈透气
    * ───────────────────────────────────────────────────────────── */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
-  --shadow-accent: 0 4px 20px rgba(0, 200, 83, 0.25);
-  --shadow-bold: 0 12px 48px rgba(0, 0, 0, 0.15);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.05);
+  --shadow-elevated: 0 12px 48px rgba(0, 0, 0, 0.06);
 
   /* ─────────────────────────────────────────────────────────────
-   * 间距系统
+   * 间距系统 - 严谨节奏
    * ───────────────────────────────────────────────────────────── */
   --space-xs: 8rpx;
   --space-sm: 16rpx;
@@ -74,74 +79,75 @@ page {
   --space-3xl: 96rpx;
 
   /* ─────────────────────────────────────────────────────────────
-   * 圆角系统
+   * 圆角系统 - 柔和边角
    * ───────────────────────────────────────────────────────────── */
+  --radius-xs: 2rpx;
   --radius-sm: 4rpx;
   --radius-md: 8rpx;
-  --radius-lg: 16rpx;
-  --radius-xl: 24rpx;
-  --radius-2xl: 32rpx;
+  --radius-lg: 12rpx;
+  --radius-xl: 16rpx;
   --radius-full: 9999rpx;
 
   /* ─────────────────────────────────────────────────────────────
-   * 字体系统
+   * 字体系统 - 现代优雅
    * ───────────────────────────────────────────────────────────── */
-  --font-display: "SF Pro Display", -apple-system, "PingFang SC", sans-serif;
-  --font-body: "SF Pro Text", -apple-system, "PingFang SC", sans-serif;
-  --font-mono: "SF Mono", "Menlo", monospace;
+  --font-display: "Noto Serif SC", "Songti SC", "PingFang SC", serif;
+  --font-body: "PingFang SC", "Noto Sans SC", -apple-system, sans-serif;
 
   font-family: var(--font-body);
-  background-color: var(--bg-secondary);
+  background-color: var(--background);
   font-size: 28rpx;
   color: var(--text-primary);
   line-height: 1.6;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.03em;
   -webkit-font-smoothing: antialiased;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 页面容器
+ * 容器布局
  * ───────────────────────────────────────────────────────────── */
 .container {
   padding: 0 var(--space-lg);
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 卡片组件
+ * 卡片组件 - 柔和精致
  * ───────────────────────────────────────────────────────────── */
 .card {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  padding: var(--space-xl);
+  background: var(--background-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
   margin-bottom: var(--space-md);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:active {
-  transform: translateY(2rpx);
-  box-shadow: var(--shadow-sm);
+  transform: scale(0.995);
+  box-shadow: var(--shadow-xs);
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 主按钮 - 大胆设计
+ * 按钮系统 - 优雅触感
  * ───────────────────────────────────────────────────────────── */
 .btn-primary {
-  background: var(--accent);
+  background: var(--primary);
   color: #FFFFFF;
-  border-radius: var(--radius-full);
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  font-weight: 500;
   border: none;
-  padding: 32rpx var(--space-2xl);
+  padding: 28rpx var(--space-xl);
   font-size: 30rpx;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-accent);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:active {
-  transform: scale(0.97);
-  box-shadow: var(--shadow-sm);
+  opacity: 0.85;
+  transform: scale(0.98);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-primary[disabled] {
@@ -149,31 +155,30 @@ page {
   transform: none;
 }
 
-/* 次要按钮 */
 .btn-secondary {
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
-  border-radius: var(--radius-full);
-  border: 2rpx solid var(--border-strong);
-  padding: 28rpx var(--space-xl);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 26rpx var(--space-lg);
   font-size: 28rpx;
   font-weight: 500;
   letter-spacing: 0.02em;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-secondary:active {
-  background: var(--bg-tertiary);
+  background: var(--background-warm);
+  border-color: var(--text-tertiary);
 }
 
-/* 文字按钮 */
 .btn-text {
   background: none;
-  color: var(--accent);
+  color: var(--primary);
   border: none;
   padding: var(--space-sm) var(--space-md);
   font-size: 28rpx;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   transition: all 0.2s ease;
 }
@@ -187,28 +192,27 @@ page {
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 标签组件
+ * 标签组件 - 精致小巧
  * ───────────────────────────────────────────────────────────── */
 .tag {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 8rpx 16rpx;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-xs);
   font-size: 22rpx;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.tag-pending {
-  background: var(--status-pending-bg);
-  color: var(--status-pending);
+.tag-not-started {
+  background: var(--status-not-started-bg);
+  color: var(--status-not-started);
 }
 
-.tag-active {
-  background: var(--status-active-bg);
-  color: var(--status-active);
+.tag-ongoing {
+  background: var(--status-ongoing-bg);
+  color: var(--status-ongoing);
 }
 
 .tag-ended {
@@ -217,25 +221,26 @@ page {
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 输入框组件
+ * 输入框组件 - 简洁优雅
  * ───────────────────────────────────────────────────────────── */
 .input {
   width: 100%;
-  height: 100rpx;
-  padding: 0 var(--space-lg);
-  font-size: 30rpx;
-  background: var(--bg-primary);
-  border: 2rpx solid var(--border);
-  border-radius: var(--radius-lg);
+  height: 96rpx;
+  padding: 0 var(--space-md);
+  font-size: 28rpx;
+  background: var(--background-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.25s ease;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 .input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 6rpx var(--accent-light);
+  border-color: var(--primary);
+  background: var(--background-card);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .input::placeholder {
@@ -247,30 +252,25 @@ page {
  * ───────────────────────────────────────────────────────────── */
 .divider {
   height: 1px;
-  background: var(--border);
+  background: var(--divider);
   margin: var(--space-md) 0;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 动画系统
+ * 加载动画 - 优雅旋转
  * ───────────────────────────────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(16rpx); }
+  from { opacity: 0; transform: translateY(8rpx); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(32rpx); }
+  from { opacity: 0; transform: translateY(24rpx); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes pulse {
@@ -278,17 +278,25 @@ page {
   50% { opacity: 0.6; }
 }
 
-/* 加载动画 */
 .loading {
   width: 48rpx;
   height: 48rpx;
-  border: 3rpx solid var(--border);
-  border-top-color: var(--accent);
+  border: 2rpx solid var(--border);
+  border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-/* 动画辅助类 */
+/* ─────────────────────────────────────────────────────────────
+ * 安全区域
+ * ───────────────────────────────────────────────────────────── */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 动画辅助类
+ * ───────────────────────────────────────────────────────────── */
 .fade-in {
   animation: fadeIn 0.4s ease forwards;
 }
@@ -297,41 +305,7 @@ page {
   animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-.scale-in {
-  animation: scaleIn 0.4s ease forwards;
-}
-
-.delay-1 { animation-delay: 0.05s; }
-.delay-2 { animation-delay: 0.1s; }
-.delay-3 { animation-delay: 0.15s; }
-.delay-4 { animation-delay: 0.2s; }
-.delay-5 { animation-delay: 0.25s; }
-
-/* ─────────────────────────────────────────────────────────────
- * 装饰元素
- * ───────────────────────────────────────────────────────────── */
-.dot {
-  display: inline-block;
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.dot-large {
-  width: 12rpx;
-  height: 12rpx;
-}
-
-.accent-bar {
-  width: 6rpx;
-  height: 100%;
-  background: var(--accent);
-  border-radius: 3rpx;
-}
-
-.accent-line {
-  height: 4rpx;
-  background: var(--accent);
-  border-radius: 2rpx;
-}
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }

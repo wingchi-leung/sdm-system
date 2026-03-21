@@ -1,54 +1,70 @@
 /**
- * 绑定用户信息页 - Bold Minimal
+ * 绑定用户信息页 - 高级简约风格
  */
 
 .page {
   min-height: 100vh;
   padding: var(--space-xl) var(--space-lg);
-  background: var(--bg-secondary);
+  background: var(--background);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 头部
+ * ───────────────────────────────────────────────────────────── */
 .header {
-  text-align: center;
+  text-align: left;
   margin-bottom: var(--space-2xl);
   padding: var(--space-xl) 0;
+  border-bottom: 1px solid var(--divider);
 }
 
 .header-title {
   display: block;
   font-family: var(--font-display);
-  font-size: 48rpx;
-  font-weight: 700;
+  font-size: 40rpx;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.06em;
   margin-bottom: var(--space-sm);
 }
 
 .header-subtitle {
   display: block;
-  font-size: 26rpx;
+  font-size: 22rpx;
   color: var(--text-tertiary);
+  letter-spacing: 0.08em;
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 表单卡片
+ * ───────────────────────────────────────────────────────────── */
 .form-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  padding: var(--space-xl);
-  box-shadow: var(--shadow-md);
+  animation: fadeIn 0.4s ease;
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 表单字段
+ * ───────────────────────────────────────────────────────────── */
 .field {
   margin-bottom: var(--space-lg);
+}
+
+.field:last-child {
+  margin-bottom: 0;
 }
 
 .field-label {
   display: block;
   font-size: 22rpx;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--text-muted);
   margin-bottom: var(--space-sm);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field-label::after {
+  content: '';
 }
 
 .field-label.optional::after {
@@ -57,76 +73,83 @@
 
 .input {
   width: 100%;
-  height: 104rpx;
-  padding: 0 var(--space-lg);
-  font-size: 32rpx;
-  background: var(--bg-secondary);
-  border: 2rpx solid transparent;
-  border-radius: var(--radius-xl);
+  height: 88rpx;
+  padding: 0 0;
+  font-size: 28rpx;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
   box-sizing: border-box;
   color: var(--text-primary);
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
+  letter-spacing: 0.04em;
 }
 
 .input:focus {
-  background: var(--bg-primary);
-  border-color: var(--accent);
-  box-shadow: 0 0 0 6rpx var(--accent-light);
+  border-bottom-color: var(--text-primary);
 }
 
 .input-placeholder {
   color: var(--text-muted);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 选择器
+ * ───────────────────────────────────────────────────────────── */
 .picker-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 104rpx;
-  padding: 0 var(--space-lg);
-  background: var(--bg-secondary);
-  border: 2rpx solid transparent;
-  border-radius: var(--radius-xl);
+  height: 88rpx;
+  padding: 0 0;
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
 }
 
 .picker-field:active {
-  background: var(--bg-tertiary);
+  opacity: 0.6;
 }
 
 .picker-text {
-  font-size: 32rpx;
+  font-size: 28rpx;
   color: var(--text-primary);
+  letter-spacing: 0.04em;
 }
 
 .picker-arrow {
-  font-size: 28rpx;
+  font-size: 20rpx;
   color: var(--text-muted);
   font-weight: 300;
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 错误提示
+ * ───────────────────────────────────────────────────────────── */
 .error-box {
   margin: var(--space-lg) 0;
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-md);
   background: var(--error-bg);
-  border-radius: var(--radius-lg);
-  border-left: 6rpx solid var(--error);
+  border-left: 2px solid var(--error);
 }
 
 .error-text {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--error);
-  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 提交按钮
+ * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 108rpx;
-  background: var(--accent);
-  border-radius: var(--radius-full);
+  height: 96rpx;
+  background: var(--primary);
+  border-radius: var(--radius-xs);
   border: none;
-  box-shadow: var(--shadow-accent);
-  transition: all 0.3s ease;
-  margin-top: var(--space-xl);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: var(--space-2xl);
 }
 
 .btn-submit::after {
@@ -134,18 +157,16 @@
 }
 
 .btn-submit:active {
-  transform: scale(0.97);
-  box-shadow: var(--shadow-sm);
+  opacity: 0.85;
 }
 
 .btn-submit[disabled] {
   opacity: 0.5;
-  transform: none;
 }
 
-.submit-text {
-  font-size: 32rpx;
-  font-weight: 600;
+.btn-submit .btn-text {
+  font-size: 28rpx;
+  font-weight: 500;
   color: #FFFFFF;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.12em;
 }

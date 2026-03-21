@@ -1,12 +1,11 @@
 /**
- * 我的页面 - Bold Minimal
- * 设计亮点：大头像卡片 + 几何图标菜单
+ * 我的页面 - 高级简约风格
  */
 
 .page {
   min-height: 100vh;
   padding: var(--space-xl) var(--space-lg);
-  background: var(--bg-secondary);
+  background: var(--background);
 }
 
 .content {
@@ -24,92 +23,98 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 用户信息卡片 - 戏剧性设计
+ * 用户信息卡片
  * ───────────────────────────────────────────────────────────── */
 .profile-section {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  padding: var(--space-2xl);
+  padding: var(--space-xl) 0;
   margin-bottom: var(--space-2xl);
-  background: var(--bg-card);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-md);
+  border-bottom: 1px solid var(--divider);
 }
 
-.avatar-large {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  background: var(--bg-tertiary);
+.profile-section.admin {
+  flex-wrap: wrap;
+  border-bottom: none;
+}
+
+.avatar {
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-lg);
-  border: 4rpx solid var(--border);
+  margin-right: var(--space-lg);
+  flex-shrink: 0;
+  position: relative;
 }
 
-.avatar-large.admin-avatar {
+.avatar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2px;
+  height: 100%;
   background: var(--text-primary);
-  border-color: var(--accent);
+}
+
+.avatar.admin-avatar::before {
+  background: var(--primary);
 }
 
 .avatar-text {
   font-family: var(--font-display);
-  font-size: 48rpx;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: -0.02em;
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.04em;
 }
 
 .admin-avatar .avatar-text {
-  color: #FFFFFF;
+  color: var(--primary);
 }
 
 .profile-info {
-  text-align: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .profile-name {
   display: block;
   font-family: var(--font-display);
-  font-size: 40rpx;
-  font-weight: 700;
+  font-size: 32rpx;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: var(--space-sm);
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-xs);
 }
 
-.profile-badge {
-  display: inline-block;
-  padding: 8rpx 20rpx;
-  background: var(--bg-tertiary);
-  border-radius: var(--radius-full);
-}
-
-.profile-badge text {
+.profile-role {
+  display: block;
   font-size: 22rpx;
-  font-weight: 600;
   color: var(--text-tertiary);
-  letter-spacing: 0.04em;
-}
-
-.profile-badge.admin-badge text {
-  color: var(--accent);
-}
-
-.super-badge {
-  margin-top: var(--space-md);
-  padding: 10rpx 24rpx;
-  background: var(--accent);
-  border-radius: var(--radius-full);
-}
-
-.super-badge text {
-  font-size: 22rpx;
-  font-weight: 700;
-  color: #FFFFFF;
   letter-spacing: 0.08em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.admin-badge {
+  margin-top: var(--space-lg);
+  padding: var(--space-sm) 0;
+  width: 100%;
+  border-top: 1px solid var(--divider);
+  text-align: center;
+}
+
+.admin-badge text {
+  font-size: 20rpx;
+  color: var(--primary);
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -119,29 +124,25 @@
   margin-bottom: var(--space-xl);
 }
 
-.section-label {
-  display: block;
-  font-size: 22rpx;
-  font-weight: 700;
-  color: var(--text-tertiary);
-  letter-spacing: 0.08em;
+.section-title {
+  font-size: 20rpx;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   margin-bottom: var(--space-md);
   padding-left: var(--space-xs);
 }
 
-.menu-list {
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+.menu-card {
+  border-top: 1px solid var(--divider);
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: var(--space-lg);
-  border-bottom: 1rpx solid var(--border);
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--divider);
   transition: all 0.2s ease;
 }
 
@@ -150,7 +151,10 @@
 }
 
 .menu-item:active {
-  background: var(--bg-tertiary);
+  background: var(--background-subtle);
+  margin: 0 calc(-1 * var(--space-lg));
+  padding-left: var(--space-lg);
+  padding-right: var(--space-lg);
 }
 
 .menu-item.disabled {
@@ -158,21 +162,23 @@
   pointer-events: none;
 }
 
-/* 几何图标 */
+.menu-item.logout .menu-text {
+  color: var(--text-tertiary);
+}
+
+/* 菜单图标 */
 .menu-icon {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: var(--radius-md);
-  background: var(--bg-tertiary);
+  width: 32rpx;
+  height: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--space-lg);
+  margin-right: var(--space-md);
   flex-shrink: 0;
 }
 
-.menu-icon text {
-  font-size: 28rpx;
+.icon-symbol {
+  font-size: 20rpx;
   color: var(--text-primary);
   font-weight: 300;
 }
@@ -183,24 +189,25 @@
   min-width: 0;
 }
 
-.menu-title {
+.menu-text {
   display: block;
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: 28rpx;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.04em;
 }
 
-.menu-desc {
+.menu-hint {
   display: block;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--text-tertiary);
   margin-top: 4rpx;
+  letter-spacing: 0.02em;
 }
 
 /* 箭头 */
 .menu-arrow {
-  font-size: 28rpx;
+  font-size: 20rpx;
   color: var(--text-muted);
   font-weight: 300;
   margin-left: var(--space-sm);
@@ -208,36 +215,5 @@
 }
 
 .menu-item:active .menu-arrow {
-  transform: translateX(8rpx);
-}
-
-/* ─────────────────────────────────────────────────────────────
- * 退出按钮
- * ───────────────────────────────────────────────────────────── */
-.btn-logout {
-  width: 100%;
-  height: 100rpx;
-  background: var(--bg-card);
-  border-radius: var(--radius-xl);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s ease;
-}
-
-.btn-logout::after {
-  border: none;
-}
-
-.btn-logout:active {
-  background: var(--bg-tertiary);
-}
-
-.logout-text {
-  font-size: 30rpx;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  letter-spacing: 0.02em;
+  transform: translateX(4rpx);
 }

@@ -1,22 +1,22 @@
 <view class="page">
   <!-- 品牌区域 -->
   <view class="brand-section">
-    <view class="brand-logo">
-      <text class="logo-text">SDM</text>
+    <view class="brand-icon" bindtap="onGateIconTap">
+      <image class="gate-icon" src="/assets/icons/gate_welcome.svg" mode="aspectFit" />
     </view>
-    <text class="brand-title">{{isAdminMode ? '管理员' : '欢迎回来'}}</text>
-    <text class="brand-subtitle" wx:if="{{!isAdminMode}}">登录以继续</text>
+    <text class="brand-title">{{isAdminMode ? '管理员登录' : '欢迎回来'}}</text>
+    <text class="brand-subtitle" wx:if="{{!isAdminMode}}">使用微信一键登录</text>
   </view>
 
   <!-- 安全提示 -->
-  <view class="warning-tip" wx:if="{{unsafeTip}}">
-    <view class="warning-icon">
+  <view class="unsafe-tip" wx:if="{{unsafeTip}}">
+    <view class="tip-icon">
       <text>!</text>
     </view>
-    <text class="warning-text">当前使用非加密连接</text>
+    <text class="tip-text">当前使用非加密连接，请仅在可信网络下使用。</text>
   </view>
 
-  <!-- 表单区域 -->
+  <!-- 登录表单 -->
   <view class="form-section">
     <!-- 错误提示 -->
     <view class="error-box" wx:if="{{error}}">
@@ -25,9 +25,9 @@
 
     <!-- 管理员登录表单 -->
     <block wx:if="{{isAdminMode}}">
-      <view class="input-group">
-        <view class="input-item">
-          <text class="input-label">用户名</text>
+      <view class="field">
+        <text class="field-label">用户名</text>
+        <view class="input-wrap">
           <input
             class="input"
             type="text"
@@ -37,8 +37,10 @@
             bindinput="onAccountInput"
           />
         </view>
-        <view class="input-item">
-          <text class="input-label">密码</text>
+      </view>
+      <view class="field">
+        <text class="field-label">密码</text>
+        <view class="input-wrap">
           <input
             class="input"
             type="password"
@@ -49,13 +51,11 @@
           />
         </view>
       </view>
-
       <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
-        <text class="submit-text">{{submitting ? '登录中...' : '登录'}}</text>
+        <text class="btn-text">{{submitting ? '登录中...' : '登录'}}</text>
       </button>
-
-      <view class="switch-row">
-        <text class="switch-text" bindtap="exitAdminMode">返回微信登录</text>
+      <view class="switch-mode">
+        <text class="switch-link" bindtap="exitAdminMode">返回微信登录</text>
       </view>
     </block>
 
@@ -63,7 +63,7 @@
     <block wx:else>
       <button class="btn-wechat" disabled="{{submitting}}" bindtap="wechatLogin">
         <view class="wechat-icon">
-          <text>We</text>
+          <text>W</text>
         </view>
         <text class="wechat-text">微信一键登录</text>
       </button>
@@ -72,10 +72,6 @@
 
   <!-- 底部装饰 -->
   <view class="footer-decoration">
-    <view class="deco-dots">
-      <view class="dot active"></view>
-      <view class="dot"></view>
-      <view class="dot"></view>
-    </view>
+    <view class="decoration-line"></view>
   </view>
 </view>
