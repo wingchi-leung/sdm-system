@@ -1,16 +1,13 @@
 /**
- * 绑定用户信息页 - 高级简约风格
+ * 绑定用户信息页 - Bold Minimal
  */
 
 .page {
   min-height: 100vh;
   padding: var(--space-xl) var(--space-lg);
-  background: var(--background);
+  background: var(--bg-secondary);
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 头部
- * ───────────────────────────────────────────────────────────── */
 .header {
   text-align: center;
   margin-bottom: var(--space-2xl);
@@ -21,7 +18,7 @@
   display: block;
   font-family: var(--font-display);
   font-size: 48rpx;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.02em;
   margin-bottom: var(--space-sm);
@@ -31,43 +28,27 @@
   display: block;
   font-size: 26rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.02em;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 表单卡片
- * ───────────────────────────────────────────────────────────── */
 .form-card {
-  background: var(--background-card);
-  border-radius: var(--radius-xl);
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
   padding: var(--space-xl);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 表单字段
- * ───────────────────────────────────────────────────────────── */
 .field {
   margin-bottom: var(--space-lg);
 }
 
-.field:last-child {
-  margin-bottom: 0;
-}
-
 .field-label {
   display: block;
-  font-size: 26rpx;
-  color: var(--text-primary);
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   margin-bottom: var(--space-sm);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.field-label::after {
-  content: ' *';
-  color: var(--primary);
 }
 
 .field-label.optional::after {
@@ -76,51 +57,45 @@
 
 .input {
   width: 100%;
-  height: 96rpx;
-  padding: 0 var(--space-md);
-  font-size: 30rpx;
-  background: var(--background-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  height: 104rpx;
+  padding: 0 var(--space-lg);
+  font-size: 32rpx;
+  background: var(--bg-secondary);
+  border: 2rpx solid transparent;
+  border-radius: var(--radius-xl);
   box-sizing: border-box;
   color: var(--text-primary);
-  transition: all 0.3s ease;
-  letter-spacing: 0.02em;
+  transition: all 0.25s ease;
 }
 
 .input:focus {
-  border-color: var(--primary);
-  background: var(--background-card);
-  box-shadow: 0 0 0 4rpx var(--primary-light);
+  background: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 6rpx var(--accent-light);
 }
 
 .input-placeholder {
   color: var(--text-muted);
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 选择器
- * ───────────────────────────────────────────────────────────── */
 .picker-field {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 96rpx;
-  padding: 0 var(--space-md);
-  background: var(--background-input);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  transition: all 0.3s ease;
+  height: 104rpx;
+  padding: 0 var(--space-lg);
+  background: var(--bg-secondary);
+  border: 2rpx solid transparent;
+  border-radius: var(--radius-xl);
 }
 
 .picker-field:active {
-  background: var(--background-warm);
+  background: var(--bg-tertiary);
 }
 
 .picker-text {
-  font-size: 30rpx;
+  font-size: 32rpx;
   color: var(--text-primary);
-  letter-spacing: 0.02em;
 }
 
 .picker-arrow {
@@ -129,34 +104,28 @@
   font-weight: 300;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 错误提示
- * ───────────────────────────────────────────────────────────── */
 .error-box {
   margin: var(--space-lg) 0;
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   background: var(--error-bg);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(196, 112, 90, 0.2);
+  border-radius: var(--radius-lg);
+  border-left: 6rpx solid var(--error);
 }
 
 .error-text {
   font-size: 26rpx;
   color: var(--error);
-  letter-spacing: 0.02em;
+  font-weight: 500;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 提交按钮
- * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 100rpx;
-  background: var(--primary);
-  border-radius: var(--radius-lg);
+  height: 108rpx;
+  background: var(--accent);
+  border-radius: var(--radius-full);
   border: none;
-  box-shadow: var(--shadow-md);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-accent);
+  transition: all 0.3s ease;
   margin-top: var(--space-xl);
 }
 
@@ -165,7 +134,7 @@
 }
 
 .btn-submit:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
   box-shadow: var(--shadow-sm);
 }
 
@@ -174,9 +143,9 @@
   transform: none;
 }
 
-.btn-submit .btn-text {
+.submit-text {
   font-size: 32rpx;
-  font-weight: 500;
+  font-weight: 600;
   color: #FFFFFF;
   letter-spacing: 0.04em;
 }

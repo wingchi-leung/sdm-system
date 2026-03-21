@@ -1,12 +1,12 @@
 /**
- * 活动详情页 - 高级简约风格
+ * 活动详情页 - Bold Minimal
  */
 
 .page {
   min-height: 100vh;
   padding: var(--space-xl) var(--space-lg);
   padding-bottom: var(--space-3xl);
-  background: var(--background);
+  background: var(--bg-secondary);
 }
 
 .content {
@@ -21,113 +21,138 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-3xl) var(--space-lg);
   min-height: 60vh;
-}
-
-.state-wrap.error .state-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 50%;
-  background: var(--error-bg);
-  color: var(--error);
-  font-size: 40rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: var(--space-lg);
-}
-
-.state-title {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-sm);
-  letter-spacing: 0.02em;
 }
 
 .state-text {
   font-size: 26rpx;
   color: var(--text-tertiary);
-  text-align: center;
+  margin-top: var(--space-md);
+}
+
+.error-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: var(--error-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-icon text {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: var(--error);
+}
+
+.state-title {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: var(--space-lg);
+}
+
+.state-desc {
+  font-size: 26rpx;
+  color: var(--text-tertiary);
   margin-top: var(--space-sm);
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 活动标题区域
+ * 状态指示器
  * ───────────────────────────────────────────────────────────── */
-.header-section {
-  margin-bottom: var(--space-xl);
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
 }
 
-.status-badge {
-  display: inline-block;
-  padding: 8rpx 20rpx;
-  border-radius: var(--radius-full);
-  font-size: 22rpx;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  margin-bottom: var(--space-md);
+.status-indicator {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
 }
 
-.status-badge.not-started {
-  background: var(--status-not-started-bg);
-  color: var(--status-not-started);
+.status-indicator.pending {
+  background: var(--status-pending);
 }
 
-.status-badge.ongoing {
-  background: var(--status-ongoing-bg);
-  color: var(--status-ongoing);
+.status-indicator.active {
+  background: var(--accent);
+  box-shadow: 0 0 12rpx var(--accent-glow);
 }
 
-.status-badge.ended {
-  background: var(--status-ended-bg);
-  color: var(--status-ended);
+.status-indicator.ended {
+  background: var(--text-primary);
 }
 
+.status-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.status-label.pending {
+  color: var(--status-pending);
+}
+
+.status-label.active {
+  color: var(--accent);
+}
+
+.status-label.ended {
+  color: var(--text-primary);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 活动标题
+ * ───────────────────────────────────────────────────────────── */
 .activity-title {
   display: block;
   font-family: var(--font-display);
-  font-size: 44rpx;
-  font-weight: 600;
+  font-size: 48rpx;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.3;
+  margin-bottom: var(--space-xl);
 }
 
 /* ─────────────────────────────────────────────────────────────
  * 信息卡片
  * ───────────────────────────────────────────────────────────── */
 .info-card {
-  background: var(--background-card);
-  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
   padding: var(--space-lg);
   margin-bottom: var(--space-xl);
-  box-shadow: var(--shadow-xs);
-  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
-.info-item {
+.info-row {
   display: flex;
   align-items: flex-start;
   padding: var(--space-md) 0;
-  border-bottom: 1px solid var(--divider);
+  border-bottom: 1rpx solid var(--border);
 }
 
-.info-item:last-child {
+.info-row:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
 
-.info-item:first-child {
+.info-row:first-child {
   padding-top: 0;
 }
 
-.info-label {
+.info-key {
   width: 140rpx;
   flex-shrink: 0;
   font-size: 26rpx;
+  font-weight: 600;
   color: var(--text-tertiary);
   letter-spacing: 0.02em;
 }
@@ -136,34 +161,38 @@
   flex: 1;
   font-size: 28rpx;
   color: var(--text-primary);
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  letter-spacing: 0.01em;
 }
 
-.tag-value {
+.tag-wrap {
   display: inline-block;
   padding: 6rpx 16rpx;
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--radius-xs);
+  background: var(--accent-light);
+  border-radius: var(--radius-sm);
+}
+
+.tag-text {
   font-size: 24rpx;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────────
  * 管理员面板
  * ───────────────────────────────────────────────────────────── */
-.admin-section {
+.admin-panel {
   margin-bottom: var(--space-xl);
 }
 
-.section-title {
+.panel-title {
   display: block;
-  font-size: 24rpx;
-  font-weight: 500;
+  font-size: 22rpx;
+  font-weight: 700;
   color: var(--text-tertiary);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   margin-bottom: var(--space-md);
-  padding-left: var(--space-xs);
 }
 
 .admin-grid {
@@ -178,39 +207,38 @@
   flex-direction: column;
   align-items: center;
   padding: var(--space-lg) var(--space-sm);
-  background: var(--background-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-xs);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
 }
 
 .admin-action:active {
-  transform: scale(0.96);
-  background: var(--background-warm);
+  transform: scale(0.95);
+  background: var(--bg-tertiary);
 }
 
-.action-icon-wrap {
+.action-icon {
   width: 56rpx;
   height: 56rpx;
-  border-radius: var(--radius-md);
-  background: var(--primary-light);
+  border-radius: var(--radius-lg);
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: var(--space-sm);
 }
 
-.action-icon {
+.action-icon text {
   font-size: 28rpx;
-  color: var(--primary);
+  color: var(--text-primary);
 }
 
-.action-text {
-  font-size: 22rpx;
+.action-label {
+  font-size: 20rpx;
+  font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.02em;
-  text-align: center;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -220,22 +248,17 @@
   margin-top: var(--space-xl);
 }
 
-.btn-wrap {
-  padding: var(--space-md);
-  background: var(--background-card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  border: 1px solid var(--border-light);
-}
-
 .btn-enroll {
   width: 100%;
-  height: 100rpx;
-  background: var(--primary);
-  border-radius: var(--radius-lg);
+  height: 108rpx;
+  background: var(--accent);
+  border-radius: var(--radius-full);
   border: none;
-  box-shadow: var(--shadow-md);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-accent);
+  transition: all 0.3s ease;
 }
 
 .btn-enroll::after {
@@ -243,27 +266,26 @@
 }
 
 .btn-enroll:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
   box-shadow: var(--shadow-sm);
 }
 
-.btn-enroll .btn-text {
+.enroll-text {
   font-size: 32rpx;
-  font-weight: 500;
+  font-weight: 600;
   color: #FFFFFF;
   letter-spacing: 0.04em;
 }
 
 .disabled-tip {
-  padding: var(--space-lg);
-  background: var(--background-warm);
-  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
   text-align: center;
-  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .disabled-tip text {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.02em;
 }

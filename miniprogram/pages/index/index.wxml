@@ -1,16 +1,18 @@
 <view class="page">
   <!-- 顶部标题区域 -->
   <view class="header">
-    <view class="header-content">
-      <text class="header-title">活动</text>
-      <text class="header-subtitle">发现精彩活动</text>
+    <view class="header-top">
+      <view class="header-left">
+        <text class="header-title">活动</text>
+        <view class="header-dot"></view>
+      </view>
+      <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
+        <button class="btn-publish" bindtap="goCreateActivity">
+          <text class="publish-icon">+</text>
+        </button>
+      </view>
     </view>
-    <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
-      <button class="btn-publish" bindtap="goCreateActivity">
-        <text class="publish-icon">+</text>
-        <text class="publish-text">发布</text>
-      </button>
-    </view>
+    <text class="header-subtitle">发现精彩活动，开启美好旅程</text>
   </view>
 
   <!-- 加载状态 -->
@@ -21,57 +23,65 @@
 
   <!-- 错误状态 -->
   <view wx:elif="{{error}}" class="state-wrap error">
-    <view class="state-icon">!</view>
+    <view class="error-icon">
+      <text>!</text>
+    </view>
     <text class="state-title">加载失败</text>
-    <text class="state-text">{{error}}</text>
+    <text class="state-desc">{{error}}</text>
     <button class="btn-retry" bindtap="onRefresh">重试</button>
   </view>
 
   <!-- 空状态 -->
   <view wx:elif="{{activities.length === 0}}" class="state-wrap empty">
-    <view class="empty-illustration">
+    <view class="empty-graphic">
       <view class="empty-circle"></view>
       <view class="empty-line"></view>
-      <view class="empty-line short"></view>
     </view>
     <text class="state-title">暂无活动</text>
-    <text class="state-text">下拉刷新试试</text>
-    <button class="btn-text" bindtap="onRefresh">刷新</button>
+    <text class="state-desc">下拉刷新试试</text>
   </view>
 
   <!-- 活动列表 -->
-  <view wx:else class="list">
+  <view wx:else class="activity-list">
     <view
-      class="activity-item slide-up delay-{{index % 4 + 1}}"
+      class="activity-card slide-up delay-{{index % 5 + 1}}"
       wx:for="{{activities}}"
       wx:key="id"
       data-activity="{{item}}"
       bindtap="goDetail"
     >
-      <!-- 日期模块 -->
+      <!-- 左侧状态指示条 -->
+      <view class="card-indicator {{item.status === 2 ? 'active' : (item.status === 1 ? 'pending' : 'ended')}}"></view>
+
+      <!-- 日期区块 - 超大号设计 -->
       <view class="date-block">
         <text class="date-day">{{item.date_day || '--'}}</text>
         <text class="date-month">{{item.date_month || ''}}</text>
       </view>
 
       <!-- 活动信息 -->
-      <view class="activity-content">
-        <view class="activity-header">
-          <text class="activity-name">{{item.activity_name}}</text>
-          <view class="tag {{item.status === 1 ? 'tag-not-started' : (item.status === 2 ? 'tag-ongoing' : 'tag-ended')}}">
-            {{item.status_text}}
-          </view>
+      <view class="card-content">
+        <view class="card-header">
+          <text class="card-title">{{item.activity_name}}</text>
+          <view class="status-dot {{item.status === 2 ? 'active' : (item.status === 1 ? 'pending' : 'ended')}}"></view>
         </view>
-        <text class="activity-time" wx:if="{{item.start_time_display}}">{{item.start_time_display}}</text>
+        <text class="card-time" wx:if="{{item.start_time_display}}">{{item.start_time_display}}</text>
+        <view class="card-status">
+          <text class="status-text {{item.status === 2 ? 'active' : (item.status === 1 ? 'pending' : 'ended')}}">
+            {{item.status_text}}
+          </text>
+        </view>
       </view>
 
-      <!-- 箭头指示 -->
-      <view class="arrow-indicator">
-        <text class="arrow-icon">→</text>
+      <!-- 箭头 -->
+      <view class="card-arrow">
+        <text>→</text>
       </view>
     </view>
   </view>
 
-  <!-- 底部留白 -->
-  <view class="footer-space"></view>
+  <!-- 底部装饰 -->
+  <view class="footer-deco">
+    <view class="deco-line"></view>
+  </view>
 </view>

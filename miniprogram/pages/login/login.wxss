@@ -1,17 +1,18 @@
 /**
- * 登录页 - 高级简约风格
+ * 登录页 - Bold Minimal
+ * 设计亮点：大胆的品牌展示 + 极简登录
  */
 
 .page {
   min-height: 100vh;
   padding: 0 var(--space-xl);
-  background: var(--background);
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 品牌区域
+ * 品牌区域 - 戏剧性设计
  * ───────────────────────────────────────────────────────────── */
 .brand-section {
   flex: 1;
@@ -22,53 +23,56 @@
   padding: var(--space-3xl) 0;
 }
 
-.brand-icon {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: var(--radius-xl);
-  background: var(--primary-light);
+.brand-logo {
+  width: 140rpx;
+  height: 140rpx;
+  border-radius: var(--radius-2xl);
+  background: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-xl);
-  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-2xl);
+  box-shadow: var(--shadow-bold);
 }
 
-.gate-icon {
-  width: 72rpx;
-  height: 72rpx;
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 44rpx;
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 48rpx;
-  font-weight: 600;
+  font-size: 52rpx;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   margin-bottom: var(--space-sm);
 }
 
 .brand-subtitle {
   font-size: 28rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 安全提示
+ * 警告提示
  * ───────────────────────────────────────────────────────────── */
-.unsafe-tip {
+.warning-tip {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-sm);
   margin-bottom: var(--space-xl);
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   background: var(--warning-bg);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(196, 163, 90, 0.2);
+  border-radius: var(--radius-lg);
+  border-left: 6rpx solid var(--warning);
 }
 
-.tip-icon {
+.warning-icon {
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
@@ -79,17 +83,16 @@
   flex-shrink: 0;
 }
 
-.tip-icon text {
+.warning-icon text {
   font-size: 24rpx;
   color: #FFFFFF;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.tip-text {
-  font-size: 24rpx;
+.warning-text {
+  font-size: 26rpx;
   color: var(--warning);
-  line-height: 1.5;
-  letter-spacing: 0.02em;
+  font-weight: 500;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -99,40 +102,44 @@
   padding-bottom: var(--space-3xl);
 }
 
-.field {
-  margin-bottom: var(--space-lg);
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
-.field-label {
-  display: block;
-  font-size: 26rpx;
+.input-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.input-label {
+  font-size: 24rpx;
+  font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: var(--space-sm);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.input-wrap {
-  position: relative;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .input {
   width: 100%;
-  height: 100rpx;
-  padding: 0 var(--space-md);
-  font-size: 30rpx;
-  background: var(--background-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  height: 104rpx;
+  padding: 0 var(--space-lg);
+  font-size: 32rpx;
+  background: var(--bg-secondary);
+  border: 2rpx solid transparent;
+  border-radius: var(--radius-xl);
   box-sizing: border-box;
   color: var(--text-primary);
-  transition: all 0.3s ease;
-  letter-spacing: 0.02em;
+  transition: all 0.25s ease;
 }
 
 .input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4rpx var(--primary-light);
+  background: var(--bg-primary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 6rpx var(--accent-light);
 }
 
 .input-placeholder {
@@ -144,16 +151,16 @@
  * ───────────────────────────────────────────────────────────── */
 .error-box {
   margin-bottom: var(--space-lg);
-  padding: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
   background: var(--error-bg);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(196, 112, 90, 0.2);
+  border-radius: var(--radius-lg);
+  border-left: 6rpx solid var(--error);
 }
 
 .error-text {
   font-size: 26rpx;
   color: var(--error);
-  letter-spacing: 0.02em;
+  font-weight: 500;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -161,13 +168,15 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 100rpx;
-  background: var(--primary);
-  border-radius: var(--radius-lg);
+  height: 108rpx;
+  background: var(--text-primary);
+  border-radius: var(--radius-full);
   border: none;
-  box-shadow: var(--shadow-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: var(--space-lg);
+  box-shadow: var(--shadow-bold);
 }
 
 .btn-submit::after {
@@ -175,8 +184,8 @@
 }
 
 .btn-submit:active {
-  transform: scale(0.98);
-  box-shadow: var(--shadow-sm);
+  transform: scale(0.97);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-submit[disabled] {
@@ -184,27 +193,39 @@
   transform: none;
 }
 
-.btn-submit .btn-text {
+.submit-text {
   font-size: 32rpx;
-  font-weight: 500;
+  font-weight: 600;
   color: #FFFFFF;
   letter-spacing: 0.04em;
 }
 
+/* 切换链接 */
+.switch-row {
+  margin-top: var(--space-xl);
+  text-align: center;
+}
+
+.switch-text {
+  font-size: 28rpx;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
 /* ─────────────────────────────────────────────────────────────
- * 微信登录按钮
+ * 微信登录按钮 - 大胆设计
  * ───────────────────────────────────────────────────────────── */
 .btn-wechat {
   width: 100%;
-  height: 108rpx;
-  background: var(--background-card);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
+  height: 112rpx;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-accent);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -213,8 +234,8 @@
 }
 
 .btn-wechat:active {
-  transform: scale(0.98);
-  background: var(--background-warm);
+  transform: scale(0.97);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-wechat[disabled] {
@@ -222,45 +243,26 @@
 }
 
 .wechat-icon {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: var(--radius-sm);
-  background: #07C160;
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .wechat-icon text {
-  font-size: 28rpx;
-  color: #FFFFFF;
+  font-size: 24rpx;
   font-weight: 700;
+  color: #FFFFFF;
 }
 
 .wechat-text {
   font-size: 32rpx;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: #FFFFFF;
   letter-spacing: 0.04em;
-}
-
-/* ─────────────────────────────────────────────────────────────
- * 切换模式
- * ───────────────────────────────────────────────────────────── */
-.switch-mode {
-  margin-top: var(--space-xl);
-  text-align: center;
-}
-
-.switch-link {
-  font-size: 28rpx;
-  color: var(--text-tertiary);
-  letter-spacing: 0.02em;
-  transition: color 0.2s ease;
-}
-
-.switch-link:active {
-  color: var(--text-secondary);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -272,9 +274,20 @@
   justify-content: center;
 }
 
-.decoration-line {
-  width: 80rpx;
-  height: 6rpx;
-  background: var(--border);
-  border-radius: var(--radius-full);
+.deco-dots {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.deco-dots .dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.deco-dots .dot.active {
+  width: 24rpx;
+  border-radius: 4rpx;
+  background: var(--accent);
 }

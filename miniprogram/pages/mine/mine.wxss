@@ -1,11 +1,12 @@
 /**
- * 我的页面 - 高级简约风格
+ * 我的页面 - Bold Minimal
+ * 设计亮点：大头像卡片 + 几何图标菜单
  */
 
 .page {
   min-height: 100vh;
   padding: var(--space-xl) var(--space-lg);
-  background: var(--background);
+  background: var(--bg-secondary);
 }
 
 .content {
@@ -23,44 +24,41 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 用户信息卡片
+ * 用户信息卡片 - 戏剧性设计
  * ───────────────────────────────────────────────────────────── */
 .profile-section {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: var(--space-xl);
+  padding: var(--space-2xl);
   margin-bottom: var(--space-2xl);
-  background: var(--background-card);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-md);
 }
 
-.profile-section.admin {
-  flex-wrap: wrap;
-}
-
-.avatar {
-  width: 100rpx;
-  height: 100rpx;
+.avatar-large {
+  width: 120rpx;
+  height: 120rpx;
   border-radius: 50%;
-  background: var(--primary-light);
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--space-lg);
-  flex-shrink: 0;
+  margin-bottom: var(--space-lg);
+  border: 4rpx solid var(--border);
 }
 
-.avatar.admin-avatar {
-  background: var(--primary);
+.avatar-large.admin-avatar {
+  background: var(--text-primary);
+  border-color: var(--accent);
 }
 
 .avatar-text {
   font-family: var(--font-display);
-  font-size: 40rpx;
-  font-weight: 600;
-  color: var(--primary);
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--text-secondary);
   letter-spacing: -0.02em;
 }
 
@@ -69,44 +67,49 @@
 }
 
 .profile-info {
-  flex: 1;
-  min-width: 0;
+  text-align: center;
 }
 
 .profile-name {
   display: block;
   font-family: var(--font-display);
-  font-size: 36rpx;
-  font-weight: 600;
+  font-size: 40rpx;
+  font-weight: 700;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
-  margin-bottom: var(--space-xs);
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-sm);
 }
 
-.profile-role {
-  display: block;
-  font-size: 26rpx;
-  color: var(--text-tertiary);
-  letter-spacing: 0.02em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.admin-badge {
-  margin-top: var(--space-md);
+.profile-badge {
+  display: inline-block;
   padding: 8rpx 20rpx;
-  background: var(--primary-light);
+  background: var(--bg-tertiary);
   border-radius: var(--radius-full);
-  width: 100%;
-  text-align: center;
 }
 
-.admin-badge text {
+.profile-badge text {
   font-size: 22rpx;
-  color: var(--primary);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text-tertiary);
   letter-spacing: 0.04em;
+}
+
+.profile-badge.admin-badge text {
+  color: var(--accent);
+}
+
+.super-badge {
+  margin-top: var(--space-md);
+  padding: 10rpx 24rpx;
+  background: var(--accent);
+  border-radius: var(--radius-full);
+}
+
+.super-badge text {
+  font-size: 22rpx;
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: 0.08em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -116,29 +119,29 @@
   margin-bottom: var(--space-xl);
 }
 
-.section-title {
-  font-size: 24rpx;
-  font-weight: 500;
+.section-label {
+  display: block;
+  font-size: 22rpx;
+  font-weight: 700;
   color: var(--text-tertiary);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   margin-bottom: var(--space-md);
   padding-left: var(--space-xs);
 }
 
-.menu-card {
-  background: var(--background-card);
-  border-radius: var(--radius-lg);
+.menu-list {
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: var(--shadow-xs);
-  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
 .menu-item {
   display: flex;
   align-items: center;
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1rpx solid var(--border);
   transition: all 0.2s ease;
 }
 
@@ -147,34 +150,30 @@
 }
 
 .menu-item:active {
-  background: var(--background-warm);
+  background: var(--bg-tertiary);
 }
 
 .menu-item.disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   pointer-events: none;
 }
 
-.menu-item.logout .menu-text {
-  color: var(--text-tertiary);
-}
-
-/* 菜单图标 */
+/* 几何图标 */
 .menu-icon {
   width: 48rpx;
   height: 48rpx;
   border-radius: var(--radius-md);
-  background: var(--primary-light);
+  background: var(--bg-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--space-md);
+  margin-right: var(--space-lg);
   flex-shrink: 0;
 }
 
-.icon-symbol {
+.menu-icon text {
   font-size: 28rpx;
-  color: var(--primary);
+  color: var(--text-primary);
   font-weight: 300;
 }
 
@@ -184,20 +183,19 @@
   min-width: 0;
 }
 
-.menu-text {
+.menu-title {
   display: block;
   font-size: 30rpx;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
-.menu-hint {
+.menu-desc {
   display: block;
   font-size: 24rpx;
   color: var(--text-tertiary);
   margin-top: 4rpx;
-  letter-spacing: 0.02em;
 }
 
 /* 箭头 */
@@ -210,5 +208,36 @@
 }
 
 .menu-item:active .menu-arrow {
-  transform: translateX(4rpx);
+  transform: translateX(8rpx);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 退出按钮
+ * ───────────────────────────────────────────────────────────── */
+.btn-logout {
+  width: 100%;
+  height: 100rpx;
+  background: var(--bg-card);
+  border-radius: var(--radius-xl);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.btn-logout::after {
+  border: none;
+}
+
+.btn-logout:active {
+  background: var(--bg-tertiary);
+}
+
+.logout-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
 }

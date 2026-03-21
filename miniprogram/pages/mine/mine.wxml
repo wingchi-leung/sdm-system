@@ -7,23 +7,22 @@
   <view wx:else class="content">
     <!-- 用户信息卡片 -->
     <view class="profile-section">
-      <view class="avatar">
+      <view class="avatar-large">
         <text class="avatar-text">{{userName ? userName[0] : '用'}}</text>
       </view>
       <view class="profile-info">
         <text class="profile-name">{{userName || '用户'}}</text>
-        <text class="profile-role">普通用户</text>
+        <view class="profile-badge">
+          <text>普通用户</text>
+        </view>
       </view>
     </view>
 
-    <!-- 菜单列表 -->
+    <!-- 退出按钮 -->
     <view class="menu-section">
-      <view class="menu-card">
-        <view class="menu-item logout" bindtap="logout">
-          <text class="menu-text">退出登录</text>
-          <text class="menu-arrow">→</text>
-        </view>
-      </view>
+      <button class="btn-logout" bindtap="logout">
+        <text class="logout-text">退出登录</text>
+      </button>
     </view>
   </view>
 </view>
@@ -33,49 +32,51 @@
   <view class="content">
     <!-- 管理员信息卡片 -->
     <view class="profile-section admin">
-      <view class="avatar admin-avatar">
-        <text class="avatar-text">管</text>
+      <view class="avatar-large admin-avatar">
+        <text class="avatar-text">A</text>
       </view>
       <view class="profile-info">
         <text class="profile-name">{{adminProfile.levelText || '管理员'}}</text>
-        <text class="profile-role" wx:if="{{adminProfile && adminProfile.typeNamesText}}">{{adminProfile.typeNamesText}}</text>
+        <view class="profile-badge admin-badge" wx:if="{{adminProfile && adminProfile.typeNamesText}}">
+          <text>{{adminProfile.typeNamesText}}</text>
+        </view>
       </view>
-      <view class="admin-badge" wx:if="{{adminProfile && adminProfile.isSuper}}">
-        <text>超级管理员</text>
+      <view class="super-badge" wx:if="{{adminProfile && adminProfile.isSuper}}">
+        <text>超级</text>
       </view>
     </view>
 
     <!-- 管理功能 -->
     <view class="menu-section">
-      <view class="section-title">管理功能</view>
-      <view class="menu-card">
+      <text class="section-label">管理功能</text>
+      <view class="menu-list">
         <view class="menu-item {{!(adminProfile && adminProfile.canCreateActivity) ? 'disabled' : ''}}" bindtap="goCreateActivity">
           <view class="menu-icon">
-            <text class="icon-symbol">+</text>
+            <text>+</text>
           </view>
           <view class="menu-content">
-            <text class="menu-text">发布活动</text>
-            <text class="menu-hint">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
+            <text class="menu-title">发布活动</text>
+            <text class="menu-desc">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无权限'}}</text>
           </view>
           <text class="menu-arrow">→</text>
         </view>
         <view class="menu-item" bindtap="goActivityManage">
           <view class="menu-icon">
-            <text class="icon-symbol">≡</text>
+            <text>☐</text>
           </view>
           <view class="menu-content">
-            <text class="menu-text">活动管理</text>
-            <text class="menu-hint">编辑、删除活动</text>
+            <text class="menu-title">活动管理</text>
+            <text class="menu-desc">编辑、删除活动</text>
           </view>
           <text class="menu-arrow">→</text>
         </view>
-        <view wx:if="{{adminProfile && adminProfile.isSuper}}" class="menu-item" bindtap="goUserList">
+        <view class="menu-item" wx:if="{{adminProfile && adminProfile.isSuper}}" bindtap="goUserList">
           <view class="menu-icon">
-            <text class="icon-symbol">◉</text>
+            <text>◉</text>
           </view>
           <view class="menu-content">
-            <text class="menu-text">用户管理</text>
-            <text class="menu-hint">查看平台所有用户</text>
+            <text class="menu-title">用户管理</text>
+            <text class="menu-desc">查看平台所有用户</text>
           </view>
           <text class="menu-arrow">→</text>
         </view>
@@ -84,12 +85,9 @@
 
     <!-- 退出登录 -->
     <view class="menu-section">
-      <view class="menu-card">
-        <view class="menu-item logout" bindtap="logout">
-          <text class="menu-text">退出登录</text>
-          <text class="menu-arrow">→</text>
-        </view>
-      </view>
+      <button class="btn-logout" bindtap="logout">
+        <text class="logout-text">退出登录</text>
+      </button>
     </view>
   </view>
 </view>
