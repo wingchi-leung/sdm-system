@@ -39,9 +39,22 @@
       </view>
 
       <!-- 操作按钮 -->
-      <view wx:if="{{isAdmin}}" class="item-actions" catchtap="stopPropagation">
-        <button class="action-btn edit" size="mini" bindtap="onEditActivity" data-id="{{item.id}}">编辑</button>
-        <button class="action-btn delete" size="mini" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">删除</button>
+      <view wx:if="{{isAdmin}}" class="admin-toolbar" catchtap="stopPropagation">
+        <view class="toolbar-inner">
+          <button class="toolbar-btn edit" bindtap="onEditActivity" data-id="{{item.id}}">
+            <view class="btn-icon">
+              <view class="icon-edit"></view>
+            </view>
+            <text class="btn-label">编辑</text>
+          </button>
+          <view class="toolbar-divider"></view>
+          <button class="toolbar-btn delete" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">
+            <view class="btn-icon">
+              <view class="icon-delete"></view>
+            </view>
+            <text class="btn-label">删除</text>
+          </button>
+        </view>
       </view>
     </view>
   </view>

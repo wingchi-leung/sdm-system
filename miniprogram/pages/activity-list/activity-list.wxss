@@ -144,43 +144,171 @@
   color: var(--text-secondary);
 }
 
-/* 操作按钮 */
-.item-actions {
+/* ─────────────────────────────────────────────────────────────
+ * 管理员工具栏 - 精致克制
+ * ───────────────────────────────────────────────────────────── */
+.admin-toolbar {
   margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--divider);
+}
+
+.toolbar-inner {
   display: flex;
-  gap: var(--space-sm);
-}
-
-.action-btn {
-  flex: 1;
-  font-size: 24rpx;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  padding: 16rpx 0;
-  height: auto;
-  line-height: 1.4;
-  border-radius: 0;
-  transition: all 0.2s ease;
-}
-
-.action-btn.edit {
-  background: transparent;
-  color: var(--text-primary);
-  border: none;
-  border-top: 1px solid var(--border);
-}
-
-.action-btn.edit:active {
+  align-items: center;
   background: var(--background-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
-.action-btn.delete {
+.toolbar-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md) var(--space-lg);
   background: transparent;
-  color: var(--error);
   border: none;
-  border-top: 1px solid var(--error);
+  border-radius: 0;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
-.action-btn.delete:active {
+.toolbar-btn::after {
+  border: none;
+}
+
+.toolbar-btn:active {
+  transform: scale(0.97);
+}
+
+.btn-icon {
+  width: 44rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-xs);
+  transition: transform 0.25s ease;
+}
+
+.toolbar-btn:active .btn-icon {
+  transform: scale(0.9);
+}
+
+.btn-label {
+  font-size: 22rpx;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  transition: color 0.25s ease;
+}
+
+/* 编辑按钮 */
+.toolbar-btn.edit {
+  color: var(--primary);
+}
+
+.toolbar-btn.edit:active {
+  background: var(--primary-light);
+}
+
+.toolbar-btn.edit .btn-label {
+  color: var(--text-secondary);
+}
+
+.toolbar-btn.edit:active .btn-label {
+  color: var(--primary);
+}
+
+/* 删除按钮 */
+.toolbar-btn.delete {
+  color: var(--error);
+}
+
+.toolbar-btn.delete:active {
   background: var(--error-bg);
+}
+
+.toolbar-btn.delete .btn-label {
+  color: var(--text-secondary);
+}
+
+.toolbar-btn.delete:active .btn-label {
+  color: var(--error);
+}
+
+/* 分隔线 */
+.toolbar-divider {
+  width: 1px;
+  height: 48rpx;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--border) 20%,
+    var(--border) 80%,
+    transparent
+  );
+  flex-shrink: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 纯 CSS 图标
+ * ───────────────────────────────────────────────────────────── */
+/* 编辑图标 - 铅笔 */
+.icon-edit {
+  width: 28rpx;
+  height: 28rpx;
+  border: 2rpx solid var(--primary);
+  border-radius: 2rpx;
+  position: relative;
+  transform: rotate(-45deg);
+}
+
+.icon-edit::before {
+  content: '';
+  position: absolute;
+  bottom: 4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4rpx;
+  height: 12rpx;
+  background: var(--primary);
+  border-radius: 1rpx;
+}
+
+/* 删除图标 - 垃圾桶 */
+.icon-delete {
+  width: 26rpx;
+  height: 28rpx;
+  border: 2rpx solid var(--error);
+  border-radius: 2rpx 2rpx 4rpx 4rpx;
+  border-top: none;
+  position: relative;
+}
+
+.icon-delete::before {
+  content: '';
+  position: absolute;
+  top: -10rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16rpx;
+  height: 6rpx;
+  border: 2rpx solid var(--error);
+  border-radius: 2rpx 2rpx 0 0;
+  border-bottom: none;
+}
+
+.icon-delete::after {
+  content: '';
+  position: absolute;
+  top: 4rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10rpx;
+  height: 2rpx;
+  background: var(--error);
+  opacity: 0.4;
+  border-radius: 1rpx;
 }
