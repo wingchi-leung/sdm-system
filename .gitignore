@@ -35,6 +35,11 @@ build/
 .env.*
 !.env.example
 
+# 微信支付私钥（切勿提交）
+*.pem
+**/certs/
+**/wechat_pay_*_key/
+
 # 测试与覆盖率
 .pytest_cache/
 .coverage
