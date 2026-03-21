@@ -48,8 +48,12 @@
 }
 
 .btn-publish {
-  width: 56rpx;
-  height: 56rpx;
+  width: 56rpx !important;
+  height: 56rpx !important;
+  min-height: 56rpx;
+  padding: 0 !important;
+  margin: 0;
+  line-height: 56rpx;
   background: var(--primary);
   border-radius: var(--radius-xs);
   border: none;
@@ -61,6 +65,7 @@
 
 .btn-publish::after {
   border: none;
+  display: none;
 }
 
 .btn-publish:active {
