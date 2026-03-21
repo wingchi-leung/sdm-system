@@ -165,6 +165,7 @@ function createActivity({
   activity_name,
   tag,
   start_time,
+  end_time,
   participants,
   activity_type_id,
   activity_type_name,
@@ -179,6 +180,9 @@ function createActivity({
     suggested_fee: suggested_fee || 0,
     require_payment: require_payment || 0,
   };
+  if (end_time) {
+    data.end_time = typeof end_time === 'string' ? end_time : (end_time && end_time.toISOString ? end_time.toISOString() : end_time);
+  }
   if (activity_type_id != null && activity_type_id !== '') {
     data.activity_type_id = activity_type_id;
   }

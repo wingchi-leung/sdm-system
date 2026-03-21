@@ -36,6 +36,7 @@ Page({
 
   onShow() {
     this.resolveAdminState();
+    this.load();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }

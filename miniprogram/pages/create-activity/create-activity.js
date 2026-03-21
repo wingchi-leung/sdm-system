@@ -14,6 +14,8 @@ Page({
     tag: '',
     startDate: '',
     startTime: '',
+    endDate: '',
+    endTime: '',
     submitting: false,
     error: null,
     // 支付相关
@@ -92,6 +94,14 @@ Page({
     this.setData({ startTime: e.detail.value, error: null });
   },
 
+  onEndDateChange(e) {
+    this.setData({ endDate: e.detail.value, error: null });
+  },
+
+  onEndTimeChange(e) {
+    this.setData({ endTime: e.detail.value, error: null });
+  },
+
   // 支付相关
   onRequirePaymentChange(e) {
     const checked = e.detail.value;
@@ -135,7 +145,7 @@ Page({
   },
 
   submit() {
-    const { activityName, startDate, startTime, requirePayment, suggestedFee } = this.data;
+    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee } = this.data;
     const tag = (this.data.tag || '').trim();
     const activityType = this.getSelectedActivityType();
     if (!activityName || !activityName.trim()) {
@@ -154,9 +164,18 @@ Page({
       this.setData({ error: '请选择开始时间' });
       return;
     }
+    if (!endDate || !endTime) {
+      this.setData({ error: '请选择结束时间' });
+      return;
+    }
     const start_time = new Date(startDate + 'T' + startTime + ':00');
-    if (isNaN(start_time.getTime())) {
+    const end_time = new Date(endDate + 'T' + endTime + ':00');
+    if (isNaN(start_time.getTime()) || isNaN(end_time.getTime())) {
       this.setData({ error: '时间格式有误' });
+      return;
+    }
+    if (start_time >= end_time) {
+      this.setData({ error: '开始时间必须早于结束时间' });
       return;
     }
 
@@ -172,6 +191,7 @@ Page({
         activity_name: activityName.trim(),
         tag: tag || activityType.name || '',
         start_time: start_time.toISOString(),
+        end_time: end_time.toISOString(),
         activity_type_id: activityType.id,
         activity_type_name: activityType.name || '',
         participants: [],
