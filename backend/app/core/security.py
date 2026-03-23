@@ -3,7 +3,13 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.core.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# 配置 bcrypt 工作因子，rounds 越高安全性越高但计算越慢
+# 每增加 1，计算时间约翻倍。推荐值 12（约 300ms）
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt_rounds=settings.BCRYPT_ROUNDS
+)
 
 BCRYPT_MAX_BYTES = 72
 

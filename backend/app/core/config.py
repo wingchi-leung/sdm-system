@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     # 支付金额上限（分，单位：厘，100000 = 1000元）
     MAX_PAYMENT_AMOUNT: int = 100000  # 1000元上限
 
+    # 密码哈希配置：bcrypt 工作因子（12 是推荐值，平衡安全性和性能）
+    BCRYPT_ROUNDS: int = 12
+
     class Config:
         env_file = ".env"
 
