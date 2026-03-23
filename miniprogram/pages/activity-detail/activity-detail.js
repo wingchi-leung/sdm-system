@@ -67,7 +67,6 @@ Page({
         });
       })
       .catch((err) => {
-        console.error('加载活动详情失败:', err);
         this.setData({
           error: '加载失败',
           loading: false,

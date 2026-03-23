@@ -7,7 +7,7 @@
   "setting": {
     "bundle": false,
     "userConfirmedBundleSwitch": false,
-    "urlCheck": false,
+    "urlCheck": true,
     "scopeDataCheck": false,
     "es6": true,
     "enhance": true,

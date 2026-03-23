@@ -142,16 +142,13 @@ Page({
       updateData.activity_type_name = activityTypeName.trim();
     }
 
-    console.log('提交更新数据:', updateData);
     this.setData({ submitting: true });
 
     try {
       const result = await api.updateActivity(id, updateData);
-      console.log('更新返回结果:', result);
       wx.showToast({ title: '更新成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1000);
     } catch (err) {
-      console.error('更新失败:', err);
       wx.showToast({ title: err.message || '更新失败', icon: 'none' });
       this.setData({ submitting: false });
     }

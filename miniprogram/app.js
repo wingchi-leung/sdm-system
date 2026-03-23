@@ -2,7 +2,6 @@
 App({
   onLaunch() {
     // 可选：从 storage 恢复登录态，由各页按需读取
-    console.log('[SDM] 小程序启动');
   },
   globalData: {}
 });
