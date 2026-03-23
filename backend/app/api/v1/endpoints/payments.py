@@ -69,11 +69,23 @@ def create_payment_order(
     if activity.require_payment != 1:
         raise HTTPException(status_code=400, detail="该活动不需要支付")
 
-    # 2. 验证支付金额（必须 >= 建议费用）
+    # 2. 验证支付金额（必须 >= 建议费用，且大于0）
+    if order_in.actual_fee <= 0:
+        raise HTTPException(
+            status_code=400,
+            detail="支付金额必须大于0",
+        )
     if order_in.actual_fee < activity.suggested_fee:
         raise HTTPException(
             status_code=400,
             detail=f"支付金额不能低于建议费用 {activity.suggested_fee / 100:.2f} 元",
+        )
+    # 验证支付金额上限（防止超大金额订单）
+    from app.core.config import settings
+    if order_in.actual_fee > settings.MAX_PAYMENT_AMOUNT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"支付金额超出上限 {settings.MAX_PAYMENT_AMOUNT / 100:.2f} 元",
         )
 
     # 3. 检查是否已报名

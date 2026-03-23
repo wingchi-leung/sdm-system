@@ -268,8 +268,11 @@ def get_all_users_for_super_admin(
     query = db.query(User).filter(User.tenant_id == tenant_id)
 
     # 关键字搜索（姓名、手机号）
+    # 过滤特殊字符 % 和 _ 防止 SQL LIKE 通配符注入
     if keyword:
-        keyword_pattern = f"%{keyword}%"
+        # 转义 LIKE 特殊字符
+        safe_keyword = keyword.replace("%", "\\%").replace("_", "\\_")
+        keyword_pattern = f"%{safe_keyword}%"
         query = query.filter(
             (User.name.ilike(keyword_pattern)) |
             (User.phone.ilike(keyword_pattern))

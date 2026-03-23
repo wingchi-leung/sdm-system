@@ -38,6 +38,16 @@ class Settings(BaseSettings):
     # 数据库配置
     DB_ECHO: bool = False  # 是否打印 SQL 日志，生产环境应设为 False
 
+    # CORS 配置：允许的跨域来源，逗号分隔
+    # 生产环境必须配置，不允许使用 "*"
+    CORS_ORIGINS: str = "*"  # 示例: "https://example.com,https://admin.example.com"
+
+    # 请求体大小限制（字节）
+    MAX_REQUEST_BODY_SIZE: int = 10 * 1024 * 1024  # 10MB
+
+    # 支付金额上限（分，单位：厘，100000 = 1000元）
+    MAX_PAYMENT_AMOUNT: int = 100000  # 1000元上限
+
     class Config:
         env_file = ".env"
 
