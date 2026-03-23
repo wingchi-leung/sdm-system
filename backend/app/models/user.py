@@ -159,6 +159,8 @@ class UserListItemForAdmin(BaseModel):
     industry: str | None = None
     isblock: int = 0
     block_reason: str | None = None
+    member_type_id: int | None = None
+    member_expire_at: datetime | None = None
     create_time: datetime
     update_time: datetime
 

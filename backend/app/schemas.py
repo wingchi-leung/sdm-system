@@ -64,6 +64,28 @@ class AdminActivityTypeRole(BaseModel):
 
 
 # ============================================================
+# 会员类型表
+# ============================================================
+class MemberType(BaseModel):
+    __tablename__ = "member_type"
+    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    name = Column(String(50), nullable=False)
+    code = Column(String(50), nullable=False)  # normal, member_a, member_b, vip
+    description = Column(String(500), nullable=True)
+    is_default = Column(Integer, default=0, nullable=False)  # 1-默认会员类型 0-非默认
+    sort_order = Column(Integer, default=0, nullable=False)
+
+
+# ============================================================
+# 会员类型可访问的活动类型关联表
+# ============================================================
+class MemberTypeActivityType(BaseModel):
+    __tablename__ = "member_type_activity_type"
+    member_type_id = Column(Integer, nullable=False, index=True)
+    activity_type_id = Column(Integer, nullable=False, index=True)
+
+
+# ============================================================
 # 用户表
 # ============================================================
 class User(BaseModel):
@@ -82,6 +104,8 @@ class User(BaseModel):
     isblock = Column(Integer, default=0)
     block_reason = Column(String(255), nullable=True)
     wx_openid = Column(String(64), nullable=True, index=True)
+    member_type_id = Column(Integer, nullable=True, index=True)  # 会员类型ID
+    member_expire_at = Column(DateTime, nullable=True)  # 会员过期时间
 
 
 # ============================================================
