@@ -113,10 +113,10 @@ class ActivityParticipant(BaseModel):
         UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_participant_unique'),
     )
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
-    activity_id = Column(Integer)
+    activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
     participant_name = Column(String(255))
-    identity_number = Column(String(255))
+    identity_number = Column(String(255), index=True)
     phone = Column(String(255))
     payment_status = Column(Integer, default=0)     # 0-无需支付 1-待支付 2-已支付
     payment_order_id = Column(Integer, nullable=True)
@@ -132,10 +132,10 @@ class CheckInRecord(BaseModel):
         UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_checkin_unique'),
     )
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
-    activity_id = Column(Integer)
+    activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
     name = Column(String(100))
-    identity_number = Column(String(255))
+    identity_number = Column(String(255), index=True)
     phone = Column(String(255))
     checkin_time = Column(DateTime, default=datetime.now)
     has_attend = Column(Integer, default=0)

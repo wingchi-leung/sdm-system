@@ -42,19 +42,22 @@ def create_activity(db: Session, activity: ActivityCreate, tenant_id: int) -> Ac
         db.add(db_activity)
         db.flush()
 
-        for participant in participants:
-            participant_dict = {
-                "tenant_id": tenant_id,
-                "activity_id": db_activity.id,
-                "participant_name": participant.participant_name,
-                "identity_number": participant.identity_number or "",
-                "phone": participant.phone,
-                "create_time": datetime.now(),
-                "update_time": datetime.now(),
-                "user_id": getattr(participant, "user_id", None),
-            }
-            db_participant = ActivityParticipant(**participant_dict)
-            db.add(db_participant)
+        # 批量插入参与者
+        if participants:
+            participant_list = []
+            now = datetime.now()
+            for participant in participants:
+                participant_list.append({
+                    "tenant_id": tenant_id,
+                    "activity_id": db_activity.id,
+                    "participant_name": participant.participant_name,
+                    "identity_number": participant.identity_number or "",
+                    "phone": participant.phone,
+                    "create_time": now,
+                    "update_time": now,
+                    "user_id": getattr(participant, "user_id", None),
+                })
+            db.bulk_insert_mappings(ActivityParticipant, participant_list)
 
         db.commit()
         db.refresh(db_activity)
