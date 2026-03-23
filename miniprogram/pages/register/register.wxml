@@ -1,4 +1,10 @@
-<view class="page" wx:if="{{activity}}">
+<!-- 加载状态 -->
+<view wx:if="{{loading}}" class="page loading-wrap">
+  <view class="loading"></view>
+  <text class="loading-text">加载中…</text>
+</view>
+
+<view class="page" wx:elif="{{activity}}">
   <!-- 活动标题 -->
   <view class="header">
     <text class="header-title">{{activity.activity_name}}</text>

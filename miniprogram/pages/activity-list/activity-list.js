@@ -1,32 +1,88 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 
+// 分页配置
+const PAGE_SIZE = 20;
+
 Page({
   data: {
     activities: [],
     loading: true,
     isAdmin: false,
+    // 分页状态
+    hasMore: true,
+    loadingMore: false,
+    skip: 0,
   },
 
   onLoad() {
     this.setData({ isAdmin: auth.isAdmin() });
-    this.loadActivities();
+    this.loadActivities(true);
   },
 
   onShow() {
-    this.loadActivities();
+    // 从其他页面返回时刷新列表
+    if (this._isLoaded) {
+      this.refreshList();
+    }
   },
 
-  async loadActivities() {
+  // 下拉刷新
+  onPullDownRefresh() {
+    this.refreshList().then(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  // 上拉加载更多
+  onReachBottom() {
+    if (this.data.hasMore && !this.data.loadingMore) {
+      this.loadMoreActivities();
+    }
+  },
+
+  // 刷新列表
+  async refreshList() {
+    this._isLoaded = true;
     try {
-      const result = await api.getActivities({});
+      const result = await api.getActivities({ skip: 0, limit: PAGE_SIZE });
       this.setData({
         activities: result.items || [],
+        hasMore: (result.items || []).length >= PAGE_SIZE,
+        skip: result.items?.length || 0,
         loading: false,
       });
     } catch (err) {
       wx.showToast({ title: '加载失败', icon: 'none' });
       this.setData({ loading: false });
+    }
+  },
+
+  // 加载活动（初始加载）
+  async loadActivities(isInit = false) {
+    if (isInit) {
+      this._isLoaded = true;
+    }
+    await this.refreshList();
+  },
+
+  // 加载更多活动
+  async loadMoreActivities() {
+    if (this.data.loadingMore || !this.data.hasMore) return;
+
+    this.setData({ loadingMore: true });
+    try {
+      const result = await api.getActivities({ skip: this.data.skip, limit: PAGE_SIZE });
+      const newItems = result.items || [];
+      this.setData({
+        activities: [...this.data.activities, ...newItems],
+        hasMore: newItems.length >= PAGE_SIZE,
+        skip: this.data.skip + newItems.length,
+        loadingMore: false,
+      });
+    } catch (err) {
+      wx.showToast({ title: '加载失败', icon: 'none' });
+      this.setData({ loadingMore: false });
     }
   },
 

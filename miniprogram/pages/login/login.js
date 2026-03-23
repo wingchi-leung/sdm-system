@@ -71,6 +71,11 @@ Page({
   },
 
   submit() {
+    // 防抖：如果正在提交，直接返回
+    if (this.data.submitting) {
+      return;
+    }
+
     const { isAdminMode, account, password } = this.data;
     if (!account || !account.trim()) {
       this.setData({ error: isAdminMode ? '请输入用户名' : '请输入手机号' });
@@ -152,6 +157,11 @@ Page({
   },
 
   wechatLogin() {
+    // 防抖：如果正在提交，直接返回
+    if (this.data.submitting) {
+      return;
+    }
+
     this.setData({ submitting: true, error: null });
     wx.login({
       success: (res) => {

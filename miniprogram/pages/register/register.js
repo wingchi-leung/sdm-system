@@ -3,12 +3,14 @@ const auth = require('../../utils/auth');
 
 Page({
   data: {
+    activityId: null,
     activity: null,
     name: '',
     phone: '',
     identityNumber: '',
     submitting: false,
     error: null,
+    loading: true,
     // 支付相关
     requirePayment: false,
     suggestedFee: 0,
@@ -18,14 +20,21 @@ Page({
   },
 
   onLoad(options) {
+    const activityId = options.id;
+    if (!activityId) {
+      wx.showToast({ title: '参数错误', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+      return;
+    }
+
+    this.setData({ activityId });
+    this.loadActivity(activityId);
+  },
+
+  // 加载活动详情
+  async loadActivity(activityId) {
     try {
-      const data = options.data ? decodeURIComponent(options.data) : '';
-      const activity = data ? JSON.parse(data) : null;
-      if (!activity) {
-        wx.showToast({ title: '参数错误', icon: 'none' });
-        setTimeout(() => wx.navigateBack(), 1500);
-        return;
-      }
+      const activity = await api.getActivity(activityId);
 
       // 检查是否需要支付
       const requirePayment = activity.require_payment === 1;
@@ -39,9 +48,11 @@ Page({
         suggestedFeeYuan,
         actualFee: suggestedFee,
         actualFeeYuan: suggestedFeeYuan,
+        loading: false,
       });
-    } catch (e) {
-      wx.showToast({ title: '参数错误', icon: 'none' });
+    } catch (err) {
+      wx.showToast({ title: '加载活动失败', icon: 'none' });
+      this.setData({ loading: false });
       setTimeout(() => wx.navigateBack(), 1500);
     }
   },
@@ -183,6 +194,11 @@ Page({
   },
 
   submit() {
+    // 防抖：如果正在提交，直接返回
+    if (this.data.submitting) {
+      return;
+    }
+
     if (!this.validateForm()) {
       return;
     }

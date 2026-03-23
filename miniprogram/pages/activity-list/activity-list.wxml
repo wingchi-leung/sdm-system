@@ -6,7 +6,7 @@
   </view>
 
   <!-- 空状态 -->
-  <view wx:elif="{{activities.length === 0}}" class="state-wrap empty">
+  <view wx:elif="{{activities.length === 0 && !loading}}" class="state-wrap empty">
     <view class="empty-illustration">
       <view class="empty-circle"></view>
       <view class="empty-line"></view>
@@ -56,6 +56,17 @@
           </button>
         </view>
       </view>
+    </view>
+
+    <!-- 加载更多状态 -->
+    <view wx:if="{{loadingMore}}" class="load-more-wrap">
+      <view class="loading-more"></view>
+      <text class="load-more-text">加载中…</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view wx:elif="{{!hasMore && activities.length > 0}}" class="no-more-wrap">
+      <text class="no-more-text">没有更多了</text>
     </view>
   </view>
 </view>

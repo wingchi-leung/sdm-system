@@ -89,8 +89,9 @@ Page({
   goRegister() {
     const activity = this.data.activity;
     if (!activity || !this.data.canEnroll) return;
+    // 只传递活动 ID，避免 URL 过长
     wx.navigateTo({
-      url: '/pages/register/register?data=' + encodeURIComponent(JSON.stringify(activity)),
+      url: `/pages/register/register?id=${activity.id}`,
     });
   },
 
