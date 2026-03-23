@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Column, Integer, String, DateTime, func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -68,6 +68,10 @@ class AdminActivityTypeRole(BaseModel):
 # ============================================================
 class User(BaseModel):
     __tablename__ = "user"
+    __table_args__ = (
+        UniqueConstraint('phone', 'tenant_id', name='uk_user_phone'),
+        UniqueConstraint('email', 'tenant_id', name='uk_user_email'),
+    )
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
     name = Column(String(255))
     identity_number = Column(String(255), nullable=True)
@@ -105,6 +109,9 @@ class Activity(BaseModel):
 # ============================================================
 class ActivityParticipant(BaseModel):
     __tablename__ = "activity_participants"
+    __table_args__ = (
+        UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_participant_unique'),
+    )
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
     activity_id = Column(Integer)
     user_id = Column(Integer, nullable=True)
@@ -121,6 +128,9 @@ class ActivityParticipant(BaseModel):
 # ============================================================
 class CheckInRecord(BaseModel):
     __tablename__ = "checkin_records"
+    __table_args__ = (
+        UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_checkin_unique'),
+    )
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
     activity_id = Column(Integer)
     user_id = Column(Integer, nullable=True)

@@ -1,6 +1,7 @@
 from app.models.checkin import CheckInCreate
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from typing import List, Optional
 
@@ -75,11 +76,11 @@ def create_checkin(db: Session, checkin: CheckInCreate, tenant_id: int) -> Check
             raise HTTPException(status_code=404, detail="找不到活动")
         if activity.status != 2:
             raise HTTPException(status_code=400, detail="活动不在有效期内！")
-            
+
         existing_checkin = check_already_checkin(db, checkin.activity_id, checkin.identity_number, tenant_id)
         if existing_checkin:
             raise HTTPException(status_code=400, detail="Already checked in")
-        
+
         checkin_data = checkin.model_dump()
         checkin_data["tenant_id"] = tenant_id
         db_checkin = CheckInRecord(**checkin_data)
@@ -89,6 +90,9 @@ def create_checkin(db: Session, checkin: CheckInCreate, tenant_id: int) -> Check
         return db_checkin
     except HTTPException:
         raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Already checked in")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))

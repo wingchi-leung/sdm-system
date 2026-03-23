@@ -1,10 +1,10 @@
 from datetime import datetime
 from app.models.participant import ParticipantCreate, ParticipantResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import desc, IntegrityError
 from typing import List
 from app.schemas import Activity, ActivityParticipant, CheckInRecord
 from fastapi import HTTPException
-from sqlalchemy import desc
 
 
 def get_activity_participants_with_count(
@@ -90,13 +90,13 @@ def create_participant(db: Session, participant: ParticipantCreate, tenant_id: i
         ).first()
         if not activity:
             raise HTTPException(status_code=404, detail="Activity not found")
-            
+
         existing_participant = check_participant_exists(
             db, participant.activity_id, participant.identity_number, tenant_id
         )
         if existing_participant:
             raise HTTPException(status_code=400, detail="Already registered")
-        
+
         participant_data = participant.model_dump()
         participant_data["tenant_id"] = tenant_id
         db_participant = ActivityParticipant(**participant_data)
@@ -106,6 +106,9 @@ def create_participant(db: Session, participant: ParticipantCreate, tenant_id: i
         return db_participant
     except HTTPException:
         raise
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Already registered")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))

@@ -1,5 +1,6 @@
 from app.models.user import UserCreate, RegisterRequest
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from app.schemas import User
 from app.core.security import hash_password, verify_password
 from fastapi import HTTPException
@@ -57,6 +58,13 @@ def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname
         db.commit()
         db.refresh(db_user)
         return db_user
+    except IntegrityError:
+        db.rollback()
+        # 竞态条件：可能其他请求已创建，重新查询
+        user = get_user_by_wx_openid(db, openid, tenant_id)
+        if user:
+            return user
+        raise HTTPException(status_code=400, detail=f"创建微信用户失败")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"创建微信用户失败: {str(e)}")
@@ -72,7 +80,7 @@ def create_user(db: Session, user: UserCreate, tenant_id: int) -> User:
             ).first()
             if existing:
                 raise HTTPException(status_code=400, detail="该证件号已存在")
-        
+
         db_user = User(
             tenant_id=tenant_id,
             name=user.name,
@@ -90,6 +98,21 @@ def create_user(db: Session, user: UserCreate, tenant_id: int) -> User:
         return db_user
     except HTTPException:
         raise
+    except IntegrityError:
+        db.rollback()
+        # 竞态条件：可能是手机号或邮箱重复
+        if user.phone:
+            existing = get_user_by_phone(db, user.phone, tenant_id)
+            if existing:
+                raise HTTPException(status_code=400, detail="该手机号已存在")
+        if user.email:
+            existing = db.query(User).filter(
+                User.email == user.email,
+                User.tenant_id == tenant_id
+            ).first()
+            if existing:
+                raise HTTPException(status_code=400, detail="该邮箱已存在")
+        raise HTTPException(status_code=400, detail="创建用户失败")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -101,7 +124,7 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
         existing_phone = get_user_by_phone(db, body.phone.strip(), tenant_id)
         if existing_phone:
             raise HTTPException(status_code=400, detail="该手机号已注册")
-        
+
         if body.email:
             existing_email = db.query(User).filter(
                 User.email == body.email,
@@ -109,7 +132,7 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
             ).first()
             if existing_email:
                 raise HTTPException(status_code=400, detail="该邮箱已注册")
-        
+
         db_user = User(
             tenant_id=tenant_id,
             name=body.name.strip(),
@@ -127,6 +150,20 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
         return db_user
     except HTTPException:
         raise
+    except IntegrityError:
+        db.rollback()
+        # 竞态条件：可能是手机号或邮箱重复
+        existing_phone = get_user_by_phone(db, body.phone.strip(), tenant_id)
+        if existing_phone:
+            raise HTTPException(status_code=400, detail="该手机号已注册")
+        if body.email:
+            existing_email = db.query(User).filter(
+                User.email == body.email,
+                User.tenant_id == tenant_id
+            ).first()
+            if existing_email:
+                raise HTTPException(status_code=400, detail="该邮箱已注册")
+        raise HTTPException(status_code=400, detail="注册失败")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
@@ -205,6 +242,13 @@ def get_or_create_user_by_phone(db: Session, phone: str, tenant_id: int, name: s
         db.commit()
         db.refresh(db_user)
         return db_user
+    except IntegrityError:
+        db.rollback()
+        # 竞态条件：可能其他请求已创建，重新查询
+        user = get_user_by_phone(db, phone, tenant_id)
+        if user:
+            return user
+        raise HTTPException(status_code=400, detail="创建用户失败")
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=400, detail=f"创建用户失败: {str(e)}")
