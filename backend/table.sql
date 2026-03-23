@@ -144,3 +144,48 @@ CREATE TABLE IF NOT EXISTS `admin_activity_type_role` (
 -- 管理员 wingchi-微信，密码 123456（hash 由 hash_admin_password.py 生成）
 -- INSERT INTO admin_user (username, password_hash, is_super_admin)
 -- VALUES ('wingchi-微信', '$2b$12$wA69xFHp9Ni9w/4uYGwW4OMZ2pSpA1oE4V0SppL.VnJPaBBh8X4De', 1);
+
+
+
+
+
+  -- 1. 修改 activity 表，添加支付相关字段
+  ALTER TABLE activity
+  ADD COLUMN suggested_fee INT DEFAULT 0 COMMENT '建议费用（分）',
+  ADD COLUMN require_payment INT DEFAULT 0 COMMENT '是否需要支付：0-否 1-是';
+
+  -- 2. 修改 activity_participants 表，添加支付状态字段
+  ALTER TABLE activity_participants
+  ADD COLUMN payment_status INT DEFAULT 0 COMMENT '0-无需支付 1-待支付 2-已支付',
+  ADD COLUMN payment_order_id INT DEFAULT NULL COMMENT '支付订单ID',
+  ADD COLUMN paid_amount INT DEFAULT 0 COMMENT '实际支付金额（分）';
+  
+  
+  
+    -- 3. 创建支付订单表
+  CREATE TABLE payment_order (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      tenant_id INT NOT NULL DEFAULT 1,
+      order_no VARCHAR(64) NOT NULL UNIQUE COMMENT '商户订单号',
+      transaction_id VARCHAR(64) DEFAULT NULL COMMENT '微信交易号',
+      activity_id INT NOT NULL COMMENT '活动ID',
+      user_id INT DEFAULT NULL COMMENT '用户ID',
+      participant_id INT DEFAULT NULL COMMENT '参与者ID',
+      suggested_fee INT NOT NULL COMMENT '建议费用（分）',
+      actual_fee INT NOT NULL COMMENT '实际支付金额（分）',
+      status INT DEFAULT 0 COMMENT '0-待支付 1-成功 2-失败 3-关闭',
+      openid VARCHAR(64) DEFAULT NULL COMMENT '付款用户openid',
+      prepay_id VARCHAR(128) DEFAULT NULL COMMENT '预支付ID',
+      paid_at DATETIME DEFAULT NULL COMMENT '支付成功时间',
+      expire_at DATETIME NOT NULL COMMENT '过期时间',
+      callback_raw VARCHAR(2000) DEFAULT NULL COMMENT '回调原始数据',
+      create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      INDEX idx_tenant_id (tenant_id),
+      INDEX idx_order_no (order_no),
+      INDEX idx_transaction_id (transaction_id),
+      INDEX idx_activity_id (activity_id),
+      INDEX idx_user_id (user_id),
+      INDEX idx_participant_id (participant_id),
+      INDEX idx_status (status)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付订单表';
