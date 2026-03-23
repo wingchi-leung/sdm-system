@@ -1,0 +1,137 @@
+"""
+后台定时任务
+用于处理支付订单超时关闭等定时任务
+"""
+import logging
+import threading
+import time
+from typing import Optional
+
+from sqlalchemy.orm import Session
+from sqlalchemy import and_
+
+from app.database import SessionLocal
+from app.schemas import PaymentOrder
+from app.services.wechat_pay import get_wechat_pay_service
+
+logger = logging.getLogger(__name__)
+
+# 任务停止标志
+_stop_event = Optional[threading.Event]
+_scheduler_thread: Optional[threading.Thread] = None
+
+
+def close_expired_payment_orders():
+    """
+    关闭过期的支付订单
+    同时调用微信关闭接口，确保微信侧订单也被关闭
+    """
+    db: Session = SessionLocal()
+    try:
+        from datetime import datetime
+
+        now = datetime.now()
+        # 查询所有待支付的过期订单
+        expired_orders = db.query(PaymentOrder).filter(
+            and_(
+                PaymentOrder.status == 0,  # 待支付
+                PaymentOrder.expire_at < now,
+            )
+        ).all()
+
+        if not expired_orders:
+            return
+
+        logger.info(f"发现 {len(expired_orders)} 个过期订单待处理")
+
+        pay_service = get_wechat_pay_service()
+        closed_count = 0
+        failed_count = 0
+
+        for order in expired_orders:
+            try:
+                # 调用微信关闭订单接口
+                pay_service.close_order(order.order_no)
+                # 更新订单状态
+                order.status = 3  # 关闭
+                order.update_time = now
+                closed_count += 1
+                logger.info(f"关闭过期订单: {order.order_no}")
+            except Exception as e:
+                # 即使微信关闭失败，也更新本地订单状态
+                order.status = 3  # 关闭
+                order.update_time = now
+                failed_count += 1
+                logger.warning(f"关闭订单 {order.order_no} 时微信接口失败: {e}")
+
+        db.commit()
+        logger.info(f"过期订单处理完成: 成功 {closed_count}, 失败 {failed_count}")
+
+    except Exception as e:
+        logger.exception(f"关闭过期订单任务异常: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+
+def _scheduler_worker(interval_seconds: int = 300):
+    """
+    定时任务工作线程
+
+    Args:
+        interval_seconds: 执行间隔（秒），默认 5 分钟
+    """
+    logger.info(f"定时任务线程启动，执行间隔: {interval_seconds} 秒")
+
+    while not _stop_event.is_set():
+        try:
+            close_expired_payment_orders()
+        except Exception as e:
+            logger.exception(f"定时任务执行异常: {e}")
+
+        # 等待下一次执行，或收到停止信号
+        _stop_event.wait(interval_seconds)
+
+    logger.info("定时任务线程停止")
+
+
+def start_scheduler(interval_seconds: int = 300):
+    """
+    启动定时任务调度器
+
+    Args:
+        interval_seconds: 执行间隔（秒），默认 5 分钟
+    """
+    global _stop_event, _scheduler_thread
+
+    if _scheduler_thread is not None:
+        logger.warning("定时任务已经在运行，无需重复启动")
+        return
+
+    _stop_event = threading.Event()
+    _scheduler_thread = threading.Thread(
+        target=_scheduler_worker,
+        args=(interval_seconds,),
+        daemon=True,
+        name="PaymentOrderScheduler",
+    )
+    _scheduler_thread.start()
+    logger.info("定时任务调度器已启动")
+
+
+def stop_scheduler():
+    """停止定时任务调度器"""
+    global _stop_event, _scheduler_thread
+
+    if _stop_event is not None:
+        _stop_event.set()
+        logger.info("定时任务停止信号已发送")
+
+    if _scheduler_thread is not None:
+        _scheduler_thread.join(timeout=5)
+        if _scheduler_thread.is_alive():
+            logger.warning("定时任务线程未能在超时时间内停止")
+        else:
+            logger.info("定时任务线程已停止")
+        _scheduler_thread = None
+        _stop_event = None

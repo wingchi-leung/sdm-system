@@ -153,6 +153,8 @@ class PaymentOrder(BaseModel):
     activity_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=True, index=True)
     participant_id = Column(Integer, nullable=True, index=True)
+    participant_name = Column(String(255), nullable=True)   # 报名人姓名
+    phone = Column(String(255), nullable=True)              # 报名人手机号
     suggested_fee = Column(Integer, nullable=False)      # 建议费用（分）
     actual_fee = Column(Integer, nullable=False)         # 实际支付金额（分）
     status = Column(Integer, default=0, index=True)      # 0-待支付 1-成功 2-失败 3-关闭

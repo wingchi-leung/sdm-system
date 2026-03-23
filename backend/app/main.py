@@ -1,9 +1,35 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.database  import SessionLocal
 from app.core.config import settings
 from app.api.v1.router import api_router
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用生命周期管理"""
+    # 启动时启动定时任务
+    try:
+        from app.tasks.scheduler import start_scheduler
+        start_scheduler(interval_seconds=300)  # 每 5 分钟执行一次
+        logger.info("支付订单定时任务已启动")
+    except Exception as e:
+        logger.error(f"启动定时任务失败: {e}")
+
+    yield
+
+    # 关闭时停止定时任务
+    try:
+        from app.tasks.scheduler import stop_scheduler
+        stop_scheduler()
+        logger.info("支付订单定时任务已停止")
+    except Exception as e:
+        logger.error(f"停止定时任务失败: {e}")
 
 
 class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
@@ -30,7 +56,8 @@ app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
     description=settings.DESCRIPTION,
-    openapi_url=f"{settings.API_V1_STR}/openapi.json"
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    lifespan=lifespan,
 )
 
 # 添加请求体大小限制中间件

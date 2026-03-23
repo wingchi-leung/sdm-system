@@ -21,6 +21,8 @@ def create_payment_order(
     actual_fee: int,
     prepay_id: str,
     tenant_id: int,
+    participant_name: Optional[str] = None,
+    phone: Optional[str] = None,
     expire_minutes: int = 30,
 ) -> PaymentOrder:
     """
@@ -36,6 +38,8 @@ def create_payment_order(
         actual_fee: 实际支付金额（分）
         prepay_id: 预支付ID
         tenant_id: 租户ID
+        participant_name: 报名人姓名
+        phone: 报名人手机号
         expire_minutes: 过期时间（分钟）
 
     Returns:
@@ -46,6 +50,8 @@ def create_payment_order(
         order_no=order_no,
         activity_id=activity_id,
         user_id=user_id,
+        participant_name=participant_name,
+        phone=phone,
         suggested_fee=suggested_fee,
         actual_fee=actual_fee,
         status=0,  # 待支付
@@ -142,25 +148,28 @@ def update_payment_order_failed(
     return order
 
 
-def close_expired_orders(db: Session, tenant_id: int) -> int:
+def close_expired_orders(db: Session, tenant_id: Optional[int] = None) -> int:
     """
     关闭过期订单
 
     Args:
         db: 数据库会话
-        tenant_id: 租户ID
+        tenant_id: 租户ID，None 表示处理所有租户
 
     Returns:
         int: 关闭的订单数量
     """
     now = datetime.now()
-    expired_orders = db.query(PaymentOrder).filter(
+    query = db.query(PaymentOrder).filter(
         and_(
-            PaymentOrder.tenant_id == tenant_id,
             PaymentOrder.status == 0,  # 待支付
             PaymentOrder.expire_at < now,
         )
-    ).all()
+    )
+    if tenant_id is not None:
+        query = query.filter(PaymentOrder.tenant_id == tenant_id)
+
+    expired_orders = query.all()
 
     count = 0
     for order in expired_orders:

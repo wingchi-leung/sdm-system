@@ -127,6 +127,8 @@ def create_payment_order(
             actual_fee=order_in.actual_fee,
             prepay_id=prepay_id,
             tenant_id=tenant_id,
+            participant_name=order_in.participant_name,
+            phone=order_in.phone,
         )
 
         # 7. 获取小程序支付参数
@@ -208,8 +210,8 @@ async def payment_notify(
                     tenant_id=tenant_id,
                     activity_id=order.activity_id,
                     user_id=order.user_id,
-                    participant_name="",  # TODO: 需要从订单中获取
-                    phone="",
+                    participant_name=order.participant_name or "",
+                    phone=order.phone or "",
                     identity_number="",
                     payment_status=2,  # 已支付
                     payment_order_id=order.id,
