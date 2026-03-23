@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.crud import crud_activity, crud_checkin, crud_participant, crud_admin
 from app.models import activity, checkin
 from app.api import deps
+from app.utils.member import get_user_allowed_activity_types, can_user_access_activity_type
 
 router = APIRouter()
 
@@ -17,6 +18,19 @@ def _allowed_type_ids_for_list(db: Session, admin_id: int | None, tenant_id: int
     if is_super or not allowed:
         return None
     return allowed
+
+
+def _get_member_allowed_types(db: Session, user_id: int | None, tenant_id: int) -> List[int] | None:
+    """获取普通用户（会员）可访问的活动类型"""
+    if user_id is None:
+        return None
+    
+    from app.schemas import User
+    user = db.query(User).filter(User.id == user_id, User.tenant_id == tenant_id).first()
+    if not user:
+        return None
+    
+    return get_user_allowed_activity_types(db, user)
 
 
 @router.post("/", response_model=activity.ActivityResponse)
@@ -54,13 +68,27 @@ def list_activities(
     limit: int = 100,
     status: int = None,
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext | None = Depends(deps.get_current_admin_optional),
+    ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
-    """活动列表"""
-    tenant_id = ctx.tenant_id if ctx else 1
-    admin_id = ctx.user_id if ctx else None
+    """
+    活动列表
     
-    allowed = _allowed_type_ids_for_list(db, admin_id, tenant_id) if admin_id else None
+    - 管理员：根据管理员权限过滤（活动类型授权）
+    - 普通用户：根据会员类型过滤（可访问的活动类型）
+    - 未登录：返回空列表或公开活动
+    """
+    tenant_id = ctx.tenant_id if ctx else 1
+    
+    allowed = None
+    
+    if ctx:
+        if ctx.role == "admin":
+            # 管理员：按活动类型授权过滤
+            allowed = _allowed_type_ids_for_list(db, ctx.user_id, tenant_id)
+        else:
+            # 普通用户：按会员类型过滤
+            allowed = _get_member_allowed_types(db, ctx.user_id, tenant_id)
+    
     activities, total = crud_activity.get_activities(
         db, tenant_id=tenant_id, skip=skip, limit=limit, status=status,
         allowed_activity_type_ids=allowed,

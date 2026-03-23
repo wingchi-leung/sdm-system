@@ -35,12 +35,23 @@ def get_user_by_wx_openid(db: Session, openid: str, tenant_id: int) -> User | No
 
 
 def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname: str | None = None) -> User:
-    """微信授权登录：存在则返回，不存在则创建"""
+    """微信授权登录：存在则返回，不存在则创建（自动设置默认会员类型）"""
     user = get_user_by_wx_openid(db, openid, tenant_id)
     if user:
         return user
+    
     try:
         phone_placeholder = f"wx_{openid}"
+        
+        # 获取默认会员类型
+        from app.schemas import MemberType
+        default_member = db.query(MemberType).filter(
+            MemberType.tenant_id == tenant_id,
+            MemberType.is_default == 1
+        ).first()
+        
+        member_type_id = default_member.id if default_member else None
+        
         db_user = User(
             tenant_id=tenant_id,
             name=nickname or "微信用户",
@@ -52,6 +63,8 @@ def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname
             isblock=0,
             block_reason=None,
             wx_openid=openid,
+            member_type_id=member_type_id,  # 设置默认会员类型
+            member_expire_at=None,  # 永久有效
         )
         db.add(db_user)
         db.commit()
