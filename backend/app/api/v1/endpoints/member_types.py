@@ -7,9 +7,9 @@ from typing import List, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-from app.database import get_db
+from app.database import SessionLocal
 from app.schemas import MemberType, MemberTypeActivityType, ActivityType
-from app.api.deps import get_current_admin, get_tenant_context
+from app.api.deps import get_current_admin, get_tenant_context, get_db
 
 router = APIRouter()
 

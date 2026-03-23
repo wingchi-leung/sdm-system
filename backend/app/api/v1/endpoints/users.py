@@ -37,6 +37,7 @@ class UserWithMemberResponse(BaseModel):
 
 # ============================================================
 # API 路由
+# 注意：固定路径必须在动态路径 /{user_id} 之前定义
 # ============================================================
 
 @router.post("/register", response_model=user.UserResponse)
@@ -72,19 +73,6 @@ def create_user(
 ):
     """创建用户"""
     return crud_user.create_user(db=db, user=user_in, tenant_id=ctx.tenant_id)
-
-
-@router.get("/{user_id}", response_model=user.UserResponse)
-def read_user(
-    user_id: int,
-    db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext = Depends(deps.get_current_admin),
-):
-    """获取用户详情"""
-    db_user = crud_user.get_user(db, user_id=user_id, tenant_id=ctx.tenant_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
 
 
 @router.get("/", response_model=List[user.UserResponse])
@@ -174,6 +162,61 @@ def get_all_users_for_super_admin(
     )
 
 
+# ============================================================
+# 会员相关路由 - 必须在 /{user_id} 之前
+# ============================================================
+
+@router.get("/with-member", response_model=List[UserWithMemberResponse])
+def get_users_with_member(
+    member_type_id: Optional[int] = Query(None, description="按会员类型筛选"),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """获取用户列表（含会员信息）"""
+    query = db.query(User).filter(User.tenant_id == ctx.tenant_id)
+    
+    if member_type_id:
+        query = query.filter(User.member_type_id == member_type_id)
+    
+    users = query.all()
+    
+    result = []
+    for u in users:
+        member_type_name = None
+        if u.member_type_id:
+            mt = db.query(MemberType).filter(MemberType.id == u.member_type_id).first()
+            if mt:
+                member_type_name = mt.name
+        
+        result.append(UserWithMemberResponse(
+            id=u.id,
+            name=u.name,
+            phone=u.phone,
+            member_type_id=u.member_type_id,
+            member_type_name=member_type_name,
+            member_expire_at=u.member_expire_at
+        ))
+    
+    return result
+
+
+# ============================================================
+# 动态路径路由 - 必须在固定路径之后
+# ============================================================
+
+@router.get("/{user_id}", response_model=user.UserResponse)
+def read_user(
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """获取用户详情"""
+    db_user = crud_user.get_user(db, user_id=user_id, tenant_id=ctx.tenant_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user
+
+
 @router.put("/{user_id}/member")
 def set_user_member(
     user_id: int,
@@ -208,39 +251,3 @@ def set_user_member(
         "member_type": member_type.name,
         "expire_at": data.member_expire_at
     }
-
-
-@router.get("/with-member", response_model=List[UserWithMemberResponse])
-def get_users_with_member(
-    member_type_id: Optional[int] = Query(None, description="按会员类型筛选"),
-    db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext = Depends(deps.get_current_admin),
-):
-    """
-    获取用户列表（含会员信息）
-    """
-    query = db.query(User).filter(User.tenant_id == ctx.tenant_id)
-    
-    if member_type_id:
-        query = query.filter(User.member_type_id == member_type_id)
-    
-    users = query.all()
-    
-    result = []
-    for u in users:
-        member_type_name = None
-        if u.member_type_id:
-            mt = db.query(MemberType).filter(MemberType.id == u.member_type_id).first()
-            if mt:
-                member_type_name = mt.name
-        
-        result.append(UserWithMemberResponse(
-            id=u.id,
-            name=u.name,
-            phone=u.phone,
-            member_type_id=u.member_type_id,
-            member_type_name=member_type_name,
-            member_expire_at=u.member_expire_at
-        ))
-    
-    return result
