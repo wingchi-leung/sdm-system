@@ -115,6 +115,9 @@ Page({
                 accessToken: data.access_token,
                 userId: data.user_id,
                 userName: data.user_name || '微信用户',
+                memberTypeId: data.member_type_id,
+                memberTypeName: data.member_type_name,
+                memberExpireAt: data.member_expire_at,
               });
 
               // 保存首次登录标识

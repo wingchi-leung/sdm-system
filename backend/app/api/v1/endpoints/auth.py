@@ -239,12 +239,26 @@ def wechat_login(
     # 判断是否首次登录（检查关键信息是否完整）
     is_first_login = crud_user.is_user_profile_incomplete(db, user.id, tenant.id)
 
+    # 获取会员信息
+    member_type_id = user.member_type_id
+    member_type_name = None
+    member_expire_at = user.member_expire_at
+    
+    if member_type_id:
+        from app.schemas import MemberType
+        member_type = db.query(MemberType).filter(MemberType.id == member_type_id).first()
+        if member_type:
+            member_type_name = member_type.name
+
     return WechatLoginResponse(
         access_token=token,
         user_id=user.id,
         user_name=user.name or "微信用户",
         is_first_login=is_first_login,
         require_bind_info=is_first_login,
+        member_type_id=member_type_id,
+        member_type_name=member_type_name,
+        member_expire_at=member_expire_at,
     )
 
 

@@ -463,6 +463,63 @@ function queryPaymentOrder(orderNo) {
   });
 }
 
+// ============================================================
+// 会员相关 API
+// ============================================================
+
+/** 获取会员类型列表 */
+function getMemberTypes() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/member-types/`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取用户列表（含会员信息，管理员用） */
+function getUsersWithMember(memberTypeId = null) {
+  let url = `${baseUrl}/users/with-member`;
+  if (memberTypeId) url += `?member_type_id=${memberTypeId}`;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 设置用户会员类型（管理员用） */
+function setUserMember(userId, memberTypeId, expireAt = null) {
+  const data = { member_type_id: memberTypeId };
+  if (expireAt) data.member_expire_at = expireAt;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/${userId}/member`,
+      method: 'PUT',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   getToken,
@@ -491,5 +548,9 @@ module.exports = {
   getAllUsersForAdmin,
   createPaymentOrder,
   queryPaymentOrder,
+  // 会员相关
+  getMemberTypes,
+  getUsersWithMember,
+  setUserMember,
   ApiError,
 };

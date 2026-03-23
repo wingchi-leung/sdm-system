@@ -2,6 +2,7 @@
  * 登录态管理 - 与 Flutter AuthService 行为一致
  * 支持 admin（管理员）与 user（普通用户）双角色
  * 管理员进一步支持：super / activity_type_admin（按活动类型授权）
+ * 普通用户支持会员类型
  */
 const KEY_TOKEN = 'access_token';
 const KEY_ROLE = 'user_role';
@@ -9,6 +10,11 @@ const KEY_USER_ID = 'user_id';
 const KEY_USER_NAME = 'user_name';
 const KEY_ADMIN_LEVEL = 'admin_level'; // super | activity_type_admin
 const KEY_ADMIN_ACTIVITY_TYPES = 'admin_activity_types'; // [{ id, name, code }]
+
+// 会员相关存储 key
+const KEY_MEMBER_TYPE_ID = 'member_type_id';
+const KEY_MEMBER_TYPE_NAME = 'member_type_name';
+const KEY_MEMBER_EXPIRE_AT = 'member_expire_at';
 
 function normalizeText(v) {
   return (v == null ? '' : String(v)).trim();
@@ -71,6 +77,56 @@ function getAdminActivityTypes() {
   const list = wx.getStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
   return normalizeActivityTypes(Array.isArray(list) ? list : []);
 }
+
+// ============================================================
+// 会员相关函数
+// ============================================================
+
+/** 获取会员类型ID */
+function getMemberTypeId() {
+  const v = wx.getStorageSync(KEY_MEMBER_TYPE_ID);
+  return v != null && v !== '' ? parseInt(v, 10) : null;
+}
+
+/** 获取会员类型名称 */
+function getMemberTypeName() {
+  return wx.getStorageSync(KEY_MEMBER_TYPE_NAME) || null;
+}
+
+/** 获取会员过期时间 */
+function getMemberExpireAt() {
+  return wx.getStorageSync(KEY_MEMBER_EXPIRE_AT) || null;
+}
+
+/** 检查会员是否有效（未过期） */
+function isMemberValid() {
+  const expireAt = getMemberExpireAt();
+  if (!expireAt) return true; // 永久有效
+  try {
+    const expireDate = new Date(expireAt);
+    return expireDate > new Date();
+  } catch (e) {
+    return true;
+  }
+}
+
+/** 获取会员信息 */
+function getMemberInfo() {
+  return {
+    typeId: getMemberTypeId(),
+    typeName: getMemberTypeName() || '普通会员',
+    expireAt: getMemberExpireAt(),
+    isValid: isMemberValid(),
+  };
+}
+
+/** 是否 VIP 会员 */
+function isVipMember() {
+  const typeName = getMemberTypeName();
+  return typeName && typeName.toLowerCase().includes('vip');
+}
+
+// ============================================================
 
 function isLoggedIn() {
   const t = getToken();
@@ -171,14 +227,42 @@ function saveAdminToken(accessToken, meta = null) {
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
 }
 
-/** 保存普通用户登录结果 */
-function saveUserToken({ accessToken, userId, userName }) {
+/** 保存普通用户登录结果（含会员信息） */
+function saveUserToken({ accessToken, userId, userName, memberTypeId, memberTypeName, memberExpireAt }) {
   wx.setStorageSync(KEY_TOKEN, accessToken);
   wx.setStorageSync(KEY_ROLE, 'user');
   wx.setStorageSync(KEY_USER_ID, userId);
   wx.setStorageSync(KEY_USER_NAME, userName || '');
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
+  
+  // 保存会员信息
+  if (memberTypeId != null) {
+    wx.setStorageSync(KEY_MEMBER_TYPE_ID, memberTypeId);
+  }
+  if (memberTypeName) {
+    wx.setStorageSync(KEY_MEMBER_TYPE_NAME, memberTypeName);
+  }
+  if (memberExpireAt) {
+    wx.setStorageSync(KEY_MEMBER_EXPIRE_AT, memberExpireAt);
+  }
+}
+
+/** 更新会员信息 */
+function updateMemberInfo({ memberTypeId, memberTypeName, memberExpireAt }) {
+  if (memberTypeId != null) {
+    wx.setStorageSync(KEY_MEMBER_TYPE_ID, memberTypeId);
+  }
+  if (memberTypeName) {
+    wx.setStorageSync(KEY_MEMBER_TYPE_NAME, memberTypeName);
+  }
+  if (memberExpireAt !== undefined) {
+    if (memberExpireAt) {
+      wx.setStorageSync(KEY_MEMBER_EXPIRE_AT, memberExpireAt);
+    } else {
+      wx.removeStorageSync(KEY_MEMBER_EXPIRE_AT);
+    }
+  }
 }
 
 function logout() {
@@ -188,6 +272,9 @@ function logout() {
   wx.removeStorageSync(KEY_USER_NAME);
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
+  wx.removeStorageSync(KEY_MEMBER_TYPE_ID);
+  wx.removeStorageSync(KEY_MEMBER_TYPE_NAME);
+  wx.removeStorageSync(KEY_MEMBER_EXPIRE_AT);
 }
 
 module.exports = {
@@ -199,6 +286,13 @@ module.exports = {
   getUserName,
   getAdminLevel,
   getAdminActivityTypes,
+  // 会员相关
+  getMemberTypeId,
+  getMemberTypeName,
+  getMemberExpireAt,
+  isMemberValid,
+  getMemberInfo,
+  isVipMember,
   isLoggedIn,
   isAdmin,
   isUser,
@@ -207,5 +301,6 @@ module.exports = {
   canManageActivityType,
   saveAdminToken,
   saveUserToken,
+  updateMemberInfo,
   logout,
 };

@@ -95,6 +95,10 @@ class WechatLoginResponse(BaseModel):
     user_name: str
     is_first_login: bool = False
     require_bind_info: bool = False
+    # 会员信息
+    member_type_id: Optional[int] = None
+    member_type_name: Optional[str] = None
+    member_expire_at: Optional[datetime] = None
 
 
 class UserBindInfoRequest(BaseModel):
