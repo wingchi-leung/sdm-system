@@ -15,6 +15,8 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "passlib[bcrypt]>=1.7.4",
     "bcrypt>=3.2.0,<4.1.0",  # passlib 依赖 __about__，bcrypt 4.1+ 已移除，故锁定 4.0.x
+    "wechatpayv3>=1.2.0",     # 微信支付
+    "aiofiles>=23.0.0",       # 异步文件操作
 ]
 
 [project.optional-dependencies]
@@ -29,6 +31,9 @@ dev = [
     "pytest-xdist>=3.5.0",
     "freezegun>=1.4.0",
 ]
+# 云存储SDK（按需安装）
+oss = ["oss2>=2.18.0"]              # 阿里云OSS
+cos = ["cos-python-sdk-v5>=1.9.0"]  # 腾讯云COS
 
 [build-system]
 requires = ["hatchling"]
