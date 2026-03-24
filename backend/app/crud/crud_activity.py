@@ -35,6 +35,8 @@ def create_activity(db: Session, activity: ActivityCreate, tenant_id: int) -> Ac
         activity_dict["update_time"] = datetime.now()
         activity_dict["suggested_fee"] = activity.suggested_fee or 0
         activity_dict["require_payment"] = activity.require_payment or 0
+        activity_dict["poster_url"] = activity.poster_url or None
+        activity_dict["location"] = activity.location or None
         if activity_dict.get("tag") is None:
             activity_dict["tag"] = None
 

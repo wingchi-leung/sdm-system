@@ -215,3 +215,87 @@
   margin-top: var(--space-xs);
   letter-spacing: 0.02em;
 }
+
+/* ─────────────────────────────────────────────────────────────
+ * 海报上传
+ * ───────────────────────────────────────────────────────────── */
+.poster-section {
+  margin-top: var(--space-sm);
+}
+
+.poster-upload {
+  width: 100%;
+  height: 300rpx;
+  border: 2rpx dashed var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-subtle);
+  transition: all 0.3s ease;
+}
+
+.poster-upload:active {
+  border-color: var(--primary);
+  background: var(--primary-light);
+}
+
+.upload-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-sm);
+}
+
+.upload-text {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+}
+
+.upload-hint {
+  font-size: 22rpx;
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+  letter-spacing: 0.02em;
+}
+
+.poster-preview {
+  position: relative;
+  width: 100%;
+  height: 300rpx;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.poster-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.poster-remove {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  width: 48rpx;
+  height: 48rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-icon {
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 300;
+}

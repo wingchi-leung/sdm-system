@@ -1,9 +1,8 @@
 /**
  * API 封装 - 与后端 backend /api/v1 对接
- * 真机/体验版请修改 config/index.js 中的 baseUrl 为实际服务器地址（需在小程序后台配置 request 合法域名）
+ * 真机/体验版请修改 baseUrl 为实际服务器地址（需在小程序后台配置 request 合法域名）
  */
-const config = require('../config/index.js');
-const baseUrl = config.baseUrl;
+const baseUrl = 'http://172.20.10.6:8000/api/v1';
 
 function getToken() {
   return wx.getStorageSync('access_token') || '';
@@ -172,6 +171,8 @@ function createActivity({
   activity_type_name,
   suggested_fee,
   require_payment,
+  poster_url,
+  location,
 }) {
   const data = {
     activity_name,
@@ -189,6 +190,12 @@ function createActivity({
   }
   if (activity_type_name != null && String(activity_type_name).trim()) {
     data.activity_type_name = String(activity_type_name).trim();
+  }
+  if (poster_url) {
+    data.poster_url = poster_url;
+  }
+  if (location !== undefined) {
+    data.location = location || null;
   }
   return new Promise((resolve, reject) => {
     wx.request({
@@ -464,6 +471,39 @@ function queryPaymentOrder(orderNo) {
   });
 }
 
+/** 上传活动海报 */
+function uploadPoster(filePath) {
+  return new Promise((resolve, reject) => {
+    const token = getToken();
+    if (!token) {
+      reject(new ApiError(401, '请先登录'));
+      return;
+    }
+    wx.uploadFile({
+      url: `${baseUrl}/uploads/poster`,
+      filePath: filePath,
+      name: 'file',
+      header: {
+        'Authorization': `Bearer ${token}`,
+      },
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          const data = JSON.parse(res.data);
+          resolve(data);
+        } else {
+          try {
+            const data = JSON.parse(res.data);
+            reject(new ApiError(res.statusCode, data.detail || '上传失败'));
+          } catch (e) {
+            reject(new ApiError(res.statusCode, '上传失败'));
+          }
+        }
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   getToken,
@@ -492,5 +532,6 @@ module.exports = {
   getAllUsersForAdmin,
   createPaymentOrder,
   queryPaymentOrder,
+  uploadPoster,
   ApiError,
 };

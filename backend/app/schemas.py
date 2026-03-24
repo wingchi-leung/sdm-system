@@ -102,6 +102,8 @@ class Activity(BaseModel):
     tag = Column(String(255), nullable=True)
     suggested_fee = Column(Integer, default=0)       # 建议费用（分），0 表示免费
     require_payment = Column(Integer, default=0)    # 是否需要支付：0-否 1-是
+    poster_url = Column(String(500), nullable=True)  # 活动海报图片URL
+    location = Column(String(255), nullable=True)    # 活动地点（为空则表示线上活动）
 
 
 # ============================================================

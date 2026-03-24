@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.database  import SessionLocal
 from app.core.config import settings
 from app.api.v1.router import api_router
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 挂载静态文件目录（用于访问上传的海报图片）
+uploads_dir = os.path.join(os.getcwd(), settings.UPLOAD_DIR)
+if not os.path.exists(uploads_dir):
+    os.makedirs(uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
  
 

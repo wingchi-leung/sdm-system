@@ -38,6 +38,36 @@
       />
     </view>
 
+    <!-- 活动海报 -->
+    <view class="field">
+      <text class="field-label">活动海报</text>
+      <view class="poster-section">
+        <view wx:if="{{posterLocalPath}}" class="poster-preview">
+          <image class="poster-image" src="{{posterLocalPath}}" mode="aspectFill" />
+          <view class="poster-remove" bindtap="onRemovePoster">
+            <text class="remove-icon">×</text>
+          </view>
+        </view>
+        <view wx:else class="poster-upload" bindtap="onChoosePoster">
+          <view class="upload-icon">+</view>
+          <text class="upload-text">上传海报</text>
+          <text class="upload-hint">支持PNG、JPG格式，最大5MB</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 活动地点 -->
+    <view class="field">
+      <text class="field-label">活动地点</text>
+      <input
+        class="input"
+        placeholder="不填则默认为线上活动"
+        placeholder-class="input-placeholder"
+        value="{{location}}"
+        bindinput="onLocationInput"
+      />
+    </view>
+
     <!-- 开始时间 -->
     <view class="field">
       <text class="field-label">开始时间</text>
@@ -98,8 +128,8 @@
     </view>
 
     <!-- 提交按钮 -->
-    <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
-      <text class="btn-text">{{submitting ? '发布中…' : '发布活动'}}</text>
+    <button class="btn-submit" disabled="{{submitting || uploading}}" bindtap="submit">
+      <text class="btn-text">{{uploading ? '上传中…' : submitting ? '发布中…' : '发布活动'}}</text>
     </button>
   </view>
 </view>

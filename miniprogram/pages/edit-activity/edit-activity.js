@@ -1,6 +1,8 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 
+const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
+
 Page({
   data: {
     id: null,
@@ -12,6 +14,11 @@ Page({
     endTime: '',
     activityTypeName: '',
     submitting: false,
+    // 海报和地点
+    posterUrl: '',
+    posterLocalPath: '',
+    location: '',
+    uploading: false,
   },
 
   onLoad(options) {
@@ -53,6 +60,8 @@ Page({
         endDate,
         endTime,
         activityTypeName: activity.activity_type_name || '',
+        posterUrl: activity.poster_url || '',
+        location: activity.location || '',
       });
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
@@ -105,8 +114,42 @@ Page({
     this.setData({ endTime: e.detail.value });
   },
 
+  // 地点输入
+  onLocationInput(e) {
+    this.setData({ location: e.detail.value });
+  },
+
+  // 选择海报
+  onChoosePoster() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const tempFile = res.tempFiles[0];
+        // 检查文件大小
+        if (tempFile.size > MAX_POSTER_SIZE) {
+          wx.showToast({ title: '图片不能超过5MB', icon: 'none' });
+          return;
+        }
+        this.setData({
+          posterLocalPath: tempFile.tempFilePath,
+        });
+      },
+    });
+  },
+
+  // 删除海报
+  onRemovePoster() {
+    this.setData({
+      posterLocalPath: '',
+      posterUrl: '',
+    });
+  },
+
   async submit() {
-    const { id, activityName, tag, startDate, startTime, endDate, endTime, activityTypeName } = this.data;
+    const { id, activityName, tag, startDate, startTime, endDate, endTime, activityTypeName, location } = this.data;
 
     if (!activityName.trim()) {
       wx.showToast({ title: '请输入活动名称', icon: 'none' });
@@ -128,23 +171,38 @@ Page({
       }
     }
 
-    const updateData = {
-      activity_name: activityName.trim(),
-      start_time: this.toLocalISOString(startDate, startTime),
-      tag: tag.trim() || null,
-    };
-
-    if (endDate && endTime) {
-      updateData.end_time = this.toLocalISOString(endDate, endTime);
-    }
-
-    if (activityTypeName.trim()) {
-      updateData.activity_type_name = activityTypeName.trim();
-    }
-
     this.setData({ submitting: true });
 
     try {
+      // 先上传新海报（如果有）
+      let posterUrl = this.data.posterUrl;
+      if (this.data.posterLocalPath) {
+        try {
+          const uploadResult = await api.uploadPoster(this.data.posterLocalPath);
+          posterUrl = uploadResult.url;
+        } catch (err) {
+          wx.showToast({ title: '海报上传失败', icon: 'none' });
+          this.setData({ submitting: false });
+          return;
+        }
+      }
+
+      const updateData = {
+        activity_name: activityName.trim(),
+        start_time: this.toLocalISOString(startDate, startTime),
+        tag: tag.trim() || null,
+        poster_url: posterUrl || null,
+        location: (location || '').trim() || null,
+      };
+
+      if (endDate && endTime) {
+        updateData.end_time = this.toLocalISOString(endDate, endTime);
+      }
+
+      if (activityTypeName.trim()) {
+        updateData.activity_type_name = activityTypeName.trim();
+      }
+
       const result = await api.updateActivity(id, updateData);
       wx.showToast({ title: '更新成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1000);

@@ -24,36 +24,50 @@
       bindtap="onViewDetail"
       data-id="{{item.id}}"
     >
-      <!-- 头部 -->
-      <view class="item-header">
-        <text class="item-name">{{item.activity_name}}</text>
-        <view class="status-tag status-{{item.status}}">
-          {{item.status === 1 ? '未开始' : item.status === 2 ? '进行中' : '已结束'}}
+      <!-- 海报 -->
+      <view wx:if="{{item.poster_url}}" class="item-poster">
+        <image class="poster-img" src="{{item.poster_url}}" mode="aspectFill" lazy-load />
+      </view>
+
+      <!-- 内容区 -->
+      <view class="item-content">
+        <!-- 头部 -->
+        <view class="item-header">
+          <text class="item-name">{{item.activity_name}}</text>
+          <view class="status-tag status-{{item.status}}">
+            {{item.status === 1 ? '未开始' : item.status === 2 ? '进行中' : '已结束'}}
+          </view>
         </view>
-      </view>
 
-      <!-- 信息 -->
-      <view class="item-info">
-        <text class="info-label">时间：</text>
-        <text class="info-value">{{item.start_time}}</text>
-      </view>
+        <!-- 信息 -->
+        <view class="item-info">
+          <view class="info-row">
+            <text class="info-icon">●</text>
+            <text class="info-value">{{item.start_time}}</text>
+          </view>
+          <view class="info-row">
+            <text class="info-icon location">◆</text>
+            <text class="info-value">{{item.location || '线上活动'}}</text>
+          </view>
+        </view>
 
-      <!-- 操作按钮 -->
-      <view wx:if="{{isAdmin}}" class="admin-toolbar" catchtap="stopPropagation">
-        <view class="toolbar-inner">
-          <button class="toolbar-btn edit" bindtap="onEditActivity" data-id="{{item.id}}">
-            <view class="btn-icon">
-              <view class="icon-edit"></view>
-            </view>
-            <text class="btn-label">编辑</text>
-          </button>
-          <view class="toolbar-divider"></view>
-          <button class="toolbar-btn delete" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">
-            <view class="btn-icon">
-              <view class="icon-delete"></view>
-            </view>
-            <text class="btn-label">删除</text>
-          </button>
+        <!-- 操作按钮 -->
+        <view wx:if="{{isAdmin}}" class="admin-toolbar" catchtap="stopPropagation">
+          <view class="toolbar-inner">
+            <button class="toolbar-btn edit" bindtap="onEditActivity" data-id="{{item.id}}">
+              <view class="btn-icon">
+                <view class="icon-edit"></view>
+              </view>
+              <text class="btn-label">编辑</text>
+            </button>
+            <view class="toolbar-divider"></view>
+            <button class="toolbar-btn delete" bindtap="onDeleteActivity" data-id="{{item.id}}" data-name="{{item.activity_name}}">
+              <view class="btn-icon">
+                <view class="icon-delete"></view>
+              </view>
+              <text class="btn-label">删除</text>
+            </button>
+          </view>
         </view>
       </view>
     </view>

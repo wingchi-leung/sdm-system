@@ -14,6 +14,8 @@ class ActivityBase(BaseModel):
     tag: Optional[str] = None
     suggested_fee: int = Field(0, ge=0, description="建议费用（分），0表示免费")
     require_payment: int = Field(0, ge=0, le=1, description="是否需要支付：0-否 1-是")
+    poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
+    location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
 
 
 class ActivityCreate(BaseModel):
@@ -25,6 +27,8 @@ class ActivityCreate(BaseModel):
     activity_type_name: Optional[str] = Field(None, max_length=50)
     suggested_fee: int = Field(0, ge=0, description="建议费用（分），0表示免费")
     require_payment: int = Field(0, ge=0, le=1, description="是否需要支付：0-否 1-是")
+    poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
+    location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
 
 
 class ActivityUpdate(BaseModel):
@@ -36,6 +40,8 @@ class ActivityUpdate(BaseModel):
     activity_type_name: Optional[str] = Field(None, max_length=50)
     suggested_fee: Optional[int] = Field(None, ge=0, description="建议费用（分），0表示免费")
     require_payment: Optional[int] = Field(None, ge=0, le=1, description="是否需要支付：0-否 1-是")
+    poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
+    location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
 
 
 class ActivityResponse(ActivityBase):

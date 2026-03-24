@@ -70,20 +70,39 @@
 .list {
   display: flex;
   flex-direction: column;
+  gap: var(--space-lg);
 }
 
 .activity-item {
-  padding: var(--space-lg) 0;
-  border-bottom: 1px solid var(--divider);
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .activity-item:active {
-  background: var(--background-subtle);
-  margin: 0 calc(-1 * var(--space-lg));
-  padding-left: var(--space-lg);
-  padding-right: var(--space-lg);
+  transform: scale(0.98);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 海报 */
+.item-poster {
+  width: 100%;
+  height: 280rpx;
+  overflow: hidden;
+}
+
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 内容区 */
+.item-content {
+  padding: var(--space-lg);
 }
 
 /* 头部 */
@@ -91,7 +110,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-md);
 }
 
 .item-name {
@@ -110,30 +129,49 @@
 .status-tag {
   font-size: 20rpx;
   font-weight: 500;
-  padding: 4rpx 12rpx;
+  padding: 6rpx 16rpx;
+  border-radius: var(--radius-sm);
   letter-spacing: 0.08em;
   flex-shrink: 0;
-  text-transform: uppercase;
 }
 
 .status-tag.status-1 {
   color: var(--status-not-started);
+  background: rgba(100, 100, 100, 0.08);
 }
 
 .status-tag.status-2 {
   color: var(--status-ongoing);
+  background: rgba(52, 199, 89, 0.1);
 }
 
 .status-tag.status-3 {
   color: var(--status-ended);
+  background: rgba(255, 149, 0, 0.1);
 }
 
 /* 信息行 */
 .item-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
   font-size: 24rpx;
-  color: var(--text-tertiary);
-  margin-bottom: var(--space-xs);
   letter-spacing: 0.02em;
+}
+
+.info-icon {
+  font-size: 16rpx;
+  color: var(--primary);
+  margin-right: var(--space-sm);
+}
+
+.info-icon.location {
+  color: var(--status-ongoing);
 }
 
 .info-label {
@@ -148,7 +186,7 @@
  * 管理员工具栏 - 精致克制
  * ───────────────────────────────────────────────────────────── */
 .admin-toolbar {
-  margin-top: var(--space-lg);
+  margin-top: var(--space-md);
   padding-top: var(--space-md);
   border-top: 1px solid var(--divider);
 }
@@ -157,7 +195,7 @@
   display: flex;
   align-items: center;
   background: var(--background-subtle);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
 

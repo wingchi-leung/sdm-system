@@ -2,6 +2,7 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 
 const DEFAULT_ACTIVITY_TYPES = ['参', '健康锻炼'];
+const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
 
 Page({
   data: {
@@ -22,6 +23,11 @@ Page({
     requirePayment: false,
     suggestedFeeYuan: '',
     suggestedFee: 0,
+    // 海报和地点
+    posterUrl: '',
+    posterLocalPath: '',
+    location: '',
+    uploading: false,
   },
 
   onLoad() {
@@ -135,6 +141,57 @@ Page({
     });
   },
 
+  // 地点输入
+  onLocationInput(e) {
+    this.setData({ location: e.detail.value, error: null });
+  },
+
+  // 选择海报
+  onChoosePoster() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const tempFile = res.tempFiles[0];
+        // 检查文件大小
+        if (tempFile.size > MAX_POSTER_SIZE) {
+          wx.showToast({ title: '图片不能超过5MB', icon: 'none' });
+          return;
+        }
+        this.setData({
+          posterLocalPath: tempFile.tempFilePath,
+          error: null,
+        });
+      },
+    });
+  },
+
+  // 删除海报
+  onRemovePoster() {
+    this.setData({
+      posterLocalPath: '',
+      posterUrl: '',
+    });
+  },
+
+  // 上传海报
+  async uploadPosterIfNeeded() {
+    if (!this.data.posterLocalPath) {
+      return null;
+    }
+    this.setData({ uploading: true });
+    try {
+      const result = await api.uploadPoster(this.data.posterLocalPath);
+      this.setData({ uploading: false, posterUrl: result.url });
+      return result.url;
+    } catch (err) {
+      this.setData({ uploading: false });
+      throw err;
+    }
+  },
+
   getSelectedActivityType() {
     const options = this.data.activityTypeOptions || [];
     const idx = this.data.activityTypeIndex;
@@ -145,7 +202,7 @@ Page({
   },
 
   submit() {
-    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee } = this.data;
+    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee, location } = this.data;
     const tag = (this.data.tag || '').trim();
     const activityType = this.getSelectedActivityType();
     if (!activityName || !activityName.trim()) {
@@ -186,25 +243,40 @@ Page({
     }
 
     this.setData({ submitting: true, error: null });
-    api
-      .createActivity({
-        activity_name: activityName.trim(),
-        tag: tag || activityType.name || '',
-        start_time: start_time.toISOString(),
-        end_time: end_time.toISOString(),
-        activity_type_id: activityType.id,
-        activity_type_name: activityType.name || '',
-        participants: [],
-        suggested_fee: requirePayment ? suggestedFee : 0,
-        require_payment: requirePayment ? 1 : 0,
-      })
-      .then(() => {
+
+    // 先上传海报（如果有），再创建活动
+    (async () => {
+      let posterUrl = '';
+      if (this.data.posterLocalPath) {
+        try {
+          const uploadResult = await api.uploadPoster(this.data.posterLocalPath);
+          posterUrl = uploadResult.url;
+        } catch (err) {
+          this.setData({ error: '海报上传失败: ' + (err.message || '未知错误'), submitting: false });
+          return;
+        }
+      }
+
+      try {
+        await api.createActivity({
+          activity_name: activityName.trim(),
+          tag: tag || activityType.name || '',
+          start_time: start_time.toISOString(),
+          end_time: end_time.toISOString(),
+          activity_type_id: activityType.id,
+          activity_type_name: activityType.name || '',
+          participants: [],
+          suggested_fee: requirePayment ? suggestedFee : 0,
+          require_payment: requirePayment ? 1 : 0,
+          poster_url: posterUrl || null,
+          location: (location || '').trim() || null,
+        });
         wx.showToast({ title: '发布成功', icon: 'success' });
         setTimeout(() => wx.navigateBack(), 1000);
-      })
-      .catch((err) => {
+      } catch (err) {
         const msg = err && err.message ? err.message : String(err);
         this.setData({ error: msg, submitting: false });
-      });
+      }
+    })();
   },
 });

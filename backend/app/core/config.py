@@ -51,6 +51,11 @@ class Settings(BaseSettings):
     # 密码哈希配置：bcrypt 工作因子（12 是推荐值，平衡安全性和性能）
     BCRYPT_ROUNDS: int = 12
 
+    # 文件上传配置
+    UPLOAD_DIR: str = "uploads"  # 上传文件存储目录
+    MAX_POSTER_SIZE: int = 5 * 1024 * 1024  # 海报最大尺寸 5MB
+    ALLOWED_POSTER_TYPES: str = "image/png,image/jpeg,image/jpg"  # 允许的海报类型
+
     class Config:
         env_file = ".env"
 
