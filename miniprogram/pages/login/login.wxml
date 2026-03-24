@@ -61,21 +61,12 @@
 
     <!-- 微信登录 -->
     <block wx:else>
-      <!-- 手机号一键登录（主按钮） -->
+      <!-- 手机号一键登录 -->
       <button class="btn-wechat" disabled="{{submitting}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
         <view class="wechat-icon">
           <text>W</text>
         </view>
         <text class="wechat-text">微信手机号一键登录</text>
-      </button>
-      <!-- 其他登录方式 -->
-      <view class="login-divider">
-        <view class="divider-line"></view>
-        <text class="divider-text">其他方式</text>
-        <view class="divider-line"></view>
-      </view>
-      <button class="btn-secondary" disabled="{{submitting}}" bindtap="wechatLogin">
-        <text class="btn-secondary-text">微信授权登录</text>
       </button>
     </block>
   </view>

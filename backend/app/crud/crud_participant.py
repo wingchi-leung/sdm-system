@@ -1,7 +1,8 @@
 from datetime import datetime
 from app.models.participant import ParticipantCreate, ParticipantResponse
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, IntegrityError
+from sqlalchemy import desc
+from sqlalchemy.exc import IntegrityError
 from typing import List
 from app.schemas import Activity, ActivityParticipant, CheckInRecord
 from fastapi import HTTPException

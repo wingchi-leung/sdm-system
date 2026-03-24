@@ -8,7 +8,7 @@ from app.core.config import settings
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto",
-    bcrypt_rounds=settings.BCRYPT_ROUNDS
+    bcrypt__rounds=settings.BCRYPT_ROUNDS
 )
 
 BCRYPT_MAX_BYTES = 72
