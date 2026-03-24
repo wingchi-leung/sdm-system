@@ -60,7 +60,7 @@ Page({
         endDate,
         endTime,
         activityTypeName: activity.activity_type_name || '',
-        posterUrl: activity.poster_url || '',
+        posterUrl: api.getImageUrl(activity.poster_url) || '',
         location: activity.location || '',
       });
     } catch (err) {

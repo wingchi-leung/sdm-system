@@ -58,6 +58,7 @@ Page({
         this.setData({
           activity: {
             ...activity,
+            poster_url: api.getImageUrl(activity.poster_url),
             status_text: statusText,
             start_display: startDisplay,
             end_display: endDisplay,

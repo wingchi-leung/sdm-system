@@ -3,9 +3,26 @@
  * 真机/体验版请修改 baseUrl 为实际服务器地址（需在小程序后台配置 request 合法域名）
  */
 const baseUrl = 'http://172.20.10.6:8000/api/v1';
+const staticBaseUrl = 'http://172.20.10.6:8000';  // 静态资源基础URL
 
 function getToken() {
   return wx.getStorageSync('access_token') || '';
+}
+
+/**
+ * 获取完整的图片URL
+ * 处理后端返回的相对路径或完整URL
+ * @param {string} url - 图片URL（可能是相对路径或完整URL）
+ * @returns {string} 完整的可访问URL
+ */
+function getImageUrl(url) {
+  if (!url) return '';
+  // 已经是完整URL，直接返回
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // 相对路径，拼接静态资源基础URL
+  return staticBaseUrl + (url.startsWith('/') ? url : '/' + url);
 }
 
 function getHeader(useAuth = false) {
@@ -506,7 +523,9 @@ function uploadPoster(filePath) {
 
 module.exports = {
   baseUrl,
+  staticBaseUrl,
   getToken,
+  getImageUrl,
   isUnsafeBaseUrl,
   getActivities,
   getEnrollableActivities,

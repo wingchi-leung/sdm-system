@@ -41,13 +41,22 @@ Page({
     }
   },
 
+  // 处理活动数据，转换图片URL
+  processActivities(items) {
+    return (items || []).map(item => ({
+      ...item,
+      poster_url: api.getImageUrl(item.poster_url),
+    }));
+  },
+
   // 刷新列表
   async refreshList() {
     this._isLoaded = true;
     try {
       const result = await api.getActivities({ skip: 0, limit: PAGE_SIZE });
+      const activities = this.processActivities(result.items);
       this.setData({
-        activities: result.items || [],
+        activities: activities,
         hasMore: (result.items || []).length >= PAGE_SIZE,
         skip: result.items?.length || 0,
         loading: false,
@@ -73,7 +82,7 @@ Page({
     this.setData({ loadingMore: true });
     try {
       const result = await api.getActivities({ skip: this.data.skip, limit: PAGE_SIZE });
-      const newItems = result.items || [];
+      const newItems = this.processActivities(result.items);
       this.setData({
         activities: [...this.data.activities, ...newItems],
         hasMore: newItems.length >= PAGE_SIZE,
