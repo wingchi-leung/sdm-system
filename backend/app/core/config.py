@@ -52,9 +52,32 @@ class Settings(BaseSettings):
     BCRYPT_ROUNDS: int = 12
 
     # 文件上传配置
-    UPLOAD_DIR: str = "uploads"  # 上传文件存储目录
     MAX_POSTER_SIZE: int = 5 * 1024 * 1024  # 海报最大尺寸 5MB
     ALLOWED_POSTER_TYPES: str = "image/png,image/jpeg,image/jpg"  # 允许的海报类型
+
+    # ============================================================
+    # 存储服务配置
+    # ============================================================
+    # 存储类型: local（本地）, oss（阿里云）, cos（腾讯云）
+    STORAGE_TYPE: str = "local"
+
+    # --- 本地存储配置 ---
+    LOCAL_UPLOAD_DIR: str = "uploads"  # 本地存储目录
+    STORAGE_BASE_URL: str = "http://localhost:8000/uploads"  # 文件访问基础URL
+
+    # --- 阿里云OSS配置（STORAGE_TYPE=oss 时使用）---
+    OSS_ACCESS_KEY_ID: Optional[str] = None
+    OSS_ACCESS_KEY_SECRET: Optional[str] = None
+    OSS_BUCKET: Optional[str] = None
+    OSS_ENDPOINT: Optional[str] = None  # 如: oss-cn-hangzhou.aliyuncs.com
+    OSS_CDN_DOMAIN: Optional[str] = None  # CDN加速域名（可选）
+
+    # --- 腾讯云COS配置（STORAGE_TYPE=cos 时使用）---
+    COS_SECRET_ID: Optional[str] = None
+    COS_SECRET_KEY: Optional[str] = None
+    COS_BUCKET: Optional[str] = None  # 如: mybucket-1250000000
+    COS_REGION: Optional[str] = None  # 如: ap-guangzhou
+    COS_CDN_DOMAIN: Optional[str] = None  # CDN加速域名（可选）
 
     class Config:
         env_file = ".env"

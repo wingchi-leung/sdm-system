@@ -5,16 +5,12 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from app.api import deps
 from app.core.config import settings
+from app.storage import get_storage
 
 router = APIRouter()
 
-
-def _ensure_upload_dir():
-    """确保上传目录存在"""
-    upload_dir = os.path.join(os.getcwd(), settings.UPLOAD_DIR, "posters")
-    if not os.path.exists(upload_dir):
-        os.makedirs(upload_dir, exist_ok=True)
-    return upload_dir
+# 获取存储服务实例（全局单例）
+storage = get_storage()
 
 
 def _validate_image(file: UploadFile) -> None:
@@ -25,7 +21,7 @@ def _validate_image(file: UploadFile) -> None:
     if content_type not in allowed_types:
         raise HTTPException(
             status_code=400,
-            detail=f"不支持的文件类型，仅支持 PNG 和 JPG 格式"
+            detail="不支持的文件类型，仅支持 PNG 和 JPG 格式"
         )
 
 
@@ -34,11 +30,17 @@ async def upload_poster(
     file: UploadFile = File(...),
     ctx: deps.TenantContext = Depends(deps.get_current_admin),
 ):
-    """上传活动海报图片
+    """
+    上传活动海报图片
 
     - 仅支持 PNG、JPG 格式
     - 最大文件大小 5MB
     - 需要管理员权限
+
+    返回:
+    - url: 文件访问URL（完整URL，可直接访问）
+    - filename: 文件名
+    - size: 文件大小（字节）
     """
     # 验证文件类型
     _validate_image(file)
@@ -58,18 +60,12 @@ async def upload_poster(
 
     filename = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex[:8]}{ext}"
 
-    # 保存文件
-    upload_dir = _ensure_upload_dir()
-    file_path = os.path.join(upload_dir, filename)
-
-    with open(file_path, "wb") as f:
-        f.write(content)
-
-    # 返回可访问的 URL
-    poster_url = f"/uploads/posters/{filename}"
+    # 使用存储服务上传文件
+    # 存储服务会根据配置自动选择本地存储或云存储
+    file_url = await storage.upload(content, filename, folder="posters")
 
     return {
-        "url": poster_url,
+        "url": file_url,
         "filename": filename,
         "size": len(content),
     }

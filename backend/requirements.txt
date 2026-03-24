@@ -10,3 +10,8 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 bcrypt>=3.2.0,<4.1.0
 wechatpayv3>=1.2.0
+aiofiles>=23.0.0
+
+# 云存储SDK（按需安装）
+# oss2>=2.18.0        # 阿里云OSS
+# cos-python-sdk-v5>=1.9.0  # 腾讯云COS

@@ -81,11 +81,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 挂载静态文件目录（用于访问上传的海报图片）
-uploads_dir = os.path.join(os.getcwd(), settings.UPLOAD_DIR)
-if not os.path.exists(uploads_dir):
-    os.makedirs(uploads_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+# 本地存储模式下，挂载静态文件目录用于访问上传的文件
+# 云存储模式下不需要，文件直接从云存储URL访问
+if settings.STORAGE_TYPE == "local":
+    uploads_dir = settings.LOCAL_UPLOAD_DIR
+    if not os.path.isabs(uploads_dir):
+        uploads_dir = os.path.join(os.getcwd(), uploads_dir)
+    if not os.path.exists(uploads_dir):
+        os.makedirs(uploads_dir, exist_ok=True)
+    app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 
  
 
