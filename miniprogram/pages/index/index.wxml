@@ -15,7 +15,7 @@
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>
-    <text class="state-text">加载中…</text>
+    <text class="state-text">加载中...</text>
   </view>
 
   <!-- 错误状态 -->
@@ -38,35 +38,38 @@
     <button class="btn-text" bindtap="onRefresh">刷新</button>
   </view>
 
-  <!-- 活动列表 -->
+  <!-- 活动列表 - 卡片样式 -->
   <view wx:else class="list">
     <view
-      class="activity-item slide-up delay-{{index % 4 + 1}}"
+      class="activity-item"
       wx:for="{{activities}}"
       wx:key="id"
       data-activity="{{item}}"
       bindtap="goDetail"
     >
-      <!-- 日期模块 -->
-      <view class="date-block">
-        <text class="date-day">{{item.date_day || '--'}}</text>
-        <text class="date-month">{{item.date_month || ''}}</text>
-      </view>
-
-      <!-- 活动信息 -->
-      <view class="activity-content">
-        <view class="activity-header">
-          <text class="activity-name">{{item.activity_name}}</text>
-          <view class="tag {{item.status === 1 ? 'tag-not-started' : (item.status === 2 ? 'tag-ongoing' : 'tag-ended')}}">
-            {{item.status_text}}
-          </view>
+      <!-- 海报区域 -->
+      <view class="poster-wrap">
+        <image
+          wx:if="{{item.poster_url}}"
+          class="poster-img"
+          src="{{item.poster_url}}"
+          mode="aspectFill"
+          lazy-load
+        />
+        <view wx:else class="no-poster">暂无海报</view>
+        <!-- 状态标签 -->
+        <view class="status-tag {{item.status === 1 ? 'status-1' : (item.status === 2 ? 'status-2' : 'status-3')}}">
+          {{item.status_text}}
         </view>
-        <text class="activity-time" wx:if="{{item.start_time_display}}">{{item.start_time_display}}</text>
       </view>
 
-      <!-- 箭头指示 -->
-      <view class="arrow-indicator">
-        <text class="arrow-icon">→</text>
+      <!-- 内容区 -->
+      <view class="item-content">
+        <text class="item-name">{{item.activity_name}}</text>
+        <view class="item-info">
+          <text class="info-text">{{item.start_time_display}}</text>
+          <text class="info-text" wx:if="{{item.location}}">{{item.location}}</text>
+        </view>
       </view>
     </view>
   </view>

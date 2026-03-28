@@ -55,6 +55,7 @@ Page({
           const dateDisplay = this.formatDateForDisplay(a.start_time);
           return {
             ...a,
+            poster_url: api.getImageUrl(a.poster_url),
             start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
             status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
             date_day: dateDisplay.day,
