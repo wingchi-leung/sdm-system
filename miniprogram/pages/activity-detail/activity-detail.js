@@ -145,4 +145,23 @@ Page({
   onEditActivity() {
     wx.navigateTo({ url: `/pages/edit-activity/edit-activity?id=${this.data.activityId}` });
   },
+
+  onDeleteActivity() {
+    const activity = this.data.activity;
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除活动"${activity.activity_name}"吗？此操作不可撤销。`,
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            await api.deleteActivity(this.data.activityId);
+            wx.showToast({ title: '删除成功', icon: 'success' });
+            setTimeout(() => wx.navigateBack(), 1500);
+          } catch (err) {
+            wx.showToast({ title: err.message || '删除失败', icon: 'none' });
+          }
+        }
+      },
+    });
+  },
 });

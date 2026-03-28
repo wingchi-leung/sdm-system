@@ -81,6 +81,12 @@
           </view>
           <text class="action-text">编辑活动</text>
         </view>
+        <view class="admin-action delete" bindtap="onDeleteActivity">
+          <view class="action-icon-wrap">
+            <text class="action-icon">✕</text>
+          </view>
+          <text class="action-text">删除活动</text>
+        </view>
       </view>
     </view>
 

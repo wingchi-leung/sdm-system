@@ -188,6 +188,7 @@
 .admin-action {
   flex: 0 0 calc(20% - 16rpx);
   margin: 0 8rpx;
+  margin-bottom: var(--space-md);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -197,6 +198,32 @@
 
 .admin-action:active {
   opacity: 0.6;
+}
+
+/* 删除按钮单独一行，红色样式 */
+.admin-action.delete {
+  flex: 0 0 100%;
+  margin: var(--space-lg) 0 0 0;
+  padding: var(--space-lg);
+  background: var(--error-bg);
+  border-radius: var(--radius-md);
+}
+
+.admin-action.delete .action-icon {
+  color: var(--error);
+}
+
+.admin-action.delete .action-text {
+  color: var(--error);
+}
+
+.admin-action.delete:active {
+  background: var(--error);
+}
+
+.admin-action.delete:active .action-icon,
+.admin-action.delete:active .action-text {
+  color: #FFFFFF;
 }
 
 .action-icon-wrap {
