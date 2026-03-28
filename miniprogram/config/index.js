@@ -7,12 +7,14 @@
 const ENV = {
   // 开发环境：本地开发，可使用 HTTP
   development: {
-    baseUrl: 'http://172.20.10.6:8000/api/v1', // 请根据实际情况修改
+    baseUrl: 'http://192.168.1.5:8000/api/v1', // 请根据实际情况修改
+    staticBaseUrl: 'http://192.168.1.5:8000', // 静态资源基础URL
     debug: true,
   },
   // 生产环境：必须使用 HTTPS
   production: {
     baseUrl: 'https://api.your-domain.com/api/v1', // 请修改为实际的生产环境地址
+    staticBaseUrl: 'https://api.your-domain.com', // 静态资源基础URL
     debug: false,
   }
 };
@@ -31,6 +33,7 @@ const currentEnv = getEnv();
 
 module.exports = {
   baseUrl: ENV[currentEnv].baseUrl,
+  staticBaseUrl: ENV[currentEnv].staticBaseUrl,
   debug: ENV[currentEnv].debug,
   env: currentEnv,
   isProduction: currentEnv === 'production',

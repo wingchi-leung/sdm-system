@@ -1,9 +1,10 @@
 /**
  * API 封装 - 与后端 backend /api/v1 对接
- * 真机/体验版请修改 baseUrl 为实际服务器地址（需在小程序后台配置 request 合法域名）
+ * 配置统一在 config/index.js 中管理，修改IP只需改一处
  */
-const baseUrl = 'http://172.20.10.6:8000/api/v1';
-const staticBaseUrl = 'http://172.20.10.6:8000';  // 静态资源基础URL
+const config = require('../config/index');
+const baseUrl = config.baseUrl;
+const staticBaseUrl = config.staticBaseUrl;
 
 function getToken() {
   return wx.getStorageSync('access_token') || '';
