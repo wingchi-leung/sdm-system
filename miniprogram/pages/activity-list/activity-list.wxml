@@ -2,7 +2,7 @@
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>
-    <text class="state-text">加载中…</text>
+    <text class="state-text">加载中...</text>
   </view>
 
   <!-- 空状态 -->
@@ -18,20 +18,27 @@
   <!-- 活动列表 -->
   <view wx:else class="list">
     <view
-      class="activity-item slide-up delay-{{index % 4 + 1}}"
+      class="activity-item"
       wx:for="{{activities}}"
       wx:key="id"
       bindtap="onViewDetail"
       data-id="{{item.id}}"
     >
-      <!-- 海报 -->
-      <view wx:if="{{item.poster_url}}" class="item-poster">
-        <image class="poster-img" src="{{item.poster_url}}" mode="aspectFill" lazy-load />
+      <!-- 海报区域 -->
+      <view class="item-poster">
+        <image
+          wx:if="{{item.poster_url}}"
+          class="poster-img"
+          src="{{item.poster_url}}"
+          mode="aspectFill"
+          lazy-load
+        />
+        <view wx:else class="no-poster">暂无海报</view>
       </view>
 
       <!-- 内容区 -->
       <view class="item-content">
-        <!-- 头部 -->
+        <!-- 头部：名称 + 状态 -->
         <view class="item-header">
           <text class="item-name">{{item.activity_name}}</text>
           <view class="status-tag status-{{item.status}}">
@@ -39,7 +46,7 @@
           </view>
         </view>
 
-        <!-- 信息 -->
+        <!-- 信息行 -->
         <view class="item-info">
           <view class="info-row">
             <text class="info-icon">●</text>
@@ -53,10 +60,10 @@
       </view>
     </view>
 
-    <!-- 加载更多状态 -->
+    <!-- 加载更多 -->
     <view wx:if="{{loadingMore}}" class="load-more-wrap">
       <view class="loading-more"></view>
-      <text class="load-more-text">加载中…</text>
+      <text class="load-more-text">加载中...</text>
     </view>
 
     <!-- 没有更多 -->
