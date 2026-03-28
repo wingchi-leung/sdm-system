@@ -3,6 +3,17 @@
 import { getToken } from '../lib/auth';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+// 静态资源基础URL（用于图片等）
+const STATIC_BASE_URL = process.env.REACT_APP_STATIC_URL || 'http://localhost:8000';
+
+/** 获取完整的图片URL，处理相对路径和完整URL */
+export function getImageUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  return STATIC_BASE_URL + (url.startsWith('/') ? url : '/' + url);
+}
 
 /** 当前 API 是否为非加密的 http 且非本地（用于登录前安全提示） */
 export function isUnsafeApiUrl(): boolean {
