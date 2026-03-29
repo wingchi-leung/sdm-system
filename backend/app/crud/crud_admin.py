@@ -52,3 +52,34 @@ def authenticate_admin(db: Session, username: str, password: str, tenant_id: int
     if not verify_password(password, admin.password_hash):
         return None
     return admin
+
+
+def get_all_admins(db: Session, tenant_id: int) -> List[AdminUser]:
+    """获取所有管理员列表"""
+    return db.query(AdminUser).filter(AdminUser.tenant_id == tenant_id).all()
+
+
+def assign_admin_roles(db: Session, admin_user_id: int, activity_type_ids: List[int], tenant_id: int) -> None:
+    """为管理员分配活动类型权限"""
+    db.query(AdminActivityTypeRole).filter(
+        AdminActivityTypeRole.admin_user_id == admin_user_id,
+        AdminActivityTypeRole.tenant_id == tenant_id
+    ).delete()
+
+    for type_id in activity_type_ids:
+        role = AdminActivityTypeRole(
+            admin_user_id=admin_user_id,
+            activity_type_id=type_id,
+            tenant_id=tenant_id
+        )
+        db.add(role)
+    db.commit()
+
+
+def get_admin_roles(db: Session, admin_user_id: int, tenant_id: int) -> List[int]:
+    """获取管理员的活动类型权限"""
+    rows = db.query(AdminActivityTypeRole.activity_type_id).filter(
+        AdminActivityTypeRole.admin_user_id == admin_user_id,
+        AdminActivityTypeRole.tenant_id == tenant_id
+    ).all()
+    return [r[0] for r in rows]
