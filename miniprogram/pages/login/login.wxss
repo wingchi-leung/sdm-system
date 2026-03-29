@@ -1,10 +1,10 @@
 /**
- * 登录页 - 奢华简约风格
+ * 登录页 - 极简奢华风格
  */
 
 .page {
   min-height: 100vh;
-  padding: 0 48rpx;
+  padding: 0 var(--space-2xl);
   background: var(--background);
   display: flex;
   flex-direction: column;
@@ -19,37 +19,55 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 160rpx 0 80rpx;
+  padding: var(--space-3xl) 0 var(--space-2xl);
 }
 
 .brand-icon {
-  width: 96rpx;
-  height: 96rpx;
+  width: 120rpx;
+  height: 120rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 48rpx;
+  margin-bottom: var(--space-2xl);
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .gate-icon {
-  width: 72rpx;
-  height: 72rpx;
+  width: 88rpx;
+  height: 88rpx;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 52rpx;
-  font-weight: 600;
+  font-size: 64rpx;
+  font-weight: 300;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
-  margin-bottom: 12rpx;
+  letter-spacing: 0.12em;
+  margin-bottom: var(--space-md);
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.1s forwards;
 }
 
 .brand-subtitle {
-  font-size: 26rpx;
+  font-size: 24rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.16em;
   font-weight: 400;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease 0.2s forwards;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -91,20 +109,21 @@
  * 表单区域
  * ───────────────────────────────────────────────────────────── */
 .form-section {
-  padding-bottom: 80rpx;
+  padding-bottom: var(--space-2xl);
 }
 
 .field {
-  margin-bottom: 32rpx;
+  margin-bottom: var(--space-lg);
 }
 
 .field-label {
   display: block;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--text-tertiary);
-  margin-bottom: 12rpx;
+  margin-bottom: var(--space-sm);
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .input-wrap {
@@ -114,20 +133,20 @@
 .input {
   width: 100%;
   height: 96rpx;
-  padding: 0 24rpx;
+  padding: 0 var(--space-md);
   font-size: 30rpx;
-  background: var(--background-card);
-  border: 1.5px solid var(--border);
-  border-radius: 16rpx;
+  background: var(--background-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
 }
 
 .input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4rpx var(--primary-light);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .input-placeholder {
@@ -155,13 +174,27 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 104rpx;
-  background: var(--primary);
-  border-radius: 980rpx;
+  height: 112rpx;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--radius-lg);
   border: none;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  margin-top: 48rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  margin-top: var(--space-xl);
+  box-shadow: 0 8rpx 24rpx rgba(26, 26, 26, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.15) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
 
 .btn-submit::after {
@@ -169,8 +202,12 @@
 }
 
 .btn-submit:active {
-  transform: scale(0.97);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(26, 26, 26, 0.1);
+}
+
+.btn-submit:active::before {
+  opacity: 1;
 }
 
 .btn-submit[disabled] {
@@ -181,7 +218,7 @@
   font-size: 32rpx;
   font-weight: 500;
   color: #FFFFFF;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.08em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -189,15 +226,16 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-wechat {
   width: 100%;
-  height: 104rpx;
+  height: 112rpx;
   background: var(--background-card);
-  border-radius: 980rpx;
-  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16rpx;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  gap: var(--space-sm);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-wechat::after {
@@ -205,8 +243,9 @@
 }
 
 .btn-wechat:active {
-  background: var(--background-subtle);
-  transform: scale(0.97);
+  background: var(--background-warm);
+  transform: translateY(2rpx);
+  box-shadow: none;
 }
 
 .btn-wechat[disabled] {
@@ -214,15 +253,15 @@
 }
 
 .wechat-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 44rpx;
+  height: 44rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .wechat-icon text {
-  font-size: 28rpx;
+  font-size: 32rpx;
   color: #07C160;
   font-weight: 700;
 }
@@ -231,7 +270,7 @@
   font-size: 32rpx;
   font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.04em;
 }
 
 /* ─────────────────────────────────────────────────────────────

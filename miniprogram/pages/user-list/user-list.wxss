@@ -1,10 +1,10 @@
 /**
- * 用户列表 - 奢华简约风格
+ * 用户列表 - 极简奢华风格
  */
 
 .page {
   min-height: 100vh;
-  padding: 48rpx 32rpx;
+  padding: var(--space-2xl) var(--space-lg);
   background: var(--background);
 }
 
@@ -14,28 +14,28 @@
 .search-section {
   display: flex;
   align-items: center;
-  gap: 20rpx;
-  padding-bottom: 32rpx;
-  border-bottom: 0.5px solid var(--divider);
-  margin-bottom: 32rpx;
+  gap: var(--space-md);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: var(--space-xl);
 }
 
 .search-input {
   flex: 1;
-  height: 80rpx;
-  padding: 0 24rpx;
+  height: 88rpx;
+  padding: 0 var(--space-md);
   font-size: 28rpx;
-  background: var(--background-card);
-  border: 1.5px solid var(--border);
-  border-radius: 980rpx;
+  background: var(--background-warm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   transition: all 0.3s ease;
 }
 
 .search-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4rpx var(--primary-light);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .search-input::placeholder {
@@ -44,21 +44,21 @@
 
 .search-actions {
   display: flex;
-  gap: 16rpx;
+  gap: var(--space-sm);
 }
 
 .search-btn,
 .clear-btn {
   font-size: 26rpx;
   color: var(--text-secondary);
-  letter-spacing: 0.02em;
-  padding: 8rpx 16rpx;
-  transition: all 0.2s ease;
+  letter-spacing: 0.04em;
+  padding: var(--space-xs) var(--space-sm);
+  transition: all 0.3s ease;
 }
 
 .search-btn:active,
 .clear-btn:active {
-  color: var(--text-primary);
+  color: var(--accent);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -67,22 +67,23 @@
 .stats-header {
   display: flex;
   align-items: baseline;
-  gap: 12rpx;
-  margin-bottom: 32rpx;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
 }
 
 .stats-label {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .stats-count {
   font-family: var(--font-display);
-  font-size: 36rpx;
-  font-weight: 600;
+  font-size: 40rpx;
+  font-weight: 300;
   color: var(--text-primary);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.04em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -113,31 +114,33 @@
 }
 
 .user-item {
-  padding: 32rpx 0;
-  border-bottom: 0.5px solid var(--divider);
+  padding: var(--space-xl) 0;
+  border-bottom: 1px solid var(--divider);
+  transition: all 0.3s ease;
 }
 
 .user-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20rpx;
+  margin-bottom: var(--space-md);
 }
 
 .user-name {
   font-size: 32rpx;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
 }
 
 .user-status {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: var(--status-ongoing);
-  letter-spacing: 0.02em;
-  padding: 6rpx 16rpx;
-  border-radius: 980rpx;
+  letter-spacing: 0.08em;
+  padding: 8rpx 16rpx;
+  border-radius: var(--radius-sm);
   background: var(--status-ongoing-bg);
+  text-transform: uppercase;
 }
 
 .user-status.blocked {
@@ -148,7 +151,7 @@
 .user-info {
   display: flex;
   flex-direction: column;
-  gap: 12rpx;
+  gap: var(--space-sm);
 }
 
 .info-row {
@@ -158,15 +161,16 @@
 
 .info-label {
   width: 120rpx;
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .info-value {
   font-size: 26rpx;
   color: var(--text-secondary);
-  letter-spacing: 0;
+  letter-spacing: 0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -175,14 +179,14 @@
 .user-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20rpx;
+  margin-top: var(--space-md);
 }
 
 .action-btn {
   font-size: 26rpx;
-  padding: 12rpx 28rpx;
-  border-radius: 980rpx;
-  letter-spacing: 0;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  letter-spacing: 0.04em;
   font-weight: 500;
   transition: all 0.3s ease;
 }
@@ -190,23 +194,23 @@
 .block-btn {
   color: var(--error);
   background: transparent;
-  border: 1.5px solid var(--error);
+  border: 1px solid var(--error);
 }
 
 .block-btn:active {
   background: var(--error-bg);
-  transform: scale(0.96);
+  transform: translateY(1rpx);
 }
 
 .unblock-btn {
   color: var(--success);
   background: transparent;
-  border: 1.5px solid var(--success);
+  border: 1px solid var(--success);
 }
 
 .unblock-btn:active {
   background: var(--success-bg);
-  transform: scale(0.96);
+  transform: translateY(1rpx);
 }
 
 .block-reason {

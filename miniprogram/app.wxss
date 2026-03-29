@@ -1,105 +1,105 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * SDM 小程序 - 奢华简约设计系统
+ * SDM 小程序 - 极简奢华设计系统
  * ═══════════════════════════════════════════════════════════════
- * 灵感来源：Apple × Hermès
- * 设计理念：极简 · 奢华 · 永恒
+ * 设计理念：呼吸 · 精致 · 永恒
  * ═══════════════════════════════════════════════════════════════
  */
 
 page {
   /* ─────────────────────────────────────────────────────────────
-   * 色彩系统 - 奢华克制
+   * 色彩系统 - 极简奢华
    * ───────────────────────────────────────────────────────────── */
 
-  /* 品牌色 - 深邃黑，极致纯粹 */
-  --primary: #000000;
-  --primary-dark: #000000;
-  --primary-light: rgba(0, 0, 0, 0.03);
-  --primary-glow: rgba(0, 0, 0, 0.05);
+  /* 主色调 - 深灰而非纯黑，更柔和 */
+  --primary: #1A1A1A;
+  --primary-dark: #0A0A0A;
+  --primary-light: rgba(26, 26, 26, 0.04);
+  --primary-glow: rgba(26, 26, 26, 0.06);
 
-  /* 强调色 - 优雅橙调（Hermès 橙） */
-  --accent: #FF6B35;
-  --accent-light: rgba(255, 107, 53, 0.06);
+  /* 强调色 - 优雅金色 */
+  --accent: #C9A961;
+  --accent-light: rgba(201, 169, 97, 0.08);
+  --accent-dark: #A68B4E;
 
-  /* 背景色 - 纯净留白 */
-  --background: #FAFAFA;
-  --background-subtle: #F5F5F5;
+  /* 背景色 - 温暖的灰白 */
+  --background: #FAFAF8;
+  --background-subtle: #F5F5F3;
   --background-card: #FFFFFF;
   --background-elevated: #FFFFFF;
-  --background-input: #FFFFFF;
+  --background-warm: #FEFDFB;
 
-  /* 文字色 - 精致层次 */
-  --text-primary: #000000;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
-  --text-muted: #CCCCCC;
+  /* 文字色 - 柔和层次 */
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6B6B;
+  --text-tertiary: #A0A0A0;
+  --text-muted: #D4D4D4;
 
-  /* 状态色 - 极简优雅 */
-  --status-not-started: #8E8E93;
-  --status-not-started-bg: rgba(142, 142, 147, 0.06);
-  --status-ongoing: #34C759;
-  --status-ongoing-bg: rgba(52, 199, 89, 0.06);
-  --status-ended: #8E8E93;
-  --status-ended-bg: rgba(142, 142, 147, 0.06);
+  /* 状态色 - 优雅克制 */
+  --status-not-started: #9B9B9B;
+  --status-not-started-bg: rgba(155, 155, 155, 0.06);
+  --status-ongoing: #5B8C7D;
+  --status-ongoing-bg: rgba(91, 140, 125, 0.06);
+  --status-ended: #9B9B9B;
+  --status-ended-bg: rgba(155, 155, 155, 0.06);
 
   /* 语义色 */
-  --success: #34C759;
-  --success-bg: rgba(52, 199, 89, 0.06);
-  --error: #FF3B30;
-  --error-bg: rgba(255, 59, 48, 0.06);
-  --warning: #FF9500;
-  --warning-bg: rgba(255, 149, 0, 0.06);
-  --info: #007AFF;
-  --info-bg: rgba(0, 122, 255, 0.06);
+  --success: #5B8C7D;
+  --success-bg: rgba(91, 140, 125, 0.06);
+  --error: #C85A54;
+  --error-bg: rgba(200, 90, 84, 0.06);
+  --warning: #C9A961;
+  --warning-bg: rgba(201, 169, 97, 0.06);
+  --info: #6B8CAF;
+  --info-bg: rgba(107, 140, 175, 0.06);
 
   /* 边框与分割 */
-  --border: rgba(0, 0, 0, 0.08);
-  --border-light: rgba(0, 0, 0, 0.05);
-  --divider: rgba(0, 0, 0, 0.06);
+  --border: rgba(26, 26, 26, 0.06);
+  --border-light: rgba(26, 26, 26, 0.03);
+  --divider: rgba(26, 26, 26, 0.04);
 
   /* ─────────────────────────────────────────────────────────────
-   * 阴影系统 - 轻盈精致
+   * 阴影系统 - 柔和精致
    * ───────────────────────────────────────────────────────────── */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
-  --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.1);
+  --shadow-xs: 0 1px 3px rgba(26, 26, 26, 0.02);
+  --shadow-sm: 0 2px 12px rgba(26, 26, 26, 0.03);
+  --shadow-md: 0 8px 24px rgba(26, 26, 26, 0.04);
+  --shadow-lg: 0 16px 40px rgba(26, 26, 26, 0.06);
+  --shadow-elevated: 0 24px 64px rgba(26, 26, 26, 0.08);
 
   /* ─────────────────────────────────────────────────────────────
-   * 间距系统 - 严谨节奏
+   * 间距系统 - 呼吸节奏
    * ───────────────────────────────────────────────────────────── */
   --space-xs: 8rpx;
-  --space-sm: 12rpx;
-  --space-md: 20rpx;
-  --space-lg: 32rpx;
-  --space-xl: 48rpx;
-  --space-2xl: 72rpx;
-  --space-3xl: 120rpx;
+  --space-sm: 16rpx;
+  --space-md: 24rpx;
+  --space-lg: 40rpx;
+  --space-xl: 64rpx;
+  --space-2xl: 96rpx;
+  --space-3xl: 160rpx;
 
   /* ─────────────────────────────────────────────────────────────
    * 圆角系统 - 柔和边角
    * ───────────────────────────────────────────────────────────── */
-  --radius-xs: 2rpx;
-  --radius-sm: 4rpx;
-  --radius-md: 8rpx;
-  --radius-lg: 12rpx;
-  --radius-xl: 16rpx;
+  --radius-xs: 4rpx;
+  --radius-sm: 8rpx;
+  --radius-md: 12rpx;
+  --radius-lg: 20rpx;
+  --radius-xl: 28rpx;
   --radius-full: 9999rpx;
 
   /* ─────────────────────────────────────────────────────────────
-   * 字体系统 - 极致优雅
+   * 字体系统 - 优雅精致
    * ───────────────────────────────────────────────────────────── */
-  --font-display: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
-  --font-body: -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+  --font-display: "PingFang SC", -apple-system, "SF Pro Display", sans-serif;
+  --font-body: "PingFang SC", -apple-system, "SF Pro Text", sans-serif;
 
   font-family: var(--font-body);
   background-color: var(--background);
   font-size: 28rpx;
   color: var(--text-primary);
-  line-height: 1.5;
-  letter-spacing: -0.01em;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -112,7 +112,7 @@ page {
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 卡片组件 - 奢华精致
+ * 卡片组件 - 柔和精致
  * ───────────────────────────────────────────────────────────── */
 .card {
   background: var(--background-card);
@@ -120,35 +120,52 @@ page {
   padding: var(--space-xl);
   margin-bottom: var(--space-lg);
   box-shadow: var(--shadow-sm);
-  border: 0.5px solid var(--border-light);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid var(--border-light);
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .card:active {
-  transform: scale(0.98);
+  transform: translateY(2rpx);
   box-shadow: var(--shadow-xs);
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 按钮系统 - 极致触感
+ * 按钮系统 - 优雅触感
  * ───────────────────────────────────────────────────────────── */
 .btn-primary {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   color: #FFFFFF;
-  border-radius: 980rpx;
+  border-radius: var(--radius-lg);
   font-weight: 500;
   border: none;
-  padding: 32rpx var(--space-2xl);
+  padding: 36rpx var(--space-2xl);
   font-size: 32rpx;
-  letter-spacing: -0.01em;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+  letter-spacing: 0.04em;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 8rpx 24rpx rgba(26, 26, 26, 0.12);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
 }
 
 .btn-primary:active {
-  opacity: 0.88;
-  transform: scale(0.97);
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+  transform: translateY(2rpx);
+  box-shadow: 0 4rpx 12rpx rgba(26, 26, 26, 0.08);
+}
+
+.btn-primary:active::before {
+  opacity: 1;
 }
 
 .btn-primary[disabled] {
@@ -159,30 +176,30 @@ page {
 .btn-secondary {
   background: transparent;
   color: var(--text-primary);
-  border-radius: 980rpx;
-  border: 1.5px solid var(--border);
-  padding: 30rpx var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  padding: 32rpx var(--space-xl);
   font-size: 30rpx;
   font-weight: 500;
-  letter-spacing: -0.01em;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  letter-spacing: 0.04em;
+  transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .btn-secondary:active {
   background: var(--background-subtle);
   border-color: var(--text-secondary);
-  transform: scale(0.97);
+  transform: translateY(2rpx);
 }
 
 .btn-text {
   background: none;
-  color: var(--primary);
+  color: var(--text-secondary);
   border: none;
   padding: var(--space-sm) var(--space-md);
   font-size: 28rpx;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.02em;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-text::after {
@@ -190,7 +207,7 @@ page {
 }
 
 .btn-text:active {
-  opacity: 0.7;
+  color: var(--text-primary);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -200,11 +217,11 @@ page {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8rpx 16rpx;
-  border-radius: var(--radius-xs);
+  padding: 10rpx 20rpx;
+  border-radius: var(--radius-sm);
   font-size: 22rpx;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
 }
 
 .tag-not-started {
@@ -230,19 +247,19 @@ page {
   height: 96rpx;
   padding: 0 var(--space-md);
   font-size: 28rpx;
-  background: var(--background-input);
+  background: var(--background-warm);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-sizing: border-box;
   color: var(--text-primary);
-  transition: all 0.25s ease;
+  transition: all 0.3s ease;
   letter-spacing: 0.02em;
 }
 
 .input:focus {
-  border-color: var(--primary);
+  border-color: var(--accent);
   background: var(--background-card);
-  box-shadow: 0 0 0 3px var(--primary-light);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .input::placeholder {
