@@ -8,6 +8,24 @@ from app.schemas import Activity, ActivityParticipant, CheckInRecord
 from fastapi import HTTPException
 
 
+def get_enrolled_count(db: Session, activity_id: int, tenant_id: int) -> int:
+    """获取活动已报名人数（不含候补）"""
+    return db.query(ActivityParticipant).filter(
+        ActivityParticipant.activity_id == activity_id,
+        ActivityParticipant.tenant_id == tenant_id,
+        ActivityParticipant.enroll_status == 1  # 已报名
+    ).count()
+
+
+def get_waitlist_count(db: Session, activity_id: int, tenant_id: int) -> int:
+    """获取活动候补人数"""
+    return db.query(ActivityParticipant).filter(
+        ActivityParticipant.activity_id == activity_id,
+        ActivityParticipant.tenant_id == tenant_id,
+        ActivityParticipant.enroll_status == 2  # 候补
+    ).count()
+
+
 def get_activity_participants_with_count(
     db: Session,
     activity_id: int,
@@ -83,7 +101,7 @@ def get_activity_participants(
 
 
 def create_participant(db: Session, participant: ParticipantCreate, tenant_id: int) -> ActivityParticipant:
-    """创建参与人（租户隔离）"""
+    """创建参与人（租户隔离），支持限额和候补"""
     try:
         activity = db.query(Activity).filter(
             Activity.id == participant.activity_id,
@@ -98,8 +116,21 @@ def create_participant(db: Session, participant: ParticipantCreate, tenant_id: i
         if existing_participant:
             raise HTTPException(status_code=400, detail="Already registered")
 
+        # 计算报名状态
+        enroll_status = 1  # 默认已报名
+        max_participants = activity.max_participants
+
+        if max_participants is not None:
+            # 有名额限制，检查当前已报名人数
+            enrolled_count = get_enrolled_count(db, participant.activity_id, tenant_id)
+            if enrolled_count >= max_participants:
+                # 已满员，进入候补
+                enroll_status = 2
+
         participant_data = participant.model_dump()
         participant_data["tenant_id"] = tenant_id
+        participant_data["enroll_status"] = enroll_status
+
         db_participant = ActivityParticipant(**participant_data)
         db.add(db_participant)
         db.commit()

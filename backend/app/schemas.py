@@ -42,25 +42,14 @@ class ActivityType(BaseModel):
 
 
 # ============================================================
-# 管理员表
+# 管理员认证表（仅用于登录）
 # ============================================================
 class AdminUser(BaseModel):
     __tablename__ = "admin_user"
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    user_id = Column(Integer, nullable=False, index=True)
     username = Column(String(64), nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
-    user_id = Column(Integer, nullable=True)
-    is_super_admin = Column(Integer, default=0, nullable=False)
-
-
-# ============================================================
-# 管理员-活动类型授权
-# ============================================================
-class AdminActivityTypeRole(BaseModel):
-    __tablename__ = "admin_activity_type_role"
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
-    admin_user_id = Column(Integer, nullable=False, index=True)
-    activity_type_id = Column(Integer, nullable=False, index=True)
 
 
 # ============================================================

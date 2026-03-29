@@ -26,11 +26,8 @@ ALTER TABLE activity_participants ADD COLUMN has_questions VARCHAR(500) NULL COM
 INSERT INTO `user_role` (`user_id`, `role_id`, `tenant_id`, `scope_type`, `scope_id`)
 SELECT au.user_id, 1, au.tenant_id, NULL, NULL
 FROM `admin_user` au
-WHERE au.is_super_admin = 1 AND au.user_id IS NOT NULL;
+WHERE au.user_id IS NOT NULL
+ON DUPLICATE KEY UPDATE user_id=user_id;
 
--- 将活动类型管理员迁移到 user_role
-INSERT INTO `user_role` (`user_id`, `role_id`, `tenant_id`, `scope_type`, `scope_id`)
-SELECT au.user_id, 2, aatr.tenant_id, 'activity_type', aatr.activity_type_id
-FROM `admin_activity_type_role` aatr
-JOIN `admin_user` au ON aatr.admin_user_id = au.id
-WHERE au.user_id IS NOT NULL;
+-- 删除旧的权限表
+DROP TABLE IF EXISTS `admin_activity_type_role`;

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 
 from app.api import deps
 from app.core.config import settings
-from app.crud import crud_admin, crud_user, crud_tenant
+from app.crud import crud_auth, crud_user, crud_tenant, crud_rbac
 from app.core.security import create_access_token, BCRYPT_MAX_BYTES
 from app.models.user import UserLoginRequest, UserLoginResponse, WechatLoginResponse
 from app.schemas import ActivityType
@@ -92,13 +92,29 @@ class LoginResponse(BaseModel):
     activity_types: list[ActivityTypeItem] = []
 
 
-def _admin_activity_types_for_response(db: Session, admin_id: int, tenant_id: int) -> list[dict]:
-    """返回该管理员可管理的活动类型列表"""
-    is_super, allowed_ids = crud_admin.get_admin_scope(db, admin_id, tenant_id)
-    if is_super or not allowed_ids:
+def _admin_activity_types_for_response(db: Session, user_id: int, tenant_id: int) -> list[dict]:
+    """返回该管理员可管理的活动类型列表（基于 RBAC）"""
+    # 获取用户的所有角色
+    user_roles = crud_rbac.get_user_roles(db, user_id, tenant_id)
+
+    # 收集所有活动类型范围
+    activity_type_ids = set()
+    has_global = False
+
+    for ur in user_roles:
+        if ur.scope_type is None:
+            has_global = True
+            break
+        if ur.scope_type == 'activity_type' and ur.scope_id:
+            activity_type_ids.add(ur.scope_id)
+
+    # 全局权限返回空列表
+    if has_global or not activity_type_ids:
         return []
+
+    # 查询活动类型
     types = db.query(ActivityType).filter(
-        ActivityType.id.in_(allowed_ids),
+        ActivityType.id.in_(activity_type_ids),
         ActivityType.tenant_id == tenant_id
     ).all()
     return [{"id": t.id, "name": t.type_name, "code": t.code} for t in types]
@@ -121,18 +137,25 @@ def login(
         raise HTTPException(status_code=403, detail="租户已禁用或已过期")
     
     try:
-        admin = crud_admin.authenticate_admin(db, body.username, body.password, tenant.id)
+        admin = crud_auth.authenticate_admin(db, body.username, body.password, tenant.id)
     except ValueError as e:
         if "72" in str(e) or "bytes" in str(e).lower():
             raise HTTPException(status_code=400, detail="密码校验异常，请确认密码长度正常") from e
         raise
-    
+
     if not admin:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
-    
-    token = create_access_token(sub=str(admin.id), role="admin", tenant_id=tenant.id)
-    is_super = getattr(admin, "is_super_admin", 0) == 1
-    activity_types = _admin_activity_types_for_response(db, admin.id, tenant.id)
+
+    # 检查用户是否有管理员权限
+    user_roles = crud_rbac.get_user_roles(db, admin.user_id, tenant.id)
+    if not user_roles:
+        raise HTTPException(status_code=403, detail="该用户没有管理员权限")
+
+    # 判断是否为超级管理员（拥有全局角色）
+    is_super = any(ur.scope_type is None for ur in user_roles)
+
+    token = create_access_token(sub=str(admin.user_id), role="admin", tenant_id=tenant.id)
+    activity_types = _admin_activity_types_for_response(db, admin.user_id, tenant.id)
     
     return LoginResponse(
         access_token=token,

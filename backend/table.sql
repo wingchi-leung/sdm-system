@@ -70,41 +70,24 @@ CREATE TABLE IF NOT EXISTS `user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
 -- ------------------------------------------------------------
--- 4. 管理员表
+-- 4. 管理员认证表（仅用于登录）
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `admin_user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
-  `username` varchar(64) NOT NULL COMMENT '用户名',
+  `user_id` int NOT NULL COMMENT '关联 user.id',
+  `username` varchar(64) NOT NULL COMMENT '管理员用户名',
   `password_hash` varchar(255) NOT NULL COMMENT '密码哈希',
-  `user_id` int DEFAULT NULL COMMENT '关联 user.id',
-  `is_super_admin` tinyint NOT NULL DEFAULT 0 COMMENT '1=超级管理员，0=活动管理员',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_tenant_username` (`tenant_id`, `username`),
   KEY `idx_admin_tenant_id` (`tenant_id`),
   KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员认证表';
 
 -- ------------------------------------------------------------
--- 5. 管理员-活动类型授权表
--- ------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `admin_activity_type_role` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
-  `admin_user_id` int NOT NULL COMMENT '管理员ID',
-  `activity_type_id` int NOT NULL COMMENT '活动类型ID',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_admin_activity_type` (`admin_user_id`, `activity_type_id`),
-  KEY `idx_admin_user_id` (`admin_user_id`),
-  KEY `idx_activity_type_id` (`activity_type_id`),
-  KEY `idx_admin_role_tenant_id` (`tenant_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员-活动类型授权表';
-
--- ------------------------------------------------------------
--- 6. 活动表
+-- 5. 活动表
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `activity` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -136,7 +119,7 @@ ALTER TABLE activity ADD COLUMN location VARCHAR(255) NULL COMMENT '活动地点
 ALTER TABLE activity ADD COLUMN max_participants INT NULL COMMENT '最大参与人数，NULL表示无限制' AFTER location;
 
 -- ------------------------------------------------------------
--- 7. 活动参与人表
+-- 6. 活动参与人表
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `activity_participants` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -160,7 +143,7 @@ CREATE TABLE IF NOT EXISTS `activity_participants` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动参与人表';
 
 -- ------------------------------------------------------------
--- 8. 签到记录表
+-- 7. 签到记录表
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `checkin_records` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -184,7 +167,7 @@ CREATE TABLE IF NOT EXISTS `checkin_records` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
 
 -- ------------------------------------------------------------
--- 9. 支付订单表
+-- 8. 支付订单表
 -- ------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `payment_order` (
   `id` int NOT NULL AUTO_INCREMENT,

@@ -196,6 +196,7 @@ function createActivity({
   require_payment,
   poster_url,
   location,
+  max_participants,
 }) {
   const data = {
     activity_name,
@@ -219,6 +220,9 @@ function createActivity({
   }
   if (location !== undefined) {
     data.location = location || null;
+  }
+  if (max_participants != null && max_participants > 0) {
+    data.max_participants = max_participants;
   }
   return new Promise((resolve, reject) => {
     wx.request({
@@ -268,6 +272,22 @@ function getActivity(activityId) {
       url: `${baseUrl}/activities/${activityId}`,
       method: 'GET',
       header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取活动报名情况（剩余名额等） */
+function getEnrollmentInfo(activityId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activities/${activityId}/enrollment-info`,
+      method: 'GET',
+      header: getHeader(),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -579,6 +599,7 @@ module.exports = {
   wechatLogin,
   phoneLogin,
   getActivity,
+  getEnrollmentInfo,
   updateActivity,
   deleteActivity,
   getActivityParticipants,

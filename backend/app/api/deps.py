@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import SessionLocal
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
-from app.crud import crud_admin, crud_activity, crud_rbac
+from app.crud import crud_activity, crud_rbac
 
 security = HTTPBearer(auto_error=False)
 
@@ -100,44 +100,6 @@ def get_current_user_optional(
         return TenantContext(user_id=user_id, role=role, tenant_id=tenant_id)
     except (KeyError, ValueError):
         return None
-
-
-def get_admin_scope(
-    db: Session = Depends(get_db),
-    ctx: TenantContext = Depends(get_current_admin),
-) -> dict:
-    """返回管理员权限范围"""
-    is_super, allowed_ids = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
-    return {
-        "admin_id": ctx.user_id,
-        "is_super": is_super,
-        "allowed_activity_type_ids": allowed_ids,
-        "tenant_id": ctx.tenant_id
-    }
-
-
-def require_activity_admin(
-    activity_id: int,
-    db: Session = Depends(get_db),
-    ctx: TenantContext = Depends(get_current_admin),
-) -> int:
-    """校验活动管理权限"""
-    activity = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
-    if not activity:
-        raise HTTPException(status_code=404, detail="活动不存在")
-    
-    if activity.tenant_id != ctx.tenant_id:
-        raise HTTPException(status_code=403, detail="无该活动的访问权限")
-    
-    is_super, allowed_ids = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
-    if is_super:
-        return activity_id
-    
-    atid = getattr(activity, "activity_type_id", None)
-    if atid is not None and atid in allowed_ids:
-        return activity_id
-    
-    raise HTTPException(status_code=403, detail="无该活动的管理权限")
 
 
 def require_permission(permission_code: str):

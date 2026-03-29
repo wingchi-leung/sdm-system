@@ -20,7 +20,7 @@ Page({
     submitting: false,
     error: null,
     // 支付相关
-    requirePayment: false,
+    requirePayment: true,
     suggestedFeeYuan: '',
     suggestedFee: 0,
     // 海报和地点
@@ -28,6 +28,8 @@ Page({
     posterLocalPath: '',
     location: '',
     uploading: false,
+    // 报名限额
+    maxParticipants: '',
   },
 
   onLoad() {
@@ -141,6 +143,12 @@ Page({
     });
   },
 
+  // 报名限额
+  onMaxParticipantsInput(e) {
+    const value = e.detail.value;
+    this.setData({ maxParticipants: value, error: null });
+  },
+
   // 地点输入
   onLocationInput(e) {
     this.setData({ location: e.detail.value, error: null });
@@ -202,7 +210,7 @@ Page({
   },
 
   submit() {
-    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee, location } = this.data;
+    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee, location, maxParticipants } = this.data;
     const tag = (this.data.tag || '').trim();
     const activityType = this.getSelectedActivityType();
     if (!activityName || !activityName.trim()) {
@@ -242,6 +250,13 @@ Page({
       return;
     }
 
+    // 验证报名限额
+    const maxParticipantsNum = maxParticipants ? parseInt(maxParticipants, 10) : null;
+    if (maxParticipants && (isNaN(maxParticipantsNum) || maxParticipantsNum < 1)) {
+      this.setData({ error: '报名限额必须是大于0的整数' });
+      return;
+    }
+
     this.setData({ submitting: true, error: null });
 
     // 先上传海报（如果有），再创建活动
@@ -270,6 +285,7 @@ Page({
           require_payment: requirePayment ? 1 : 0,
           poster_url: posterUrl || null,
           location: (location || '').trim() || null,
+          max_participants: maxParticipantsNum,
         });
         wx.showToast({ title: '发布成功', icon: 'success' });
         setTimeout(() => wx.navigateBack(), 1000);

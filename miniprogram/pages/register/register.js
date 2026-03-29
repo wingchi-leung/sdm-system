@@ -39,6 +39,10 @@ Page({
       { value: 'foreign', label: '其他证件' },
     ],
     identityTypeLabel: '',
+    // 报名情况
+    enrollmentInfo: null,
+    isFull: false,
+    remainingQuota: null,
   },
 
   onLoad(options) {
@@ -73,10 +77,27 @@ Page({
         actualFeeYuan: suggestedFeeYuan,
         loading: false,
       });
+
+      // 加载报名情况
+      this.loadEnrollmentInfo(activityId);
     } catch (err) {
       wx.showToast({ title: '加载活动失败', icon: 'none' });
       this.setData({ loading: false });
       setTimeout(() => wx.navigateBack(), 1500);
+    }
+  },
+
+  // 加载报名情况
+  async loadEnrollmentInfo(activityId) {
+    try {
+      const info = await api.getEnrollmentInfo(activityId);
+      this.setData({
+        enrollmentInfo: info,
+        isFull: info.is_full,
+        remainingQuota: info.remaining_quota,
+      });
+    } catch (err) {
+      console.log('获取报名情况失败:', err);
     }
   },
 
@@ -236,8 +257,14 @@ Page({
 
     api
       .registerParticipant(participantData)
-      .then(() => {
-        wx.showToast({ title: '报名成功', icon: 'success' });
+      .then((result) => {
+        // 检查是否进入候补
+        const isWaitlist = result.enroll_status === 2;
+        if (isWaitlist) {
+          wx.showToast({ title: '已进入候补', icon: 'none' });
+        } else {
+          wx.showToast({ title: '报名成功', icon: 'success' });
+        }
         setTimeout(() => {
           wx.navigateBack();
         }, 1200);
@@ -260,6 +287,15 @@ Page({
         actual_fee: actualFee,
       })
       .then((orderData) => {
+        // 检查是否进入候补（候补不需要支付）
+        if (orderData.enroll_status === 2) {
+          wx.showToast({ title: '已进入候补', icon: 'none' });
+          setTimeout(() => {
+            wx.navigateBack();
+          }, 1200);
+          return;
+        }
+
         // 2. 获取支付参数
         const paymentParams = orderData.payment_params;
         if (!paymentParams) {
@@ -281,10 +317,12 @@ Page({
       })
       .then((orderData) => {
         // 4. 支付成功
-        wx.showToast({ title: '支付成功', icon: 'success' });
-        setTimeout(() => {
-          wx.navigateBack();
-        }, 1200);
+        if (orderData) {
+          wx.showToast({ title: '支付成功', icon: 'success' });
+          setTimeout(() => {
+            wx.navigateBack();
+          }, 1200);
+        }
       })
       .catch((err) => {
         // 处理错误
@@ -312,9 +350,12 @@ Page({
 
     this.setData({ submitting: true, error: null });
 
-    const { requirePayment } = this.data;
+    const { requirePayment, isFull } = this.data;
 
-    if (requirePayment) {
+    // 如果已满员，候补不需要支付
+    if (isFull) {
+      this.doRegister();
+    } else if (requirePayment) {
       // 需要支付
       this.doPaymentRegister();
     } else {

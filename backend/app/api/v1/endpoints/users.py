@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from app.crud import crud_user, crud_tenant, crud_admin
+from app.crud import crud_user, crud_tenant, crud_rbac
 from app.api import deps
 from app.models import user
 from app.schemas import User
@@ -120,7 +120,7 @@ def get_all_users_for_super_admin(
     仅超级管理员可访问
     """
     # 检查是否为超级管理员
-    is_super, _ = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
     if not is_super:
         raise HTTPException(status_code=403, detail="仅超级管理员可访问")
 
@@ -154,7 +154,7 @@ def block_user(
 ):
     """拉黑用户（仅超级管理员）"""
     # 检查是否为超级管理员
-    is_super, _ = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
     if not is_super:
         raise HTTPException(status_code=403, detail="仅超级管理员可操作")
 
@@ -170,7 +170,7 @@ def unblock_user(
 ):
     """解除拉黑用户（仅超级管理员）"""
     # 检查是否为超级管理员
-    is_super, _ = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
     if not is_super:
         raise HTTPException(status_code=403, detail="仅超级管理员可操作")
 

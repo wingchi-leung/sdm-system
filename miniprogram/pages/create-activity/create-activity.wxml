@@ -38,21 +38,45 @@
       />
     </view>
 
-    <!-- 活动海报 -->
+    <!-- 报名限额 -->
     <view class="field">
-      <text class="field-label">活动海报</text>
-      <view class="poster-section">
-        <view wx:if="{{posterLocalPath}}" class="poster-preview">
-          <image class="poster-image" src="{{posterLocalPath}}" mode="aspectFill" />
-          <view class="poster-remove" bindtap="onRemovePoster">
-            <text class="remove-icon">×</text>
-          </view>
+      <text class="field-label">报名限额</text>
+      <input
+        class="input"
+        type="number"
+        placeholder="不填则不限制人数"
+        placeholder-class="input-placeholder"
+        value="{{maxParticipants}}"
+        bindinput="onMaxParticipantsInput"
+      />
+      <text class="field-hint">设置后，超额报名将进入候补状态</text>
+    </view>
+
+    <!-- 支付设置 -->
+    <view class="field payment-section">
+      <view class="payment-header">
+        <text class="field-label">支付设置</text>
+      </view>
+      <view class="switch-row">
+        <text class="switch-label">需要支付</text>
+        <switch checked="{{requirePayment}}" bindchange="onRequirePaymentChange" color="var(--primary)" />
+      </view>
+      <!-- 费用输入（开启支付时显示） -->
+      <view class="fee-input-section" wx:if="{{requirePayment}}">
+        <text class="fee-label">建议费用（元）</text>
+        <view class="fee-input-wrapper">
+          <text class="fee-currency">¥</text>
+          <input
+            class="input fee-input"
+            type="digit"
+            placeholder="0.00"
+            placeholder-class="input-placeholder"
+            value="{{suggestedFeeYuan}}"
+            bindinput="onSuggestedFeeInput"
+            bindblur="onSuggestedFeeBlur"
+          />
         </view>
-        <view wx:else class="poster-upload" bindtap="onChoosePoster">
-          <view class="upload-icon">+</view>
-          <text class="upload-text">上传海报</text>
-          <text class="upload-hint">支持PNG、JPG格式，最大5MB</text>
-        </view>
+        <text class="fee-hint">用户可支付等于或高于此金额</text>
       </view>
     </view>
 
@@ -94,31 +118,21 @@
       </view>
     </view>
 
-    <!-- 支付设置 -->
-    <view class="field payment-section">
-      <view class="payment-header">
-        <text class="field-label">支付设置</text>
-      </view>
-      <view class="switch-row">
-        <text class="switch-label">需要支付</text>
-        <switch checked="{{requirePayment}}" bindchange="onRequirePaymentChange" color="var(--primary)" />
-      </view>
-      <!-- 费用输入（开启支付时显示） -->
-      <view class="fee-input-section" wx:if="{{requirePayment}}">
-        <text class="fee-label">建议费用（元）</text>
-        <view class="fee-input-wrapper">
-          <text class="fee-currency">¥</text>
-          <input
-            class="input fee-input"
-            type="digit"
-            placeholder="0.00"
-            placeholder-class="input-placeholder"
-            value="{{suggestedFeeYuan}}"
-            bindinput="onSuggestedFeeInput"
-            bindblur="onSuggestedFeeBlur"
-          />
+    <!-- 活动海报 -->
+    <view class="field">
+      <text class="field-label">活动海报</text>
+      <view class="poster-section">
+        <view wx:if="{{posterLocalPath}}" class="poster-preview">
+          <image class="poster-image" src="{{posterLocalPath}}" mode="aspectFill" />
+          <view class="poster-remove" bindtap="onRemovePoster">
+            <text class="remove-icon">×</text>
+          </view>
         </view>
-        <text class="fee-hint">用户可支付等于或高于此金额</text>
+        <view wx:else class="poster-upload" bindtap="onChoosePoster">
+          <view class="upload-icon">+</view>
+          <text class="upload-text">上传海报</text>
+          <text class="upload-hint">支持PNG、JPG格式，最大5MB</text>
+        </view>
       </view>
     </view>
 
