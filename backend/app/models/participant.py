@@ -11,6 +11,7 @@ class ParticipantBase(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     identity_number: Optional[str] = Field(None, max_length=255)
     identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    enroll_status: Optional[int] = Field(None, ge=1, le=2, description="报名状态：1-已报名 2-候补")
     # 用户信息字段（从用户资料获取）
     sex: Optional[str] = Field(None, max_length=2)
     age: Optional[int] = Field(None, ge=0, le=150)

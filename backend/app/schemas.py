@@ -104,6 +104,7 @@ class Activity(BaseModel):
     require_payment = Column(Integer, default=0)    # 是否需要支付：0-否 1-是
     poster_url = Column(String(500), nullable=True)  # 活动海报图片URL
     location = Column(String(255), nullable=True)    # 活动地点（为空则表示线上活动）
+    max_participants = Column(Integer, nullable=True)  # 最大参与人数，NULL 表示无限制
 
 
 # ============================================================
@@ -120,6 +121,7 @@ class ActivityParticipant(BaseModel):
     participant_name = Column(String(255))
     identity_number = Column(String(255), index=True)
     phone = Column(String(255))
+    enroll_status = Column(Integer, default=1)      # 报名状态：1-已报名 2-候补
     payment_status = Column(Integer, default=0)     # 0-无需支付 1-待支付 2-已支付
     payment_order_id = Column(Integer, nullable=True)
     paid_amount = Column(Integer, default=0)        # 实际支付金额（分）

@@ -339,18 +339,22 @@
   gap: 8rpx;
 }
 
-.info-text {
-  font-size: 26rpx;
-  color: #999999;
-  letter-spacing: 0;
+.info-row {
   display: flex;
   align-items: center;
   gap: 8rpx;
 }
 
-.info-text::before {
-  content: '🕐';
-  font-size: 24rpx;
+.info-icon {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
+}
+
+.info-text {
+  font-size: 26rpx;
+  color: #999999;
+  letter-spacing: 0;
 }
 
 /* ─────────────────────────────────────────────────────────────

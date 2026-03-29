@@ -67,7 +67,10 @@
       <view class="item-content">
         <text class="item-name">{{item.activity_name}}</text>
         <view class="item-info">
-          <text class="info-text">{{item.start_time_display}}</text>
+          <view class="info-row">
+            <image class="info-icon" src="/assets/icons/clock.svg" mode="aspectFit" />
+            <text class="info-text">{{item.start_time_display}}</text>
+          </view>
           <text class="info-text" wx:if="{{item.location}}">{{item.location}}</text>
         </view>
       </view>
