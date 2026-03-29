@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List
 
+
 class ParticipantBase(BaseModel):
     activity_id: Optional[int] = Field(None)
     user_id: Optional[int] = Field(None)
@@ -10,11 +11,23 @@ class ParticipantBase(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     identity_number: Optional[str] = Field(None, max_length=255)
     identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    # 用户信息字段（从用户资料获取）
+    sex: Optional[str] = Field(None, max_length=2)
+    age: Optional[int] = Field(None, ge=0, le=150)
+    occupation: Optional[str] = Field(None, max_length=100)
+    email: Optional[str] = Field(None, max_length=255)
+    industry: Optional[str] = Field(None, max_length=100)
+    # 问卷字段
+    why_join: Optional[str] = Field(None, max_length=500)
+    channel: Optional[str] = Field(None, max_length=255)
+    expectation: Optional[str] = Field(None, max_length=500)
+    activity_understanding: Optional[str] = Field(None, max_length=255)
+    has_questions: Optional[str] = Field(None, max_length=500)
 
     @field_validator('phone')
     @classmethod
     def phone_format(cls, v: str) -> str:
-        if not v or not v.strip():
+        if not v or not v.trim():
             raise ValueError('手机号不能为空')
         phone = v.strip()
         if not re.match(r'^1[3-9]\d{9}$', phone):
@@ -55,6 +68,7 @@ class ParticipantBase(BaseModel):
 
 class ParticipantCreate(ParticipantBase):
     pass
+
 
 class ParticipantResponse(ParticipantBase):
     id: int

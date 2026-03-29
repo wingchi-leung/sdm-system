@@ -123,6 +123,19 @@ class ActivityParticipant(BaseModel):
     payment_status = Column(Integer, default=0)     # 0-无需支付 1-待支付 2-已支付
     payment_order_id = Column(Integer, nullable=True)
     paid_amount = Column(Integer, default=0)        # 实际支付金额（分）
+    # 用户信息字段（从用户资料获取）
+    sex = Column(String(2), nullable=True)
+    age = Column(Integer, nullable=True)
+    occupation = Column(String(100), nullable=True)
+    email = Column(String(255), nullable=True)
+    industry = Column(String(100), nullable=True)
+    identity_type = Column(String(20), nullable=True)
+    # 问卷字段
+    why_join = Column(String(500), nullable=True)           # 为什么要参与
+    channel = Column(String(255), nullable=True)            # 了解此活动的渠道/推荐人
+    expectation = Column(String(500), nullable=True)        # 学习期望
+    activity_understanding = Column(String(255), nullable=True)  # 是否了解活动（一句话描述）
+    has_questions = Column(String(500), nullable=True)      # 是否有问题
 
 
 # ============================================================

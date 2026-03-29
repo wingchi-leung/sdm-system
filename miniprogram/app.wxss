@@ -1,82 +1,82 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * SDM 小程序 - 高级简约设计系统
+ * SDM 小程序 - 奢华简约设计系统
  * ═══════════════════════════════════════════════════════════════
- * 灵感来源：Jil Sander × Aesop
- * 设计理念：纯粹 · 精致 · 克制
+ * 灵感来源：Apple × Hermès
+ * 设计理念：极简 · 奢华 · 永恒
  * ═══════════════════════════════════════════════════════════════
  */
 
 page {
   /* ─────────────────────────────────────────────────────────────
-   * 色彩系统 - 纯粹克制
+   * 色彩系统 - 奢华克制
    * ───────────────────────────────────────────────────────────── */
 
-  /* 品牌色 - 深邃墨绿，自然高级 */
-  --primary: #2C5545;
-  --primary-dark: #1E3D2F;
-  --primary-light: rgba(44, 85, 69, 0.08);
-  --primary-glow: rgba(44, 85, 69, 0.15);
+  /* 品牌色 - 深邃黑，极致纯粹 */
+  --primary: #000000;
+  --primary-dark: #000000;
+  --primary-light: rgba(0, 0, 0, 0.03);
+  --primary-glow: rgba(0, 0, 0, 0.05);
 
-  /* 强调色 - 暖金点缀 */
-  --accent: #B8956B;
-  --accent-light: rgba(184, 149, 107, 0.1);
+  /* 强调色 - 优雅橙调（Hermès 橙） */
+  --accent: #FF6B35;
+  --accent-light: rgba(255, 107, 53, 0.06);
 
   /* 背景色 - 纯净留白 */
-  --background: #FFFFFF;
-  --background-subtle: #FAFAFA;
+  --background: #FAFAFA;
+  --background-subtle: #F5F5F5;
   --background-card: #FFFFFF;
-  --background-elevated: #FEFEFE;
-  --background-input: #F7F7F7;
+  --background-elevated: #FFFFFF;
+  --background-input: #FFFFFF;
 
-  /* 文字色 - 层次分明 */
-  --text-primary: #1A1A1A;
-  --text-secondary: #5C5C5C;
-  --text-tertiary: #8C8C8C;
-  --text-muted: #C2C2C2;
+  /* 文字色 - 精致层次 */
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-muted: #CCCCCC;
 
-  /* 状态色 - 低饱和度 */
-  --status-not-started: #7A7A7A;
-  --status-not-started-bg: rgba(122, 122, 122, 0.08);
-  --status-ongoing: #4A7C6B;
-  --status-ongoing-bg: rgba(74, 124, 107, 0.08);
-  --status-ended: #5A6B7A;
-  --status-ended-bg: rgba(90, 107, 122, 0.08);
+  /* 状态色 - 极简优雅 */
+  --status-not-started: #8E8E93;
+  --status-not-started-bg: rgba(142, 142, 147, 0.06);
+  --status-ongoing: #34C759;
+  --status-ongoing-bg: rgba(52, 199, 89, 0.06);
+  --status-ended: #8E8E93;
+  --status-ended-bg: rgba(142, 142, 147, 0.06);
 
   /* 语义色 */
-  --success: #4A7C6B;
-  --success-bg: rgba(74, 124, 107, 0.08);
-  --error: #A65D5D;
-  --error-bg: rgba(166, 93, 93, 0.08);
-  --warning: #A68B5D;
-  --warning-bg: rgba(166, 139, 93, 0.08);
-  --info: #5A6B7A;
-  --info-bg: rgba(90, 107, 122, 0.08);
+  --success: #34C759;
+  --success-bg: rgba(52, 199, 89, 0.06);
+  --error: #FF3B30;
+  --error-bg: rgba(255, 59, 48, 0.06);
+  --warning: #FF9500;
+  --warning-bg: rgba(255, 149, 0, 0.06);
+  --info: #007AFF;
+  --info-bg: rgba(0, 122, 255, 0.06);
 
   /* 边框与分割 */
-  --border: rgba(0, 0, 0, 0.06);
-  --border-light: rgba(0, 0, 0, 0.04);
-  --divider: rgba(0, 0, 0, 0.04);
+  --border: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.05);
+  --divider: rgba(0, 0, 0, 0.06);
 
   /* ─────────────────────────────────────────────────────────────
-   * 阴影系统 - 轻盈透气
+   * 阴影系统 - 轻盈精致
    * ───────────────────────────────────────────────────────────── */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.05);
-  --shadow-elevated: 0 12px 48px rgba(0, 0, 0, 0.06);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-elevated: 0 16px 48px rgba(0, 0, 0, 0.1);
 
   /* ─────────────────────────────────────────────────────────────
    * 间距系统 - 严谨节奏
    * ───────────────────────────────────────────────────────────── */
   --space-xs: 8rpx;
-  --space-sm: 16rpx;
-  --space-md: 24rpx;
+  --space-sm: 12rpx;
+  --space-md: 20rpx;
   --space-lg: 32rpx;
   --space-xl: 48rpx;
-  --space-2xl: 64rpx;
-  --space-3xl: 96rpx;
+  --space-2xl: 72rpx;
+  --space-3xl: 120rpx;
 
   /* ─────────────────────────────────────────────────────────────
    * 圆角系统 - 柔和边角
@@ -89,18 +89,19 @@ page {
   --radius-full: 9999rpx;
 
   /* ─────────────────────────────────────────────────────────────
-   * 字体系统 - 现代优雅
+   * 字体系统 - 极致优雅
    * ───────────────────────────────────────────────────────────── */
-  --font-display: "Noto Serif SC", "Songti SC", "PingFang SC", serif;
-  --font-body: "PingFang SC", "Noto Sans SC", -apple-system, sans-serif;
+  --font-display: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", sans-serif;
+  --font-body: -apple-system, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
 
   font-family: var(--font-body);
   background-color: var(--background);
   font-size: 28rpx;
   color: var(--text-primary);
-  line-height: 1.6;
-  letter-spacing: 0.03em;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -111,65 +112,66 @@ page {
 }
 
 /* ─────────────────────────────────────────────────────────────
- * 卡片组件 - 柔和精致
+ * 卡片组件 - 奢华精致
  * ───────────────────────────────────────────────────────────── */
 .card {
   background: var(--background-card);
-  border-radius: var(--radius-lg);
-  padding: var(--space-lg);
-  margin-bottom: var(--space-md);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
   box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 0.5px solid var(--border-light);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .card:active {
-  transform: scale(0.995);
-  box-shadow: var(--shadow-xs);
-}
-
-/* ─────────────────────────────────────────────────────────────
- * 按钮系统 - 优雅触感
- * ───────────────────────────────────────────────────────────── */
-.btn-primary {
-  background: var(--primary);
-  color: #FFFFFF;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  border: none;
-  padding: 28rpx var(--space-xl);
-  font-size: 30rpx;
-  letter-spacing: 0.04em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-sm);
-}
-
-.btn-primary:active {
-  opacity: 0.85;
   transform: scale(0.98);
   box-shadow: var(--shadow-xs);
 }
 
+/* ─────────────────────────────────────────────────────────────
+ * 按钮系统 - 极致触感
+ * ───────────────────────────────────────────────────────────── */
+.btn-primary {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-radius: 980rpx;
+  font-weight: 500;
+  border: none;
+  padding: 32rpx var(--space-2xl);
+  font-size: 32rpx;
+  letter-spacing: -0.01em;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
+}
+
+.btn-primary:active {
+  opacity: 0.88;
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
+}
+
 .btn-primary[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
   transform: none;
 }
 
 .btn-secondary {
   background: transparent;
   color: var(--text-primary);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  padding: 26rpx var(--space-lg);
-  font-size: 28rpx;
+  border-radius: 980rpx;
+  border: 1.5px solid var(--border);
+  padding: 30rpx var(--space-xl);
+  font-size: 30rpx;
   font-weight: 500;
-  letter-spacing: 0.02em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.01em;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .btn-secondary:active {
-  background: var(--background-warm);
-  border-color: var(--text-tertiary);
+  background: var(--background-subtle);
+  border-color: var(--text-secondary);
+  transform: scale(0.97);
 }
 
 .btn-text {

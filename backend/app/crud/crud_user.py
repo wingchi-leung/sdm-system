@@ -200,10 +200,21 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    # 检查手机号是否被其他用户占用
-    if bind_info.get("phone"):
+    # 验证手机号一致性：用户填写的手机号必须与微信获取的手机号一致
+    bind_phone = bind_info.get("phone")
+    if bind_phone:
+        # 用户当前的 phone 是通过微信登录获取的
+        current_phone = user.phone
+        # 如果当前手机号是有效的（不是 wx_ 开头的占位符）
+        if current_phone and not current_phone.startswith("wx_"):
+            if bind_phone != current_phone:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"手机号不一致，请使用微信授权的手机号 {current_phone[:3]}****{current_phone[-4:]}"
+                )
+        # 检查手机号是否被其他用户占用
         existing = db.query(User).filter(
-            User.phone == bind_info["phone"],
+            User.phone == bind_phone,
             User.id != user_id,
             User.tenant_id == tenant_id
         ).first()
@@ -285,3 +296,31 @@ def get_all_users_for_super_admin(
     users = query.order_by(User.id.desc()).offset(skip).limit(limit).all()
 
     return users, total
+
+
+def block_user(db: Session, user_id: int, tenant_id: int, reason: str | None = None) -> User:
+    """拉黑用户"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if user.isblock == 1:
+        raise HTTPException(status_code=400, detail="用户已被拉黑")
+    user.isblock = 1
+    user.block_reason = reason
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def unblock_user(db: Session, user_id: int, tenant_id: int) -> User:
+    """解除拉黑用户"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+    if user.isblock == 0:
+        raise HTTPException(status_code=400, detail="用户未被拉黑")
+    user.isblock = 0
+    user.block_reason = None
+    db.commit()
+    db.refresh(user)
+    return user

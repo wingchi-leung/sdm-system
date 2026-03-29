@@ -125,6 +125,13 @@ CREATE TABLE IF NOT EXISTS `activity` (
   KEY `idx_activity_type_id` (`activity_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动表';
 
+
+-- 添加海报URL字段
+ALTER TABLE activity ADD COLUMN poster_url VARCHAR(500) NULL COMMENT '活动海报图片URL' AFTER require_payment;
+
+-- 添加地点字段
+ALTER TABLE activity ADD COLUMN location VARCHAR(255) NULL COMMENT '活动地点（为空表示线上活动）' AFTER poster_url;
+
 -- ------------------------------------------------------------
 -- 7. 活动参与人表
 -- ------------------------------------------------------------
@@ -205,3 +212,20 @@ CREATE TABLE IF NOT EXISTS `payment_order` (
   KEY `idx_participant_id` (`participant_id`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付订单表';
+
+
+
+-- 用户信息字段（从用户资料获取）
+ALTER TABLE activity_participants ADD COLUMN sex VARCHAR(2) NULL COMMENT '性别：M-男 F-女' AFTER identity_number;
+ALTER TABLE activity_participants ADD COLUMN age INT NULL COMMENT '年龄' AFTER sex;
+ALTER TABLE activity_participants ADD COLUMN occupation VARCHAR(100) NULL COMMENT '职业' AFTER age;
+ALTER TABLE activity_participants ADD COLUMN email VARCHAR(255) NULL COMMENT '邮箱' AFTER occupation;
+ALTER TABLE activity_participants ADD COLUMN industry VARCHAR(100) NULL COMMENT '行业' AFTER email;
+ALTER TABLE activity_participants ADD COLUMN identity_type VARCHAR(20) NULL COMMENT '证件类型：mainland/hongkong/taiwan/foreign' AFTER industry;
+
+-- 问卷字段
+ALTER TABLE activity_participants ADD COLUMN why_join VARCHAR(500) NULL COMMENT '为什么要参与' AFTER identity_type;
+ALTER TABLE activity_participants ADD COLUMN channel VARCHAR(255) NULL COMMENT '了解此活动的渠道/推荐人' AFTER why_join;
+ALTER TABLE activity_participants ADD COLUMN expectation VARCHAR(500) NULL COMMENT '学习期望' AFTER channel;
+ALTER TABLE activity_participants ADD COLUMN activity_understanding VARCHAR(255) NULL COMMENT '对活动的了解（一句话描述）' AFTER expectation;
+ALTER TABLE activity_participants ADD COLUMN has_questions VARCHAR(500) NULL COMMENT '是否有问题' AFTER activity_understanding;

@@ -5,9 +5,23 @@ Page({
   data: {
     activityId: null,
     activity: null,
+    // 用户信息（从用户资料获取，不可编辑）
+    userInfo: null,
     name: '',
     phone: '',
+    sex: '',
+    age: '',
+    occupation: '',
+    email: '',
+    industry: '',
+    identityType: '',
     identityNumber: '',
+    // 问卷字段（用户填写）
+    whyJoin: '',
+    channel: '',
+    expectation: '',
+    activityUnderstanding: '',
+    hasQuestions: '',
     submitting: false,
     error: null,
     loading: true,
@@ -17,6 +31,14 @@ Page({
     suggestedFeeYuan: '0.00',
     actualFee: '',
     actualFeeYuan: '',
+    // 证件类型选项
+    identityTypeOptions: [
+      { value: 'mainland', label: '中国大陆身份证' },
+      { value: 'hongkong', label: '香港身份证' },
+      { value: 'taiwan', label: '台湾身份证' },
+      { value: 'foreign', label: '其他证件' },
+    ],
+    identityTypeLabel: '',
   },
 
   onLoad(options) {
@@ -29,6 +51,7 @@ Page({
 
     this.setData({ activityId });
     this.loadActivity(activityId);
+    this.loadUserProfile();
   },
 
   // 加载活动详情
@@ -57,16 +80,58 @@ Page({
     }
   },
 
-  onNameInput(e) {
-    this.setData({ name: e.detail.value, error: null });
+  // 加载用户资料
+  async loadUserProfile() {
+    try {
+      const profile = await api.getUserProfile();
+      // 获取证件类型显示文本
+      const identityTypeLabel = this.getIdentityTypeLabel(profile.identity_type);
+
+      this.setData({
+        userInfo: profile,
+        name: profile.name || '',
+        phone: profile.phone || '',
+        sex: profile.sex === 'M' ? '男' : profile.sex === 'F' ? '女' : '',
+        age: profile.age ? String(profile.age) : '',
+        occupation: profile.occupation || '',
+        email: profile.email || '',
+        industry: profile.industry || '',
+        identityType: profile.identity_type || '',
+        identityNumber: profile.identity_number || '',
+        identityTypeLabel,
+      });
+    } catch (err) {
+      // 用户未登录或获取资料失败，不填充
+      console.log('获取用户资料失败:', err);
+    }
   },
 
-  onPhoneInput(e) {
-    this.setData({ phone: e.detail.value, error: null });
+  // 获取证件类型显示文本
+  getIdentityTypeLabel(type) {
+    const options = this.data.identityTypeOptions;
+    const found = options.find(o => o.value === type);
+    return found ? found.label : '';
   },
 
-  onIdInput(e) {
-    this.setData({ identityNumber: e.detail.value, error: null });
+  // 问卷输入处理
+  onWhyJoinInput(e) {
+    this.setData({ whyJoin: e.detail.value, error: null });
+  },
+
+  onChannelInput(e) {
+    this.setData({ channel: e.detail.value, error: null });
+  },
+
+  onExpectationInput(e) {
+    this.setData({ expectation: e.detail.value, error: null });
+  },
+
+  onUnderstandingInput(e) {
+    this.setData({ activityUnderstanding: e.detail.value, error: null });
+  },
+
+  onQuestionsInput(e) {
+    this.setData({ hasQuestions: e.detail.value, error: null });
   },
 
   onFeeInput(e) {
@@ -94,7 +159,7 @@ Page({
 
   // 验证表单
   validateForm() {
-    const { name, phone, requirePayment, actualFee, suggestedFee } = this.data;
+    const { name, phone, whyJoin, channel, expectation, requirePayment, actualFee, suggestedFee } = this.data;
 
     if (!name || !name.trim()) {
       this.setData({ error: '请输入姓名' });
@@ -102,6 +167,19 @@ Page({
     }
     if (!phone || !phone.trim()) {
       this.setData({ error: '请输入手机号' });
+      return false;
+    }
+    // 问卷字段验证
+    if (!whyJoin || !whyJoin.trim()) {
+      this.setData({ error: '请填写参与原因' });
+      return false;
+    }
+    if (!channel || !channel.trim()) {
+      this.setData({ error: '请填写了解渠道' });
+      return false;
+    }
+    if (!expectation || !expectation.trim()) {
+      this.setData({ error: '请填写学习期望' });
       return false;
     }
 
@@ -116,17 +194,48 @@ Page({
     return true;
   },
 
+  // 构建报名数据
+  buildParticipantData() {
+    const {
+      activity, name, phone, identityNumber, identityType,
+      sex, age, occupation, email, industry,
+      whyJoin, channel, expectation, activityUnderstanding, hasQuestions,
+      userInfo
+    } = this.data;
+
+    // 转换性别格式（显示为男/女，提交为 M/F）
+    let sexCode = '';
+    if (sex === '男') sexCode = 'M';
+    else if (sex === '女') sexCode = 'F';
+
+    return {
+      activity_id: activity.id,
+      participant_name: name.trim(),
+      phone: phone.trim(),
+      identity_number: identityNumber || undefined,
+      identity_type: identityType || undefined,
+      // 用户信息
+      sex: sexCode || undefined,
+      age: age ? parseInt(age) : undefined,
+      occupation: occupation || undefined,
+      email: email || undefined,
+      industry: industry || undefined,
+      user_id: userInfo ? userInfo.id : undefined,
+      // 问卷
+      why_join: whyJoin.trim(),
+      channel: channel.trim(),
+      expectation: expectation.trim(),
+      activity_understanding: activityUnderstanding.trim() || undefined,
+      has_questions: hasQuestions.trim() || undefined,
+    };
+  },
+
   // 普通报名（无需支付）
   doRegister() {
-    const { activity, name, phone, identityNumber } = this.data;
+    const participantData = this.buildParticipantData();
 
     api
-      .registerParticipant({
-        activity_id: activity.id,
-        participant_name: name.trim(),
-        phone: phone.trim(),
-        identity_number: identityNumber || undefined,
-      })
+      .registerParticipant(participantData)
       .then(() => {
         wx.showToast({ title: '报名成功', icon: 'success' });
         setTimeout(() => {
@@ -141,15 +250,13 @@ Page({
 
   // 支付报名
   doPaymentRegister() {
-    const { activity, name, phone, identityNumber, actualFee } = this.data;
+    const { activity, actualFee } = this.data;
+    const participantData = this.buildParticipantData();
 
     // 1. 创建支付订单
     api
       .createPaymentOrder({
-        activity_id: activity.id,
-        participant_name: name.trim(),
-        phone: phone.trim(),
-        identity_number: identityNumber || undefined,
+        ...participantData,
         actual_fee: actualFee,
       })
       .then((orderData) => {

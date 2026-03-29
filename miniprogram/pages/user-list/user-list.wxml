@@ -68,6 +68,15 @@
           <text class="info-label">注册时间</text>
           <text class="info-value">{{item.create_time}}</text>
         </view>
+        <view wx:if="{{item.isblock === 1 && item.block_reason}}" class="info-row">
+          <text class="info-label">拉黑原因</text>
+          <text class="info-value block-reason">{{item.block_reason}}</text>
+        </view>
+      </view>
+      <!-- 操作按钮 -->
+      <view class="user-actions">
+        <text wx:if="{{item.isblock === 0}}" class="action-btn block-btn" bindtap="onBlockUser" data-user="{{item}}">拉黑</text>
+        <text wx:else class="action-btn unblock-btn" bindtap="onUnblockUser" data-user="{{item}}">解除拉黑</text>
       </view>
     </view>
 

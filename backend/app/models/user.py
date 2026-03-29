@@ -140,6 +140,7 @@ class WechatLoginResponse(BaseModel):
     user_name: str
     is_first_login: bool = False
     require_bind_info: bool = False
+    phone: Optional[str] = None  # 手机号登录时返回
 
 
 class UserBindInfoRequest(BaseModel):
@@ -151,8 +152,8 @@ class UserBindInfoRequest(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     email: Optional[str] = Field(None, max_length=255)
     industry: str = Field(..., min_length=1, max_length=100)
-    identity_number: Optional[str] = Field(None, max_length=255)
-    identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    identity_type: str = Field(..., pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    identity_number: str = Field(..., min_length=1, max_length=255)
 
     @field_validator('email')
     @classmethod
@@ -175,9 +176,9 @@ class UserBindInfoRequest(BaseModel):
 
     @field_validator('identity_number')
     @classmethod
-    def identity_number_format(cls, v: Optional[str], info) -> Optional[str]:
-        if v is None or not v.strip():
-            return None
+    def identity_number_format(cls, v: str, info) -> str:
+        if not v or not v.strip():
+            raise ValueError('证件号码不能为空')
         identity_number = v.strip()
         identity_type = info.data.get('identity_type')
 
@@ -193,14 +194,13 @@ class UserBindInfoRequest(BaseModel):
             # 台湾身份证：10位，首位字母+9位数字
             if not re.match(r'^[A-Z]\d{9}$', identity_number):
                 raise ValueError('台湾身份证号格式不正确，应为10位（1位字母+9位数字）')
-        # foreign 类型不做严格格式限制，只做基本验证
         elif identity_type == 'foreign':
+            # 其他证件：只做基本长度验证
             if len(identity_number) < 5 or len(identity_number) > 50:
                 raise ValueError('证件号码长度应在5-50位之间')
         else:
-            # 未指定类型时，做基本长度验证
-            if len(identity_number) < 5 or len(identity_number) > 50:
-                raise ValueError('证件号码长度应在5-50位之间')
+            # 未知类型
+            raise ValueError('请选择有效的证件类型')
 
         return identity_number
 
@@ -248,3 +248,8 @@ class UserListForAdminResponse(BaseModel):
     total: int
     skip: int
     limit: int
+
+
+class BlockUserRequest(BaseModel):
+    """拉黑用户请求"""
+    reason: Optional[str] = Field(None, max_length=255, description="拉黑原因")

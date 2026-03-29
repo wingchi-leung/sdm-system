@@ -13,40 +13,130 @@
 
   <!-- 表单 -->
   <view class="form-card">
+    <!-- ========== 用户信息（从资料获取，不可编辑）========== -->
+    <view class="section-title">基本信息</view>
+
     <!-- 姓名 -->
-    <view class="field">
+    <view class="field field-readonly">
       <text class="field-label">姓名</text>
-      <input
-        class="input"
-        placeholder="请输入姓名"
+      <view class="readonly-value">{{name || '未设置'}}</view>
+    </view>
+
+    <!-- 性别 -->
+    <view class="field field-readonly">
+      <text class="field-label">性别</text>
+      <view class="readonly-value">{{sex || '未设置'}}</view>
+    </view>
+
+    <!-- 年龄 -->
+    <view class="field field-readonly">
+      <text class="field-label">年龄</text>
+      <view class="readonly-value">{{age || '未设置'}}</view>
+    </view>
+
+    <!-- 职业 -->
+    <view class="field field-readonly">
+      <text class="field-label">职业</text>
+      <view class="readonly-value">{{occupation || '未设置'}}</view>
+    </view>
+
+    <!-- 电话 -->
+    <view class="field field-readonly">
+      <text class="field-label">电话</text>
+      <view class="readonly-value">{{phone || '未设置'}}</view>
+    </view>
+
+    <!-- 邮箱 -->
+    <view class="field field-readonly">
+      <text class="field-label">邮箱</text>
+      <view class="readonly-value">{{email || '未设置'}}</view>
+    </view>
+
+    <!-- 行业 -->
+    <view class="field field-readonly">
+      <text class="field-label">行业</text>
+      <view class="readonly-value">{{industry || '未设置'}}</view>
+    </view>
+
+    <!-- 证件信息 -->
+    <view class="field field-readonly">
+      <text class="field-label">证件类型</text>
+      <view class="readonly-value">{{identityTypeLabel || '未设置'}}</view>
+    </view>
+    <view class="field field-readonly">
+      <text class="field-label">证件号码</text>
+      <view class="readonly-value">{{identityNumber || '未设置'}}</view>
+    </view>
+
+    <!-- ========== 问卷部分 ========== -->
+    <view class="section-divider"></view>
+    <view class="section-title">报名问卷</view>
+
+    <!-- 为什么要参与 -->
+    <view class="field">
+      <text class="field-label required">为什么要参与？</text>
+      <textarea
+        class="textarea"
+        placeholder="请说明您参与此次活动的原因"
         placeholder-class="input-placeholder"
-        value="{{name}}"
-        bindinput="onNameInput"
+        value="{{whyJoin}}"
+        bindinput="onWhyJoinInput"
+        maxlength="500"
+        auto-height
       />
     </view>
 
-    <!-- 手机号 -->
+    <!-- 了解渠道 -->
     <view class="field">
-      <text class="field-label">手机号</text>
+      <text class="field-label required">您是通过什么渠道了解此活动的？</text>
       <input
         class="input"
-        type="number"
-        placeholder="请输入手机号"
+        placeholder="如：朋友推荐、公众号、社群等"
         placeholder-class="input-placeholder"
-        value="{{phone}}"
-        bindinput="onPhoneInput"
+        value="{{channel}}"
+        bindinput="onChannelInput"
+        maxlength="255"
       />
     </view>
 
-    <!-- 证件号 -->
+    <!-- 学习期望 -->
     <view class="field">
-      <text class="field-label optional">证件号</text>
+      <text class="field-label required">您对本次活动有什么学习期望？</text>
+      <textarea
+        class="textarea"
+        placeholder="请描述您希望在活动中获得什么"
+        placeholder-class="input-placeholder"
+        value="{{expectation}}"
+        bindinput="onExpectationInput"
+        maxlength="500"
+        auto-height
+      />
+    </view>
+
+    <!-- 是否了解活动 -->
+    <view class="field">
+      <text class="field-label">用一句话描述您对本活动的了解？</text>
       <input
         class="input"
-        placeholder="身份证等（选填）"
+        placeholder="选填"
         placeholder-class="input-placeholder"
-        value="{{identityNumber}}"
-        bindinput="onIdInput"
+        value="{{activityUnderstanding}}"
+        bindinput="onUnderstandingInput"
+        maxlength="255"
+      />
+    </view>
+
+    <!-- 是否有问题 -->
+    <view class="field">
+      <text class="field-label">您是否有任何问题想要了解？</text>
+      <textarea
+        class="textarea"
+        placeholder="选填，如有问题请在此提出"
+        placeholder-class="input-placeholder"
+        value="{{hasQuestions}}"
+        bindinput="onQuestionsInput"
+        maxlength="500"
+        auto-height
       />
     </view>
 

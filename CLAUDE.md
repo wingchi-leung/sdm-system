@@ -27,7 +27,7 @@ SDM System是一个包含后端，web前端，flutter，小程序的一个管理
    - Python: 符合 PEP8, 类型注解必填。
    - Flutter: 遵循官方 Lint 规则。
    - 小程序: 严禁直接操作全局 Data，需使用状态管理。
-5. **提交规范**: 提交信息必须包含 [Backend/Flutter/Web] 前缀。
+5. **提交规范**: 提交信息必须包含 [Backend/Flutter/Web/Mini] 前缀。
 
 ### 开发指南
 
@@ -52,3 +52,4 @@ SDM System是一个包含后端，web前端，flutter，小程序的一个管理
 ## 任务执行
 - 任务执行过程不必确认，每完成一阶段任务自动 commit 并继续下一个任务
 - 完成重大调整和改动后，写到`产品规格说明-spec`文档，保证此文档的说明和工程的真实实现符合
+- Sql语句：建表语句直接追加到 table.sql ,字段修改语句添加到field.sql中

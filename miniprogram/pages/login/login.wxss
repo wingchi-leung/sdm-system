@@ -1,10 +1,10 @@
 /**
- * 登录页 - 高级简约风格
+ * 登录页 - 奢华简约风格
  */
 
 .page {
   min-height: 100vh;
-  padding: 0 var(--space-xl);
+  padding: 0 48rpx;
   background: var(--background);
   display: flex;
   flex-direction: column;
@@ -19,37 +19,37 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-3xl) 0;
+  padding: 160rpx 0 80rpx;
 }
 
 .brand-icon {
-  width: 80rpx;
-  height: 80rpx;
+  width: 96rpx;
+  height: 96rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-xl);
+  margin-bottom: 48rpx;
 }
 
 .gate-icon {
-  width: 64rpx;
-  height: 64rpx;
+  width: 72rpx;
+  height: 72rpx;
 }
 
 .brand-title {
   font-family: var(--font-display);
-  font-size: 44rpx;
-  font-weight: 500;
+  font-size: 52rpx;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.08em;
-  margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
+  margin-bottom: 12rpx;
 }
 
 .brand-subtitle {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 400;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -91,21 +91,20 @@
  * 表单区域
  * ───────────────────────────────────────────────────────────── */
 .form-section {
-  padding-bottom: var(--space-3xl);
+  padding-bottom: 80rpx;
 }
 
 .field {
-  margin-bottom: var(--space-lg);
+  margin-bottom: 32rpx;
 }
 
 .field-label {
   display: block;
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: var(--text-tertiary);
-  margin-bottom: var(--space-sm);
+  margin-bottom: 12rpx;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .input-wrap {
@@ -115,20 +114,20 @@
 .input {
   width: 100%;
   height: 96rpx;
-  padding: 0 var(--space-md);
-  font-size: 28rpx;
-  background: var(--background);
-  border: none;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  background: var(--background-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16rpx;
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
-  letter-spacing: 0.04em;
+  letter-spacing: -0.01em;
 }
 
 .input:focus {
-  border-bottom-color: var(--text-primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
 }
 
 .input-placeholder {
@@ -156,12 +155,13 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 96rpx;
+  height: 104rpx;
   background: var(--primary);
-  border-radius: var(--radius-xs);
+  border-radius: 980rpx;
   border: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: var(--space-xl);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  margin-top: 48rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
 .btn-submit::after {
@@ -169,18 +169,19 @@
 }
 
 .btn-submit:active {
-  opacity: 0.85;
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
 }
 
 .btn-submit[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .btn-submit .btn-text {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 500;
   color: #FFFFFF;
-  letter-spacing: 0.12em;
+  letter-spacing: -0.01em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -188,16 +189,15 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-wechat {
   width: 100%;
-  height: 96rpx;
-  background: var(--background);
-  border-radius: 0;
-  border: none;
-  border-bottom: 1px solid var(--border);
+  height: 104rpx;
+  background: var(--background-card);
+  border-radius: 980rpx;
+  border: 1.5px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-sm);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 16rpx;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .btn-wechat::after {
@@ -206,31 +206,32 @@
 
 .btn-wechat:active {
   background: var(--background-subtle);
+  transform: scale(0.97);
 }
 
 .btn-wechat[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .wechat-icon {
-  width: 36rpx;
-  height: 36rpx;
+  width: 40rpx;
+  height: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .wechat-icon text {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #07C160;
   font-weight: 700;
 }
 
 .wechat-text {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: 0.08em;
+  letter-spacing: -0.01em;
 }
 
 /* ─────────────────────────────────────────────────────────────

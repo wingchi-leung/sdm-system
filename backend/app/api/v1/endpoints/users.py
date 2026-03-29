@@ -143,3 +143,35 @@ def get_all_users_for_super_admin(
         skip=skip,
         limit=limit,
     )
+
+
+@router.post("/{user_id}/block", response_model=user.UserResponse)
+def block_user(
+    user_id: int,
+    body: user.BlockUserRequest = None,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """拉黑用户（仅超级管理员）"""
+    # 检查是否为超级管理员
+    is_super, _ = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可操作")
+
+    reason = body.reason if body else None
+    return crud_user.block_user(db, user_id, ctx.tenant_id, reason)
+
+
+@router.post("/{user_id}/unblock", response_model=user.UserResponse)
+def unblock_user(
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """解除拉黑用户（仅超级管理员）"""
+    # 检查是否为超级管理员
+    is_super, _ = crud_admin.get_admin_scope(db, ctx.user_id, ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可操作")
+
+    return crud_user.unblock_user(db, user_id, ctx.tenant_id)

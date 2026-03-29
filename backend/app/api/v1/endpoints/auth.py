@@ -366,4 +366,5 @@ def phone_login(
         user_name=user.name or f"用户{phone[-4:]}",
         is_first_login=is_first_login,
         require_bind_info=is_first_login,
+        phone=phone,
     )

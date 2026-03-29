@@ -160,15 +160,20 @@ function getUserProfile() {
 }
 
 /** 活动报名 */
-function registerParticipant({ activity_id, participant_name, phone, identity_number }) {
-  const data = { activity_id, participant_name, phone };
-  if (identity_number) data.identity_number = identity_number;
+function registerParticipant(data) {
+  // 过滤掉 undefined 的字段
+  const filteredData = {};
+  for (const key in data) {
+    if (data[key] !== undefined) {
+      filteredData[key] = data[key];
+    }
+  }
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${baseUrl}/participants/`,
       method: 'POST',
       header: getHeader(true),
-      data,
+      data: filteredData,
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -522,6 +527,40 @@ function uploadPoster(filePath) {
   });
 }
 
+/** 拉黑用户 */
+function blockUser(userId, reason) {
+  const data = reason ? { reason } : {};
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/${userId}/block`,
+      method: 'POST',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 解除拉黑用户 */
+function unblockUser(userId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/${userId}/unblock`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   staticBaseUrl,
@@ -553,5 +592,7 @@ module.exports = {
   createPaymentOrder,
   queryPaymentOrder,
   uploadPoster,
+  blockUser,
+  unblockUser,
   ApiError,
 };

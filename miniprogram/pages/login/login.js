@@ -243,6 +243,11 @@ Page({
           userName: data.user_name || '微信用户',
         });
 
+        // 保存微信授权的手机号（用于绑定页面校验）
+        if (data.phone) {
+          wx.setStorageSync('wechat_phone', data.phone);
+        }
+
         // 保存首次登录标识
         if (data.is_first_login || data.require_bind_info) {
           wx.setStorageSync('require_bind_info', true);

@@ -1,10 +1,10 @@
 /**
- * 用户列表 - 高级简约风格
+ * 用户列表 - 奢华简约风格
  */
 
 .page {
   min-height: 100vh;
-  padding: var(--space-xl) var(--space-lg);
+  padding: 48rpx 32rpx;
   background: var(--background);
 }
 
@@ -14,22 +14,28 @@
 .search-section {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--divider);
-  margin-bottom: var(--space-lg);
+  gap: 20rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 0.5px solid var(--divider);
+  margin-bottom: 32rpx;
 }
 
 .search-input {
   flex: 1;
-  height: 72rpx;
-  padding: 0 var(--space-md);
-  font-size: 26rpx;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border);
+  height: 80rpx;
+  padding: 0 24rpx;
+  font-size: 28rpx;
+  background: var(--background-card);
+  border: 1.5px solid var(--border);
+  border-radius: 980rpx;
   color: var(--text-primary);
-  letter-spacing: 0.04em;
+  letter-spacing: -0.01em;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
 }
 
 .search-input::placeholder {
@@ -38,14 +44,16 @@
 
 .search-actions {
   display: flex;
-  gap: var(--space-md);
+  gap: 16rpx;
 }
 
 .search-btn,
 .clear-btn {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--text-secondary);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
+  padding: 8rpx 16rpx;
+  transition: all 0.2s ease;
 }
 
 .search-btn:active,
@@ -59,23 +67,22 @@
 .stats-header {
   display: flex;
   align-items: baseline;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-lg);
+  gap: 12rpx;
+  margin-bottom: 32rpx;
 }
 
 .stats-label {
-  font-size: 22rpx;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
 }
 
 .stats-count {
   font-family: var(--font-display);
-  font-size: 32rpx;
-  font-weight: 500;
+  font-size: 36rpx;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.02em;
+  letter-spacing: -0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -106,38 +113,42 @@
 }
 
 .user-item {
-  padding: var(--space-lg) 0;
-  border-bottom: 1px solid var(--divider);
+  padding: 32rpx 0;
+  border-bottom: 0.5px solid var(--divider);
 }
 
 .user-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-md);
+  margin-bottom: 20rpx;
 }
 
 .user-name {
-  font-size: 28rpx;
-  font-weight: 500;
+  font-size: 32rpx;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.04em;
+  letter-spacing: -0.01em;
 }
 
 .user-status {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: var(--status-ongoing);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
+  padding: 6rpx 16rpx;
+  border-radius: 980rpx;
+  background: var(--status-ongoing-bg);
 }
 
 .user-status.blocked {
   color: var(--error);
+  background: var(--error-bg);
 }
 
 .user-info {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 12rpx;
 }
 
 .info-row {
@@ -146,31 +157,58 @@
 }
 
 .info-label {
-  width: 100rpx;
-  font-size: 22rpx;
-  color: var(--text-muted);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.info-value {
+  width: 120rpx;
   font-size: 24rpx;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   letter-spacing: 0.02em;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 加载更多
- * ───────────────────────────────────────────────────────────── */
-.load-more,
-.no-more {
-  text-align: center;
-  padding: var(--space-2xl) 0;
+.info-value {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  letter-spacing: 0;
 }
 
-.load-more text,
-.no-more text {
-  font-size: 22rpx;
-  color: var(--text-muted);
-  letter-spacing: 0.1em;
+/* ─────────────────────────────────────────────────────────────
+ * 操作按钮
+ * ───────────────────────────────────────────────────────────── */
+.user-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20rpx;
+}
+
+.action-btn {
+  font-size: 26rpx;
+  padding: 12rpx 28rpx;
+  border-radius: 980rpx;
+  letter-spacing: 0;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.block-btn {
+  color: var(--error);
+  background: transparent;
+  border: 1.5px solid var(--error);
+}
+
+.block-btn:active {
+  background: var(--error-bg);
+  transform: scale(0.96);
+}
+
+.unblock-btn {
+  color: var(--success);
+  background: transparent;
+  border: 1.5px solid var(--success);
+}
+
+.unblock-btn:active {
+  background: var(--success-bg);
+  transform: scale(0.96);
+}
+
+.block-reason {
+  color: var(--error);
 }

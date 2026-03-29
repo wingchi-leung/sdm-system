@@ -1,5 +1,5 @@
 /**
- * 活动报名页 - 高级简约风格
+ * 活动报名页 - 奢华简约风格
  */
 
 /* ─────────────────────────────────────────────────────────────
@@ -14,12 +14,12 @@
 }
 
 .loading {
-  width: 48rpx;
-  height: 48rpx;
-  border: 3rpx solid var(--border);
+  width: 44rpx;
+  height: 44rpx;
+  border: 2rpx solid var(--border);
   border-top-color: var(--primary);
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes spin {
@@ -27,15 +27,15 @@
 }
 
 .loading-text {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: var(--text-tertiary);
-  margin-top: var(--space-md);
-  letter-spacing: 0.04em;
+  margin-top: 24rpx;
+  letter-spacing: 0.02em;
 }
 
 .page {
   min-height: 100vh;
-  padding: var(--space-xl) var(--space-lg);
+  padding: 48rpx 32rpx;
   background: var(--background);
 }
 
@@ -43,26 +43,26 @@
  * 头部
  * ───────────────────────────────────────────────────────────── */
 .header {
-  margin-bottom: var(--space-xl);
-  padding-bottom: var(--space-lg);
-  border-bottom: 1px solid var(--divider);
+  margin-bottom: 48rpx;
+  padding-bottom: 32rpx;
+  border-bottom: 0.5px solid var(--divider);
 }
 
 .header-title {
   display: block;
   font-family: var(--font-display);
-  font-size: 36rpx;
-  font-weight: 500;
+  font-size: 44rpx;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: 0.04em;
-  margin-bottom: var(--space-sm);
+  letter-spacing: -0.02em;
+  margin-bottom: 12rpx;
 }
 
 .header-subtitle {
   display: block;
-  font-size: 22rpx;
+  font-size: 26rpx;
   color: var(--text-tertiary);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -73,10 +73,29 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
+ * 分区标题
+ * ───────────────────────────────────────────────────────────── */
+.section-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--divider);
+}
+
+.section-divider {
+  height: 1px;
+  background: var(--divider);
+  margin: var(--space-xl) 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
  * 表单字段
  * ───────────────────────────────────────────────────────────── */
 .field {
-  margin-bottom: var(--space-lg);
+  margin-bottom: 32rpx;
 }
 
 .field:last-child {
@@ -85,43 +104,73 @@
 
 .field-label {
   display: block;
-  font-size: 22rpx;
-  color: var(--text-muted);
-  margin-bottom: var(--space-sm);
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  margin-bottom: 12rpx;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.field-label::after {
-  content: '';
-}
-
-.field-label.optional::after {
-  content: '';
+.field-label.required::before {
+  content: '* ';
+  color: var(--error);
 }
 
 .input {
   width: 100%;
-  height: 88rpx;
-  padding: 0 0;
-  font-size: 28rpx;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  height: 96rpx;
+  padding: 0 24rpx;
+  font-size: 30rpx;
+  background: var(--background-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16rpx;
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
-  letter-spacing: 0.04em;
+  letter-spacing: -0.01em;
 }
 
 .input:focus {
-  border-bottom-color: var(--text-primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
+}
+
+.textarea {
+  width: 100%;
+  min-height: 140rpx;
+  padding: 20rpx 24rpx;
+  font-size: 30rpx;
+  background: var(--background-card);
+  border: 1.5px solid var(--border);
+  border-radius: 16rpx;
+  box-sizing: border-box;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+}
+
+.textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4rpx var(--primary-light);
 }
 
 .input-placeholder {
   color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────
+ * 只读字段
+ * ───────────────────────────────────────────────────────────── */
+.field-readonly {
+  margin-bottom: var(--space-md);
+}
+
+.readonly-value {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  padding: var(--space-xs) 0;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -145,12 +194,13 @@
  * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 96rpx;
+  height: 104rpx;
   background: var(--primary);
-  border-radius: var(--radius-xs);
+  border-radius: 980rpx;
   border: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  margin-top: var(--space-2xl);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  margin-top: 64rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
 .btn-submit::after {
@@ -158,18 +208,19 @@
 }
 
 .btn-submit:active {
-  opacity: 0.85;
+  transform: scale(0.97);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.08);
 }
 
 .btn-submit[disabled] {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .btn-submit .btn-text {
-  font-size: 28rpx;
+  font-size: 32rpx;
   font-weight: 500;
   color: #FFFFFF;
-  letter-spacing: 0.12em;
+  letter-spacing: -0.01em;
 }
 
 /* ─────────────────────────────────────────────────────────────
