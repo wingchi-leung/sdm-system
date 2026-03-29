@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schemas import AdminUser, AdminActivityTypeRole
-from app.core.security import verify_password
+from app.core.security import verify_password, get_password_hash
 from typing import List
 
 
@@ -83,3 +83,18 @@ def get_admin_roles(db: Session, admin_user_id: int, tenant_id: int) -> List[int
         AdminActivityTypeRole.tenant_id == tenant_id
     ).all()
     return [r[0] for r in rows]
+
+
+def create_admin(db: Session, user_id: int, username: str, password: str, tenant_id: int) -> AdminUser:
+    """创建管理员账号"""
+    admin = AdminUser(
+        tenant_id=tenant_id,
+        username=username,
+        password_hash=get_password_hash(password),
+        user_id=user_id,
+        is_super_admin=0
+    )
+    db.add(admin)
+    db.commit()
+    db.refresh(admin)
+    return admin

@@ -2,6 +2,13 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 
+class AdminCreate(BaseModel):
+    """创建管理员"""
+    user_id: int
+    username: str
+    password: str
+
+
 class AdminBase(BaseModel):
     username: str
 

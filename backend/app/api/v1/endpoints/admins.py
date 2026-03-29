@@ -24,6 +24,27 @@ def require_super_admin(ctx: deps.TenantContext = Depends(deps.get_current_admin
         db.close()
 
 
+@router.post("/", response_model=admin_model.AdminResponse)
+def create_admin(
+    body: admin_model.AdminCreate,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(require_super_admin),
+):
+    """创建管理员账号（仅超级管理员）"""
+    from app.crud import crud_user
+
+    user = crud_user.get_user_by_id(db, body.user_id, ctx.tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    existing = crud_admin.get_admin_by_username(db, body.username, ctx.tenant_id)
+    if existing:
+        raise HTTPException(status_code=400, detail="用户名已存在")
+
+    admin = crud_admin.create_admin(db, body.user_id, body.username, body.password, ctx.tenant_id)
+    return admin
+
+
 @router.get("/", response_model=admin_model.AdminListResponse)
 def list_admins(
     db: Session = Depends(deps.get_db),
