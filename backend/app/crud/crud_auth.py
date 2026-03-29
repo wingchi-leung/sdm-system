@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.schemas import AdminUser
-from app.core.security import verify_password, get_password_hash
+from app.core.security import verify_password, hash_password
 from typing import Optional
 
 
@@ -26,7 +26,7 @@ def create_admin(db: Session, user_id: int, username: str, password: str, tenant
         tenant_id=tenant_id,
         user_id=user_id,
         username=username,
-        password_hash=get_password_hash(password)
+        password_hash=hash_password(password)
     )
     db.add(admin)
     db.commit()
