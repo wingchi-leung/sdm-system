@@ -180,3 +180,38 @@ class PaymentOrder(BaseModel):
     paid_at = Column(DateTime, nullable=True)             # 支付成功时间
     expire_at = Column(DateTime, nullable=False)          # 过期时间
     callback_raw = Column(String(2000), nullable=True)    # 回调原始数据
+
+
+# ============================================================
+# RBAC 权限系统
+# ============================================================
+class Permission(BaseModel):
+    __tablename__ = "permission"
+    code = Column(String(64), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    resource = Column(String(32), nullable=False, index=True)
+    action = Column(String(32), nullable=False)
+    description = Column(String(500), nullable=True)
+
+
+class Role(BaseModel):
+    __tablename__ = "role"
+    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    name = Column(String(64), nullable=False, index=True)
+    is_system = Column(Integer, default=0, nullable=False)
+    description = Column(String(500), nullable=True)
+
+
+class RolePermission(BaseModel):
+    __tablename__ = "role_permission"
+    role_id = Column(Integer, nullable=False, index=True)
+    permission_id = Column(Integer, nullable=False, index=True)
+
+
+class UserRole(BaseModel):
+    __tablename__ = "user_role"
+    user_id = Column(Integer, nullable=False, index=True)
+    role_id = Column(Integer, nullable=False, index=True)
+    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    scope_type = Column(String(32), nullable=True)
+    scope_id = Column(Integer, nullable=True)

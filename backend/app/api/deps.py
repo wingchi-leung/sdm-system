@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import SessionLocal
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
-from app.crud import crud_admin, crud_activity
+from app.crud import crud_admin, crud_activity, crud_rbac
 
 security = HTTPBearer(auto_error=False)
 
@@ -138,3 +138,48 @@ def require_activity_admin(
         return activity_id
     
     raise HTTPException(status_code=403, detail="无该活动的管理权限")
+
+
+def require_permission(permission_code: str):
+    """权限检查装饰器（RBAC）"""
+    def checker(
+        db: Session = Depends(get_db),
+        ctx: TenantContext = Depends(get_current_admin),
+    ) -> TenantContext:
+        if not crud_rbac.has_permission(db, ctx.user_id, permission_code, ctx.tenant_id):
+            raise HTTPException(status_code=403, detail=f"缺少权限: {permission_code}")
+        return ctx
+    return checker
+
+
+def require_activity_permission(permission_code: str, activity_id: int):
+    """活动级别权限检查（RBAC）"""
+    def checker(
+        db: Session = Depends(get_db),
+        ctx: TenantContext = Depends(get_current_admin),
+    ) -> TenantContext:
+        activity = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
+        if not activity:
+            raise HTTPException(status_code=404, detail="活动不存在")
+
+        # 检查全局权限
+        if crud_rbac.has_permission(db, ctx.user_id, permission_code, ctx.tenant_id):
+            return ctx
+
+        # 检查活动类型权限
+        if activity.activity_type_id:
+            if crud_rbac.has_permission(
+                db, ctx.user_id, permission_code, ctx.tenant_id,
+                resource_id=activity.activity_type_id, resource_type='activity_type'
+            ):
+                return ctx
+
+        # 检查具体活动权限
+        if crud_rbac.has_permission(
+            db, ctx.user_id, permission_code, ctx.tenant_id,
+            resource_id=activity_id, resource_type='activity'
+        ):
+            return ctx
+
+        raise HTTPException(status_code=403, detail=f"无该活动的{permission_code}权限")
+    return checker
