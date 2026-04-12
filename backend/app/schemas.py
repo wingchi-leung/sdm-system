@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, func, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Text, func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -103,6 +103,7 @@ class ActivityParticipant(BaseModel):
     __tablename__ = "activity_participants"
     __table_args__ = (
         UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_participant_unique'),
+        UniqueConstraint('activity_id', 'user_id', 'tenant_id', name='uk_participant_user_unique'),
     )
     tenant_id = Column(Integer, nullable=False, index=True, default=1)
     activity_id = Column(Integer, index=True)
@@ -161,6 +162,7 @@ class PaymentOrder(BaseModel):
     participant_id = Column(Integer, nullable=True, index=True)
     participant_name = Column(String(255), nullable=True)   # 报名人姓名
     phone = Column(String(255), nullable=True)              # 报名人手机号
+    participant_snapshot = Column(Text, nullable=True)      # 报名信息快照(JSON)
     suggested_fee = Column(Integer, nullable=False)      # 建议费用（分）
     actual_fee = Column(Integer, nullable=False)         # 实际支付金额（分）
     status = Column(Integer, default=0, index=True)      # 0-待支付 1-成功 2-失败 3-关闭

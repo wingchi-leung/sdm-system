@@ -19,6 +19,26 @@ Page({
     this.setData({ unsafeTip: api.isUnsafeBaseUrl() });
   },
 
+  getRedirectUrl() {
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    if (!currentPage || !currentPage.options || !currentPage.options.redirect) {
+      return '';
+    }
+    return decodeURIComponent(currentPage.options.redirect);
+  },
+
+  navigateAfterLogin() {
+    const redirectUrl = this.getRedirectUrl();
+    if (redirectUrl) {
+      wx.redirectTo({ url: redirectUrl });
+      return;
+    }
+    wx.switchTab({
+      url: '/pages/index/index'
+    });
+  },
+
   /**
    * 图标点击：快速点击5次进入管理员模式
    */
@@ -95,9 +115,7 @@ Page({
           auth.saveAdminToken(res.access_token, res);
           wx.showToast({ title: '登录成功', icon: 'success' });
           setTimeout(() => {
-            wx.switchTab({
-              url: '/pages/index/index'
-            });
+            this.navigateAfterLogin();
           }, 800);
         })
         .catch((err) => {
@@ -138,9 +156,7 @@ Page({
                 }, 800);
               } else {
                 setTimeout(() => {
-                  wx.switchTab({
-                    url: '/pages/index/index'
-                  });
+                  this.navigateAfterLogin();
                 }, 800);
               }
             })
@@ -195,9 +211,7 @@ Page({
               }, 800);
             } else {
               setTimeout(() => {
-                wx.switchTab({
-                  url: '/pages/index/index'
-                });
+                this.navigateAfterLogin();
               }, 800);
             }
           })
@@ -264,9 +278,7 @@ Page({
           }, 800);
         } else {
           setTimeout(() => {
-            wx.switchTab({
-              url: '/pages/index/index'
-            });
+            this.navigateAfterLogin();
           }, 800);
         }
       })

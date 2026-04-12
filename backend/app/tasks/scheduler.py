@@ -13,12 +13,19 @@ from sqlalchemy import and_
 from app.database import SessionLocal
 from app.schemas import PaymentOrder
 from app.services.wechat_pay import get_wechat_pay_service
+from app.crud import crud_payment
 
 logger = logging.getLogger(__name__)
 
 # 任务停止标志
 _stop_event = Optional[threading.Event]
 _scheduler_thread: Optional[threading.Thread] = None
+
+
+def _should_mark_closed_from_remote_query(remote_order: dict | None) -> bool:
+    """根据微信查单结果判断是否可安全关闭本地订单"""
+    trade_state = (remote_order or {}).get("trade_state")
+    return trade_state in {"NOTPAY", "CLOSED", "REVOKED", "PAYERROR"}
 
 
 def close_expired_payment_orders():
@@ -50,19 +57,52 @@ def close_expired_payment_orders():
 
         for order in expired_orders:
             try:
+                locked_order = db.query(PaymentOrder).filter(
+                    PaymentOrder.id == order.id
+                ).with_for_update().first()
+                if not locked_order or locked_order.status != crud_payment.PAYMENT_STATUS_PENDING:
+                    continue
+
                 # 调用微信关闭订单接口
-                pay_service.close_order(order.order_no)
+                pay_service.close_order(locked_order.order_no)
                 # 更新订单状态
-                order.status = 3  # 关闭
-                order.update_time = now
+                locked_order.status = crud_payment.PAYMENT_STATUS_CLOSED
+                locked_order.update_time = now
                 closed_count += 1
-                logger.info(f"关闭过期订单: {order.order_no}")
+                logger.info(f"关闭过期订单: {locked_order.order_no}")
             except Exception as e:
-                # 即使微信关闭失败，也更新本地订单状态
-                order.status = 3  # 关闭
-                order.update_time = now
+                try:
+                    remote_order = pay_service.query_order(order.order_no)
+                except Exception as query_error:
+                    failed_count += 1
+                    logger.warning(
+                        "关闭订单 %s 时微信接口失败，且查单也失败: %s / %s",
+                        order.order_no,
+                        e,
+                        query_error,
+                    )
+                    continue
+
+                if _should_mark_closed_from_remote_query(remote_order):
+                    locked_order = db.query(PaymentOrder).filter(
+                        PaymentOrder.id == order.id
+                    ).with_for_update().first()
+                    if locked_order and locked_order.status == crud_payment.PAYMENT_STATUS_PENDING:
+                        locked_order.status = crud_payment.PAYMENT_STATUS_CLOSED
+                        locked_order.update_time = now
+                        closed_count += 1
+                        logger.warning(
+                            "关闭订单 %s 时微信接口失败，但查单确认未支付，已关闭本地订单",
+                            order.order_no,
+                        )
+                    continue
+
                 failed_count += 1
-                logger.warning(f"关闭订单 {order.order_no} 时微信接口失败: {e}")
+                logger.warning(
+                    "关闭订单 %s 时微信接口失败，查单结果为已支付或支付中，保留待处理状态: %s",
+                    order.order_no,
+                    remote_order,
+                )
 
         db.commit()
         logger.info(f"过期订单处理完成: 成功 {closed_count}, 失败 {failed_count}")

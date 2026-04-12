@@ -2,9 +2,9 @@
 -- SDM System 数据库表结构（唯一 SQL 入口）
 -- ============================================================
 
--- ------------------------------------------------------------
+-- 
 -- 1. 租户表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `tenant` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL COMMENT '租户名称',
@@ -27,9 +27,9 @@ INSERT INTO `tenant` (`id`, `name`, `code`, `status`, `plan`)
 VALUES (1, '默认租户', 'default', 1, 'enterprise')
 ON DUPLICATE KEY UPDATE `name` = '默认租户';
 
--- ------------------------------------------------------------
+-- 
 -- 2. 活动类型表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `activity_type` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -42,9 +42,9 @@ CREATE TABLE IF NOT EXISTS `activity_type` (
   KEY `idx_activity_type_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动类型表';
 
--- ------------------------------------------------------------
+-- 
 -- 3. 用户表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS `user` (
   KEY `idx_user_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
 
--- ------------------------------------------------------------
+-- 
 -- 4. 管理员认证表（仅用于登录）
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `admin_user` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -86,9 +86,9 @@ CREATE TABLE IF NOT EXISTS `admin_user` (
   KEY `idx_user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员认证表';
 
--- ------------------------------------------------------------
+-- 
 -- 5. 活动表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `activity` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -118,9 +118,9 @@ ALTER TABLE activity ADD COLUMN location VARCHAR(255) NULL COMMENT '活动地点
 -- 添加报名限额字段
 ALTER TABLE activity ADD COLUMN max_participants INT NULL COMMENT '最大参与人数，NULL表示无限制' AFTER location;
 
--- ------------------------------------------------------------
+-- 
 -- 6. 活动参与人表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `activity_participants` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -136,15 +136,16 @@ CREATE TABLE IF NOT EXISTS `activity_participants` (
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_participant_unique` (`activity_id`, `identity_number`, `tenant_id`),
+  UNIQUE KEY `uk_participant_user_unique` (`activity_id`, `user_id`, `tenant_id`),
   KEY `idx_participants_tenant_id` (`tenant_id`),
   KEY `idx_tenant_activity` (`tenant_id`, `activity_id`),
   KEY `idx_participant_activity_id` (`activity_id`),
   KEY `idx_participant_identity` (`identity_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动参与人表';
 
--- ------------------------------------------------------------
+-- 
 -- 7. 签到记录表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `checkin_records` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -166,9 +167,9 @@ CREATE TABLE IF NOT EXISTS `checkin_records` (
   KEY `idx_checkin_identity` (`identity_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='签到记录表';
 
--- ------------------------------------------------------------
+-- 
 -- 8. 支付订单表
--- ------------------------------------------------------------
+-- 
 CREATE TABLE IF NOT EXISTS `payment_order` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -179,6 +180,7 @@ CREATE TABLE IF NOT EXISTS `payment_order` (
   `participant_id` int DEFAULT NULL COMMENT '参与者ID',
   `participant_name` varchar(255) DEFAULT NULL COMMENT '报名人姓名',
   `phone` varchar(255) DEFAULT NULL COMMENT '报名人手机号',
+  `participant_snapshot` text DEFAULT NULL COMMENT '报名信息快照(JSON)',
   `suggested_fee` int NOT NULL COMMENT '建议费用（分）',
   `actual_fee` int NOT NULL COMMENT '实际支付金额（分）',
   `status` int DEFAULT 0 COMMENT '订单状态：0-待支付 1-成功 2-失败 3-关闭',
@@ -217,9 +219,8 @@ ALTER TABLE activity_participants ADD COLUMN expectation VARCHAR(500) NULL COMME
 ALTER TABLE activity_participants ADD COLUMN activity_understanding VARCHAR(255) NULL COMMENT '对活动的了解（一句话描述）' AFTER expectation;
 ALTER TABLE activity_participants ADD COLUMN has_questions VARCHAR(500) NULL COMMENT '是否有问题' AFTER activity_understanding;
 
--- ------------------------------------------------------------
 -- 10. RBAC 权限表
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `permission` (
   `id` int NOT NULL AUTO_INCREMENT,
   `code` varchar(64) NOT NULL COMMENT '权限代码，如 activity.create',
@@ -233,9 +234,9 @@ CREATE TABLE IF NOT EXISTS `permission` (
   KEY `idx_resource` (`resource`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='权限表';
 
--- ------------------------------------------------------------
+
 -- 11. RBAC 角色表
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `role` (
   `id` int NOT NULL AUTO_INCREMENT,
   `tenant_id` int NOT NULL DEFAULT 1 COMMENT '租户ID',
@@ -249,9 +250,8 @@ CREATE TABLE IF NOT EXISTS `role` (
   KEY `idx_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色表';
 
--- ------------------------------------------------------------
--- 12. RBAC 角色权限关联表
--- ------------------------------------------------------------
+-- -- 12. RBAC 角色权限关联表
+
 CREATE TABLE IF NOT EXISTS `role_permission` (
   `id` int NOT NULL AUTO_INCREMENT,
   `role_id` int NOT NULL COMMENT '角色ID',
@@ -263,9 +263,9 @@ CREATE TABLE IF NOT EXISTS `role_permission` (
   KEY `idx_permission_id` (`permission_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色权限关联表';
 
--- ------------------------------------------------------------
+
 -- 13. RBAC 用户角色关联表
--- ------------------------------------------------------------
+
 CREATE TABLE IF NOT EXISTS `user_role` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL COMMENT '用户ID',
@@ -281,9 +281,9 @@ CREATE TABLE IF NOT EXISTS `user_role` (
   KEY `idx_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户角色关联表';
 
--- ------------------------------------------------------------
+
 -- RBAC 初始数据
--- ------------------------------------------------------------
+
 
 -- 插入权限定义
 INSERT INTO `permission` (`code`, `name`, `resource`, `action`, `description`) VALUES
@@ -300,26 +300,3 @@ INSERT INTO `permission` (`code`, `name`, `resource`, `action`, `description`) V
 ('user.block', '拉黑用户', 'user', 'block', '拉黑/解除拉黑用户'),
 ('admin.manage', '管理管理员', 'admin', 'manage', '创建和管理管理员账号'),
 ('role.manage', '管理角色', 'role', 'manage', '创建和管理角色权限');
-
--- 插入预设角色
-INSERT INTO `role` (`tenant_id`, `name`, `is_system`, `description`) VALUES
-(1, '超级管理员', 1, '拥有所有权限的系统管理员'),
-(1, '活动管理员', 1, '可以创建和管理活动、查看报名、管理签到'),
-(1, '签到员', 1, '仅负责活动签到'),
-(1, '财务', 1, '查看和导出报名数据');
-
--- 为角色分配权限
-INSERT INTO `role_permission` (`role_id`, `permission_id`)
-SELECT 1, id FROM `permission`;
-
-INSERT INTO `role_permission` (`role_id`, `permission_id`)
-SELECT 2, id FROM `permission` WHERE code IN (
-  'activity.create', 'activity.edit', 'activity.delete', 'activity.view', 'activity.publish',
-  'participant.view', 'participant.export', 'checkin.manage'
-);
-
-INSERT INTO `role_permission` (`role_id`, `permission_id`)
-SELECT 3, id FROM `permission` WHERE code IN ('checkin.manage', 'participant.view');
-
-INSERT INTO `role_permission` (`role_id`, `permission_id`)
-SELECT 4, id FROM `permission` WHERE code IN ('participant.view', 'participant.export');

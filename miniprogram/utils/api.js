@@ -480,9 +480,13 @@ function getAllUsersForAdmin(opts = {}) {
 }
 
 /** 创建支付订单 */
-function createPaymentOrder({ activity_id, participant_name, phone, identity_number, actual_fee }) {
-  const data = { activity_id, participant_name, phone, actual_fee };
-  if (identity_number) data.identity_number = identity_number;
+function createPaymentOrder(payload) {
+  const data = {};
+  Object.keys(payload || {}).forEach((key) => {
+    if (payload[key] !== undefined) {
+      data[key] = payload[key];
+    }
+  });
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${baseUrl}/payments/create`,

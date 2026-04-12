@@ -145,3 +145,39 @@ def require_activity_permission(permission_code: str, activity_id: int):
 
         raise HTTPException(status_code=403, detail=f"无该活动的{permission_code}权限")
     return checker
+
+
+def require_activity_admin(
+    activity_id: int,
+    db: Session,
+    ctx: TenantContext,
+) -> TenantContext:
+    """兼容旧调用方式的活动管理员校验。"""
+    activity = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
+    if not activity:
+        raise HTTPException(status_code=404, detail="活动不存在")
+
+    if crud_rbac.has_permission(db, ctx.user_id, "participant.view", ctx.tenant_id):
+        return ctx
+
+    if activity.activity_type_id and crud_rbac.has_permission(
+        db,
+        ctx.user_id,
+        "participant.view",
+        ctx.tenant_id,
+        resource_id=activity.activity_type_id,
+        resource_type="activity_type",
+    ):
+        return ctx
+
+    if crud_rbac.has_permission(
+        db,
+        ctx.user_id,
+        "participant.view",
+        ctx.tenant_id,
+        resource_id=activity_id,
+        resource_type="activity",
+    ):
+        return ctx
+
+    raise HTTPException(status_code=403, detail="无权限查看此活动")

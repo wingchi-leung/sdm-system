@@ -43,6 +43,7 @@ Page({
     enrollmentInfo: null,
     isFull: false,
     remainingQuota: null,
+    paymentOrderNo: '',
   },
 
   onLoad(options) {
@@ -54,8 +55,23 @@ Page({
     }
 
     this.setData({ activityId });
+    this.ensureLoggedIn(activityId);
     this.loadActivity(activityId);
     this.loadUserProfile();
+  },
+
+  ensureLoggedIn(activityId) {
+    if (auth.isLoggedIn()) {
+      return true;
+    }
+    const redirectUrl = `/pages/register/register?id=${activityId}`;
+    wx.showToast({ title: '请先登录后再报名', icon: 'none' });
+    setTimeout(() => {
+      wx.navigateTo({
+        url: `/pages/login/login?redirect=${encodeURIComponent(redirectUrl)}`,
+      });
+    }, 300);
+    return false;
   },
 
   // 加载活动详情
@@ -277,7 +293,7 @@ Page({
 
   // 支付报名
   doPaymentRegister() {
-    const { activity, actualFee } = this.data;
+    const { actualFee } = this.data;
     const participantData = this.buildParticipantData();
 
     // 1. 创建支付订单
@@ -287,15 +303,7 @@ Page({
         actual_fee: actualFee,
       })
       .then((orderData) => {
-        // 检查是否进入候补（候补不需要支付）
-        if (orderData.enroll_status === 2) {
-          wx.showToast({ title: '已进入候补', icon: 'none' });
-          setTimeout(() => {
-            wx.navigateBack();
-          }, 1200);
-          return;
-        }
-
+        this.setData({ paymentOrderNo: orderData.order_no || '' });
         // 2. 获取支付参数
         const paymentParams = orderData.payment_params;
         if (!paymentParams) {
@@ -310,31 +318,73 @@ Page({
             package: paymentParams.package,
             signType: paymentParams.signType,
             paySign: paymentParams.paySign,
-            success: () => resolve(orderData),
+            success: () => resolve(orderData.order_no),
             fail: (err) => reject(err),
           });
         });
       })
-      .then((orderData) => {
-        // 4. 支付成功
-        if (orderData) {
-          wx.showToast({ title: '支付成功', icon: 'success' });
-          setTimeout(() => {
-            wx.navigateBack();
-          }, 1200);
-        }
+      .then((orderNo) => {
+        return this.confirmPaymentResult(orderNo);
+      })
+      .then((orderDetail) => {
+        const message = orderDetail && orderDetail.participant_enroll_status === 2
+          ? '支付成功，已进入候补'
+          : '报名成功';
+        this.setData({ paymentOrderNo: '', submitting: false });
+        wx.showToast({ title: message, icon: 'success' });
+        setTimeout(() => {
+          wx.navigateBack();
+        }, 1200);
       })
       .catch((err) => {
         // 处理错误
         let msg = '支付失败';
+        const { paymentOrderNo } = this.data;
         if (err && err.errMsg && err.errMsg.includes('cancel')) {
           msg = '已取消支付';
+        } else if (err && err.code === 'PAYMENT_CONFIRM_TIMEOUT') {
+          msg = '支付已受理，报名确认中，请稍后刷新查看';
         } else if (err && err.message) {
           msg = err.message;
         } else if (err && err.errMsg) {
           msg = err.errMsg;
         }
+        if (paymentOrderNo && !msg.includes('订单号')) {
+          msg = `${msg}（订单号：${paymentOrderNo}）`;
+        }
         this.setData({ error: msg, submitting: false });
+      });
+  },
+
+  confirmPaymentResult(orderNo, attempt = 0) {
+    const maxAttempts = 8;
+    if (!orderNo) {
+      return Promise.reject(new Error('缺少订单号，无法确认支付结果'));
+    }
+
+    return api.queryPaymentOrder(orderNo)
+      .then((orderDetail) => {
+        if (orderDetail.status === 1) {
+          return orderDetail;
+        }
+        if (orderDetail.status === 2) {
+          throw new Error('支付失败，请重新发起支付');
+        }
+        if (orderDetail.status === 3) {
+          throw new Error('订单已关闭，请重新报名');
+        }
+        if (attempt >= maxAttempts) {
+          const timeoutError = new Error('支付结果确认超时');
+          timeoutError.code = 'PAYMENT_CONFIRM_TIMEOUT';
+          throw timeoutError;
+        }
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            this.confirmPaymentResult(orderNo, attempt + 1)
+              .then(resolve)
+              .catch(reject);
+          }, 1500);
+        });
       });
   },
 
@@ -344,11 +394,15 @@ Page({
       return;
     }
 
+    if (!this.ensureLoggedIn(this.data.activityId)) {
+      return;
+    }
+
     if (!this.validateForm()) {
       return;
     }
 
-    this.setData({ submitting: true, error: null });
+    this.setData({ submitting: true, error: null, paymentOrderNo: '' });
 
     const { requirePayment, isFull } = this.data;
 

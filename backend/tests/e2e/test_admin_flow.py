@@ -101,8 +101,7 @@ class TestAdminCompleteWorkflow:
         assert stats_response.status_code == status.HTTP_200_OK
         stats = stats_response.json()
         assert stats.get("total_participants", 0) >= 10
-        # 签到数量可能为 0
-        assert stats.get("checkin_count", 0) >= 0
+        assert stats.get("total_checkins", 0) >= 0
 
     def test_activity_admin_with_permission_workflow(self, client, activity_admin_token, sample_activity_type):
         """测试有权限的活动管理员工作流程"""

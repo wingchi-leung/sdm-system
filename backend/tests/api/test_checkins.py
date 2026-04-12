@@ -331,7 +331,7 @@ class TestCheckInStatistics:
         )
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data.get("checkin_count", 0) >= 10
+        assert data.get("total_checkins", 0) >= 10
 
 
 @pytest.mark.api

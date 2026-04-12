@@ -10,7 +10,6 @@ from faker import Faker
 
 from app.schemas import (
     AdminUser,
-    AdminActivityTypeRole,
     User,
     Activity,
     ActivityType,
@@ -40,18 +39,18 @@ class AdminUserFactory(SQLAlchemyModelFactory):
 
     username = factory.Sequence(lambda n: f"admin{n}")
     password_hash = factory.LazyAttribute(lambda _: hash_password("password123"))
-    is_super_admin = 0
-    user_id = None
+    tenant_id = 1
+    user_id = factory.Sequence(lambda n: n + 1000)
 
 
 class SuperAdminFactory(AdminUserFactory):
     """超级管理员工厂"""
-    is_super_admin = 1
+    pass
 
 
 class ActivityAdminFactory(AdminUserFactory):
     """活动管理员工厂"""
-    is_super_admin = 0
+    pass
 
 
 class UserFactory(SQLAlchemyModelFactory):

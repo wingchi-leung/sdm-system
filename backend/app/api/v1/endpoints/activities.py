@@ -30,18 +30,34 @@ def _allowed_type_ids_for_list(db: Session, user_id: int | None, tenant_id: int)
 def create_activity(
     body: activity.ActivityCreate,
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext = Depends(deps.require_permission("activity.create")),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
 ):
     """创建活动"""
-    # 检查活动类型权限
+    has_global_permission = crud_rbac.has_permission(
+        db,
+        ctx.user_id,
+        "activity.create",
+        ctx.tenant_id,
+    )
+    has_scoped_permission = False
     if body.activity_type_id:
-        user_roles = crud_rbac.get_user_roles(db, ctx.user_id, ctx.tenant_id)
-        has_global = any(ur.scope_type is None for ur in user_roles)
+        has_scoped_permission = crud_rbac.has_permission(
+            db,
+            ctx.user_id,
+            "activity.create",
+            ctx.tenant_id,
+            resource_id=body.activity_type_id,
+            resource_type="activity_type",
+        )
 
-        if not has_global:
-            allowed_types = [ur.scope_id for ur in user_roles if ur.scope_type == 'activity_type']
-            if body.activity_type_id not in allowed_types:
-                raise HTTPException(status_code=403, detail="所选活动类型不在授权范围内")
+    if not has_global_permission and not has_scoped_permission:
+        raise HTTPException(status_code=403, detail="缺少权限: activity.create")
+
+    if body.activity_type_id and not has_global_permission:
+        user_roles = crud_rbac.get_user_roles(db, ctx.user_id, ctx.tenant_id)
+        allowed_types = [ur.scope_id for ur in user_roles if ur.scope_type == 'activity_type']
+        if body.activity_type_id not in allowed_types:
+            raise HTTPException(status_code=403, detail="所选活动类型不在授权范围内")
 
     return crud_activity.create_activity(db=db, activity=body, tenant_id=ctx.tenant_id)
 

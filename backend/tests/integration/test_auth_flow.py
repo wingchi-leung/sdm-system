@@ -233,14 +233,25 @@ class TestPermissionFlow:
 
     def test_cross_tenant_isolation_flow(self, client, db_session):
         """测试跨租户隔离流程"""
-        from tests.factories import AdminUserFactory, ActivityFactory, ActivityTypeFactory
+        from tests.conftest import _create_admin_with_role
+        from tests.factories import ActivityFactory, ActivityTypeFactory
 
         # 创建租户1的管理员和活动
         tenant1_type = ActivityTypeFactory(code="TENANT1")
         db_session.commit()
 
-        tenant1_admin = AdminUserFactory(username="tenant1_admin", tenant_id=1)
-        db_session.commit()
+        _create_admin_with_role(
+            db_session,
+            tenant_id=1,
+            username="tenant1_admin",
+            password="password123",
+            user_name="租户1管理员",
+            phone="13800138031",
+            identity_number="110101199001011231",
+            permission_codes=["activity.create", "activity.edit", "participant.view"],
+            scope_type="activity_type",
+            scope_id=tenant1_type.id,
+        )
 
         tenant1_activity = ActivityFactory(activity_type_id=tenant1_type.id)
         db_session.commit()

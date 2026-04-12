@@ -1,14 +1,22 @@
 """
 支付订单数据库操作
 """
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
+import json
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import HTTPException
-from app.schemas import PaymentOrder, Activity, ActivityParticipant, User
-from app.models.payment import PaymentOrderCreate
+from sqlalchemy import and_
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.orm import Session
+
+from app.schemas import PaymentOrder
+
+PAYMENT_STATUS_CREATING = 4
+PAYMENT_STATUS_PENDING = 0
+PAYMENT_STATUS_SUCCESS = 1
+PAYMENT_STATUS_FAILED = 2
+PAYMENT_STATUS_CLOSED = 3
 
 
 def create_payment_order(
@@ -23,7 +31,9 @@ def create_payment_order(
     tenant_id: int,
     participant_name: Optional[str] = None,
     phone: Optional[str] = None,
+    participant_snapshot: Optional[dict[str, Any]] = None,
     expire_minutes: int = 30,
+    status: int = PAYMENT_STATUS_PENDING,
 ) -> PaymentOrder:
     """
     创建支付订单
@@ -52,9 +62,13 @@ def create_payment_order(
         user_id=user_id,
         participant_name=participant_name,
         phone=phone,
+        participant_snapshot=(
+            json.dumps(participant_snapshot, ensure_ascii=False)
+            if participant_snapshot is not None else None
+        ),
         suggested_fee=suggested_fee,
         actual_fee=actual_fee,
-        status=0,  # 待支付
+        status=status,
         openid=openid,
         prepay_id=prepay_id,
         expire_at=datetime.now() + timedelta(minutes=expire_minutes),
@@ -95,57 +109,74 @@ def get_payment_order_by_id(
     ).first()
 
 
-def update_payment_order_success(
+def get_pending_payment_order_for_user_activity(
     db: Session,
-    order_no: str,
-    transaction_id: str,
-    callback_raw: str,
+    activity_id: int,
+    user_id: int,
     tenant_id: int,
+) -> Optional[PaymentOrder]:
+    """查询同一用户在同一活动下尚未结束的支付订单"""
+    now = datetime.now()
+    return db.query(PaymentOrder).filter(
+        and_(
+            PaymentOrder.activity_id == activity_id,
+            PaymentOrder.user_id == user_id,
+            PaymentOrder.tenant_id == tenant_id,
+            PaymentOrder.status.in_([PAYMENT_STATUS_CREATING, PAYMENT_STATUS_PENDING]),
+            PaymentOrder.expire_at > now,
+        )
+    ).order_by(PaymentOrder.create_time.desc()).first()
+
+
+def mark_payment_order_pending(
+    db: Session,
+    order: PaymentOrder,
+    *,
+    openid: str,
+    prepay_id: str,
 ) -> PaymentOrder:
-    """
-    更新订单为支付成功状态
-
-    Args:
-        db: 数据库会话
-        order_no: 商户订单号
-        transaction_id: 微信交易号
-        callback_raw: 回调原始数据
-        tenant_id: 租户ID
-
-    Returns:
-        PaymentOrder: 更新后的订单
-    """
-    order = get_payment_order_by_order_no(db, order_no, tenant_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="订单不存在")
-
-    order.status = 1  # 成功
-    order.transaction_id = transaction_id
-    order.callback_raw = callback_raw
-    order.paid_at = datetime.now()
+    """微信预下单成功后，将订单激活为待支付"""
+    order.openid = openid
+    order.prepay_id = prepay_id
+    order.status = PAYMENT_STATUS_PENDING
     order.update_time = datetime.now()
-
     db.commit()
     db.refresh(order)
     return order
 
 
-def update_payment_order_failed(
+def mark_payment_order_failed(
     db: Session,
-    order_no: str,
-    tenant_id: int,
+    order: PaymentOrder,
+    *,
+    commit: bool = True,
 ) -> PaymentOrder:
-    """更新订单为支付失败状态"""
-    order = get_payment_order_by_order_no(db, order_no, tenant_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="订单不存在")
+    """标记订单创建或支付失败"""
+    persistent_order = order
+    identity = sa_inspect(order).identity
+    if identity:
+        persistent_order = db.get(PaymentOrder, identity[0]) or order
 
-    order.status = 2  # 失败
-    order.update_time = datetime.now()
+    persistent_order.status = PAYMENT_STATUS_FAILED
+    persistent_order.update_time = datetime.now()
+    if commit:
+        db.commit()
+    else:
+        db.flush()
+    return persistent_order
 
-    db.commit()
-    db.refresh(order)
-    return order
+
+def parse_participant_snapshot(order: PaymentOrder) -> dict[str, Any]:
+    """解析报名快照"""
+    if not order.participant_snapshot:
+        raise HTTPException(status_code=500, detail="支付订单缺少报名快照")
+    try:
+        snapshot = json.loads(order.participant_snapshot)
+    except json.JSONDecodeError as exc:
+        raise HTTPException(status_code=500, detail="支付订单报名快照损坏") from exc
+    if not isinstance(snapshot, dict):
+        raise HTTPException(status_code=500, detail="支付订单报名快照格式错误")
+    return snapshot
 
 
 def close_expired_orders(db: Session, tenant_id: Optional[int] = None) -> int:
@@ -181,69 +212,3 @@ def close_expired_orders(db: Session, tenant_id: Optional[int] = None) -> int:
         db.commit()
 
     return count
-
-
-def create_participant_with_payment(
-    db: Session,
-    activity_id: int,
-    participant_name: str,
-    phone: str,
-    identity_number: Optional[str],
-    user_id: Optional[int],
-    payment_order_id: int,
-    paid_amount: int,
-    tenant_id: int,
-) -> ActivityParticipant:
-    """
-    创建参与者记录并关联支付订单
-
-    Args:
-        db: 数据库会话
-        activity_id: 活动ID
-        participant_name: 参与者姓名
-        phone: 手机号
-        identity_number: 证件号
-        user_id: 用户ID
-        payment_order_id: 支付订单ID
-        paid_amount: 已支付金额
-        tenant_id: 租户ID
-
-    Returns:
-        ActivityParticipant: 创建的参与者记录
-    """
-    participant = ActivityParticipant(
-        tenant_id=tenant_id,
-        activity_id=activity_id,
-        user_id=user_id,
-        participant_name=participant_name,
-        phone=phone,
-        identity_number=identity_number or "",
-        payment_status=2,  # 已支付
-        payment_order_id=payment_order_id,
-        paid_amount=paid_amount,
-        create_time=datetime.now(),
-        update_time=datetime.now(),
-    )
-    db.add(participant)
-    db.commit()
-    db.refresh(participant)
-    return participant
-
-
-def update_payment_order_participant(
-    db: Session,
-    order_id: int,
-    participant_id: int,
-    tenant_id: int,
-) -> PaymentOrder:
-    """更新订单关联的参与者ID"""
-    order = get_payment_order_by_id(db, order_id, tenant_id)
-    if not order:
-        raise HTTPException(status_code=404, detail="订单不存在")
-
-    order.participant_id = participant_id
-    order.update_time = datetime.now()
-
-    db.commit()
-    db.refresh(order)
-    return order

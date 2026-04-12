@@ -28,7 +28,7 @@ class ParticipantBase(BaseModel):
     @field_validator('phone')
     @classmethod
     def phone_format(cls, v: str) -> str:
-        if not v or not v.trim():
+        if not v or not v.strip():
             raise ValueError('手机号不能为空')
         phone = v.strip()
         if not re.match(r'^1[3-9]\d{9}$', phone):

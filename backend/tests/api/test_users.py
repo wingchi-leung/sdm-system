@@ -107,7 +107,9 @@ class TestUserProfile:
                 "age": 25,
                 "occupation": "工程师",
                 "phone": sample_user.phone,
-                "industry": "IT"
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number": sample_user.identity_number,
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -124,7 +126,9 @@ class TestUserProfile:
                 "occupation": "工程师",
                 "phone": sample_user.phone,
                 "email": "newemail@example.com",
-                "industry": "IT"
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number": sample_user.identity_number,
             }
         )
         assert response.status_code == status.HTTP_200_OK
@@ -140,11 +144,12 @@ class TestUserProfile:
                 "age": 25,
                 "occupation": "工程师",
                 "phone": "13900139999",  # 尝试修改手机号
-                "industry": "IT"
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number": sample_user.identity_number,
             }
         )
-        # 可能成功或失败，取决于业务逻辑
-        assert response.status_code in [status.HTTP_400_BAD_REQUEST, status.HTTP_200_OK]
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.api

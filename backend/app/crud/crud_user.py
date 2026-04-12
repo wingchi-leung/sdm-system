@@ -41,11 +41,10 @@ def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname
     if user:
         return user
     try:
-        phone_placeholder = f"wx_{openid}"
         db_user = User(
             tenant_id=tenant_id,
             name=nickname or "微信用户",
-            phone=phone_placeholder,
+            phone=None,
             email=None,
             password_hash=None,
             identity_number=None,

@@ -122,7 +122,9 @@ class TestUserCompleteWorkflow:
                 "age": 25,
                 "occupation": "工程师",
                 "phone": sample_user.phone,
-                "industry": "IT"
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number": sample_user.identity_number,
             }
         )
         assert update_response.status_code == status.HTTP_200_OK

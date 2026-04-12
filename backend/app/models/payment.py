@@ -1,17 +1,17 @@
 """
 支付相关 Pydantic 模型
 """
-from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
 
+from pydantic import BaseModel, Field
 
-class PaymentOrderCreate(BaseModel):
+from app.models.participant import ParticipantBase
+
+
+class PaymentOrderCreate(ParticipantBase):
     """创建支付订单请求"""
     activity_id: int = Field(..., description="活动ID")
-    participant_name: str = Field(..., max_length=255, description="报名人姓名")
-    phone: str = Field(..., min_length=1, max_length=255, description="手机号")
-    identity_number: Optional[str] = Field(None, max_length=255, description="证件号")
     actual_fee: int = Field(..., ge=0, description="实际支付金额（分）")
 
 
@@ -21,7 +21,7 @@ class PaymentOrderResponse(BaseModel):
     activity_id: int = Field(..., description="活动ID")
     suggested_fee: int = Field(..., description="建议费用（分）")
     actual_fee: int = Field(..., description="实际支付金额（分）")
-    status: int = Field(..., description="订单状态：0-待支付 1-成功 2-失败 3-关闭")
+    status: int = Field(..., description="订单状态：0-待支付 1-成功 2-失败 3-关闭 4-创建中")
     payment_params: Optional[dict] = Field(None, description="小程序支付参数")
 
     class Config:
@@ -42,6 +42,7 @@ class PaymentOrderDetail(BaseModel):
     openid: Optional[str] = None
     prepay_id: Optional[str] = None
     paid_at: Optional[datetime] = None
+    participant_enroll_status: Optional[int] = None
     expire_at: datetime
     create_time: datetime
     update_time: datetime
