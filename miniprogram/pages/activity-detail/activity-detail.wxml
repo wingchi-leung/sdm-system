@@ -90,8 +90,8 @@
       </view>
     </view>
 
-    <!-- 普通用户报名按钮 -->
-    <view wx:if="{{!isAdmin}}" class="action-section">
+    <!-- 报名按钮（所有人可见，已结束则禁用） -->
+    <view class="action-section">
       <view wx:if="{{canEnroll}}" class="btn-wrap">
         <button class="btn-enroll" bindtap="goRegister">
           <text class="btn-text">立即报名</text>
