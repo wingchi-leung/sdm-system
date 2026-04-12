@@ -376,6 +376,33 @@ async def payment_notify(
                 _validate_notify_resource(order, resource)
                 snapshot = crud_payment.parse_participant_snapshot(order)
                 snapshot.setdefault("user_id", order.user_id)
+
+                # 用支付时的最新用户资料覆盖快照中的用户字段，防止快照过时导致参与者信息与用户当前资料不一致
+                if order.user_id:
+                    fresh_user = db.query(User).filter(
+                        User.id == order.user_id,
+                        User.tenant_id == tenant_id,
+                    ).first()
+                    if fresh_user:
+                        if fresh_user.name:
+                            snapshot["participant_name"] = fresh_user.name
+                        if fresh_user.phone:
+                            snapshot["phone"] = fresh_user.phone
+                        if fresh_user.identity_number:
+                            snapshot["identity_number"] = fresh_user.identity_number
+                        if fresh_user.identity_type:
+                            snapshot["identity_type"] = fresh_user.identity_type
+                        if fresh_user.sex:
+                            snapshot["sex"] = fresh_user.sex
+                        if fresh_user.age is not None:
+                            snapshot["age"] = fresh_user.age
+                        if fresh_user.occupation:
+                            snapshot["occupation"] = fresh_user.occupation
+                        if fresh_user.email:
+                            snapshot["email"] = fresh_user.email
+                        if fresh_user.industry:
+                            snapshot["industry"] = fresh_user.industry
+
                 participant_in = ParticipantCreate.model_validate(snapshot)
 
                 participant = crud_participant.create_participant(

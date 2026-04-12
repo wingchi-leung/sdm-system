@@ -30,18 +30,34 @@ def _should_mark_closed_from_remote_query(remote_order: dict | None) -> bool:
 
 def close_expired_payment_orders():
     """
-    关闭过期的支付订单
-    同时调用微信关闭接口，确保微信侧订单也被关闭
+    关闭过期的支付订单。
+    - PENDING (status=0)：调用微信关单接口，再更新本地状态
+    - CREATING (status=4)：直接标记为失败，无需调用微信（预下单未完成）
     """
     db: Session = SessionLocal()
     try:
         from datetime import datetime
 
         now = datetime.now()
-        # 查询所有待支付的过期订单
+
+        # 1. 清理长时间卡在 CREATING 状态的订单（预下单未完成，微信侧无记录）
+        stuck_creating_orders = db.query(PaymentOrder).filter(
+            and_(
+                PaymentOrder.status == crud_payment.PAYMENT_STATUS_CREATING,
+                PaymentOrder.expire_at < now,
+            )
+        ).all()
+        if stuck_creating_orders:
+            logger.info(f"发现 {len(stuck_creating_orders)} 个卡住的 CREATING 订单，直接标记失败")
+            for order in stuck_creating_orders:
+                order.status = crud_payment.PAYMENT_STATUS_FAILED
+                order.update_time = now
+            db.commit()
+
+        # 2. 查询所有待支付的过期订单
         expired_orders = db.query(PaymentOrder).filter(
             and_(
-                PaymentOrder.status == 0,  # 待支付
+                PaymentOrder.status == crud_payment.PAYMENT_STATUS_PENDING,
                 PaymentOrder.expire_at < now,
             )
         ).all()

@@ -52,7 +52,7 @@ def bind_user_info(
     """绑定用户完整信息"""
     try:
         crud_user.update_user_bind_info(
-            db, ctx.user_id, ctx.tenant_id, bind_info.model_dump()
+            db, ctx.user_id, ctx.tenant_id, bind_info
         )
         return {"success": True, "message": "信息绑定成功"}
     except HTTPException:

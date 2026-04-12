@@ -1,5 +1,7 @@
-const api = require('../../utils/api');
-const auth = require('../../utils/auth');
+const api = require("../../utils/api");
+const auth = require("../../utils/auth");
+
+const PENDING_ORDER_KEY = 'pending_payment_order'; // Storage key for pending payment
 
 Page({
   data: {
@@ -79,6 +81,19 @@ Page({
       wx.showToast({ title: '管理员账号不能直接报名，请使用用户身份登录', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1200);
       return;
+    }
+
+    // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
+    try {
+      const stored = wx.getStorageSync(PENDING_ORDER_KEY);
+      if (stored && stored.activityId === activityId && stored.orderNo) {
+        this.setData({
+          paymentOrderNo: stored.orderNo,
+          recoverPendingPayment: true,
+        });
+      }
+    } catch (_) {
+      // Storage 读取失败不影响主流程
     }
 
     this.setData({ activityId, loading: true, error: null });
@@ -361,6 +376,23 @@ Page({
       });
   },
 
+  /**
+   * 将待支付订单号持久化到 Storage，供小程序关闭后恢复
+   * @param {string} orderNo - 订单号，传空字符串表示清除
+   */
+  _persistPendingOrder(orderNo) {
+    const { activityId } = this.data;
+    try {
+      if (orderNo) {
+        wx.setStorageSync(PENDING_ORDER_KEY, { activityId, orderNo });
+      } else {
+        wx.removeStorageSync(PENDING_ORDER_KEY);
+      }
+    } catch (_) {
+      // Storage 操作失败不影响主流程
+    }
+  },
+
   // 支付报名
   doPaymentRegister() {
     const { actualFee } = this.data;
@@ -373,7 +405,11 @@ Page({
         actual_fee: actualFee,
       })
       .then((orderData) => {
-        this.setData({ paymentOrderNo: orderData.order_no || '' });
+        const orderNo = orderData.order_no || '';
+        this.setData({ paymentOrderNo: orderNo });
+        // 持久化订单号，防止用户关闭小程序后丢失
+        this._persistPendingOrder(orderNo);
+
         // 2. 获取支付参数
         const paymentParams = orderData.payment_params;
         if (!paymentParams) {
@@ -400,6 +436,8 @@ Page({
         const message = orderDetail && orderDetail.participant_enroll_status === 2
           ? '支付成功，已进入候补'
           : '报名成功';
+        // 支付成功，清除持久化的订单号
+        this._persistPendingOrder('');
         this.setData({
           paymentOrderNo: '',
           submitting: false,
@@ -417,7 +455,7 @@ Page({
         if (err && err.errMsg && err.errMsg.includes('cancel')) {
           msg = '已取消支付';
         } else if (err && err.code === 'PAYMENT_CONFIRM_TIMEOUT') {
-          msg = '支付已受理，报名确认中。可点击“继续支付”恢复当前订单';
+          msg = '支付已受理，报名确认中。可点击"继续支付"恢复当前订单';
           this.setData({ recoverPendingPayment: true });
         } else if (err && err.message) {
           msg = err.message;
@@ -489,16 +527,13 @@ Page({
     }
     this.setData(nextState);
 
-    const { requirePayment, isFull } = this.data;
+    const { requirePayment } = this.data;
 
-    // 如果已满员，候补不需要支付
-    if (isFull) {
-      this.doRegister();
-    } else if (requirePayment) {
-      // 需要支付
+    // 付费活动始终走支付通道，无论是否满员
+    // 满员时后端会自动将参与者设为候补状态（enroll_status=2），避免绕过支付
+    if (requirePayment) {
       this.doPaymentRegister();
     } else {
-      // 无需支付，直接报名
       this.doRegister();
     }
   },

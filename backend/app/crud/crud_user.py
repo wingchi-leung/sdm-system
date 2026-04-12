@@ -1,4 +1,4 @@
-from app.models.user import UserCreate, RegisterRequest
+from app.models.user import UserCreate, RegisterRequest, UserBindInfoRequest
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.schemas import User
@@ -179,15 +179,20 @@ def authenticate_user(db: Session, phone: str, password: str, tenant_id: int) ->
 
 
 def is_user_profile_incomplete(db: Session, user_id: int, tenant_id: int) -> bool:
-    """检查用户信息是否不完整"""
+    """
+    检查用户信息是否不完整。
+    判断依据是实际字段的有无，不依赖默认昵称的字符串值，
+    避免因默认昵称变更导致的静默失效。
+    """
     user = get_user(db, user_id, tenant_id)
     if not user:
         return True
-    # 检查关键信息是否缺失
-    if not user.name or user.name == "微信用户":
+    # 姓名必须存在且不为空
+    if not user.name or not user.name.strip():
         return True
     if not user.sex:
         return True
+    # 手机号必须存在且不是系统生成的占位符
     if not user.phone or user.phone.startswith("wx_"):
         return True
     if user.age is None:
@@ -203,44 +208,45 @@ def is_user_profile_incomplete(db: Session, user_id: int, tenant_id: int) -> boo
     return False
 
 
-def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: dict) -> User:
-    """更新用户绑定信息"""
+def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: UserBindInfoRequest) -> User:
+    """更新用户绑定信息，接受已经过 Pydantic 校验的请求对象，确保证件号格式合法。"""
     user = get_user(db, user_id, tenant_id)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
 
-    # 验证手机号一致性：用户填写的手机号必须与微信获取的手机号一致
-    bind_phone = bind_info.get("phone")
-    if bind_phone:
-        # 用户当前的 phone 是通过微信登录获取的
-        current_phone = user.phone
-        # 如果当前手机号是有效的（不是 wx_ 开头的占位符）
-        if current_phone and not current_phone.startswith("wx_"):
-            if bind_phone != current_phone:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"手机号不一致，请使用微信授权的手机号 {current_phone[:3]}****{current_phone[-4:]}"
-                )
-        # 检查手机号是否被其他用户占用
-        existing = db.query(User).filter(
-            User.phone == bind_phone,
-            User.id != user_id,
-            User.tenant_id == tenant_id
-        ).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="该手机号已被使用")
+    # 性别格式转换：将 male/female 统一转为数据库存储格式 M/F
+    sex_map = {"male": "M", "female": "F"}
+    sex_value = sex_map.get(bind_info.sex, bind_info.sex)
 
-    # 性别格式转换：将 male/female/other 统一转为数据库存储格式 M/F
-    if "sex" in bind_info and bind_info["sex"] is not None:
-        if bind_info["sex"] == "other":
-            raise HTTPException(status_code=400, detail="当前仅支持填写男或女")
-        sex_map = {"male": "M", "female": "F"}
-        bind_info["sex"] = sex_map.get(bind_info["sex"], bind_info["sex"])
+    # 验证手机号一致性：用户填写的手机号必须与微信获取的手机号一致
+    bind_phone = bind_info.phone
+    current_phone = user.phone
+    # 如果当前手机号是有效的（不是 wx_ 开头的占位符）
+    if current_phone and not current_phone.startswith("wx_"):
+        if bind_phone != current_phone:
+            raise HTTPException(
+                status_code=400,
+                detail=f"手机号不一致，请使用微信授权的手机号 {current_phone[:3]}****{current_phone[-4:]}"
+            )
+    # 检查手机号是否被其他用户占用
+    existing = db.query(User).filter(
+        User.phone == bind_phone,
+        User.id != user_id,
+        User.tenant_id == tenant_id
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="该手机号已被使用")
 
     # 更新字段
-    for field in ["name", "sex", "age", "occupation", "phone", "email", "industry", "identity_number", "identity_type"]:
-        if field in bind_info and bind_info[field] is not None:
-            setattr(user, field, bind_info[field])
+    user.name = bind_info.name
+    user.sex = sex_value
+    user.age = bind_info.age
+    user.occupation = bind_info.occupation
+    user.phone = bind_phone
+    user.email = bind_info.email
+    user.industry = bind_info.industry
+    user.identity_number = bind_info.identity_number
+    user.identity_type = bind_info.identity_type
 
     db.commit()
     db.refresh(user)
