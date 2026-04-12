@@ -220,6 +220,11 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
         if existing:
             raise HTTPException(status_code=400, detail="该手机号已被使用")
 
+    # 性别格式转换：将 male/female/other 统一转为数据库存储格式 M/F
+    if "sex" in bind_info and bind_info["sex"] is not None:
+        sex_map = {"male": "M", "female": "F", "other": "M"}
+        bind_info["sex"] = sex_map.get(bind_info["sex"], bind_info["sex"])
+
     # 更新字段
     for field in ["name", "sex", "age", "occupation", "phone", "email", "industry", "identity_number", "identity_type"]:
         if field in bind_info and bind_info[field] is not None:

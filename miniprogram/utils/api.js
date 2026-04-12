@@ -443,14 +443,16 @@ function checkBindStatus() {
   });
 }
 
-/** 手机号授权登录：传入 getPhoneNumber 返回的 code */
-function phoneLogin(code) {
+/** 手机号授权登录：传入 getPhoneNumber 返回的 code 和 wx.login 返回的 login_code */
+function phoneLogin(code, loginCode) {
+  const data = { code: code || '' };
+  if (loginCode) data.login_code = loginCode;
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${baseUrl}/auth/phone-login`,
       method: 'POST',
       header: getHeader(),
-      data: { code: code || '' },
+      data,
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));

@@ -355,6 +355,7 @@ def _get_phone_number_from_wechat(code: str) -> str:
 class PhoneLoginRequest(BaseModel):
     code: str
     tenant_code: str = "default"
+    login_code: Optional[str] = None  # wx.login 返回的 code，用于换取 openid 以支持微信支付
 
 
 @router.post("/phone-login", response_model=WechatLoginResponse)
@@ -381,6 +382,19 @@ def phone_login(
     if user.isblock == 1:
         reason = user.block_reason or "账号已被禁用"
         raise HTTPException(status_code=403, detail=f"账号已被拉黑：{reason}")
+
+    # 如果传了 login_code 且用户尚未绑定 openid，换取 openid 并保存
+    login_code = (body.login_code or "").strip()
+    if login_code and not user.wx_openid:
+        try:
+            session_data = _wechat_code2session(login_code)
+            openid = session_data.get("openid")
+            if openid:
+                user.wx_openid = openid
+                db.commit()
+        except Exception:
+            # openid 获取失败不阻断登录流程，仅支付时会受影响
+            pass
 
     token = create_access_token(sub=str(user.id), role="user", tenant_id=tenant.id)
 

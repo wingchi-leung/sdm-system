@@ -228,63 +228,58 @@ Page({
 
   /**
    * 手机号一键登录（通过微信授权获取手机号）
+   * 同时调用 wx.login 获取 code，用于后端换取 openid 以支持微信支付
    */
   onGetPhoneNumber(e) {
-    // 用户拒绝授权
+    // 用户取消授权
     if (!e.detail.code) {
-      // 用户取消授权，不做任何处理
-      if (e.detail.errMsg && e.detail.errMsg.includes('cancel')) {
-        return;
-      }
+      if (e.detail.errMsg && e.detail.errMsg.includes('cancel')) return;
       this.setData({ error: '获取手机号授权失败，请重试' });
       return;
     }
-
-    // 防抖：如果正在提交，直接返回
-    if (this.data.submitting) {
-      return;
-    }
+    if (this.data.submitting) return;
 
     this.setData({ submitting: true, error: null });
 
-    // 使用手机号 code 进行登录
-    api
-      .phoneLogin(e.detail.code)
-      .then((data) => {
-        auth.saveUserToken({
-          accessToken: data.access_token,
-          userId: data.user_id,
-          userName: data.user_name || '微信用户',
-        });
+    const phoneCode = e.detail.code;
 
-        // 保存微信授权的手机号（用于绑定页面校验）
-        if (data.phone) {
-          wx.setStorageSync('wechat_phone', data.phone);
-        }
-
-        // 保存首次登录标识
-        if (data.is_first_login || data.require_bind_info) {
-          wx.setStorageSync('require_bind_info', true);
-        }
-
-        wx.showToast({ title: '登录成功', icon: 'success' });
-
-        // 根据是否需要绑定信息跳转
-        if (data.require_bind_info) {
-          setTimeout(() => {
-            wx.redirectTo({
-              url: '/pages/bind-user-info/bind-user-info'
-            });
-          }, 800);
-        } else {
-          setTimeout(() => {
-            this.navigateAfterLogin();
-          }, 800);
-        }
-      })
-      .catch((err) => {
-        const msg = err && err.message ? err.message : String(err);
-        this.setData({ error: msg, submitting: false });
+    // 登录成功后的统一处理
+    const handleLoginSuccess = (data) => {
+      auth.saveUserToken({
+        accessToken: data.access_token,
+        userId: data.user_id,
+        userName: data.user_name || '微信用户',
       });
+      if (data.phone) wx.setStorageSync('wechat_phone', data.phone);
+      if (data.is_first_login || data.require_bind_info) {
+        wx.setStorageSync('require_bind_info', true);
+      }
+      wx.showToast({ title: '登录成功', icon: 'success' });
+      if (data.require_bind_info) {
+        setTimeout(() => wx.redirectTo({ url: '/pages/bind-user-info/bind-user-info' }), 800);
+      } else {
+        setTimeout(() => this.navigateAfterLogin(), 800);
+      }
+    };
+
+    const handleLoginError = (err) => {
+      const msg = err && err.message ? err.message : String(err);
+      this.setData({ error: msg, submitting: false });
+    };
+
+    // 先取 wx.login code（换 openid），再一起发给后端
+    wx.login({
+      success: (loginRes) => {
+        api.phoneLogin(phoneCode, loginRes.code || '')
+          .then(handleLoginSuccess)
+          .catch(handleLoginError);
+      },
+      fail: () => {
+        // wx.login 失败时降级，openid 为空（支付功能不可用）
+        api.phoneLogin(phoneCode, '')
+          .then(handleLoginSuccess)
+          .catch(handleLoginError);
+      },
+    });
   },
 });
