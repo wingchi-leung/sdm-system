@@ -54,8 +54,19 @@ Page({
       return;
     }
 
+    // 未登录直接跳转登录页，不继续加载
+    if (!auth.isLoggedIn()) {
+      const redirectUrl = `/pages/register/register?id=${activityId}`;
+      wx.showToast({ title: '请先登录后再报名', icon: 'none' });
+      setTimeout(() => {
+        wx.navigateTo({
+          url: `/pages/login/login?redirect=${encodeURIComponent(redirectUrl)}`,
+        });
+      }, 300);
+      return;
+    }
+
     this.setData({ activityId });
-    this.ensureLoggedIn(activityId);
     this.loadActivity(activityId);
     this.loadUserProfile();
   },
@@ -196,10 +207,15 @@ Page({
 
   // 验证表单
   validateForm() {
-    const { name, phone, whyJoin, channel, expectation, requirePayment, actualFee, suggestedFee } = this.data;
+    const { name, phone, whyJoin, channel, expectation, requirePayment, actualFee, suggestedFee, loading } = this.data;
 
+    // 用户资料还在加载中
+    if (loading) {
+      this.setData({ error: '页面加载中，请稍候再试' });
+      return false;
+    }
     if (!name || !name.trim()) {
-      this.setData({ error: '请输入姓名' });
+      this.setData({ error: '用户信息未完善，请先完善个人资料' });
       return false;
     }
     if (!phone || !phone.trim()) {
@@ -394,11 +410,14 @@ Page({
       return;
     }
 
-    if (!this.ensureLoggedIn(this.data.activityId)) {
+    if (!auth.isLoggedIn()) {
+      wx.showToast({ title: '请先登录后再报名', icon: 'none' });
       return;
     }
 
     if (!this.validateForm()) {
+      // 滚动到错误提示，让用户看到原因
+      wx.pageScrollTo({ selector: '.error-box', duration: 300 });
       return;
     }
 
