@@ -50,7 +50,7 @@ Page({
       email: '',
       industry: '',
       identity_number: '',
-      identity_type: 'mainland',
+      identity_type: '',   // 初始未选择证件类型
     },
     sexOptions: [
       { value: 'male', label: '男' },
@@ -64,7 +64,7 @@ Page({
       { value: 'taiwan', label: '台湾身份证' },
       { value: 'foreign', label: '其他证件' },
     ],
-    identityTypeIndex: 0,
+    identityTypeIndex: -1,  // -1 表示未选择，选择后才显示证件号输入框
     submitting: false,
     error: null,
     identityError: null, // 身份证格式错误提示

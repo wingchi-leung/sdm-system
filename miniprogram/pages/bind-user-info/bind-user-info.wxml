@@ -110,14 +110,14 @@
         bindchange="onIdentityTypeChange"
       >
         <view class="picker-field">
-          <text class="picker-text">{{identityTypeOptions[identityTypeIndex].label || '请选择证件类型'}}</text>
+          <text class="picker-text">{{identityTypeIndex >= 0 ? identityTypeOptions[identityTypeIndex].label : '请选择证件类型'}}</text>
           <text class="picker-arrow">→</text>
         </view>
       </picker>
     </view>
 
     <!-- 身份证号 -->
-    <view class="field" wx:if="{{identityTypeIndex > 0}}">
+    <view class="field" wx:if="{{identityTypeIndex >= 0}}">
       <text class="field-label optional">证件号码</text>
       <input
         class="input"
