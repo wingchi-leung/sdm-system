@@ -341,7 +341,11 @@ def _get_phone_number_from_wechat(code: str) -> str:
         raise HTTPException(status_code=400, detail=detail)
 
     phone_info = data.get("phone_info", {})
-    phone = phone_info.get("phoneNumber") or phone_info.get("purePhoneNumber")
+    # 优先取 purePhoneNumber（纯11位），phoneNumber 含 +86 前缀会导致前端校验失败
+    phone = phone_info.get("purePhoneNumber") or phone_info.get("phoneNumber", "")
+    # 如果仍带区号前缀（如 +8613xxxxxxxxx），去掉前缀只保留11位
+    if phone.startswith("+86"):
+        phone = phone[3:]
     if not phone:
         raise HTTPException(status_code=400, detail="微信未返回手机号")
 
