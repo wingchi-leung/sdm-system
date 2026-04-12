@@ -129,8 +129,8 @@
     </view>
 
     <!-- 错误提示 -->
-    <view class="error-box" wx:if="{{error}}">
-      <text class="error-text">{{error}}</text>
+    <view class="error-box" wx:if="{{error || identityError}}">
+      <text class="error-text">{{error || identityError}}</text>
     </view>
 
     <!-- 提交按钮 -->

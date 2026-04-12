@@ -168,20 +168,19 @@ Page({
     // 身份证格式校验
     const identityError = validateIdentityNumber(formData.identity_type, formData.identity_number);
     if (identityError) {
-      this.setData({ identityError });
-      return null; // 返回 null 让身份证错误单独显示
+      return identityError; // 统一通过返回值传递错误
     }
 
     return null;
   },
 
   submit() {
+    // 先清空旧的身份证错误
+    this.setData({ identityError: null });
+
     const error = this.validateForm();
     if (error) {
       this.setData({ error });
-      return;
-    }
-    if (this.data.identityError) {
       return;
     }
 
