@@ -55,7 +55,6 @@ Page({
     sexOptions: [
       { value: 'male', label: '男' },
       { value: 'female', label: '女' },
-      { value: 'other', label: '其他' },
     ],
     sexIndex: 0,
     identityTypeOptions: [
@@ -103,10 +102,19 @@ Page({
 
   // 表单输入处理
   onNameInput(e) { this.setData({ 'formData.name': e.detail.value, error: null }); },
-  onAgeInput(e) { this.setData({ 'formData.age': e.detail.value, error: null }); },
+  // 年龄只允许数字，过滤任何非数字字符
+  onAgeInput(e) {
+    const val = e.detail.value.replace(/\D/g, '');
+    this.setData({ 'formData.age': val, error: null });
+  },
   onOccupationInput(e) { this.setData({ 'formData.occupation': e.detail.value, error: null }); },
   onIndustryInput(e) { this.setData({ 'formData.industry': e.detail.value, error: null }); },
   onEmailInput(e) { this.setData({ 'formData.email': e.detail.value, error: null }); },
+  // 手机号只允许数字，过滤任何非数字字符
+  onPhoneInput(e) {
+    const val = e.detail.value.replace(/\D/g, '').slice(0, 11);
+    this.setData({ 'formData.phone': val, error: null });
+  },
   onIdentityNumberInput(e) {
     this.setData({
       'formData.identity_number': e.detail.value,
