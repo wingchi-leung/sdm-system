@@ -254,7 +254,13 @@ Page({
       if (data.is_first_login || data.require_bind_info) {
         wx.setStorageSync('require_bind_info', true);
       }
-      wx.showToast({ title: '登录成功', icon: 'success' });
+      const successTitle = data.wechat_payment_ready === false ? '登录成功，支付绑定待刷新' : '登录成功';
+      wx.showToast({ title: successTitle, icon: 'success' });
+      if (data.wechat_payment_hint) {
+        setTimeout(() => {
+          wx.showToast({ title: data.wechat_payment_hint, icon: 'none', duration: 2500 });
+        }, 900);
+      }
       if (data.require_bind_info) {
         setTimeout(() => wx.redirectTo({ url: '/pages/bind-user-info/bind-user-info' }), 800);
       } else {

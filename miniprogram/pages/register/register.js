@@ -44,6 +44,15 @@ Page({
     isFull: false,
     remainingQuota: null,
     paymentOrderNo: '',
+    // 基本信息折叠状态
+    basicInfoExpanded: false,
+    requireBindInfo: false,
+    recoverPendingPayment: false,
+  },
+
+  /** 切换基本信息折叠状态 */
+  toggleBasicInfo() {
+    this.setData({ basicInfoExpanded: !this.data.basicInfoExpanded });
   },
 
   onLoad(options) {
@@ -66,9 +75,33 @@ Page({
       return;
     }
 
-    this.setData({ activityId });
-    this.loadActivity(activityId);
-    this.loadUserProfile();
+    if (auth.isAdmin()) {
+      wx.showToast({ title: '管理员账号不能直接报名，请使用用户身份登录', icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1200);
+      return;
+    }
+
+    this.setData({ activityId, loading: true, error: null });
+    this.initPage(activityId);
+  },
+
+  async initPage(activityId) {
+    try {
+      await Promise.all([
+        this.loadActivity(activityId),
+        this.ensureProfileBound(),
+      ]);
+    } catch (err) {
+      if (err && err.stopFlow) {
+        return;
+      }
+      const message = err && err.message ? err.message : '页面初始化失败';
+      this.setData({ error: message });
+      wx.showToast({ title: message, icon: 'none' });
+      setTimeout(() => wx.navigateBack(), 1500);
+    } finally {
+      this.setData({ loading: false });
+    }
   },
 
   ensureLoggedIn(activityId) {
@@ -87,31 +120,23 @@ Page({
 
   // 加载活动详情
   async loadActivity(activityId) {
-    try {
-      const activity = await api.getActivity(activityId);
+    const activity = await api.getActivity(activityId);
 
-      // 检查是否需要支付
-      const requirePayment = activity.require_payment === 1;
-      const suggestedFee = activity.suggested_fee || 0;
-      const suggestedFeeYuan = (suggestedFee / 100).toFixed(2);
+    // 检查是否需要支付
+    const requirePayment = activity.require_payment === 1;
+    const suggestedFee = activity.suggested_fee || 0;
+    const suggestedFeeYuan = (suggestedFee / 100).toFixed(2);
 
-      this.setData({
-        activity,
-        requirePayment,
-        suggestedFee,
-        suggestedFeeYuan,
-        actualFee: suggestedFee,
-        actualFeeYuan: suggestedFeeYuan,
-        loading: false,
-      });
+    this.setData({
+      activity,
+      requirePayment,
+      suggestedFee,
+      suggestedFeeYuan,
+      actualFee: suggestedFee,
+      actualFeeYuan: suggestedFeeYuan,
+    });
 
-      // 加载报名情况
-      this.loadEnrollmentInfo(activityId);
-    } catch (err) {
-      wx.showToast({ title: '加载活动失败', icon: 'none' });
-      this.setData({ loading: false });
-      setTimeout(() => wx.navigateBack(), 1500);
-    }
+    this.loadEnrollmentInfo(activityId);
   },
 
   // 加载报名情况
@@ -130,28 +155,42 @@ Page({
 
   // 加载用户资料
   async loadUserProfile() {
-    try {
-      const profile = await api.getUserProfile();
-      // 获取证件类型显示文本
-      const identityTypeLabel = this.getIdentityTypeLabel(profile.identity_type);
+    const profile = await api.getUserProfile();
+    const identityTypeLabel = this.getIdentityTypeLabel(profile.identity_type);
 
+    this.setData({
+      userInfo: profile,
+      name: profile.name || '',
+      phone: profile.phone || '',
+      sex: profile.sex === 'M' ? '男' : profile.sex === 'F' ? '女' : '',
+      age: profile.age ? String(profile.age) : '',
+      occupation: profile.occupation || '',
+      email: profile.email || '',
+      industry: profile.industry || '',
+      identityType: profile.identity_type || '',
+      identityNumber: profile.identity_number || '',
+      identityTypeLabel,
+    });
+  },
+
+  async ensureProfileBound() {
+    const bindStatus = await api.checkBindStatus();
+    if (bindStatus && bindStatus.require_bind_info) {
       this.setData({
-        userInfo: profile,
-        name: profile.name || '',
-        phone: profile.phone || '',
-        sex: profile.sex === 'M' ? '男' : profile.sex === 'F' ? '女' : '',
-        age: profile.age ? String(profile.age) : '',
-        occupation: profile.occupation || '',
-        email: profile.email || '',
-        industry: profile.industry || '',
-        identityType: profile.identity_type || '',
-        identityNumber: profile.identity_number || '',
-        identityTypeLabel,
+        requireBindInfo: true,
+        error: '请先完善个人资料后再报名',
       });
-    } catch (err) {
-      // 用户未登录或获取资料失败，不填充
-      console.log('获取用户资料失败:', err);
+      wx.showToast({ title: '请先完善个人资料', icon: 'none' });
+      setTimeout(() => {
+        wx.redirectTo({ url: '/pages/bind-user-info/bind-user-info' });
+      }, 500);
+      const stopError = new Error('require_bind_info');
+      stopError.stopFlow = true;
+      throw stopError;
     }
+
+    this.setData({ requireBindInfo: false });
+    await this.loadUserProfile();
   },
 
   // 获取证件类型显示文本
@@ -207,11 +246,26 @@ Page({
 
   // 验证表单
   validateForm() {
-    const { name, phone, whyJoin, channel, expectation, requirePayment, actualFee, suggestedFee, loading } = this.data;
+    const {
+      name,
+      phone,
+      whyJoin,
+      channel,
+      expectation,
+      requirePayment,
+      actualFee,
+      suggestedFee,
+      loading,
+      requireBindInfo,
+    } = this.data;
 
     // 用户资料还在加载中
     if (loading) {
       this.setData({ error: '页面加载中，请稍候再试' });
+      return false;
+    }
+    if (requireBindInfo) {
+      this.setData({ error: '请先完善个人资料后再报名' });
       return false;
     }
     if (!name || !name.trim()) {
@@ -346,7 +400,11 @@ Page({
         const message = orderDetail && orderDetail.participant_enroll_status === 2
           ? '支付成功，已进入候补'
           : '报名成功';
-        this.setData({ paymentOrderNo: '', submitting: false });
+        this.setData({
+          paymentOrderNo: '',
+          submitting: false,
+          recoverPendingPayment: false,
+        });
         wx.showToast({ title: message, icon: 'success' });
         setTimeout(() => {
           wx.navigateBack();
@@ -359,7 +417,8 @@ Page({
         if (err && err.errMsg && err.errMsg.includes('cancel')) {
           msg = '已取消支付';
         } else if (err && err.code === 'PAYMENT_CONFIRM_TIMEOUT') {
-          msg = '支付已受理，报名确认中，请稍后刷新查看';
+          msg = '支付已受理，报名确认中。可点击“继续支付”恢复当前订单';
+          this.setData({ recoverPendingPayment: true });
         } else if (err && err.message) {
           msg = err.message;
         } else if (err && err.errMsg) {
@@ -421,7 +480,14 @@ Page({
       return;
     }
 
-    this.setData({ submitting: true, error: null, paymentOrderNo: '' });
+    const nextState = {
+      submitting: true,
+      error: null,
+    };
+    if (!this.data.recoverPendingPayment) {
+      nextState.paymentOrderNo = '';
+    }
+    this.setData(nextState);
 
     const { requirePayment, isFull } = this.data;
 

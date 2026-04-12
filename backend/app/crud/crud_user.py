@@ -190,6 +190,16 @@ def is_user_profile_incomplete(db: Session, user_id: int, tenant_id: int) -> boo
         return True
     if not user.phone or user.phone.startswith("wx_"):
         return True
+    if user.age is None:
+        return True
+    if not user.occupation or not str(user.occupation).strip():
+        return True
+    if not user.industry or not str(user.industry).strip():
+        return True
+    if not user.identity_type:
+        return True
+    if not user.identity_number or not str(user.identity_number).strip():
+        return True
     return False
 
 
@@ -222,7 +232,9 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
 
     # 性别格式转换：将 male/female/other 统一转为数据库存储格式 M/F
     if "sex" in bind_info and bind_info["sex"] is not None:
-        sex_map = {"male": "M", "female": "F", "other": "M"}
+        if bind_info["sex"] == "other":
+            raise HTTPException(status_code=400, detail="当前仅支持填写男或女")
+        sex_map = {"male": "M", "female": "F"}
         bind_info["sex"] = sex_map.get(bind_info["sex"], bind_info["sex"])
 
     # 更新字段

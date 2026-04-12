@@ -32,8 +32,11 @@ class Settings(BaseSettings):
     WECHAT_PAY_MCH_ID: Optional[str] = None           # 商户号
     WECHAT_PAY_API_V3_KEY: Optional[str] = None       # API v3 密钥
     WECHAT_PAY_SERIAL_NO: Optional[str] = None        # 商户证书序列号
-    WECHAT_PAY_PRIVATE_KEY_PATH: Optional[str] = None # 私钥文件路径
-    WECHAT_PAY_NOTIFY_URL: Optional[str] = None       # 支付回调地址
+    WECHAT_PAY_PRIVATE_KEY_PATH: Optional[str] = None  # 私钥文件路径
+    WECHAT_PAY_NOTIFY_URL: Optional[str] = None        # 支付回调地址
+    # 微信支付公钥模式（新商户默认，与平台证书模式二选一）
+    WECHAT_PAY_PUBLIC_KEY_PATH: Optional[str] = None   # 微信支付公钥文件路径
+    WECHAT_PAY_PUBLIC_KEY_ID: Optional[str] = None     # 微信支付公钥ID（PUB_KEY_ID_...）
 
     # 数据库配置
     DB_ECHO: bool = False  # 是否打印 SQL 日志，生产环境应设为 False

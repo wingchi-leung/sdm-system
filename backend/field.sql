@@ -31,3 +31,14 @@ ON DUPLICATE KEY UPDATE user_id=user_id;
 
 -- 删除旧的权限表
 DROP TABLE IF EXISTS `admin_activity_type_role`;
+
+-- 支付订单表新增报名信息快照字段
+ALTER TABLE payment_order ADD COLUMN participant_snapshot TEXT NULL COMMENT '报名信息快照(JSON)' AFTER phone;
+
+
+ALTER TABLE user_role ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;
+
+ALTER TABLE permission ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;
+
+
+ALTER TABLE role_permission ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;

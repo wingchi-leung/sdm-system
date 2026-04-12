@@ -7,6 +7,7 @@ Page({
     activity: null,
     canEnroll: false,
     isAdmin: false,
+    showAdminPanel: false,
     loading: true,
     error: null,
     statusOptions: [
@@ -51,6 +52,11 @@ Page({
     api.getActivity(activityId)
       .then((activity) => {
         const canEnroll = activity.status === 1 || activity.status === 2;
+        const showAdminPanel = auth.canManageActivityType({
+          id: activity.activity_type_id,
+          name: activity.activity_type_name,
+          code: activity.activity_type_code,
+        });
         const statusText = activity.status === 1 ? '未开始' : activity.status === 2 ? '进行中' : '已结束';
         const startDisplay = activity.start_time ? this.formatTime(activity.start_time) : '';
         const endDisplay = activity.end_time ? this.formatTime(activity.end_time) : '';
@@ -64,6 +70,7 @@ Page({
             end_display: endDisplay,
           },
           canEnroll,
+          showAdminPanel,
           loading: false,
         });
       })

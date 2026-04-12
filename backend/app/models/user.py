@@ -141,6 +141,8 @@ class WechatLoginResponse(BaseModel):
     is_first_login: bool = False
     require_bind_info: bool = False
     phone: Optional[str] = None  # 手机号登录时返回
+    wechat_payment_ready: bool = True
+    wechat_payment_hint: Optional[str] = None
 
 
 class UserBindInfoRequest(BaseModel):

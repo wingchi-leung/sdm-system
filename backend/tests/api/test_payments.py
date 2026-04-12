@@ -48,6 +48,15 @@ class TestPaymentEndpoints:
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
         sample_user.wx_openid = "wx_openid_payment_create"
+        sample_user.name = "资料库用户"
+        sample_user.phone = "13800138000"
+        sample_user.identity_number = "110101199001011234"
+        sample_user.identity_type = "mainland"
+        sample_user.sex = "F"
+        sample_user.age = 28
+        sample_user.occupation = "产品经理"
+        sample_user.email = "profile@example.com"
+        sample_user.industry = "教育"
         db_session.commit()
 
         class FakePayService:
@@ -71,10 +80,22 @@ class TestPaymentEndpoints:
             lambda: FakePayService(),
         )
 
+        payload = _payment_request_payload(sample_activity.id)
+        payload.update({
+            "participant_name": "伪造支付报名用户",
+            "phone": "13900139999",
+            "identity_number": "110101199001019999",
+            "sex": "M",
+            "age": 18,
+            "occupation": "伪造职业",
+            "email": "fake@example.com",
+            "industry": "伪造行业",
+        })
+
         response = client.post(
             "/api/v1/payments/create",
             headers=auth_headers(user_token),
-            json=_payment_request_payload(sample_activity.id),
+            json=payload,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -86,11 +107,69 @@ class TestPaymentEndpoints:
             PaymentOrder.order_no == "SDMTESTORDER001"
         ).first()
         assert order is not None
+        assert order.participant_name == "资料库用户"
+        assert order.phone == "13800138000"
         snapshot = json.loads(order.participant_snapshot)
+        assert snapshot["participant_name"] == "资料库用户"
+        assert snapshot["phone"] == "13800138000"
+        assert snapshot["identity_number"] == "110101199001011234"
+        assert snapshot["sex"] == "F"
+        assert snapshot["age"] == 28
+        assert snapshot["occupation"] == "产品经理"
+        assert snapshot["email"] == "profile@example.com"
+        assert snapshot["industry"] == "教育"
         assert snapshot["why_join"] == "想系统学习"
         assert snapshot["channel"] == "朋友推荐"
         assert snapshot["expectation"] == "提升能力"
         assert snapshot["user_id"] == sample_user.id
+
+    def test_admin_cannot_create_payment_order(
+        self,
+        client,
+        sample_activity,
+        super_admin_token,
+    ):
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+
+        response = client.post(
+            "/api/v1/payments/create",
+            headers=auth_headers(super_admin_token),
+            json=_payment_request_payload(sample_activity.id),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "管理员账号不能直接报名或发起支付" in response.json()["detail"]
+
+    def test_create_payment_order_rejects_blocked_user(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        blocked_user,
+        monkeypatch,
+    ):
+        from app.core.security import create_access_token
+
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        blocked_user.wx_openid = "wx_openid_blocked_payment"
+        db_session.commit()
+
+        blocked_token = create_access_token(
+            sub=str(blocked_user.id),
+            role="user",
+            tenant_id=blocked_user.tenant_id,
+        )
+
+        response = client.post(
+            "/api/v1/payments/create",
+            headers=auth_headers(blocked_token),
+            json=_payment_request_payload(sample_activity.id),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "无法报名" in response.json()["detail"]
 
     def test_create_payment_order_rejects_pending_order(
         self,
@@ -99,11 +178,27 @@ class TestPaymentEndpoints:
         sample_activity,
         sample_user,
         user_token,
+        monkeypatch,
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
         sample_user.wx_openid = "wx_openid_pending"
         db_session.commit()
+
+        class FakePayService:
+            def get_mini_program_payment_params(self, prepay_id):
+                return {
+                    "timeStamp": "1710000003",
+                    "nonceStr": "nonce_pending",
+                    "package": f"prepay_id={prepay_id}",
+                    "signType": "RSA",
+                    "paySign": "signature_pending",
+                }
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.get_wechat_pay_service",
+            lambda: FakePayService(),
+        )
 
         crud_payment.create_payment_order(
             db=db_session,
@@ -126,8 +221,10 @@ class TestPaymentEndpoints:
             json=_payment_request_payload(sample_activity.id),
         )
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "待支付订单" in response.json()["detail"]
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["order_no"] == "SDMPENDING001"
+        assert data["payment_params"]["package"] == "prepay_id=prepay_pending"
 
     def test_create_payment_order_rejects_creating_order(
         self,
@@ -165,7 +262,7 @@ class TestPaymentEndpoints:
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "待支付订单" in response.json()["detail"]
+        assert "订单创建中" in response.json()["detail"]
 
     def test_create_payment_order_closes_remote_order_when_db_save_fails(
         self,

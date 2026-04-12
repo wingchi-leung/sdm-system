@@ -32,7 +32,6 @@ class TestAdminCompleteWorkflow:
         for i in range(1, 11):
             participant_response = client.post(
                 "/api/v1/participants/",
-                headers=auth_headers(super_admin_token),
                 json={
                     "activity_id": activity_id,
                     "participant_name": f"参与者{i}",
@@ -188,7 +187,6 @@ class TestAdminCompleteWorkflow:
         for i in range(1, 6):
             participant_response = client.post(
                 "/api/v1/participants/",
-                headers=auth_headers(super_admin_token),
                 json={
                     "activity_id": activity_id,
                     "participant_name": f"签到者{i}",

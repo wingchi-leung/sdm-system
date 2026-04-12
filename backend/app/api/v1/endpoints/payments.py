@@ -58,11 +58,39 @@ def _lock_user_for_payment(db: Session, user_id: int, tenant_id: int) -> User:
     return user
 
 
+def _ensure_user_can_pay(user: User) -> None:
+    """校验当前登录用户是否允许继续支付报名"""
+    if user.isblock == 1:
+        reason = user.block_reason or "您已被限制报名"
+        raise HTTPException(status_code=403, detail=f"无法报名：{reason}")
+
+
 def _build_participant_snapshot(order_in: PaymentOrderCreate, user_id: int) -> dict[str, Any]:
     """构建报名快照，供支付成功回调复原参与记录"""
     snapshot = order_in.model_dump(exclude={"actual_fee"})
     snapshot["user_id"] = user_id
     return snapshot
+
+
+def _merge_profile_fields(
+    order_in: PaymentOrderCreate,
+    current_user: User,
+) -> PaymentOrderCreate:
+    """已登录支付报名时，以当前登录人的资料为准，避免篡改只读字段。"""
+    return order_in.model_copy(
+        update={
+            "user_id": current_user.id,
+            "participant_name": current_user.name or order_in.participant_name,
+            "phone": current_user.phone or order_in.phone,
+            "identity_number": current_user.identity_number or order_in.identity_number,
+            "identity_type": current_user.identity_type or order_in.identity_type,
+            "sex": current_user.sex or order_in.sex,
+            "age": current_user.age if current_user.age is not None else order_in.age,
+            "occupation": current_user.occupation or order_in.occupation,
+            "email": current_user.email or order_in.email,
+            "industry": current_user.industry or order_in.industry,
+        }
+    )
 
 
 def _close_remote_order_safely(pay_service: Any, order_no: str) -> None:
@@ -121,6 +149,25 @@ def _build_order_detail(order: PaymentOrder, participant_enroll_status: int | No
     )
 
 
+def _build_order_response_from_existing_pending(
+    order: PaymentOrder,
+    pay_service: Any,
+) -> PaymentOrderResponse:
+    """将未过期待支付订单转换为可恢复支付的响应"""
+    if order.status != crud_payment.PAYMENT_STATUS_PENDING or not order.prepay_id:
+        raise HTTPException(status_code=400, detail="当前订单暂不可继续支付，请稍后再试")
+
+    payment_params = pay_service.get_mini_program_payment_params(order.prepay_id)
+    return PaymentOrderResponse(
+        order_no=order.order_no,
+        activity_id=order.activity_id,
+        suggested_fee=order.suggested_fee,
+        actual_fee=order.actual_fee,
+        status=order.status,
+        payment_params=payment_params,
+    )
+
+
 @router.post("/create", response_model=PaymentOrderResponse)
 def create_payment_order(
     order_in: PaymentOrderCreate,
@@ -139,6 +186,9 @@ def create_payment_order(
     """
     tenant_id = ctx.tenant_id
     user_id = ctx.user_id
+
+    if ctx.role == "admin":
+        raise HTTPException(status_code=403, detail="管理员账号不能直接报名或发起支付")
 
     # 1. 验证活动
     activity = _get_activity_or_404(db, order_in.activity_id, tenant_id)
@@ -164,24 +214,29 @@ def create_payment_order(
         )
 
     # 3. 检查是否已报名或存在未完成订单
-    _lock_user_for_payment(db, user_id, tenant_id)
+    current_user = _lock_user_for_payment(db, user_id, tenant_id)
+    _ensure_user_can_pay(current_user)
+    normalized_order = _merge_profile_fields(order_in, current_user)
     existing_participant = crud_participant.get_participant_by_user(
-        db, order_in.activity_id, user_id, tenant_id
+        db, normalized_order.activity_id, user_id, tenant_id
     )
     if existing_participant or crud_participant.check_participant_exists(
-        db, order_in.activity_id, order_in.identity_number, tenant_id
+        db, normalized_order.activity_id, normalized_order.identity_number, tenant_id
     ):
         raise HTTPException(status_code=400, detail="已报名，无需重复报名")
 
     pending_order = crud_payment.get_pending_payment_order_for_user_activity(
-        db, order_in.activity_id, user_id, tenant_id
+        db, normalized_order.activity_id, user_id, tenant_id
     )
     if pending_order:
-        raise HTTPException(status_code=400, detail="已有待支付订单，请先完成或等待过期")
+        if pending_order.status == crud_payment.PAYMENT_STATUS_PENDING and pending_order.prepay_id:
+            pay_service = get_wechat_pay_service()
+            return _build_order_response_from_existing_pending(pending_order, pay_service)
+        raise HTTPException(status_code=400, detail="订单创建中，请稍后再试")
 
     # 4. 获取用户 openid
     openid = _get_user_openid(db, user_id, tenant_id)
-    participant_snapshot = _build_participant_snapshot(order_in, user_id)
+    participant_snapshot = _build_participant_snapshot(normalized_order, user_id)
 
     # 5. 创建微信支付订单
     try:
@@ -192,15 +247,15 @@ def create_payment_order(
         local_order = crud_payment.create_payment_order(
             db=db,
             order_no=order_no,
-            activity_id=order_in.activity_id,
+            activity_id=normalized_order.activity_id,
             user_id=user_id,
             openid=openid,
             suggested_fee=activity.suggested_fee,
-            actual_fee=order_in.actual_fee,
+            actual_fee=normalized_order.actual_fee,
             prepay_id=None,
             tenant_id=tenant_id,
-            participant_name=order_in.participant_name,
-            phone=order_in.phone,
+            participant_name=normalized_order.participant_name,
+            phone=normalized_order.phone,
             participant_snapshot=participant_snapshot,
             status=crud_payment.PAYMENT_STATUS_CREATING,
         )
@@ -209,7 +264,7 @@ def create_payment_order(
         try:
             result = pay_service.create_jsapi_order(
                 order_no=order_no,
-                amount=order_in.actual_fee,
+                amount=normalized_order.actual_fee,
                 description=description,
                 openid=openid,
             )

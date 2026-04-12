@@ -81,7 +81,7 @@ class TestUserCompleteWorkflow:
         )
         assert register_response.status_code == status.HTTP_200_OK
 
-    def test_user_checkin_to_activity(self, client, user_token, active_activity):
+    def test_user_checkin_to_activity(self, client, user_token, active_activity, sample_user):
         """测试用户签到活动"""
         # 先报名
         client.post(
@@ -101,9 +101,9 @@ class TestUserCompleteWorkflow:
             headers=auth_headers(user_token),
             json={
                 "activity_id": active_activity.id,
-                "name": "签到用户",
-                "phone": "13900140003",
-                "identity_number": "110101199001021002",
+                "name": sample_user.name,
+                "phone": sample_user.phone,
+                "identity_number": sample_user.identity_number,
                 "has_attend": 1,
                 "note": "正常签到"
             }
@@ -195,8 +195,12 @@ class TestUserWeChatFlow:
 class TestUserErrorScenarios:
     """用户错误场景 E2E 测试"""
 
-    def test_user_fails_duplicate_registration(self, client, user_token, sample_participant):
+    def test_user_fails_duplicate_registration(self, client, user_token, sample_participant, sample_user, db_session):
         """测试用户重复报名失败"""
+        sample_participant.user_id = sample_user.id
+        sample_participant.identity_number = sample_user.identity_number
+        db_session.commit()
+
         # 尝试重复报名
         response = client.post(
             "/api/v1/participants/",

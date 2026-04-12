@@ -83,21 +83,7 @@ Page({
   },
 
   onUnload() {
-    // 如果用户没有完成绑定就退出，清除登录状态
-    if (!this._hasSubmitted) {
-      auth.logout();
-      wx.removeStorageSync('require_bind_info');
-      wx.removeStorageSync('wechat_phone');
-
-      // 延迟显示提示（因为页面正在卸载）
-      setTimeout(() => {
-        wx.showToast({
-          title: '请完成信息绑定',
-          icon: 'none',
-          duration: 2000
-        });
-      }, 100);
-    }
+    // 绑定页卸载并不等于用户主动放弃绑定，避免误伤正常跳转与系统回收场景
   },
 
   // 表单输入处理

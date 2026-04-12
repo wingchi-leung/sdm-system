@@ -48,7 +48,7 @@
     </view>
 
     <!-- 管理员面板 -->
-    <view wx:if="{{isAdmin}}" class="admin-section">
+    <view wx:if="{{showAdminPanel}}" class="admin-section">
       <text class="section-title">管理功能</text>
       <view class="admin-grid">
         <view class="admin-action" bindtap="onViewParticipants">

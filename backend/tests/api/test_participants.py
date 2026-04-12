@@ -10,7 +10,7 @@ from tests.conftest import auth_headers
 class TestParticipantRegistration:
     """参与者报名测试"""
 
-    def test_register_for_activity(self, client, user_token, sample_activity):
+    def test_register_for_activity(self, client, user_token, sample_activity, sample_user):
         """测试用户报名活动"""
         response = client.post(
             "/api/v1/participants/",
@@ -25,10 +25,56 @@ class TestParticipantRegistration:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["activity_id"] == sample_activity.id
-        assert data["participant_name"] == "报名者"
+        assert data["participant_name"] == sample_user.name
+        assert data["phone"] == sample_user.phone
 
-    def test_register_duplicate_participation(self, client, user_token, sample_participant):
-        """测试重复报名"""
+    def test_register_ignores_client_supplied_user_id(
+        self,
+        client,
+        user_token,
+        sample_user,
+        sample_activity,
+        db_session,
+    ):
+        """测试报名时忽略客户端伪造的 user_id"""
+        from app.schemas import User
+
+        other_user = User(
+            tenant_id=sample_user.tenant_id,
+            name="其他用户",
+            phone="13800138066",
+            password_hash=sample_user.password_hash,
+            identity_number="110101199001016666",
+            isblock=0,
+        )
+        db_session.add(other_user)
+        db_session.commit()
+        db_session.refresh(other_user)
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "user_id": other_user.id,
+                "participant_name": "伪造报名者",
+                "phone": "13900139166",
+                "identity_number": "110101199001013066"
+            }
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["user_id"] == sample_user.id
+        assert data["participant_name"] == sample_user.name
+        assert data["phone"] == sample_user.phone
+        assert data["identity_number"] == sample_user.identity_number
+
+    def test_register_duplicate_participation(self, client, user_token, sample_participant, sample_user, db_session):
+        """测试同一登录用户重复报名"""
+        sample_participant.user_id = sample_user.id
+        sample_participant.identity_number = sample_user.identity_number
+        db_session.commit()
+
         response = client.post(
             "/api/v1/participants/",
             headers=auth_headers(user_token),
@@ -54,6 +100,80 @@ class TestParticipantRegistration:
         )
         # 允许匿名报名
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED]
+
+    def test_admin_cannot_register_for_activity(self, client, super_admin_token, sample_activity):
+        """测试管理员账号不能直接报名"""
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "管理员报名",
+                "phone": "13900139188",
+                "identity_number": "110101199001013088"
+            }
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_paid_activity_rejects_direct_registration(self, client, user_token, sample_activity, db_session):
+        """测试付费活动不能绕过支付直接报名"""
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        sample_activity.max_participants = 10
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "直接报名",
+                "phone": "13900139177",
+                "identity_number": "110101199001013077"
+            }
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "先完成支付" in response.json()["detail"]
+
+    def test_paid_full_activity_allows_waitlist_registration(
+        self,
+        client,
+        user_token,
+        sample_activity,
+        db_session,
+    ):
+        """测试付费活动满员后允许直接进入候补"""
+        from app.schemas import ActivityParticipant
+
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        sample_activity.max_participants = 1
+        db_session.add(
+            ActivityParticipant(
+                tenant_id=1,
+                activity_id=sample_activity.id,
+                user_id=999,
+                participant_name="已占满用户",
+                phone="13900139099",
+                identity_number="110101199001019099",
+                enroll_status=1,
+            )
+        )
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "候补用户",
+                "phone": "13900139178",
+                "identity_number": "110101199001013078"
+            }
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["enroll_status"] == 2
 
     def test_register_missing_fields(self, client, user_token, sample_activity):
         """测试缺少必填字段"""

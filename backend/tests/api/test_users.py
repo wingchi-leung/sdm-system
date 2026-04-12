@@ -91,6 +91,16 @@ class TestUserProfile:
         assert data["name"] == "测试用户"
         assert data["phone"] == "13800138000"
 
+    def test_get_my_profile_as_admin(self, client, super_admin_token, super_admin):
+        """测试管理员也能获取自己关联的个人信息"""
+        response = client.get(
+            "/api/v1/users/me",
+            headers=auth_headers(super_admin_token)
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["id"] == super_admin.user_id
+
     def test_get_my_profile_without_login(self, client):
         """测试未登录获取个人信息"""
         response = client.get("/api/v1/users/me")
@@ -150,6 +160,68 @@ class TestUserProfile:
             }
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_update_profile_rejects_other_sex(self, client, user_token, sample_user):
+        """测试绑定资料时拒绝 other 性别，避免数据污染"""
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(user_token),
+            json={
+                "name": "测试用户",
+                "sex": "other",
+                "age": 25,
+                "occupation": "工程师",
+                "phone": sample_user.phone,
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number": sample_user.identity_number,
+            }
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_check_bind_status_requires_full_profile(self, client, user_token, sample_user, db_session):
+        """测试绑定状态会校验完整资料，而不只是姓名性别手机号"""
+        sample_user.sex = "M"
+        sample_user.age = None
+        sample_user.occupation = None
+        sample_user.industry = None
+        sample_user.identity_type = None
+        sample_user.identity_number = None
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/users/check-bind-status",
+            headers=auth_headers(user_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["require_bind_info"] is True
+        assert data["is_bound"] is False
+
+    def test_admin_can_update_own_profile(self, client, super_admin_token, super_admin, db_session):
+        """测试管理员也能更新自己关联的个人资料"""
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(super_admin_token),
+            json={
+                "name": "管理员本人",
+                "sex": "male",
+                "age": 35,
+                "occupation": "运营负责人",
+                "phone": "13800138010",
+                "industry": "教育",
+                "identity_type": "mainland",
+                "identity_number": "110101199001011210",
+            }
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        from app.schemas import User
+
+        admin_user = db_session.query(User).filter(User.id == super_admin.user_id).first()
+        assert admin_user is not None
+        assert admin_user.name == "管理员本人"
+        assert admin_user.sex == "M"
 
 
 @pytest.mark.api

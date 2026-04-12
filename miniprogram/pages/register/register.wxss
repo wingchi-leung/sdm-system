@@ -134,6 +134,35 @@
   border-bottom: 1px solid var(--divider);
 }
 
+/* 可折叠分区头部 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--divider);
+  margin-bottom: var(--space-lg);
+}
+
+/* 在 section-header 内的 section-title 不单独显示 border/margin */
+.section-header .section-title {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-arrow {
+  font-size: 28rpx;
+  color: var(--text-tertiary);
+  display: inline-block;
+  transition: transform 0.25s ease;
+  transform: rotate(0deg);
+}
+
+.section-arrow.expanded {
+  transform: rotate(180deg);
+}
+
 .section-divider {
   height: 1px;
   background: var(--divider);
@@ -239,20 +268,36 @@
   letter-spacing: 0.02em;
 }
 
+.recovery-box {
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-md);
+  background: rgba(201, 169, 97, 0.08);
+  border-left: 2px solid var(--warning);
+}
+
+.recovery-text {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
 /* ─────────────────────────────────────────────────────────────
  * 提交按钮
  * ───────────────────────────────────────────────────────────── */
 .btn-submit {
   width: 100%;
-  height: 112rpx;
+  height: 88rpx;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
   border-radius: var(--radius-lg);
   border: none;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   margin-top: var(--space-2xl);
-  box-shadow: 0 8rpx 24rpx rgba(26, 26, 26, 0.15);
+  box-shadow: 0 6rpx 18rpx rgba(26, 26, 26, 0.12);
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-submit::before {
@@ -289,10 +334,11 @@
 }
 
 .btn-submit .btn-text {
-  font-size: 32rpx;
+  font-size: 28rpx;
   font-weight: 500;
   color: #FFFFFF;
   letter-spacing: 0.08em;
+  text-align: center;
 }
 
 /* ─────────────────────────────────────────────────────────────

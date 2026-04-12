@@ -11,77 +11,60 @@
     <text class="header-subtitle">填写报名信息</text>
   </view>
 
-  <!-- 报名情况提示 -->
-  <view class="enrollment-info" wx:if="{{enrollmentInfo}}">
-    <view class="enrollment-stats">
-      <text class="enrollment-label">已报名</text>
-      <text class="enrollment-value">{{enrollmentInfo.enrolled_count}}{{enrollmentInfo.max_participants ? ' / ' + enrollmentInfo.max_participants : ''}}</text>
-    </view>
-    <view class="enrollment-status {{isFull ? 'full' : ''}}">
-      <text wx:if="{{isFull}}">已满员，报名将进入候补</text>
-      <text wx:elif="{{remainingQuota !== null}}">剩余名额：{{remainingQuota}}</text>
-      <text wx:else>名额充足</text>
-    </view>
-    <view wx:if="{{enrollmentInfo.waitlist_count > 0}}" class="waitlist-info">
-      <text>当前候补人数：{{enrollmentInfo.waitlist_count}}</text>
-    </view>
-  </view>
 
-  <!-- 表单 -->
+<!-- 表单 -->
   <view class="form-card">
-    <!-- ========== 用户信息（从资料获取，不可编辑）========== -->
-    <view class="section-title">基本信息</view>
-
-    <!-- 姓名 -->
-    <view class="field field-readonly">
-      <text class="field-label">姓名</text>
-      <view class="readonly-value">{{name || '未设置'}}</view>
+    <!-- ========== 用户信息（从资料获取，可折叠）========== -->
+    <view class="section-header" bindtap="toggleBasicInfo">
+      <text class="section-title">基本信息</text>
+      <text class="section-arrow {{basicInfoExpanded ? 'expanded' : ''}}">▾</text>
     </view>
 
-    <!-- 性别 -->
-    <view class="field field-readonly">
-      <text class="field-label">性别</text>
-      <view class="readonly-value">{{sex || '未设置'}}</view>
-    </view>
-
-    <!-- 年龄 -->
-    <view class="field field-readonly">
-      <text class="field-label">年龄</text>
-      <view class="readonly-value">{{age || '未设置'}}</view>
-    </view>
-
-    <!-- 职业 -->
-    <view class="field field-readonly">
-      <text class="field-label">职业</text>
-      <view class="readonly-value">{{occupation || '未设置'}}</view>
-    </view>
-
-    <!-- 电话 -->
-    <view class="field field-readonly">
-      <text class="field-label">电话</text>
-      <view class="readonly-value">{{phone || '未设置'}}</view>
-    </view>
-
-    <!-- 邮箱 -->
-    <view class="field field-readonly">
-      <text class="field-label">邮箱</text>
-      <view class="readonly-value">{{email || '未设置'}}</view>
-    </view>
-
-    <!-- 行业 -->
-    <view class="field field-readonly">
-      <text class="field-label">行业</text>
-      <view class="readonly-value">{{industry || '未设置'}}</view>
-    </view>
-
-    <!-- 证件信息 -->
-    <view class="field field-readonly">
-      <text class="field-label">证件类型</text>
-      <view class="readonly-value">{{identityTypeLabel || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">证件号码</text>
-      <view class="readonly-value">{{identityNumber || '未设置'}}</view>
+    <view wx:if="{{basicInfoExpanded}}">
+      <!-- 姓名 -->
+      <view class="field field-readonly">
+        <text class="field-label">姓名</text>
+        <view class="readonly-value">{{name || '未设置'}}</view>
+      </view>
+      <!-- 性别 -->
+      <view class="field field-readonly">
+        <text class="field-label">性别</text>
+        <view class="readonly-value">{{sex || '未设置'}}</view>
+      </view>
+      <!-- 年龄 -->
+      <view class="field field-readonly">
+        <text class="field-label">年龄</text>
+        <view class="readonly-value">{{age || '未设置'}}</view>
+      </view>
+      <!-- 职业 -->
+      <view class="field field-readonly">
+        <text class="field-label">职业</text>
+        <view class="readonly-value">{{occupation || '未设置'}}</view>
+      </view>
+      <!-- 电话 -->
+      <view class="field field-readonly">
+        <text class="field-label">电话</text>
+        <view class="readonly-value">{{phone || '未设置'}}</view>
+      </view>
+      <!-- 邮箱 -->
+      <view class="field field-readonly">
+        <text class="field-label">邮箱</text>
+        <view class="readonly-value">{{email || '未设置'}}</view>
+      </view>
+      <!-- 行业 -->
+      <view class="field field-readonly">
+        <text class="field-label">行业</text>
+        <view class="readonly-value">{{industry || '未设置'}}</view>
+      </view>
+      <!-- 证件信息 -->
+      <view class="field field-readonly">
+        <text class="field-label">证件类型</text>
+        <view class="readonly-value">{{identityTypeLabel || '未设置'}}</view>
+      </view>
+      <view class="field field-readonly">
+        <text class="field-label">证件号码</text>
+        <view class="readonly-value">{{identityNumber || '未设置'}}</view>
+      </view>
     </view>
 
     <!-- ========== 问卷部分 ========== -->
@@ -181,9 +164,13 @@
       <text class="error-text">{{error}}</text>
     </view>
 
+    <view class="recovery-box" wx:if="{{recoverPendingPayment && paymentOrderNo}}">
+      <text class="recovery-text">当前订单仍可继续支付：{{paymentOrderNo}}</text>
+    </view>
+
     <!-- 提交按钮 -->
     <button class="btn-submit {{isFull ? 'waitlist' : ''}}" disabled="{{submitting}}" bindtap="submit">
-      <text class="btn-text">{{submitting ? '处理中…' : (isFull ? '进入候补' : (requirePayment ? '立即支付' : '提交报名'))}}</text>
+      <text class="btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : (isFull ? '进入候补' : '确认报名'))}}</text>
     </button>
   </view>
 </view>

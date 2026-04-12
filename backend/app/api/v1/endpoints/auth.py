@@ -384,18 +384,32 @@ def phone_login(
         reason = user.block_reason or "账号已被禁用"
         raise HTTPException(status_code=403, detail=f"账号已被拉黑：{reason}")
 
-    # 如果传了 login_code 且用户尚未绑定 openid，换取 openid 并保存
+    wechat_payment_ready = bool(user.wx_openid)
+    wechat_payment_hint: str | None = None
+
+    # 如果传了 login_code，则刷新当前登录微信对应的 openid，确保后续支付使用最新账号
     login_code = (body.login_code or "").strip()
-    if login_code and not user.wx_openid:
+    if login_code:
+        existing_openid = user.wx_openid
         try:
             session_data = _wechat_code2session(login_code)
             openid = session_data.get("openid")
-            if openid:
+            if openid and user.wx_openid != openid:
+                # 若该 openid 已绑定同租户其他用户，先解绑旧用户（手机号登录优先级更高）
+                existing = crud_user.get_user_by_wx_openid(db, openid, tenant.id)
+                if existing and existing.id != user.id:
+                    existing.wx_openid = None
                 user.wx_openid = openid
                 db.commit()
-        except Exception:
-            # openid 获取失败不阻断登录流程，仅支付时会受影响
-            pass
+            wechat_payment_ready = bool(user.wx_openid)
+        except Exception as exc:
+            db.rollback()
+            user = crud_user.get_or_create_user_by_phone(db, phone, tenant.id)
+            logger.exception("手机号登录刷新 openid 失败: %s", exc)
+            wechat_payment_ready = bool(existing_openid)
+            wechat_payment_hint = "本次微信支付绑定刷新失败，如需支付请重新登录后再试"
+    elif not wechat_payment_ready:
+        wechat_payment_hint = "当前账号尚未完成微信支付绑定，如需支付请使用手机号一键登录"
 
     token = create_access_token(sub=str(user.id), role="user", tenant_id=tenant.id)
 
@@ -409,4 +423,6 @@ def phone_login(
         is_first_login=is_first_login,
         require_bind_info=is_first_login,
         phone=phone,
+        wechat_payment_ready=wechat_payment_ready,
+        wechat_payment_hint=wechat_payment_hint,
     )

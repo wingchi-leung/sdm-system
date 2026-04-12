@@ -7,8 +7,8 @@
 const ENV = {
   // 开发环境：本地开发，可使用 HTTP
   development: {
-    baseUrl: 'http://192.168.1.55:8000/api/v1', // 请根据实际情况修改
-    staticBaseUrl: 'http://192.168.1.55:8000', // 静态资源基础URL
+    baseUrl: 'http://172.20.10.6:8000/api/v1', // 请根据实际情况修改
+    staticBaseUrl: 'http://172.20.10.6:8000', // 静态资源基础URL
     debug: true,
   },
   // 生产环境：必须使用 HTTPS

@@ -157,6 +157,65 @@ class TestAuthEndpoints:
         })
         assert response.status_code == status.HTTP_502_BAD_GATEWAY
 
+    def test_phone_login_refreshes_existing_user_openid(self, client, sample_user, db_session, mocker):
+        """测试手机号登录会刷新当前用户的 openid 绑定"""
+        sample_user.phone = "13800138111"
+        sample_user.wx_openid = "old_openid"
+
+        occupied_user = db_session.query(type(sample_user)).filter(type(sample_user).id != sample_user.id).first()
+        if occupied_user is None:
+            from tests.factories import UserFactory
+            occupied_user = UserFactory(phone="13800138112", wx_openid="new_openid")
+            db_session.add(occupied_user)
+        else:
+            occupied_user.phone = "13800138112"
+            occupied_user.wx_openid = "new_openid"
+        db_session.commit()
+
+        mocker.patch("app.api.v1.endpoints.auth._get_phone_number_from_wechat", return_value="13800138111")
+        mocker.patch(
+            "app.api.v1.endpoints.auth._wechat_code2session",
+            return_value={"openid": "new_openid", "session_key": "session_key"},
+        )
+
+        response = client.post("/api/v1/auth/phone-login", json={
+            "code": "phone_code",
+            "login_code": "login_code",
+        })
+        assert response.status_code == status.HTTP_200_OK
+
+        db_session.refresh(sample_user)
+        db_session.refresh(occupied_user)
+        assert sample_user.wx_openid == "new_openid"
+        assert occupied_user.wx_openid is None
+
+    def test_phone_login_returns_payment_hint_when_openid_refresh_fails(
+        self,
+        client,
+        sample_user,
+        db_session,
+        mocker,
+    ):
+        """测试手机号登录在刷新 openid 失败时会显式提示支付绑定状态"""
+        sample_user.phone = "13800138118"
+        sample_user.wx_openid = None
+        db_session.commit()
+
+        mocker.patch("app.api.v1.endpoints.auth._get_phone_number_from_wechat", return_value="13800138118")
+        mocker.patch(
+            "app.api.v1.endpoints.auth._wechat_code2session",
+            side_effect=RuntimeError("wechat down"),
+        )
+
+        response = client.post("/api/v1/auth/phone-login", json={
+            "code": "phone_code",
+            "login_code": "login_code",
+        })
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["wechat_payment_ready"] is False
+        assert "支付绑定" in data["wechat_payment_hint"]
+
     def test_token_expiry_format(self, client, super_admin):
         """测试返回的 token 格式"""
         response = client.post("/api/v1/auth/login", json={
@@ -243,13 +302,14 @@ class TestTokenValidation:
         )
         assert response.status_code == status.HTTP_200_OK
 
-    def test_token_with_bearer_prefix(self, client, super_admin_token):
-        """测试管理员 token 访问普通用户端点会被拒绝"""
+    def test_token_with_bearer_prefix(self, client, super_admin_token, super_admin):
+        """测试管理员 token 也可以访问自己的资料端点"""
         response = client.get(
             "/api/v1/users/me",
             headers={"Authorization": f"Bearer {super_admin_token}"}
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["id"] == super_admin.user_id
 
     def test_token_without_bearer_prefix(self, client, super_admin_token):
         """测试不带 Bearer 前缀的 token"""
