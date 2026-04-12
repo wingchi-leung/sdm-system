@@ -5,6 +5,7 @@
     "pages/activity-detail/activity-detail",
     "pages/login/login",
     "pages/mine/mine",
+    "pages/register/register",
     "pages/create-activity/create-activity",
     "pages/activity-list/activity-list",
     "pages/edit-activity/edit-activity",
