@@ -216,7 +216,9 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
 
     # 性别格式转换：将 male/female 统一转为数据库存储格式 M/F
     sex_map = {"male": "M", "female": "F"}
-    sex_value = sex_map.get(bind_info.sex, bind_info.sex)
+    if bind_info.sex not in sex_map:
+        raise HTTPException(status_code=400, detail="请选择男或女")
+    sex_value = sex_map[bind_info.sex]
 
     # 验证手机号一致性：用户填写的手机号必须与微信获取的手机号一致
     bind_phone = bind_info.phone
@@ -236,6 +238,14 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     ).first()
     if existing:
         raise HTTPException(status_code=400, detail="该手机号已被使用")
+
+    existing_identity = db.query(User).filter(
+        User.identity_number == bind_info.identity_number,
+        User.id != user_id,
+        User.tenant_id == tenant_id,
+    ).first()
+    if existing_identity:
+        raise HTTPException(status_code=400, detail="该证件号已被使用")
 
     # 更新字段
     user.name = bind_info.name

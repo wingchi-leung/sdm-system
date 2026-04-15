@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from datetime import datetime
 from typing import List, Optional
 from fastapi import HTTPException
@@ -84,14 +84,24 @@ def get_activities(
     limit: int = 10,
     status: Optional[int] = None,
     allowed_activity_type_ids: Optional[List[int]] = None,
+    allowed_activity_ids: Optional[List[int]] = None,
 ) -> tuple:
     """获取活动列表（租户隔离）"""
     try:
         query = db.query(Activity).filter(Activity.tenant_id == tenant_id)
         if status is not None:
             query = query.filter(Activity.status == status)
-        if allowed_activity_type_ids is not None and len(allowed_activity_type_ids) > 0:
-            query = query.filter(Activity.activity_type_id.in_(allowed_activity_type_ids))
+        scope_filters = []
+        if allowed_activity_type_ids is not None:
+            if allowed_activity_type_ids:
+                scope_filters.append(Activity.activity_type_id.in_(allowed_activity_type_ids))
+        if allowed_activity_ids is not None:
+            if allowed_activity_ids:
+                scope_filters.append(Activity.id.in_(allowed_activity_ids))
+        if allowed_activity_type_ids is not None or allowed_activity_ids is not None:
+            if not scope_filters:
+                return [], 0
+            query = query.filter(or_(*scope_filters))
         total = query.count()
         activities = query.order_by(desc(Activity.start_time)).offset(skip).limit(limit).all()
         return activities, total

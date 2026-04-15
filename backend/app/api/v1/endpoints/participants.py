@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from app.crud import crud_participant, crud_user
 from app.models import participant
@@ -30,6 +31,14 @@ def _merge_profile_fields(
     )
 
 
+def _ensure_activity_enrollable(activity: Activity) -> None:
+    """后端兜底校验活动是否允许报名。"""
+    if activity.status not in (1, 2):
+        raise HTTPException(status_code=400, detail="活动当前不可报名")
+    if activity.end_time and datetime.now() > activity.end_time:
+        raise HTTPException(status_code=400, detail="活动已结束，无法报名")
+
+
 @router.post("/", response_model=participant.ParticipantResponse)
 def create_participant(
     participant_in: participant.ParticipantCreate,
@@ -51,10 +60,20 @@ def create_participant(
     ).first()
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
+    _ensure_activity_enrollable(activity)
 
-    # 付费活动统一走支付通道，包括满员候补场景，候补名额释放后须补缴费用
     if activity.require_payment == 1:
-        raise HTTPException(status_code=400, detail="该活动需要先完成支付后才能报名")
+        enrolled_count = crud_participant.get_enrolled_count(
+            db,
+            participant_in.activity_id,
+            tenant_id,
+        )
+        is_full = (
+            activity.max_participants is not None
+            and enrolled_count >= activity.max_participants
+        )
+        if not is_full:
+            raise HTTPException(status_code=400, detail="该活动需要先完成支付后才能报名")
 
     current_user = crud_user.get_user(db, ctx.user_id, tenant_id)
     if not current_user:

@@ -1,29 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac
+from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac, crud_tenant
 from app.models import activity, checkin
 from app.api import deps
 
 router = APIRouter()
 
 
-def _allowed_type_ids_for_list(db: Session, user_id: int | None, tenant_id: int) -> List[int] | None:
+def _tenant_id_for_public_request(db: Session, tenant_code: str) -> int:
+    """未登录访问活动时，根据租户编码解析租户，避免硬编码 1 号租户。"""
+    tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
+    if not tenant or tenant.status != 1:
+        raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+    return tenant.id
+
+
+def _allowed_scopes_for_list(
+    db: Session,
+    user_id: int | None,
+    tenant_id: int,
+) -> tuple[List[int] | None, List[int] | None]:
     """管理员列表过滤（基于 RBAC）"""
     if user_id is None:
-        return None
+        return None, None
 
     user_roles = crud_rbac.get_user_roles(db, user_id, tenant_id)
 
     # 检查是否有全局权限
     if any(ur.scope_type is None for ur in user_roles):
-        return None
+        return None, None
 
     # 收集活动类型权限
     type_ids = [ur.scope_id for ur in user_roles if ur.scope_type == 'activity_type' and ur.scope_id]
+    activity_ids = [ur.scope_id for ur in user_roles if ur.scope_type == 'activity' and ur.scope_id]
 
-    return type_ids if type_ids else None
+    return type_ids, activity_ids
 
 
 @router.post("/", response_model=activity.ActivityResponse)
@@ -67,33 +80,44 @@ def list_activities(
     skip: int = 0,
     limit: int = 100,
     status: int = None,
+    tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext | None = Depends(deps.get_current_admin_optional),
+    ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """活动列表"""
-    tenant_id = ctx.tenant_id if ctx else 1
-    admin_id = ctx.user_id if ctx else None
+    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
+    admin_id = ctx.user_id if ctx and ctx.role == "admin" else None
     
-    allowed = _allowed_type_ids_for_list(db, admin_id, tenant_id) if admin_id else None
+    allowed_types, allowed_activities = (
+        _allowed_scopes_for_list(db, admin_id, tenant_id) if admin_id else (None, None)
+    )
     activities, total = crud_activity.get_activities(
         db, tenant_id=tenant_id, skip=skip, limit=limit, status=status,
-        allowed_activity_type_ids=allowed,
+        allowed_activity_type_ids=allowed_types,
+        allowed_activity_ids=allowed_activities,
     )
     return {"items": activities, "total": total}
 
 
 @router.get("/unstarted/", response_model=activity.ActivityListResponse)
 def get_unstarted_activities(
+    tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext | None = Depends(deps.get_current_admin_optional),
+    ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """未开始活动列表"""
-    tenant_id = ctx.tenant_id if ctx else 1
-    admin_id = ctx.user_id if ctx else None
+    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
+    admin_id = ctx.user_id if ctx and ctx.role == "admin" else None
     
-    allowed = _allowed_type_ids_for_list(db, admin_id, tenant_id) if admin_id else None
+    allowed_types, allowed_activities = (
+        _allowed_scopes_for_list(db, admin_id, tenant_id) if admin_id else (None, None)
+    )
     activities, total = crud_activity.get_activities(
-        db, tenant_id=tenant_id, status=1, allowed_activity_type_ids=allowed
+        db,
+        tenant_id=tenant_id,
+        status=1,
+        allowed_activity_type_ids=allowed_types,
+        allowed_activity_ids=allowed_activities,
     )
     return {"items": activities, "total": total}
 
@@ -101,11 +125,12 @@ def get_unstarted_activities(
 @router.get("/{activity_id}", response_model=activity.ActivityResponse)
 def get_activity(
     activity_id: int,
+    tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext | None = Depends(deps.get_current_admin_optional),
+    ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """获取活动详情"""
-    tenant_id = ctx.tenant_id if ctx else 1
+    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
     act = crud_activity.get_activity(db, activity_id, tenant_id)
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")
@@ -115,11 +140,12 @@ def get_activity(
 @router.get("/{activity_id}/enrollment-info")
 def get_enrollment_info(
     activity_id: int,
+    tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """获取活动报名情况（剩余名额等）"""
-    tenant_id = ctx.tenant_id if ctx else 1
+    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
     act = crud_activity.get_activity(db, activity_id, tenant_id)
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")

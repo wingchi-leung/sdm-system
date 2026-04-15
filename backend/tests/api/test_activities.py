@@ -397,3 +397,20 @@ class TestActivityPermissions:
             json={"activity_name": "尝试修改"}
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_admin_without_scope_does_not_see_all_activities(
+        self,
+        client,
+        activity_admin_no_permission_token,
+        sample_activity,
+    ):
+        """测试无范围管理员不会被当成全量权限"""
+        response = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(activity_admin_no_permission_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 0
+        assert data["items"] == []

@@ -135,6 +135,25 @@ class TestParticipantRegistration:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "先完成支付" in response.json()["detail"]
 
+    def test_ended_activity_rejects_registration(self, client, user_token, sample_activity, db_session):
+        """测试已结束活动不能继续报名"""
+        sample_activity.status = 3
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "结束后报名",
+                "phone": "13900139179",
+                "identity_number": "110101199001013079",
+            },
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "不可报名" in response.json()["detail"]
+
     def test_paid_full_activity_allows_waitlist_registration(
         self,
         client,

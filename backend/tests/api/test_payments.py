@@ -141,6 +141,30 @@ class TestPaymentEndpoints:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert "管理员账号不能直接报名或发起支付" in response.json()["detail"]
 
+    def test_ended_activity_rejects_payment_order(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        user_token,
+    ):
+        """测试已结束付费活动不能继续下单"""
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        sample_activity.status = 3
+        sample_user.wx_openid = "wx_openid_ended_payment"
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/payments/create",
+            headers=auth_headers(user_token),
+            json=_payment_request_payload(sample_activity.id),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "不可报名" in response.json()["detail"]
+
     def test_create_payment_order_rejects_blocked_user(
         self,
         client,
@@ -225,6 +249,73 @@ class TestPaymentEndpoints:
         data = response.json()
         assert data["order_no"] == "SDMPENDING001"
         assert data["payment_params"]["package"] == "prepay_id=prepay_pending"
+
+    def test_query_payment_order_recovers_success_from_wechat(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        user_token,
+        monkeypatch,
+    ):
+        """测试查询订单时能从微信侧成功状态补偿落库"""
+        from app.api.v1.endpoints import payments as payments_endpoint
+
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        sample_user.wx_openid = "wx_openid_query_recover"
+        db_session.commit()
+
+        order = crud_payment.create_payment_order(
+            db=db_session,
+            order_no="SDMQUERYRECOVER001",
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            openid=sample_user.wx_openid,
+            suggested_fee=1000,
+            actual_fee=1000,
+            prepay_id="prepay_query_recover",
+            tenant_id=sample_user.tenant_id,
+            participant_name=sample_user.name,
+            phone=sample_user.phone,
+            participant_snapshot=_payment_request_payload(sample_activity.id),
+        )
+
+        monkeypatch.setattr(payments_endpoint.settings, "WECHAT_APPID", "wx-test-app")
+        monkeypatch.setattr(payments_endpoint.settings, "WECHAT_PAY_MCH_ID", "mch-test")
+
+        class FakePayService:
+            def query_order(self, order_no):
+                return {
+                    "out_trade_no": order_no,
+                    "transaction_id": "wx_txn_query_recover",
+                    "trade_state": "SUCCESS",
+                    "appid": "wx-test-app",
+                    "mchid": "mch-test",
+                    "amount": {"total": 1000},
+                    "payer": {"openid": sample_user.wx_openid},
+                }
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.get_wechat_pay_service",
+            lambda: FakePayService(),
+        )
+
+        response = client.get(
+            f"/api/v1/payments/order/{order.order_no}",
+            headers=auth_headers(user_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["status"] == crud_payment.PAYMENT_STATUS_SUCCESS
+        assert data["participant_id"] is not None
+
+        participant = db_session.query(ActivityParticipant).filter(
+            ActivityParticipant.payment_order_id == order.id,
+        ).one()
+        assert participant.payment_status == 2
 
     def test_create_payment_order_rejects_creating_order(
         self,

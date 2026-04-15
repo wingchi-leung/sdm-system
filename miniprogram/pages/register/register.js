@@ -306,7 +306,7 @@ Page({
     }
 
     // 如果需要支付，验证金额
-    if (requirePayment) {
+    if (requirePayment && !this.data.isFull) {
       if (!actualFee || actualFee < suggestedFee) {
         this.setData({ error: `支付金额不能低于 ${this.data.suggestedFeeYuan} 元` });
         return false;
@@ -529,9 +529,8 @@ Page({
 
     const { requirePayment } = this.data;
 
-    // 付费活动始终走支付通道，无论是否满员
-    // 满员时后端会自动将参与者设为候补状态（enroll_status=2），避免绕过支付
-    if (requirePayment) {
+    // 付费活动未满员时走支付；满员时直接提交候补，候补转正时再处理费用
+    if (requirePayment && !this.data.isFull) {
       this.doPaymentRegister();
     } else {
       this.doRegister();

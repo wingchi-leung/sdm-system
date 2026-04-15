@@ -5,6 +5,29 @@ import pytest
 from datetime import datetime, timedelta
 from fastapi import status
 from tests.conftest import auth_headers
+from app.core.security import create_access_token, hash_password
+from app.schemas import User
+
+
+def _create_participant_user_token(db_session, tenant_id: int, idx: int, name: str, phone: str, identity_number: str) -> str:
+    """创建完整资料用户，并返回用户 token。"""
+    user = User(
+        tenant_id=tenant_id,
+        name=name,
+        phone=phone,
+        identity_number=identity_number,
+        identity_type="mainland",
+        sex="M",
+        age=30,
+        occupation="测试用户",
+        industry="测试行业",
+        password_hash=hash_password("user123"),
+        isblock=0,
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return create_access_token(sub=str(user.id), role="user", tenant_id=tenant_id)
 
 
 @pytest.mark.e2e
@@ -30,13 +53,24 @@ class TestAdminCompleteWorkflow:
 
         # 2. 添加参与者（逐个报名）
         for i in range(1, 11):
+            phone = f"139001395{i:02d}"
+            identity_number = f"110101199001017{i:03d}"
+            user_token = _create_participant_user_token(
+                db_session,
+                sample_activity_type.tenant_id,
+                i,
+                f"参与者{i}",
+                phone,
+                identity_number,
+            )
             participant_response = client.post(
                 "/api/v1/participants/",
+                headers=auth_headers(user_token),
                 json={
                     "activity_id": activity_id,
                     "participant_name": f"参与者{i}",
-                    "phone": f"139001395{i:02d}",
-                    "identity_number": f"110101199001017{i:03d}"
+                    "phone": phone,
+                    "identity_number": identity_number
                 }
             )
             assert participant_response.status_code == status.HTTP_200_OK
@@ -102,7 +136,7 @@ class TestAdminCompleteWorkflow:
         assert stats.get("total_participants", 0) >= 10
         assert stats.get("total_checkins", 0) >= 0
 
-    def test_activity_admin_with_permission_workflow(self, client, activity_admin_token, sample_activity_type):
+    def test_activity_admin_with_permission_workflow(self, client, activity_admin_token, sample_activity_type, db_session):
         """测试有权限的活动管理员工作流程"""
         # 1. 创建活动
         create_response = client.post(
@@ -117,10 +151,19 @@ class TestAdminCompleteWorkflow:
         assert create_response.status_code == status.HTTP_200_OK
         activity_id = create_response.json()["id"]
 
+        participant_token = _create_participant_user_token(
+            db_session,
+            sample_activity_type.tenant_id,
+            600,
+            "测试参与者",
+            "13900139600",
+            "110101199001018000",
+        )
+
         # 2. 添加单个参与者
         participant_response = client.post(
             "/api/v1/participants/",
-            headers=auth_headers(activity_admin_token),
+            headers=auth_headers(participant_token),
             json={
                 "activity_id": activity_id,
                 "participant_name": "测试参与者",
@@ -169,7 +212,7 @@ class TestAdminCompleteWorkflow:
         # 返回 {"items": [...], "total": N} 格式
         assert all_activities.get("total", 0) >= 4
 
-    def test_admin_handles_registration_and_checkin(self, client, super_admin_token, sample_activity_type):
+    def test_admin_handles_registration_and_checkin(self, client, super_admin_token, sample_activity_type, db_session):
         """测试管理员处理报名和签到的完整流程"""
         # 1. 创建活动
         create_response = client.post(
@@ -185,13 +228,24 @@ class TestAdminCompleteWorkflow:
 
         # 2. 报名参与者
         for i in range(1, 6):
+            phone = f"139001397{i:02d}"
+            identity_number = f"110101199001019{i:03d}"
+            user_token = _create_participant_user_token(
+                db_session,
+                sample_activity_type.tenant_id,
+                700 + i,
+                f"签到者{i}",
+                phone,
+                identity_number,
+            )
             participant_response = client.post(
                 "/api/v1/participants/",
+                headers=auth_headers(user_token),
                 json={
                     "activity_id": activity_id,
                     "participant_name": f"签到者{i}",
-                    "phone": f"139001397{i:02d}",
-                    "identity_number": f"110101199001019{i:03d}"
+                    "phone": phone,
+                    "identity_number": identity_number
                 }
             )
             assert participant_response.status_code == status.HTTP_200_OK
@@ -286,12 +340,20 @@ class TestAdminCompleteWorkflow:
 class TestAdminErrorScenarios:
     """管理员错误场景 E2E 测试"""
 
-    def test_admin_handles_duplicate_participant(self, client, super_admin_token, sample_activity):
+    def test_admin_handles_duplicate_participant(self, client, super_admin_token, sample_activity, db_session):
         """测试管理员处理重复报名"""
+        participant_token = _create_participant_user_token(
+            db_session,
+            sample_activity.tenant_id,
+            900,
+            "重复报名者",
+            "13900139900",
+            "110101199001020000",
+        )
         # 第一次报名
         first_response = client.post(
             "/api/v1/participants/",
-            headers=auth_headers(super_admin_token),
+            headers=auth_headers(participant_token),
             json={
                 "activity_id": sample_activity.id,
                 "participant_name": "重复报名者",
@@ -304,7 +366,7 @@ class TestAdminErrorScenarios:
         # 第二次报名（相同身份证号，应该失败）
         second_response = client.post(
             "/api/v1/participants/",
-            headers=auth_headers(super_admin_token),
+            headers=auth_headers(participant_token),
             json={
                 "activity_id": sample_activity.id,
                 "participant_name": "重复报名者",

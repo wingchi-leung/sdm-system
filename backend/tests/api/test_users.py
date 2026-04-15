@@ -179,6 +179,46 @@ class TestUserProfile:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_update_profile_rejects_duplicate_identity(
+        self,
+        client,
+        user_token,
+        sample_user,
+        db_session,
+    ):
+        """测试绑定资料时拒绝使用其他用户证件号"""
+        from app.schemas import User
+
+        other_user = User(
+            tenant_id=sample_user.tenant_id,
+            name="证件占用用户",
+            phone="13800138199",
+            identity_number="110101199001011299",
+            identity_type="mainland",
+            sex="M",
+            isblock=0,
+        )
+        db_session.add(other_user)
+        db_session.commit()
+
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(user_token),
+            json={
+                "name": "测试用户",
+                "sex": "male",
+                "age": 25,
+                "occupation": "工程师",
+                "phone": sample_user.phone,
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number": other_user.identity_number,
+            },
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "证件号已被使用" in response.json()["detail"]
+
     def test_check_bind_status_requires_full_profile(self, client, user_token, sample_user, db_session):
         """测试绑定状态会校验完整资料，而不只是姓名性别手机号"""
         sample_user.sex = "M"
@@ -274,6 +314,18 @@ class TestUserManagement:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert len(data) >= 5
+
+    def test_get_all_users_admin_route_not_shadowed(self, client, super_admin_token, sample_user):
+        """测试 /admin/all 不会被 /{user_id} 动态路由挡住"""
+        response = client.get(
+            "/api/v1/users/admin/all",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert "items" in data
+        assert data["total"] >= 1
 
     def test_get_users_list_as_normal_user_forbidden(self, client, user_token):
         """测试普通用户获取用户列表被禁止"""

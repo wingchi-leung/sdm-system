@@ -5,6 +5,7 @@
 const config = require('../config/index');
 const baseUrl = config.baseUrl;
 const staticBaseUrl = config.staticBaseUrl;
+const tenantCode = config.tenantCode || 'default';
 
 function getToken() {
   return wx.getStorageSync('access_token') || '';
@@ -35,6 +36,11 @@ function getHeader(useAuth = false) {
   return header;
 }
 
+function withTenant(url) {
+  const joiner = url.includes('?') ? '&' : '?';
+  return `${url}${joiner}tenant_code=${encodeURIComponent(tenantCode)}`;
+}
+
 /** 是否非加密连接（用于登录页安全提示） */
 function isUnsafeBaseUrl() {
   try {
@@ -50,7 +56,7 @@ function isUnsafeBaseUrl() {
 /** 活动列表：可传 status 筛选，不传则全部 */
 function getActivities(opts = {}) {
   const { skip = 0, limit = 100, status } = opts;
-  let url = `${baseUrl}/activities?skip=${skip}&limit=${limit}`;
+  let url = withTenant(`${baseUrl}/activities?skip=${skip}&limit=${limit}`);
   if (status != null) url += `&status=${status}`;
   return new Promise((resolve, reject) => {
     wx.request({
@@ -78,7 +84,7 @@ function getEnrollableActivities() {
 function getUnstartedActivities() {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/activities/unstarted/`,
+      url: withTenant(`${baseUrl}/activities/unstarted/`),
       method: 'GET',
       header: getHeader(),
       success: (res) => {
@@ -97,7 +103,7 @@ function adminLogin(username, password) {
       url: `${baseUrl}/auth/login`,
       method: 'POST',
       header: getHeader(),
-      data: { username, password },
+      data: { username, password, tenant_code: tenantCode },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -114,7 +120,7 @@ function userLogin(phone, password) {
       url: `${baseUrl}/auth/user-login`,
       method: 'POST',
       header: getHeader(),
-      data: { phone, password },
+      data: { phone, password, tenant_code: tenantCode },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -126,7 +132,7 @@ function userLogin(phone, password) {
 
 /** 用户注册 */
 function registerUser({ name, phone, password, email }) {
-  const data = { name, phone, password };
+  const data = { name, phone, password, tenant_code: tenantCode };
   if (email) data.email = email;
   return new Promise((resolve, reject) => {
     wx.request({
@@ -246,7 +252,7 @@ function wechatLogin(code) {
       url: `${baseUrl}/auth/wechat-login`,
       method: 'POST',
       header: getHeader(),
-      data: { code: code || '' },
+      data: { code: code || '', tenant_code: tenantCode },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -269,7 +275,7 @@ ApiError.prototype.toString = function () {
 function getActivity(activityId) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/activities/${activityId}`,
+      url: withTenant(`${baseUrl}/activities/${activityId}`),
       method: 'GET',
       header: getHeader(true),
       success: (res) => {
@@ -285,7 +291,7 @@ function getActivity(activityId) {
 function getEnrollmentInfo(activityId) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/activities/${activityId}/enrollment-info`,
+      url: withTenant(`${baseUrl}/activities/${activityId}/enrollment-info`),
       method: 'GET',
       header: getHeader(),
       success: (res) => {
@@ -445,7 +451,7 @@ function checkBindStatus() {
 
 /** 手机号授权登录：传入 getPhoneNumber 返回的 code 和 wx.login 返回的 login_code */
 function phoneLogin(code, loginCode) {
-  const data = { code: code || '' };
+  const data = { code: code || '', tenant_code: tenantCode };
   if (loginCode) data.login_code = loginCode;
   return new Promise((resolve, reject) => {
     wx.request({
@@ -464,8 +470,8 @@ function phoneLogin(code, loginCode) {
 
 /** 获取所有用户列表（超级管理员专用） */
 function getAllUsersForAdmin(opts = {}) {
-  const { tenantCode = 'default', skip = 0, limit = 20, keyword } = opts;
-  let url = `${baseUrl}/users/admin/all?tenant_code=${tenantCode}&skip=${skip}&limit=${limit}`;
+  const { tenantCode: queryTenantCode = tenantCode, skip = 0, limit = 20, keyword } = opts;
+  let url = `${baseUrl}/users/admin/all?tenant_code=${encodeURIComponent(queryTenantCode)}&skip=${skip}&limit=${limit}`;
   if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
   return new Promise((resolve, reject) => {
     wx.request({

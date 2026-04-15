@@ -1,7 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 
-const DEFAULT_ACTIVITY_TYPES = ['参', '健康锻炼'];
 const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
 
 Page({
@@ -60,14 +59,13 @@ Page({
       return;
     }
 
-    // 超级管理员：可自由填写，也可快速从常见类型中选择
-    const defaults = DEFAULT_ACTIVITY_TYPES.map((name) => ({ id: null, name, code: '' }));
+    // 超级管理员：活动类型由后端已有类型或手动输入决定，不在前端写死业务默认值
     this.setData({
       isSuperAdmin,
       isTypeAdmin,
-      activityTypeOptions: defaults,
-      activityTypeIndex: 0,
-      activityTypeName: defaults[0] ? defaults[0].name : '',
+      activityTypeOptions: [],
+      activityTypeIndex: -1,
+      activityTypeName: '',
     });
   },
 

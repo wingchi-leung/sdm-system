@@ -87,7 +87,7 @@ function isUser() {
 
 function isSuperAdmin() {
   const level = getAdminLevel();
-  return isAdmin() && (level === 'super' || !level);
+  return isAdmin() && level === 'super';
 }
 
 function isActivityTypeAdmin() {
@@ -154,8 +154,8 @@ function parseAdminMeta(res) {
     ])
   );
   if (!adminLevel) {
-    // 兼容当前后端：未返回分级字段时，保持原行为（管理员默认视作超级管理员）
-    adminLevel = 'super';
+    // 后端缺少明确分级时，只能按已返回的活动类型范围展示权限，避免前端误判为超级管理员
+    adminLevel = activityTypes.length > 0 ? 'activity_type_admin' : null;
   }
   return { adminLevel, activityTypes };
 }

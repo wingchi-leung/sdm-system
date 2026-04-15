@@ -1,6 +1,22 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 
+const TAB_PAGES = ['/pages/index/index', '/pages/mine/mine'];
+const SAFE_REDIRECT_PAGES = [
+  '/pages/index/index',
+  '/pages/mine/mine',
+  '/pages/activity-detail/activity-detail',
+  '/pages/register/register',
+  '/pages/bind-user-info/bind-user-info',
+  '/pages/activity-list/activity-list',
+  '/pages/create-activity/create-activity',
+  '/pages/edit-activity/edit-activity',
+  '/pages/activity-participants/activity-participants',
+  '/pages/activity-checkins/activity-checkins',
+  '/pages/activity-statistics/activity-statistics',
+  '/pages/user-list/user-list',
+];
+
 Page({
   data: {
     isAdminMode: false,
@@ -25,12 +41,23 @@ Page({
     if (!currentPage || !currentPage.options || !currentPage.options.redirect) {
       return '';
     }
-    return decodeURIComponent(currentPage.options.redirect);
+    const redirectUrl = decodeURIComponent(currentPage.options.redirect);
+    const path = redirectUrl.split('?')[0];
+    return SAFE_REDIRECT_PAGES.includes(path) ? redirectUrl : '';
   },
 
-  navigateAfterLogin() {
+  navigateAfterLogin(role = 'user') {
     const redirectUrl = this.getRedirectUrl();
     if (redirectUrl) {
+      const path = redirectUrl.split('?')[0];
+      if (role === 'admin' && path === '/pages/register/register') {
+        wx.switchTab({ url: '/pages/index/index' });
+        return;
+      }
+      if (TAB_PAGES.includes(path)) {
+        wx.switchTab({ url: path });
+        return;
+      }
       wx.redirectTo({ url: redirectUrl });
       return;
     }
@@ -115,7 +142,7 @@ Page({
           auth.saveAdminToken(res.access_token, res);
           wx.showToast({ title: '登录成功', icon: 'success' });
           setTimeout(() => {
-            this.navigateAfterLogin();
+            this.navigateAfterLogin('admin');
           }, 800);
         })
         .catch((err) => {
@@ -156,7 +183,7 @@ Page({
                 }, 800);
               } else {
                 setTimeout(() => {
-                  this.navigateAfterLogin();
+                  this.navigateAfterLogin('user');
                 }, 800);
               }
             })
@@ -211,7 +238,7 @@ Page({
               }, 800);
             } else {
               setTimeout(() => {
-                this.navigateAfterLogin();
+                this.navigateAfterLogin('user');
               }, 800);
             }
           })
@@ -264,7 +291,7 @@ Page({
       if (data.require_bind_info) {
         setTimeout(() => wx.redirectTo({ url: '/pages/bind-user-info/bind-user-info' }), 800);
       } else {
-        setTimeout(() => this.navigateAfterLogin(), 800);
+        setTimeout(() => this.navigateAfterLogin('user'), 800);
       }
     };
 

@@ -9,12 +9,14 @@ const ENV = {
   development: {
     baseUrl: 'http://172.20.10.6:8000/api/v1', // 请根据实际情况修改
     staticBaseUrl: 'http://172.20.10.6:8000', // 静态资源基础URL
+    tenantCode: 'default',
     debug: true,
   },
   // 生产环境：必须使用 HTTPS
   production: {
-    baseUrl: 'https://api.your-domain.com/api/v1', // 请修改为实际的生产环境地址
-    staticBaseUrl: 'https://api.your-domain.com', // 静态资源基础URL
+    baseUrl: 'https://api.sdm-system.com/api/v1',
+    staticBaseUrl: 'https://api.sdm-system.com',
+    tenantCode: 'default',
     debug: false,
   }
 };
@@ -30,11 +32,13 @@ function getEnv() {
 }
 
 const currentEnv = getEnv();
+const selected = ENV[currentEnv];
 
 module.exports = {
-  baseUrl: ENV[currentEnv].baseUrl,
-  staticBaseUrl: ENV[currentEnv].staticBaseUrl,
-  debug: ENV[currentEnv].debug,
+  baseUrl: selected.baseUrl,
+  staticBaseUrl: selected.staticBaseUrl,
+  tenantCode: selected.tenantCode,
+  debug: selected.debug,
   env: currentEnv,
   isProduction: currentEnv === 'production',
 };
