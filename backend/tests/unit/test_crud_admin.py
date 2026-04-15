@@ -157,6 +157,32 @@ class TestAdminCRUD:
 
         assert crud_rbac.has_permission(db_session, admin.user_id, "participant.view", tenant_id=1) is False
 
+    def test_has_permission_rejects_role_from_other_tenant(self, db_session: Session):
+        """测试脏数据中跨租户角色不能授予权限"""
+        admin = AdminUserFactory(user_id=3004, tenant_id=1)
+        db_session.add(admin)
+        db_session.flush()
+
+        permission = Permission(
+            code="activity.delete",
+            name="activity.delete",
+            resource="activity",
+            action="delete",
+        )
+        role = Role(tenant_id=2, name="其他租户角色", is_system=0)
+        db_session.add_all([permission, role])
+        db_session.flush()
+        db_session.add(RolePermission(role_id=role.id, permission_id=permission.id))
+        db_session.add(UserRole(user_id=admin.user_id, role_id=role.id, tenant_id=1))
+        db_session.commit()
+
+        assert crud_rbac.has_permission(
+            db_session,
+            admin.user_id,
+            "activity.delete",
+            tenant_id=1,
+        ) is False
+
     def test_authenticate_admin_with_password_hash(self, db_session: Session):
         """测试使用哈希密码认证"""
         password = "test_password"

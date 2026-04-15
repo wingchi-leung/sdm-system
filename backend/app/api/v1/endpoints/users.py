@@ -98,6 +98,8 @@ def get_all_users_for_super_admin(
     tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
     if not tenant:
         raise HTTPException(status_code=400, detail="租户不存在")
+    if tenant.id != ctx.tenant_id:
+        raise HTTPException(status_code=403, detail="不能跨租户查看用户")
 
     users, total = crud_user.get_all_users_for_super_admin(
         db,

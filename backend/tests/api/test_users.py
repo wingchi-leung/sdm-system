@@ -327,6 +327,32 @@ class TestUserManagement:
         assert "items" in data
         assert data["total"] >= 1
 
+    def test_get_all_users_rejects_cross_tenant_query(
+        self,
+        client,
+        db_session,
+        super_admin_token,
+    ):
+        """测试租户内管理员不能通过 tenant_code 查询其他租户用户"""
+        from app.schemas import Tenant
+
+        other_tenant = Tenant(
+            name="其他租户",
+            code="other",
+            status=1,
+            plan="basic",
+        )
+        db_session.add(other_tenant)
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/users/admin/all?tenant_code=other",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "不能跨租户" in response.json()["detail"]
+
     def test_get_users_list_as_normal_user_forbidden(self, client, user_token):
         """测试普通用户获取用户列表被禁止"""
         response = client.get(

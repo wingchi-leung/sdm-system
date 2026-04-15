@@ -2,19 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac, crud_tenant
+from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac
 from app.models import activity, checkin
 from app.api import deps
 
 router = APIRouter()
-
-
-def _tenant_id_for_public_request(db: Session, tenant_code: str) -> int:
-    """未登录访问活动时，根据租户编码解析租户，避免硬编码 1 号租户。"""
-    tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
-    if not tenant or tenant.status != 1:
-        raise HTTPException(status_code=400, detail="租户不存在或已禁用")
-    return tenant.id
 
 
 def _allowed_scopes_for_list(
@@ -85,7 +77,7 @@ def list_activities(
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """活动列表"""
-    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
+    tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
     admin_id = ctx.user_id if ctx and ctx.role == "admin" else None
     
     allowed_types, allowed_activities = (
@@ -106,7 +98,7 @@ def get_unstarted_activities(
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """未开始活动列表"""
-    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
+    tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
     admin_id = ctx.user_id if ctx and ctx.role == "admin" else None
     
     allowed_types, allowed_activities = (
@@ -130,7 +122,7 @@ def get_activity(
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """获取活动详情"""
-    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
+    tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
     act = crud_activity.get_activity(db, activity_id, tenant_id)
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")
@@ -145,7 +137,7 @@ def get_enrollment_info(
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """获取活动报名情况（剩余名额等）"""
-    tenant_id = ctx.tenant_id if ctx else _tenant_id_for_public_request(db, tenant_code)
+    tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
     act = crud_activity.get_activity(db, activity_id, tenant_id)
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")

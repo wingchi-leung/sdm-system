@@ -27,6 +27,25 @@ class TestAdminAuthFlow:
         )
         assert activities_response.status_code == status.HTTP_200_OK
 
+    def test_disabled_tenant_rejects_existing_token(
+        self,
+        client,
+        db_session,
+        default_tenant,
+        super_admin_token,
+    ):
+        """测试租户禁用后，已签发 token 也不能继续访问"""
+        default_tenant.status = 0
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert "租户已禁用" in response.json()["detail"]
+
     def test_admin_permission_check_flow(self, client, db_session, activity_admin, sample_activity_type, sample_activity_type_2):
         """测试管理员权限校验流程"""
         # 1. 登录

@@ -35,6 +35,7 @@ def has_permission(
     ).filter(
         UserRole.user_id == user_id,
         UserRole.tenant_id == tenant_id,
+        Role.tenant_id == tenant_id,
         RolePermission.permission_id == perm.id
     ).all()
 
@@ -70,7 +71,8 @@ def get_user_permissions(db: Session, user_id: int, tenant_id: int) -> List[str]
         UserRole, Role.id == UserRole.role_id
     ).filter(
         UserRole.user_id == user_id,
-        UserRole.tenant_id == tenant_id
+        UserRole.tenant_id == tenant_id,
+        Role.tenant_id == tenant_id,
     ).distinct().all()
 
     return [p[0] for p in perms]

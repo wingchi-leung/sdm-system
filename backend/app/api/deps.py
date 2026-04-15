@@ -1,10 +1,10 @@
 from typing import Generator
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import SessionLocal
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
-from app.crud import crud_activity, crud_rbac
+from app.crud import crud_activity, crud_rbac, crud_tenant
 
 security = HTTPBearer(auto_error=False)
 
@@ -26,14 +26,51 @@ def _parse_token(credentials: HTTPAuthorizationCredentials | None) -> dict | Non
 
 class TenantContext:
     """租户上下文"""
-    def __init__(self, user_id: int, role: str, tenant_id: int):
+    def __init__(
+        self,
+        user_id: int | None,
+        role: str,
+        tenant_id: int,
+        tenant_code: str | None = None,
+        is_authenticated: bool = True,
+    ):
         self.user_id = user_id
         self.role = role
         self.tenant_id = tenant_id
+        self.tenant_code = tenant_code
+        self.is_authenticated = is_authenticated
+
+
+def _ensure_tenant_active(db: Session, tenant_id: int) -> str:
+    """确认租户仍然有效，返回租户编码。"""
+    tenant = crud_tenant.get_tenant(db, tenant_id)
+    if not tenant:
+        raise HTTPException(status_code=401, detail="租户不存在或登录已过期")
+    if not crud_tenant.check_tenant_active(db, tenant_id):
+        raise HTTPException(status_code=403, detail="租户已禁用或已过期")
+    return tenant.code
+
+
+def get_public_tenant_context(
+    tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
+    db: Session = Depends(get_db),
+) -> TenantContext:
+    """未登录访问时解析租户上下文。"""
+    tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
+    if not tenant or not crud_tenant.check_tenant_active(db, tenant.id):
+        raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+    return TenantContext(
+        user_id=None,
+        role="public",
+        tenant_id=tenant.id,
+        tenant_code=tenant.code,
+        is_authenticated=False,
+    )
 
 
 def get_tenant_context(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
 ) -> TenantContext:
     """解析 JWT，返回租户上下文"""
     payload = _parse_token(credentials)
@@ -50,7 +87,13 @@ def get_tenant_context(
     except (KeyError, ValueError):
         raise HTTPException(status_code=401, detail="无效的登录状态")
     
-    return TenantContext(user_id=user_id, role=role, tenant_id=tenant_id)
+    tenant_code = _ensure_tenant_active(db, tenant_id)
+    return TenantContext(
+        user_id=user_id,
+        role=role,
+        tenant_id=tenant_id,
+        tenant_code=tenant_code,
+    )
 
 
 def get_current_admin(
@@ -64,6 +107,7 @@ def get_current_admin(
 
 def get_current_admin_optional(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
 ) -> TenantContext | None:
     """可选管理员鉴权"""
     payload = _parse_token(credentials)
@@ -72,7 +116,13 @@ def get_current_admin_optional(
     try:
         user_id = int(payload["sub"])
         tenant_id = int(payload["tenant_id"])
-        return TenantContext(user_id=user_id, role="admin", tenant_id=tenant_id)
+        tenant_code = _ensure_tenant_active(db, tenant_id)
+        return TenantContext(
+            user_id=user_id,
+            role="admin",
+            tenant_id=tenant_id,
+            tenant_code=tenant_code,
+        )
     except (KeyError, ValueError):
         return None
 
@@ -86,6 +136,7 @@ def get_current_user(
 
 def get_current_user_optional(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
 ) -> TenantContext | None:
     """可选鉴权"""
     payload = _parse_token(credentials)
@@ -97,7 +148,13 @@ def get_current_user_optional(
     try:
         user_id = int(payload["sub"])
         tenant_id = int(payload["tenant_id"])
-        return TenantContext(user_id=user_id, role=role, tenant_id=tenant_id)
+        tenant_code = _ensure_tenant_active(db, tenant_id)
+        return TenantContext(
+            user_id=user_id,
+            role=role,
+            tenant_id=tenant_id,
+            tenant_code=tenant_code,
+        )
     except (KeyError, ValueError):
         return None
 
