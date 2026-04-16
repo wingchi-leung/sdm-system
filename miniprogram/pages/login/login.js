@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 const TAB_PAGES = ['/pages/index/index', '/pages/mine/mine'];
 const SAFE_REDIRECT_PAGES = [
@@ -31,7 +32,8 @@ Page({
   gateTapCount: 0,
   gateTapTimer: null,
 
-  onLoad() {
+  onLoad(options) {
+    tenant.applyPageOptions(options);
     this.setData({ unsafeTip: api.isUnsafeBaseUrl() });
   },
 
@@ -178,7 +180,7 @@ Page({
               if (data.require_bind_info) {
                 setTimeout(() => {
                   wx.redirectTo({
-                    url: '/pages/bind-user-info/bind-user-info'
+                    url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info')
                   });
                 }, 800);
               } else {
@@ -230,12 +232,12 @@ Page({
             wx.showToast({ title: '登录成功', icon: 'success' });
 
             // 根据是否需要绑定信息跳转
-            if (data.require_bind_info) {
-              setTimeout(() => {
-                wx.redirectTo({
-                  url: '/pages/bind-user-info/bind-user-info'
-                });
-              }, 800);
+              if (data.require_bind_info) {
+                setTimeout(() => {
+                  wx.redirectTo({
+                    url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info')
+                  });
+                }, 800);
             } else {
               setTimeout(() => {
                 this.navigateAfterLogin('user');
@@ -289,7 +291,7 @@ Page({
         }, 900);
       }
       if (data.require_bind_info) {
-        setTimeout(() => wx.redirectTo({ url: '/pages/bind-user-info/bind-user-info' }), 800);
+        setTimeout(() => wx.redirectTo({ url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info') }), 800);
       } else {
         setTimeout(() => this.navigateAfterLogin('user'), 800);
       }

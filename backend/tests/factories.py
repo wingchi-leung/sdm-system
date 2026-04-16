@@ -29,6 +29,7 @@ class ActivityTypeFactory(SQLAlchemyModelFactory):
 
     type_name = factory.Sequence(lambda n: f"活动类型{n}")
     code = factory.Sequence(lambda n: f"CODE{n:04d}")
+    tenant_id = 1
 
 
 class AdminUserFactory(SQLAlchemyModelFactory):
@@ -60,6 +61,7 @@ class UserFactory(SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     name = factory.LazyAttribute(lambda _: fake.name())
+    tenant_id = 1
     phone = factory.Sequence(lambda n: f"138{n:08d}")
     identity_number = factory.LazyAttribute(lambda _: fake.ssn()[:18])
     email = factory.LazyAttribute(lambda _: fake.email())
@@ -83,6 +85,7 @@ class ActivityFactory(SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     activity_name = factory.LazyAttribute(lambda _: f"测试活动_{fake.word()}")
+    tenant_id = 1
     activity_type_id = None
     start_time = factory.LazyAttribute(lambda _: datetime.now())
     end_time = None
@@ -108,6 +111,7 @@ class ParticipantFactory(SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     activity_id = None
+    tenant_id = 1
     user_id = None
     participant_name = factory.LazyAttribute(lambda _: fake.name())
     phone = factory.Sequence(lambda n: f"139{n:08d}")
@@ -121,6 +125,7 @@ class CheckInFactory(SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = "commit"
 
     activity_id = None
+    tenant_id = 1
     user_id = None
     name = factory.LazyAttribute(lambda _: fake.name())
     phone = factory.Sequence(lambda n: f"137{n:08d}")

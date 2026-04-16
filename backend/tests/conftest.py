@@ -402,10 +402,12 @@ def user_token(sample_user: User) -> str:
 @pytest.fixture
 def sample_activity(
     db_session: Session,
-    sample_activity_type: ActivityType
+    sample_activity_type: ActivityType,
+    default_tenant: Tenant,
 ) -> Activity:
     """创建示例活动"""
     activity = Activity(
+        tenant_id=default_tenant.id,
         activity_name="测试活动",
         activity_type_id=sample_activity_type.id,
         start_time=datetime(2026, 4, 1, 10, 0, 0),
@@ -422,10 +424,12 @@ def sample_activity(
 @pytest.fixture
 def active_activity(
     db_session: Session,
-    sample_activity_type: ActivityType
+    sample_activity_type: ActivityType,
+    default_tenant: Tenant,
 ) -> Activity:
     """创建进行中的活动"""
     activity = Activity(
+        tenant_id=default_tenant.id,
         activity_name="进行中的活动",
         activity_type_id=sample_activity_type.id,
         start_time=datetime(2026, 1, 1, 10, 0, 0),
@@ -442,10 +446,12 @@ def active_activity(
 @pytest.fixture
 def sample_participant(
     db_session: Session,
-    sample_activity: Activity
+    sample_activity: Activity,
+    default_tenant: Tenant,
 ) -> ActivityParticipant:
     """创建示例参与者"""
     participant = ActivityParticipant(
+        tenant_id=default_tenant.id,
         activity_id=sample_activity.id,
         participant_name="参与者张三",
         phone="13900139000",
@@ -460,10 +466,12 @@ def sample_participant(
 @pytest.fixture
 def sample_checkin(
     db_session: Session,
-    active_activity: Activity
+    active_activity: Activity,
+    default_tenant: Tenant,
 ) -> CheckInRecord:
     """创建示例签到记录"""
     checkin = CheckInRecord(
+        tenant_id=default_tenant.id,
         activity_id=active_activity.id,
         name="签到用户",
         phone="13900139001",

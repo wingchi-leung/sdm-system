@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 Page({
   data: {
@@ -9,7 +10,8 @@ Page({
     loading: true,
   },
 
-  onLoad() {
+  onLoad(options) {
+    tenant.applyPageOptions(options);
     this.checkAuth();
   },
 
@@ -55,7 +57,7 @@ Page({
       return;
     }
     // 未登录直接跳转登录页
-    wx.navigateTo({ url: '/pages/login/login' });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
   },
 
   buildAdminProfile() {
@@ -74,7 +76,7 @@ Page({
   logout() {
     auth.logout();
     wx.showToast({ title: '已退出', icon: 'none' });
-    wx.navigateTo({ url: '/pages/login/login' });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
   },
 
   goCreateActivity() {
@@ -83,7 +85,7 @@ Page({
       wx.showToast({ title: '当前账号未授权活动类型', icon: 'none' });
       return;
     }
-    wx.navigateTo({ url: '/pages/create-activity/create-activity' });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/create-activity/create-activity') });
   },
 
 goActivityList() {
@@ -91,10 +93,10 @@ goActivityList() {
   },
 
   goActivityManage() {
-    wx.navigateTo({ url: '/pages/activity-list/activity-list' });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-list/activity-list') });
   },
 
   goUserList() {
-    wx.navigateTo({ url: '/pages/user-list/user-list' });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/user-list/user-list') });
   },
 });

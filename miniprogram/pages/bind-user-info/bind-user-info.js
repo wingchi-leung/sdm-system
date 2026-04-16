@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 // 身份证号格式校验函数
 function validateIdentityNumber(identityType, identityNumber) {
@@ -69,7 +70,8 @@ Page({
     identityError: null, // 身份证格式错误提示
   },
 
-  onLoad() {
+  onLoad(options) {
+    tenant.applyPageOptions(options);
     // 记录进入绑定页面的时间
     this._enterTime = Date.now();
 

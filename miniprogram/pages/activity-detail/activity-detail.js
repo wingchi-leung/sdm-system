@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 Page({
   data: {
@@ -20,6 +21,7 @@ Page({
   isFirstLoad: true,
 
   onLoad(options) {
+    tenant.applyPageOptions(options);
     const activityId = options.id;
     if (!activityId) {
       this.setData({ error: '参数错误', loading: false });
@@ -99,7 +101,7 @@ Page({
     if (!activity || !this.data.canEnroll) return;
     // 只传递活动 ID，避免 URL 过长
     wx.navigateTo({
-      url: `/pages/register/register?id=${activity.id}`,
+      url: tenant.appendTenantToUrl('/pages/register/register', { id: activity.id }),
     });
   },
 
@@ -113,17 +115,17 @@ Page({
 
   // 管理员功能
   onViewParticipants() {
-    wx.navigateTo({ url: `/pages/activity-participants/activity-participants?id=${this.data.activityId}` });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-participants/activity-participants', { id: this.data.activityId }) });
   },
 
   onViewCheckins() {
-    const name = encodeURIComponent(this.data.activity.activity_name);
-    wx.navigateTo({ url: `/pages/activity-checkins/activity-checkins?id=${this.data.activityId}&name=${name}` });
+    const name = this.data.activity.activity_name;
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-checkins/activity-checkins', { id: this.data.activityId, name }) });
   },
 
   onViewStatistics() {
-    const name = encodeURIComponent(this.data.activity.activity_name);
-    wx.navigateTo({ url: `/pages/activity-statistics/activity-statistics?id=${this.data.activityId}&name=${name}` });
+    const name = this.data.activity.activity_name;
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-statistics/activity-statistics', { id: this.data.activityId, name }) });
   },
 
   onChangeStatus() {
@@ -150,7 +152,7 @@ Page({
   },
 
   onEditActivity() {
-    wx.navigateTo({ url: `/pages/edit-activity/edit-activity?id=${this.data.activityId}` });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/edit-activity/edit-activity', { id: this.data.activityId }) });
   },
 
   onDeleteActivity() {
@@ -170,5 +172,13 @@ Page({
         }
       },
     });
+  },
+
+  onShareAppMessage() {
+    const activity = this.data.activity || {};
+    return {
+      title: activity.activity_name || '活动详情',
+      path: tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', { id: this.data.activityId }),
+    };
   },
 });

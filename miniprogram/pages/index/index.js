@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 /** 把接口/网络错误转成可读文案，避免显示 [object Object] */
 function formatLoadError(err) {
@@ -29,7 +30,8 @@ Page({
     this.setData({ isAdmin, canCreateActivity });
   },
 
-  onLoad() {
+  onLoad(options) {
+    tenant.applyPageOptions(options);
     this.resolveAdminState();
     this.load();
   },
@@ -82,12 +84,12 @@ Page({
     if (!a) return;
     // 只传递ID，详情页重新获取数据
     wx.navigateTo({
-      url: '/pages/activity-detail/activity-detail?id=' + a.id,
+      url: tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', { id: a.id }),
     });
   },
 
   goCreateActivity() {
-    wx.navigateTo({ url: '/pages/create-activity/create-activity' });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/create-activity/create-activity') });
   },
 
   statusText(status) {
@@ -113,5 +115,12 @@ Page({
     const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     const month = months[d.getMonth()];
     return { day, month };
+  },
+
+  onShareAppMessage() {
+    return {
+      title: '活动列表',
+      path: tenant.appendTenantToUrl('/pages/index/index'),
+    };
   },
 });

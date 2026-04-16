@@ -81,6 +81,55 @@ class TestCheckIn:
         # 允许匿名签到
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_401_UNAUTHORIZED, status.HTTP_404_NOT_FOUND]
 
+    def test_anonymous_checkin_uses_activity_tenant(self, client, db_session):
+        """测试匿名签到按活动归属租户落库，不回落到 1 号租户"""
+        from app.schemas import Activity, ActivityParticipant, Tenant
+
+        other_tenant = Tenant(name="签到租户", code="checkin_tenant", status=1, plan="basic")
+        db_session.add(other_tenant)
+        db_session.flush()
+
+        activity = Activity(
+            tenant_id=other_tenant.id,
+            activity_name="其他租户活动",
+            status=2,
+        )
+        db_session.add(activity)
+        db_session.flush()
+
+        participant = ActivityParticipant(
+            tenant_id=other_tenant.id,
+            activity_id=activity.id,
+            participant_name="匿名签到用户",
+            phone="13900139988",
+            identity_number="110101199001019988",
+        )
+        db_session.add(participant)
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/checkins/",
+            json={
+                "activity_id": activity.id,
+                "name": "匿名签到用户",
+                "phone": "13900139988",
+                "identity_number": "110101199001019988",
+                "has_attend": 1,
+                "note": "跨租户匿名签到",
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+        from app.schemas import CheckInRecord
+
+        saved = db_session.query(CheckInRecord).filter(
+            CheckInRecord.activity_id == activity.id,
+            CheckInRecord.identity_number == "110101199001019988",
+        ).first()
+        assert saved is not None
+        assert saved.tenant_id == other_tenant.id
+
     def test_checkin_missing_fields(self, client, user_token, active_activity):
         """测试缺少必填字段"""
         response = client.post(

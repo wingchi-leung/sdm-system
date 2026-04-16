@@ -3,9 +3,13 @@
  * 配置统一在 config/index.js 中管理，修改IP只需改一处
  */
 const config = require('../config/index');
+const tenant = require('./tenant');
 const baseUrl = config.baseUrl;
 const staticBaseUrl = config.staticBaseUrl;
-const tenantCode = config.tenantCode || 'default';
+
+function getTenantCode() {
+  return tenant.getTenantCode();
+}
 
 function getToken() {
   return wx.getStorageSync('access_token') || '';
@@ -38,7 +42,7 @@ function getHeader(useAuth = false) {
 
 function withTenant(url) {
   const joiner = url.includes('?') ? '&' : '?';
-  return `${url}${joiner}tenant_code=${encodeURIComponent(tenantCode)}`;
+  return `${url}${joiner}tenant_code=${encodeURIComponent(getTenantCode())}`;
 }
 
 /** 是否非加密连接（用于登录页安全提示） */
@@ -103,7 +107,7 @@ function adminLogin(username, password) {
       url: `${baseUrl}/auth/login`,
       method: 'POST',
       header: getHeader(),
-      data: { username, password, tenant_code: tenantCode },
+      data: { username, password, tenant_code: getTenantCode() },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -120,7 +124,7 @@ function userLogin(phone, password) {
       url: `${baseUrl}/auth/user-login`,
       method: 'POST',
       header: getHeader(),
-      data: { phone, password, tenant_code: tenantCode },
+      data: { phone, password, tenant_code: getTenantCode() },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -132,7 +136,7 @@ function userLogin(phone, password) {
 
 /** 用户注册 */
 function registerUser({ name, phone, password, email }) {
-  const data = { name, phone, password, tenant_code: tenantCode };
+  const data = { name, phone, password, tenant_code: getTenantCode() };
   if (email) data.email = email;
   return new Promise((resolve, reject) => {
     wx.request({
@@ -252,7 +256,7 @@ function wechatLogin(code) {
       url: `${baseUrl}/auth/wechat-login`,
       method: 'POST',
       header: getHeader(),
-      data: { code: code || '', tenant_code: tenantCode },
+      data: { code: code || '', tenant_code: getTenantCode() },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -277,7 +281,7 @@ function getActivity(activityId) {
     wx.request({
       url: withTenant(`${baseUrl}/activities/${activityId}`),
       method: 'GET',
-      header: getHeader(true),
+      header: getHeader(),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -451,7 +455,7 @@ function checkBindStatus() {
 
 /** 手机号授权登录：传入 getPhoneNumber 返回的 code 和 wx.login 返回的 login_code */
 function phoneLogin(code, loginCode) {
-  const data = { code: code || '', tenant_code: tenantCode };
+  const data = { code: code || '', tenant_code: getTenantCode() };
   if (loginCode) data.login_code = loginCode;
   return new Promise((resolve, reject) => {
     wx.request({
@@ -470,7 +474,7 @@ function phoneLogin(code, loginCode) {
 
 /** 获取所有用户列表（超级管理员专用） */
 function getAllUsersForAdmin(opts = {}) {
-  const { tenantCode: queryTenantCode = tenantCode, skip = 0, limit = 20, keyword } = opts;
+  const { tenantCode: queryTenantCode = getTenantCode(), skip = 0, limit = 20, keyword } = opts;
   let url = `${baseUrl}/users/admin/all?tenant_code=${encodeURIComponent(queryTenantCode)}&skip=${skip}&limit=${limit}`;
   if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
   return new Promise((resolve, reject) => {
@@ -596,6 +600,7 @@ function unblockUser(userId) {
 module.exports = {
   baseUrl,
   staticBaseUrl,
+  getTenantCode,
   getToken,
   getImageUrl,
   isUnsafeBaseUrl,

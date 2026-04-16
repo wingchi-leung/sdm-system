@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 Page({
   data: {
@@ -12,7 +13,8 @@ Page({
     hasMore: true,
   },
 
-  onLoad() {
+  onLoad(options) {
+    tenant.applyPageOptions(options);
     // 检查是否为超级管理员
     if (!auth.isSuperAdmin()) {
       wx.showToast({ title: '仅超级管理员可访问', icon: 'none' });

@@ -1,5 +1,6 @@
 const api = require("../../utils/api");
 const auth = require("../../utils/auth");
+const tenant = require("../../utils/tenant");
 
 const PENDING_ORDER_KEY = 'pending_payment_order'; // Storage key for pending payment
 
@@ -58,6 +59,7 @@ Page({
   },
 
   onLoad(options) {
+    tenant.applyPageOptions(options);
     const activityId = options.id;
     if (!activityId) {
       wx.showToast({ title: '参数错误', icon: 'none' });
@@ -67,11 +69,11 @@ Page({
 
     // 未登录直接跳转登录页，不继续加载
     if (!auth.isLoggedIn()) {
-      const redirectUrl = `/pages/register/register?id=${activityId}`;
+      const redirectUrl = tenant.appendTenantToUrl('/pages/register/register', { id: activityId });
       wx.showToast({ title: '请先登录后再报名', icon: 'none' });
       setTimeout(() => {
         wx.navigateTo({
-          url: `/pages/login/login?redirect=${encodeURIComponent(redirectUrl)}`,
+          url: tenant.appendTenantToUrl('/pages/login/login', { redirect: redirectUrl }),
         });
       }, 300);
       return;
@@ -85,7 +87,7 @@ Page({
 
     // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
     try {
-      const stored = wx.getStorageSync(PENDING_ORDER_KEY);
+      const stored = wx.getStorageSync(`${PENDING_ORDER_KEY}_${tenant.getTenantCode()}`);
       if (stored && stored.activityId === activityId && stored.orderNo) {
         this.setData({
           paymentOrderNo: stored.orderNo,
@@ -123,11 +125,11 @@ Page({
     if (auth.isLoggedIn()) {
       return true;
     }
-    const redirectUrl = `/pages/register/register?id=${activityId}`;
+    const redirectUrl = tenant.appendTenantToUrl('/pages/register/register', { id: activityId });
     wx.showToast({ title: '请先登录后再报名', icon: 'none' });
     setTimeout(() => {
       wx.navigateTo({
-        url: `/pages/login/login?redirect=${encodeURIComponent(redirectUrl)}`,
+        url: tenant.appendTenantToUrl('/pages/login/login', { redirect: redirectUrl }),
       });
     }, 300);
     return false;
@@ -197,7 +199,7 @@ Page({
       });
       wx.showToast({ title: '请先完善个人资料', icon: 'none' });
       setTimeout(() => {
-        wx.redirectTo({ url: '/pages/bind-user-info/bind-user-info' });
+        wx.redirectTo({ url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info') });
       }, 500);
       const stopError = new Error('require_bind_info');
       stopError.stopFlow = true;
@@ -384,9 +386,9 @@ Page({
     const { activityId } = this.data;
     try {
       if (orderNo) {
-        wx.setStorageSync(PENDING_ORDER_KEY, { activityId, orderNo });
+        wx.setStorageSync(`${PENDING_ORDER_KEY}_${tenant.getTenantCode()}`, { activityId, orderNo });
       } else {
-        wx.removeStorageSync(PENDING_ORDER_KEY);
+        wx.removeStorageSync(`${PENDING_ORDER_KEY}_${tenant.getTenantCode()}`);
       }
     } catch (_) {
       // Storage 操作失败不影响主流程

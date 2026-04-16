@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 Page({
   data: {
@@ -10,6 +11,7 @@ Page({
   },
 
   onLoad(options) {
+    tenant.applyPageOptions(options);
     if (!auth.isAdmin()) {
       wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);

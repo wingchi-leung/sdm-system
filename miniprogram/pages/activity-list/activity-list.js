@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const tenant = require('../../utils/tenant');
 
 // 分页配置
 const PAGE_SIZE = 20;
@@ -13,7 +14,8 @@ Page({
     skip: 0,
   },
 
-  onLoad() {
+  onLoad(options) {
+    tenant.applyPageOptions(options);
     this.loadActivities(true);
   },
 
@@ -94,6 +96,6 @@ Page({
 
   onViewDetail(e) {
     const { id } = e.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/activity-detail/activity-detail?id=${id}` });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', { id }) });
   },
 });

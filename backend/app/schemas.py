@@ -36,7 +36,7 @@ class Tenant(BaseModel):
 # ============================================================
 class ActivityType(BaseModel):
     __tablename__ = "activity_type"
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     type_name = Column(String(64), nullable=False, index=True)
     code = Column(String(32), nullable=True)
 
@@ -46,7 +46,7 @@ class ActivityType(BaseModel):
 # ============================================================
 class AdminUser(BaseModel):
     __tablename__ = "admin_user"
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=False, index=True)
     username = Column(String(64), nullable=False, index=True)
     password_hash = Column(String(255), nullable=False)
@@ -61,7 +61,7 @@ class User(BaseModel):
         UniqueConstraint('phone', 'tenant_id', name='uk_user_phone'),
         UniqueConstraint('email', 'tenant_id', name='uk_user_email'),
     )
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     name = Column(String(255))
     identity_number = Column(String(255), nullable=True)
     identity_type = Column(String(20), nullable=True)
@@ -82,7 +82,7 @@ class User(BaseModel):
 # ============================================================
 class Activity(BaseModel):
     __tablename__ = "activity"
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     activity_name = Column(String(100))
     activity_type_id = Column(Integer, nullable=True, index=True)
     start_time = Column(DateTime, default=datetime.now)
@@ -105,7 +105,7 @@ class ActivityParticipant(BaseModel):
         UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_participant_unique'),
         UniqueConstraint('activity_id', 'user_id', 'tenant_id', name='uk_participant_user_unique'),
     )
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
     participant_name = Column(String(255))
@@ -138,7 +138,7 @@ class CheckInRecord(BaseModel):
     __table_args__ = (
         UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_checkin_unique'),
     )
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
     name = Column(String(100))
@@ -154,7 +154,7 @@ class CheckInRecord(BaseModel):
 # ============================================================
 class PaymentOrder(BaseModel):
     __tablename__ = "payment_order"
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     order_no = Column(String(64), unique=True, nullable=False, index=True)   # 商户订单号
     transaction_id = Column(String(64), nullable=True, index=True)           # 微信交易号
     activity_id = Column(Integer, nullable=False, index=True)
@@ -187,7 +187,7 @@ class Permission(BaseModel):
 
 class Role(BaseModel):
     __tablename__ = "role"
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     name = Column(String(64), nullable=False, index=True)
     is_system = Column(Integer, default=0, nullable=False)
     description = Column(String(500), nullable=True)
@@ -203,6 +203,6 @@ class UserRole(BaseModel):
     __tablename__ = "user_role"
     user_id = Column(Integer, nullable=False, index=True)
     role_id = Column(Integer, nullable=False, index=True)
-    tenant_id = Column(Integer, nullable=False, index=True, default=1)
+    tenant_id = Column(Integer, nullable=False, index=True)
     scope_type = Column(String(32), nullable=True)
     scope_id = Column(Integer, nullable=True)

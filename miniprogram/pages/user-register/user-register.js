@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const tenant = require('../../utils/tenant');
 
 Page({
   data: {
@@ -9,6 +10,10 @@ Page({
     email: '',
     submitting: false,
     error: null,
+  },
+
+  onLoad(options) {
+    tenant.applyPageOptions(options);
   },
 
   onNameInput(e) {

@@ -2,12 +2,23 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from app.crud import crud_checkin, crud_participant
+from app.crud import crud_checkin, crud_participant, crud_tenant
 from app.crud.crud_checkin import check_already_checkin
 from app.models import checkin
 from app.api import deps
+from app.schemas import Activity
 
 router = APIRouter()
+
+
+def _tenant_id_from_activity(db: Session, activity_id: int) -> int:
+    """未登录签到时通过活动归属解析租户，避免默认租户兜底。"""
+    activity = db.query(Activity).filter(Activity.id == activity_id).first()
+    if not activity:
+        raise HTTPException(status_code=404, detail="找不到活动")
+    if not crud_tenant.check_tenant_active(db, activity.tenant_id):
+        raise HTTPException(status_code=403, detail="租户已禁用或已过期")
+    return activity.tenant_id
 
 
 @router.get("/", response_model=List[dict])
@@ -31,7 +42,7 @@ def create_checkin(
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """签到"""
-    tenant_id = ctx.tenant_id if ctx else 1
+    tenant_id = ctx.tenant_id if ctx else _tenant_id_from_activity(db, checkin_in.activity_id)
     
     if not crud_participant.check_participant_exists(
         db, checkin_in.activity_id, checkin_in.identity_number, tenant_id
