@@ -125,3 +125,83 @@ class TestRoleEndpoints:
         assert delete_response.json()["status"] == "success"
 
         assert db_session.query(UserRole).filter(UserRole.id == assigned["id"]).first() is None
+
+    def test_assign_user_role_rejects_duplicate(self, client, db_session, default_tenant, sample_user, role_manager_token):
+        """测试重复分配同一角色会被拒绝"""
+        permission = _ensure_permission(
+            db_session,
+            "participant.view",
+            resource="participant",
+            action="view",
+        )
+        role = Role(
+            tenant_id=default_tenant.id,
+            name="重复测试角色",
+            is_system=0,
+            description="重复分配测试",
+        )
+        db_session.add(role)
+        db_session.flush()
+        db_session.add(RolePermission(role_id=role.id, permission_id=permission.id))
+        db_session.commit()
+
+        payload = {
+            "user_id": sample_user.id,
+            "role_id": role.id,
+            "scope_type": "activity_type",
+            "scope_id": 99,
+        }
+        first_response = client.post(
+            "/api/v1/roles/user-roles",
+            headers=auth_headers(role_manager_token),
+            json=payload,
+        )
+        assert first_response.status_code == status.HTTP_200_OK
+
+        second_response = client.post(
+            "/api/v1/roles/user-roles",
+            headers=auth_headers(role_manager_token),
+            json=payload,
+        )
+        assert second_response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "已分配" in second_response.json()["detail"]
+
+    def test_assign_user_role_rejects_cross_tenant_user(self, client, db_session, default_tenant, role_manager_token):
+        """测试不能给其他租户用户分配当前租户角色"""
+        other_tenant_user_admin = _create_admin_with_role(
+            db_session,
+            tenant_id=default_tenant.id + 1,
+            username="other_tenant_user",
+            password="admin123",
+            user_name="其他租户用户",
+            phone="13800138029",
+            identity_number="110101199001011229",
+            permission_codes=None,
+        )
+        permission = _ensure_permission(
+            db_session,
+            "participant.view",
+            resource="participant",
+            action="view",
+        )
+        role = Role(
+            tenant_id=default_tenant.id,
+            name="跨租户测试角色",
+            is_system=0,
+            description="跨租户测试",
+        )
+        db_session.add(role)
+        db_session.flush()
+        db_session.add(RolePermission(role_id=role.id, permission_id=permission.id))
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/roles/user-roles",
+            headers=auth_headers(role_manager_token),
+            json={
+                "user_id": other_tenant_user_admin.user_id,
+                "role_id": role.id,
+            },
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "不属于当前租户" in response.json()["detail"]

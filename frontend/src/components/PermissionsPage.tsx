@@ -40,13 +40,6 @@ interface AdminUserItem {
   create_time?: string;
 }
 
-interface AdminUserListResponse {
-  items: AdminUserItem[];
-  total: number;
-  skip: number;
-  limit: number;
-}
-
 const PermissionsPage = () => {
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
@@ -62,6 +55,20 @@ const PermissionsPage = () => {
   const [scopeId, setScopeId] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const resetAssignForm = useCallback(() => {
+    setSelectedUserId('');
+    setSelectedRoleId('');
+    setScopeType('global');
+    setScopeId('');
+  }, []);
+
+  const handleAssignDialogChange = useCallback((open: boolean) => {
+    setAssignDialogOpen(open);
+    if (!open) {
+      resetAssignForm();
+    }
+  }, [resetAssignForm]);
+
   const fetchPageData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -70,7 +77,7 @@ const PermissionsPage = () => {
       const [rolesRes, permissionsRes, usersRes] = await Promise.all([
         apiRequest<RoleItem[]>(API_PATHS.roles.list),
         apiRequest<PermissionItem[]>(API_PATHS.roles.permissions),
-        apiRequest<AdminUserListResponse>(`${API_PATHS.users.adminAll}?skip=0&limit=100`),
+        apiRequest<AdminUserItem[]>(API_PATHS.users.list),
       ]);
 
       if (rolesRes.error) {
@@ -83,7 +90,7 @@ const PermissionsPage = () => {
         throw new Error(usersRes.error);
       }
 
-      const fetchedUsers = usersRes.data?.items ?? [];
+      const fetchedUsers = usersRes.data ?? [];
       setRoles(rolesRes.data ?? []);
       setPermissions(permissionsRes.data ?? []);
       setUsers(fetchedUsers);
@@ -138,6 +145,14 @@ const PermissionsPage = () => {
       setError('请选择用户和角色');
       return;
     }
+    if (scopeType !== 'global' && !scopeId.trim()) {
+      setError('请输入有效的 scope ID');
+      return;
+    }
+    if (scopeType !== 'global' && Number.isNaN(Number(scopeId.trim()))) {
+      setError('scope ID 必须是数字');
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -155,7 +170,7 @@ const PermissionsPage = () => {
 
       if (scopeType !== 'global') {
         payload.scope_type = scopeType;
-        payload.scope_id = scopeId.trim() ? Number(scopeId) : null;
+        payload.scope_id = Number(scopeId.trim());
       }
 
       const response = await apiRequest<UserRoleItem>(API_PATHS.roles.userRoles, {
@@ -167,11 +182,7 @@ const PermissionsPage = () => {
         throw new Error(response.error);
       }
 
-      setAssignDialogOpen(false);
-      setSelectedUserId('');
-      setSelectedRoleId('');
-      setScopeType('global');
-      setScopeId('');
+      handleAssignDialogChange(false);
       await fetchPageData();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : '分配角色失败');
@@ -205,7 +216,7 @@ const PermissionsPage = () => {
             当前先打通 RBAC 可视化核心链路：角色、权限、用户角色分配与 scope 展示。
           </p>
         </div>
-        <Button onClick={() => setAssignDialogOpen(true)}>
+        <Button onClick={() => handleAssignDialogChange(true)}>
           <Plus className="h-4 w-4" />
           分配角色
         </Button>
@@ -305,6 +316,9 @@ const PermissionsPage = () => {
                             onClick={() => {
                               setSelectedUserId(String(user.id));
                               setAssignDialogOpen(true);
+                              setSelectedRoleId('');
+                              setScopeType('global');
+                              setScopeId('');
                             }}
                           >
                             追加角色
@@ -380,7 +394,7 @@ const PermissionsPage = () => {
         </div>
       </div>
 
-      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+      <Dialog open={assignDialogOpen} onOpenChange={handleAssignDialogChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>分配角色</DialogTitle>
@@ -441,7 +455,7 @@ const PermissionsPage = () => {
             ) : null}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAssignDialogOpen(false)}>
+            <Button variant="outline" onClick={() => handleAssignDialogChange(false)}>
               取消
             </Button>
             <Button onClick={handleAssignRole} disabled={submitting}>

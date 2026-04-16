@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.schemas import Permission, Role, RolePermission, UserRole
+from app.schemas import Permission, Role, RolePermission, User, UserRole
 from typing import List, Optional
 
 
@@ -87,12 +87,37 @@ def assign_user_role(
     scope_id: Optional[int] = None
 ) -> UserRole:
     """为用户分配角色"""
+    valid_scope_types = {None, "activity_type", "activity"}
+    if scope_type not in valid_scope_types:
+        raise ValueError("无效的权限范围类型")
+    if scope_type is None:
+        scope_id = None
+    elif scope_id is None:
+        raise ValueError("scope_id 不能为空")
+
     role = db.query(Role).filter(
         Role.id == role_id,
         Role.tenant_id == tenant_id,
     ).first()
     if not role:
         raise ValueError("角色不存在或不属于当前租户")
+
+    user = db.query(User).filter(
+        User.id == user_id,
+        User.tenant_id == tenant_id,
+    ).first()
+    if not user:
+        raise ValueError("用户不存在或不属于当前租户")
+
+    existing = db.query(UserRole).filter(
+        UserRole.user_id == user_id,
+        UserRole.role_id == role_id,
+        UserRole.tenant_id == tenant_id,
+        UserRole.scope_type == scope_type,
+        UserRole.scope_id == scope_id,
+    ).first()
+    if existing:
+        raise ValueError("该角色已分配给当前用户")
 
     user_role = UserRole(
         user_id=user_id,

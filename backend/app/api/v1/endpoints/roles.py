@@ -52,7 +52,7 @@ def assign_user_role(
             body.scope_type, body.scope_id
         )
     except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     role = db.query(crud_rbac.Role).filter(
         crud_rbac.Role.id == body.role_id,
