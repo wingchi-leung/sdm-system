@@ -87,6 +87,13 @@ def assign_user_role(
     scope_id: Optional[int] = None
 ) -> UserRole:
     """为用户分配角色"""
+    role = db.query(Role).filter(
+        Role.id == role_id,
+        Role.tenant_id == tenant_id,
+    ).first()
+    if not role:
+        raise ValueError("角色不存在或不属于当前租户")
+
     user_role = UserRole(
         user_id=user_id,
         role_id=role_id,
@@ -100,9 +107,12 @@ def assign_user_role(
     return user_role
 
 
-def remove_user_role(db: Session, user_role_id: int) -> bool:
+def remove_user_role(db: Session, user_role_id: int, tenant_id: int) -> bool:
     """移除用户角色"""
-    ur = db.query(UserRole).filter(UserRole.id == user_role_id).first()
+    ur = db.query(UserRole).filter(
+        UserRole.id == user_role_id,
+        UserRole.tenant_id == tenant_id,
+    ).first()
     if ur:
         db.delete(ur)
         db.commit()
@@ -126,3 +136,12 @@ def get_all_roles(db: Session, tenant_id: int) -> List[Role]:
 def get_all_permissions(db: Session) -> List[Permission]:
     """获取所有权限"""
     return db.query(Permission).all()
+
+
+def get_role_permissions(db: Session, role_id: int) -> List[Permission]:
+    """获取某个角色绑定的权限列表"""
+    return db.query(Permission).join(
+        RolePermission, Permission.id == RolePermission.permission_id
+    ).filter(
+        RolePermission.role_id == role_id
+    ).all()

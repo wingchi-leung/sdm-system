@@ -8,6 +8,7 @@ import EditActivity from './components/EditActivity';
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayOut';
 import ModulePage from './components/ModulePage';
+import PermissionsPage from './components/PermissionsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import SignInPage from './components/SignInPage';
 import Statistics from './components/Statistics';
@@ -97,15 +98,7 @@ const App = () => {
             path="/permissions"
             element={(
               <ProtectedRoute>
-                <ModulePage
-                  title="权限与管理员"
-                  description="下一阶段将继续补齐角色管理、管理员分配和权限查看能力。"
-                  highlights={[
-                    '角色列表与权限清单',
-                    '用户角色分配与 scope 展示',
-                    '管理员列表与授权入口',
-                  ]}
-                />
+                <PermissionsPage />
               </ProtectedRoute>
             )}
           />
