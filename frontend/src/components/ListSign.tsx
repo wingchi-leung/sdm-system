@@ -44,7 +44,7 @@ const ListSignIn = ({ peopleList, activityId, activityName }: ListSignInProps) =
         toast({
           title: "签到失败",
           description: response.error || "请稍后重试",
-          variant: response.error == '已经签到过，不用签到啦' ?  "destructive" : null ,
+          variant: response.error === '已经签到过，不用签到啦' ?  "destructive" : null ,
           duration: 3000,
         });
         return;
@@ -60,13 +60,13 @@ const ListSignIn = ({ peopleList, activityId, activityName }: ListSignInProps) =
       });
 
     } catch (error: any) {
-      console.error('Sign in failed:', error);
-      toast({
-        title: "签到失败",
-        description: error || error || "请稍后重试。",
-        variant: "destructive",
-        duration: 3000,
-      });
+    console.error('Sign in failed:', error);
+    toast({
+      title: "签到失败",
+      description: error || "请稍后重试。",
+      variant: "destructive",
+      duration: 3000,
+    });
     } finally {
       setIsLoading(false);
     }

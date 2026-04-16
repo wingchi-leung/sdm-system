@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -32,13 +32,7 @@ const EditActivity = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (id) {
-      fetchActivity();
-    }
-  }, [id]);
-
-  const fetchActivity = async () => {
+  const fetchActivity = useCallback(async () => {
     setIsFetching(true);
     try {
       const response = await apiRequest<Activity>(API_PATHS.activities.detail(Number(id)));
@@ -64,7 +58,13 @@ const EditActivity = () => {
     } finally {
       setIsFetching(false);
     }
-  };
+  }, [id, navigate, toast]);
+
+  useEffect(() => {
+    if (id) {
+      fetchActivity();
+    }
+  }, [id, fetchActivity]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from './ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from  './ui/select';
 import { useToast } from '../hooks/use-toast';
@@ -13,22 +13,15 @@ interface ActivitySignInProps {
 
 const ActivitySignIn: React.FC<ActivitySignInProps> = ({ onActivitySelect }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchActivities();
-  }, []);
-
-  const fetchActivities = async () => {
+  const fetchActivities = useCallback(async () => {
     try {
-
       const response = await apiRequest<any>(API_PATHS.activities.unstart, {
         method: 'GET',
       });
       if (response.data) {
-        const { items , total } = response.data;
-
+        const { items } = response.data;
         setActivities(items);
       } else {
         throw new Error(response.error);
@@ -40,11 +33,14 @@ const ActivitySignIn: React.FC<ActivitySignInProps> = ({ onActivitySelect }) => 
         variant: "destructive"
       });
     }
-  };
+  }, [toast]);
 
-  const fetchParticipants = async (activityId: number, activityName: string) => {
+  useEffect(() => {
+    fetchActivities();
+  }, [fetchActivities]);
+
+  const fetchParticipants = useCallback(async (activityId: number, activityName: string) => {
     try {
-
       const response = await apiRequest<any>(API_PATHS.participants.list(activityId), {
         method: 'GET'
       });
@@ -62,12 +58,11 @@ const ActivitySignIn: React.FC<ActivitySignInProps> = ({ onActivitySelect }) => 
         variant: "destructive"
       });
     }
-  };
+  }, [onActivitySelect, toast]);
 
   const handleActivityChange = (value: string) => {
     const activity = activities.find(a => a.id === parseInt(value));
     if (activity) {
-      setSelectedActivity(activity);
       fetchParticipants(activity.id, activity.activity_name);
     }
   };

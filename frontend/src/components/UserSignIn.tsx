@@ -8,7 +8,7 @@ const UserSignIn = () => {
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const [activity, setActivity] = useState('SDM gathering');  // default value or empty string
+  const activity = 'SDM gathering';
 
   // Replace the handleSubmit function with this:
 const handleSubmit = async (e: React.FormEvent) => {

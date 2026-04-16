@@ -5,7 +5,6 @@ import ListSignIn from './ListSign';
 import { Toaster } from "./ui/toaster"
 import ActivitySignIn  from './ActivitySignIn';
 import { Participant } from '../type';
-import { useToast } from '../hooks/use-toast'; // Add this import at the top
 import SignaturePad from './SignaturePad';
 
 
@@ -17,8 +16,6 @@ interface CurrentActivity {
 
 
 const SignInPage = () => {
-  const { toast } = useToast();
-
   const [peopleList, setPeopleList] = useState<Participant[]>([]);
   const [currentActivity, setCurrentActivity] = useState<CurrentActivity>({
     id: null,

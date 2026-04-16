@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardHeader, CardContent, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { AlertTriangle, LockKeyhole, UserCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from './ui/alert';
-import { AlertTriangle } from 'lucide-react';
-import { loginApi, isUnsafeApiUrl } from '../config/api';
-import { setToken, setTenantId, setTenantName, isAuthenticated } from '../lib/auth';
+import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Input } from './ui/input';
+import { isUnsafeApiUrl, loginApi } from '../config/api';
+import { isAuthenticated, setTenantId, setTenantName, setToken } from '../lib/auth';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [tenantCode, setTenantCode] = useState('default');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get('redirect') || '/signin';
+  const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -23,33 +24,28 @@ const LoginPage = () => {
     }
   }, [navigate, redirectTo]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setError(null);
+
     if (!username.trim() || !password) {
       setError('请输入用户名和密码');
       return;
     }
+
     setLoading(true);
-    const res = await loginApi(username.trim(), password);
+    const result = await loginApi(username.trim(), password, tenantCode.trim() || 'default');
     setLoading(false);
-    if (res.error) {
-      setError(res.error);
+
+    if (result.error) {
+      setError(result.error);
       return;
     }
-if (res.data?.access_token) {
-      setToken(res.data.access_token);
-      if (res.data.tenant_id) {
-        setTenantId(res.data.tenant_id);
-      }
-      if (res.data.tenant_name) {
-        setTenantName(res.data.tenant_name);
-      }
-      navigate(redirectTo, { replace: true });
-    }
-      if (res.data.tenant_name) {
-        setTenantName(res.data.tenant_name);
-      }
+
+    if (result.data?.access_token) {
+      setToken(result.data.access_token);
+      setTenantId(result.data.tenant_id);
+      setTenantName(result.data.tenant_name);
       navigate(redirectTo, { replace: true });
     }
   };
@@ -57,53 +53,93 @@ if (res.data?.access_token) {
   const unsafe = isUnsafeApiUrl();
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center">管理员登录</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {unsafe && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertTitle>安全提示</AlertTitle>
-              <AlertDescription>
-                当前 API 使用 HTTP 且非本地地址，密码在传输过程中可能被窃听。请仅在可信网络下使用，生产环境请使用 HTTPS。
-              </AlertDescription>
-            </Alert>
-          )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">用户名</label>
-              <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="请输入用户名"
-                autoComplete="username"
-                disabled={loading}
-              />
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,#dff7ea_0%,#f8fafc_40%,#e2e8f0_100%)] px-4 py-10">
+      <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="rounded-[32px] bg-slate-950 p-8 text-white shadow-2xl">
+          <p className="text-sm uppercase tracking-[0.35em] text-emerald-300">SDM Web Console</p>
+          <h1 className="mt-6 text-4xl font-semibold leading-tight">
+            把零散工具页升级成
+            <br />
+            正式后台
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
+            本轮重点先完成工作台、活动管理和用户管理，后续再继续补权限、租户和报表中心。
+          </p>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <UserCircle2 className="h-5 w-5 text-emerald-300" />
+              <p className="mt-3 text-sm text-slate-300">多角色后台入口</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">密码</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="请输入密码"
-                autoComplete="current-password"
-                disabled={loading}
-              />
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <LockKeyhole className="h-5 w-5 text-emerald-300" />
+              <p className="mt-3 text-sm text-slate-300">管理员鉴权与权限边界</p>
             </div>
-            {error && (
-              <p className="text-sm text-red-600">{error}</p>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? '登录中…' : '登录'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <AlertTriangle className="h-5 w-5 text-emerald-300" />
+              <p className="mt-3 text-sm text-slate-300">后续承接异常提醒与运营治理</p>
+            </div>
+          </div>
+        </div>
+
+        <Card className="border-white/60 bg-white/90 shadow-xl backdrop-blur">
+          <CardHeader>
+            <CardTitle className="text-center">管理员登录</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {unsafe ? (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>安全提示</AlertTitle>
+                <AlertDescription>
+                  当前 API 使用 HTTP 且非本地地址，生产环境建议切换到 HTTPS。
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">租户编码</label>
+                <Input
+                  value={tenantCode}
+                  onChange={(event) => setTenantCode(event.target.value)}
+                  placeholder="默认 default"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">用户名</label>
+                <Input
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  placeholder="请输入用户名"
+                  autoComplete="username"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">密码</label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="请输入密码"
+                  autoComplete="current-password"
+                  disabled={loading}
+                />
+              </div>
+
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+              <Button type="submit" className="w-full bg-slate-950 hover:bg-slate-800" disabled={loading}>
+                {loading ? '登录中...' : '登录后台'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

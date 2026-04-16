@@ -1,9 +1,9 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders login form', () => {
+  window.history.pushState({}, 'Test page', '/login');
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByText('管理员登录')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: '登录后台' })).toBeInTheDocument();
 });

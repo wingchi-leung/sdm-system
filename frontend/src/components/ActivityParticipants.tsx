@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { useToast } from '../hooks/use-toast';
@@ -40,13 +40,7 @@ const ActivityParticipants = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (id) {
-      fetchParticipants();
-    }
-  }, [id, currentPage]);
-
-  const fetchParticipants = async () => {
+  const fetchParticipants = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await apiRequest<ParticipantListResponse>(
@@ -67,7 +61,13 @@ const ActivityParticipants = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, id, pageSize, toast]);
+
+  useEffect(() => {
+    if (id) {
+      fetchParticipants();
+    }
+  }, [id, fetchParticipants]);
 
   const totalPages = Math.ceil(total / pageSize);
 

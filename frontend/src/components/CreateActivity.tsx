@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card, CardHeader, CardContent, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { useToast } from '../hooks/use-toast';
 import { X, UserPlus, Import } from 'lucide-react';
 import { Toaster } from "./ui/toaster";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { Checkbox } from './ui/checkbox';
 import { API_PATHS, apiRequest } from '../config/api';
 import { Participant, User } from '../type';
@@ -23,12 +23,7 @@ const CreateActivity = () => {
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const { toast } = useToast();
 
-  // Fetch users when component mounts
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const response = await apiRequest<User[]>(API_PATHS.users.list);
       if (response.data) {
@@ -43,7 +38,11 @@ const CreateActivity = () => {
         variant: "destructive"
       });
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const addParticipant = () => {
     setFormData(prev => ({
