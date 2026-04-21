@@ -395,6 +395,94 @@ class TestCheckInPermissions:
         )
         assert response.status_code == status.HTTP_200_OK
 
+    def test_activity_admin_cannot_read_other_activity_checkins(
+        self,
+        client,
+        activity_admin_token,
+        sample_activity_type_2,
+        default_tenant,
+        db_session,
+    ):
+        """测试活动类型管理员不能用 activity_id 读取未授权活动签到"""
+        from app.schemas import Activity, CheckInRecord
+
+        activity = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="未授权签到活动",
+            activity_type_id=sample_activity_type_2.id,
+            status=2,
+        )
+        db_session.add(activity)
+        db_session.flush()
+        db_session.add(
+            CheckInRecord(
+                tenant_id=default_tenant.id,
+                activity_id=activity.id,
+                name="未授权签到用户",
+                phone="13900139971",
+                identity_number="110101199001019971",
+                has_attend=1,
+            )
+        )
+        db_session.commit()
+
+        response = client.get(
+            f"/api/v1/checkins/?activity_id={activity.id}",
+            headers=auth_headers(activity_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_activity_admin_all_checkins_are_scope_filtered(
+        self,
+        client,
+        activity_admin_token,
+        active_activity,
+        sample_activity_type_2,
+        default_tenant,
+        db_session,
+    ):
+        """测试不传 activity_id 时签到列表仍按授权 scope 过滤"""
+        from app.schemas import Activity, CheckInRecord
+
+        other_activity = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="未授权全量签到活动",
+            activity_type_id=sample_activity_type_2.id,
+            status=2,
+        )
+        db_session.add(other_activity)
+        db_session.flush()
+        db_session.add_all([
+            CheckInRecord(
+                tenant_id=default_tenant.id,
+                activity_id=active_activity.id,
+                name="可见签到",
+                phone="13900139972",
+                identity_number="110101199001019972",
+                has_attend=1,
+            ),
+            CheckInRecord(
+                tenant_id=default_tenant.id,
+                activity_id=other_activity.id,
+                name="不可见签到",
+                phone="13900139973",
+                identity_number="110101199001019973",
+                has_attend=1,
+            ),
+        ])
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/checkins/",
+            headers=auth_headers(activity_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        names = {item["name"] for item in response.json()}
+        assert "可见签到" in names
+        assert "不可见签到" not in names
+
     def test_user_can_checkin(self, client, user_token, active_activity, db_session):
         """测试用户可以签到 - 需要先报名"""
         from tests.factories import ParticipantFactory

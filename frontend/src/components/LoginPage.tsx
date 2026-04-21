@@ -9,6 +9,7 @@ import { isUnsafeApiUrl, loginApi, platformLoginApi } from '../config/api';
 import {
   AuthRole,
   clearTenantContext,
+  getAuthRole,
   isAuthenticated,
   setAuthRole,
   setTenantId,
@@ -29,7 +30,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isAuthenticated()) {
-      navigate(redirectTo, { replace: true });
+      navigate(getAuthRole() === 'platform_admin' ? '/tenants' : redirectTo, { replace: true });
     }
   }, [navigate, redirectTo]);
 

@@ -401,6 +401,15 @@ class TestUserManagement:
         # 返回 401 因为不是管理员
         assert response.status_code in [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN]
 
+    def test_activity_admin_without_user_view_cannot_get_user_list(self, client, activity_admin_token):
+        """测试活动管理员不能读取租户级用户列表"""
+        response = client.get(
+            "/api/v1/users/",
+            headers=auth_headers(activity_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_get_users_list_pagination(self, client, super_admin_token, db_session):
         """测试用户列表分页"""
         from tests.factories import UserFactory

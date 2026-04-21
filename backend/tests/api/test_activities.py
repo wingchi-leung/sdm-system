@@ -414,3 +414,60 @@ class TestActivityPermissions:
         data = response.json()
         assert data["total"] == 0
         assert data["items"] == []
+
+    def test_single_activity_scope_can_manage_assigned_activity(
+        self,
+        client,
+        db_session,
+        activity_admin_no_permission,
+        activity_admin_no_permission_token,
+        active_activity,
+    ):
+        """测试单活动 scope 可以管理被授权的活动"""
+        from app.schemas import Permission, Role, RolePermission, UserRole
+
+        role = Role(
+            tenant_id=activity_admin_no_permission.tenant_id,
+            name="单活动编辑员",
+            is_system=0,
+            description="测试单活动 scope",
+        )
+        db_session.add(role)
+        db_session.flush()
+
+        for code in ["activity.edit", "participant.view"]:
+            permission = db_session.query(Permission).filter(Permission.code == code).first()
+            if permission is None:
+                permission = Permission(
+                    code=code,
+                    name=code,
+                    resource=code.split(".")[0],
+                    action=code.split(".")[1],
+                )
+                db_session.add(permission)
+                db_session.flush()
+            db_session.add(RolePermission(role_id=role.id, permission_id=permission.id))
+
+        db_session.add(
+            UserRole(
+                user_id=activity_admin_no_permission.user_id,
+                role_id=role.id,
+                tenant_id=activity_admin_no_permission.tenant_id,
+                scope_type="activity",
+                scope_id=active_activity.id,
+            )
+        )
+        db_session.commit()
+
+        update_response = client.put(
+            f"/api/v1/activities/{active_activity.id}",
+            headers=auth_headers(activity_admin_no_permission_token),
+            json={"activity_name": "单活动授权修改"},
+        )
+        assert update_response.status_code == status.HTTP_200_OK
+
+        stats_response = client.get(
+            f"/api/v1/activities/{active_activity.id}/statistics/",
+            headers=auth_headers(activity_admin_no_permission_token),
+        )
+        assert stats_response.status_code == status.HTTP_200_OK

@@ -1,4 +1,4 @@
-import { fetchAllListItems, fetchAllPaginatedItems } from './api-pagination';
+import { fetchAllListItems, fetchAllPaginatedItems, mapWithConcurrency } from './api-pagination';
 
 jest.mock('../config/api', () => ({
   apiRequest: jest.fn(),
@@ -33,5 +33,21 @@ describe('api-pagination helpers', () => {
       (skip, limit) => `/logs?skip=${skip}&limit=${limit}`,
       2,
     )).resolves.toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
+  });
+
+  test('mapWithConcurrency 限制并发并保持结果顺序', async () => {
+    let runningCount = 0;
+    let maxRunningCount = 0;
+
+    const result = await mapWithConcurrency([1, 2, 3, 4, 5], 2, async (item) => {
+      runningCount += 1;
+      maxRunningCount = Math.max(maxRunningCount, runningCount);
+      await Promise.resolve();
+      runningCount -= 1;
+      return item * 2;
+    });
+
+    expect(result).toEqual([2, 4, 6, 8, 10]);
+    expect(maxRunningCount).toBeLessThanOrEqual(2);
   });
 });

@@ -137,7 +137,7 @@ def read_user(
 @router.get("/", response_model=List[user.UserResponse])
 def get_users(
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+    ctx: deps.TenantContext = Depends(deps.require_permission("user.view")),
 ):
     """用户列表"""
     return crud_user.get_users(db, tenant_id=ctx.tenant_id)

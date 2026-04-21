@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { BarChart3, RefreshCw, ShieldAlert, TrendingUp, Users } from 'lucide-react';
 import { API_PATHS } from '../config/api';
 import { formatCurrency, formatDateTime } from '../lib/admin';
-import { fetchAllListItems, fetchAllPaginatedItems } from '../lib/api-pagination';
+import { fetchAllListItems, fetchAllPaginatedItems, mapWithConcurrency } from '../lib/api-pagination';
 import {
   ParticipantPaymentSource,
   summarizeEnrollmentPayments,
@@ -54,8 +54,10 @@ async function fetchUsersForReports(): Promise<UserItem[]> {
 }
 
 async function fetchCheckinsForActivities(activities: ActivityItem[]): Promise<CheckinRecord[]> {
-  const allCheckins = await Promise.all(
-    activities.map(async (activity) => {
+  const allCheckins = await mapWithConcurrency(
+    activities,
+    5,
+    async (activity) => {
       const items = await fetchAllListItems<CheckinRecord>(
         (skip, limit) => `${API_PATHS.checkins.list}?skip=${skip}&limit=${limit}&activity_id=${activity.id}`,
         100,
@@ -65,7 +67,7 @@ async function fetchCheckinsForActivities(activities: ActivityItem[]): Promise<C
         ...item,
         activity_name: item.activity_name || activity.activity_name,
       }));
-    }),
+    },
   );
 
   return allCheckins.flat();
@@ -75,19 +77,27 @@ async function fetchParticipantsForActivities(activities: ActivityItem[]): Promi
   participants: ParticipantItem[];
   failedCount: number;
 }> {
-  const results = await Promise.allSettled(
-    activities.map(async (activity) => {
+  const results = await mapWithConcurrency(activities, 5, async (activity) => {
+    try {
       const response = await fetchAllPaginatedItems<ParticipantItem>(
         (skip, limit) => `${API_PATHS.activities.participants(activity.id)}?skip=${skip}&limit=${limit}`,
         100,
       );
 
-      return response.map((participant) => ({
-        ...participant,
-        activity_id: participant.activity_id || activity.id,
-      }));
-    }),
-  );
+      return {
+        status: 'fulfilled' as const,
+        value: response.map((participant) => ({
+          ...participant,
+          activity_id: participant.activity_id || activity.id,
+        })),
+      };
+    } catch (error) {
+      return {
+        status: 'rejected' as const,
+        reason: error,
+      };
+    }
+  });
 
   const participants: ParticipantItem[] = [];
   let failedCount = 0;

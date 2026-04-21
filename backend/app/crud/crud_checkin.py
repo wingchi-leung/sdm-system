@@ -1,6 +1,6 @@
 from app.models.checkin import CheckInCreate
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from typing import List, Optional
@@ -14,6 +14,8 @@ def get_recent_checkins(
     skip: int = 0,
     limit: int = 100,
     activity_id: Optional[int] = None,
+    allowed_activity_type_ids: Optional[List[int]] = None,
+    allowed_activity_ids: Optional[List[int]] = None,
 ) -> List[dict]:
     """获取签到记录列表（租户隔离）"""
     q = (
@@ -24,6 +26,15 @@ def get_recent_checkins(
     )
     if activity_id is not None:
         q = q.filter(CheckInRecord.activity_id == activity_id)
+    scope_filters = []
+    if allowed_activity_type_ids is not None and allowed_activity_type_ids:
+        scope_filters.append(Activity.activity_type_id.in_(allowed_activity_type_ids))
+    if allowed_activity_ids is not None and allowed_activity_ids:
+        scope_filters.append(Activity.id.in_(allowed_activity_ids))
+    if allowed_activity_type_ids is not None or allowed_activity_ids is not None:
+        if not scope_filters:
+            return []
+        q = q.filter(or_(*scope_filters))
     rows = q.offset(skip).limit(limit).all()
     return [
         {

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from app.crud import crud_checkin, crud_participant, crud_tenant
+from app.crud import crud_checkin, crud_participant, crud_rbac, crud_tenant
 from app.crud.crud_checkin import check_already_checkin
 from app.models import checkin
 from app.api import deps
@@ -30,8 +30,34 @@ def list_checkin_records(
     ctx: deps.TenantContext = Depends(deps.get_current_admin),
 ):
     """签到记录列表（含活动名称）"""
+    if activity_id is not None:
+        if not deps.has_activity_permission(db, ctx, activity_id, "participant.view"):
+            raise HTTPException(status_code=403, detail="无权限查看此活动")
+        return crud_checkin.get_recent_checkins(
+            db, tenant_id=ctx.tenant_id, skip=skip, limit=limit, activity_id=activity_id
+        )
+
+    if crud_rbac.has_permission(db, ctx.user_id, "participant.view", ctx.tenant_id):
+        return crud_checkin.get_recent_checkins(
+            db, tenant_id=ctx.tenant_id, skip=skip, limit=limit
+        )
+
+    user_roles = crud_rbac.get_user_roles(db, ctx.user_id, ctx.tenant_id)
+    allowed_activity_type_ids = [
+        item.scope_id for item in user_roles
+        if item.scope_type == "activity_type" and item.scope_id
+    ]
+    allowed_activity_ids = [
+        item.scope_id for item in user_roles
+        if item.scope_type == "activity" and item.scope_id
+    ]
     return crud_checkin.get_recent_checkins(
-        db, tenant_id=ctx.tenant_id, skip=skip, limit=limit, activity_id=activity_id
+        db,
+        tenant_id=ctx.tenant_id,
+        skip=skip,
+        limit=limit,
+        allowed_activity_type_ids=allowed_activity_type_ids,
+        allowed_activity_ids=allowed_activity_ids,
     )
 
 

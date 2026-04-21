@@ -175,7 +175,7 @@ def update_activity_status(
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
 
-    if not crud_rbac.has_permission(db, ctx.user_id, "activity.edit", ctx.tenant_id, activity.activity_type_id, "activity_type"):
+    if not deps.has_activity_permission(db, ctx, activity_id, "activity.edit"):
         raise HTTPException(status_code=403, detail="无权限编辑此活动")
 
     act = crud_activity.update_activity_status(db, activity_id, status, ctx.tenant_id)
@@ -198,7 +198,7 @@ def get_activity_checkins(
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
 
-    if not crud_rbac.has_permission(db, ctx.user_id, "participant.view", ctx.tenant_id, activity.activity_type_id, "activity_type"):
+    if not deps.has_activity_permission(db, ctx, activity_id, "participant.view"):
         raise HTTPException(status_code=403, detail="无权限查看此活动")
 
     return crud_checkin.get_activity_checkins(db, activity_id, ctx.tenant_id, skip=skip, limit=limit)
@@ -215,7 +215,7 @@ def get_activity_stats(
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
 
-    if not crud_rbac.has_permission(db, ctx.user_id, "participant.view", ctx.tenant_id, activity.activity_type_id, "activity_type"):
+    if not deps.has_activity_permission(db, ctx, activity_id, "participant.view"):
         raise HTTPException(status_code=403, detail="无权限查看此活动")
 
     return crud_participant.get_activity_statistics(db, activity_id, ctx.tenant_id)
@@ -233,7 +233,7 @@ def update_activity(
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
 
-    if not crud_rbac.has_permission(db, ctx.user_id, "activity.edit", ctx.tenant_id, activity.activity_type_id, "activity_type"):
+    if not deps.has_activity_permission(db, ctx, activity_id, "activity.edit"):
         raise HTTPException(status_code=403, detail="无权限编辑此活动")
 
     return crud_activity.update_activity(db, activity_id, body, ctx.tenant_id)
@@ -250,7 +250,7 @@ def delete_activity(
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
 
-    if not crud_rbac.has_permission(db, ctx.user_id, "activity.delete", ctx.tenant_id, activity.activity_type_id, "activity_type"):
+    if not deps.has_activity_permission(db, ctx, activity_id, "activity.delete"):
         raise HTTPException(status_code=403, detail="无权限删除此活动")
 
     crud_activity.delete_activity(db, activity_id, ctx.tenant_id)
