@@ -53,6 +53,16 @@ class AdminUser(BaseModel):
 
 
 # ============================================================
+# 平台管理员认证表（跨租户运营后台使用）
+# ============================================================
+class PlatformAdmin(BaseModel):
+    __tablename__ = "platform_admin"
+    username = Column(String(64), unique=True, nullable=False, index=True)
+    password_hash = Column(String(255), nullable=False)
+    status = Column(Integer, default=1, nullable=False)  # 1-正常 0-禁用
+
+
+# ============================================================
 # 用户表
 # ============================================================
 class User(BaseModel):

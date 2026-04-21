@@ -73,6 +73,9 @@ class ParticipantCreate(ParticipantBase):
 
 class ParticipantResponse(ParticipantBase):
     id: int
+    payment_status: Optional[int] = Field(None, description="支付状态：0-无需支付 1-待支付 2-已支付")
+    payment_order_id: Optional[int] = Field(None, description="支付订单ID")
+    paid_amount: Optional[int] = Field(None, description="实际支付金额（分）")
     create_time: datetime
     update_time: datetime
 

@@ -5,13 +5,22 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { isUnsafeApiUrl, loginApi } from '../config/api';
-import { isAuthenticated, setTenantId, setTenantName, setToken } from '../lib/auth';
+import { isUnsafeApiUrl, loginApi, platformLoginApi } from '../config/api';
+import {
+  AuthRole,
+  clearTenantContext,
+  isAuthenticated,
+  setAuthRole,
+  setTenantId,
+  setTenantName,
+  setToken,
+} from '../lib/auth';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [tenantCode, setTenantCode] = useState('default');
+  const [loginRole, setLoginRole] = useState<AuthRole>('admin');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -34,7 +43,9 @@ const LoginPage = () => {
     }
 
     setLoading(true);
-    const result = await loginApi(username.trim(), password, tenantCode.trim() || 'default');
+    const result = loginRole === 'platform_admin'
+      ? await platformLoginApi(username.trim(), password)
+      : await loginApi(username.trim(), password, tenantCode.trim() || 'default');
     setLoading(false);
 
     if (result.error) {
@@ -44,8 +55,18 @@ const LoginPage = () => {
 
     if (result.data?.access_token) {
       setToken(result.data.access_token);
-      setTenantId(result.data.tenant_id);
-      setTenantName(result.data.tenant_name);
+      setAuthRole(loginRole);
+      if (loginRole === 'platform_admin') {
+        clearTenantContext();
+        setTenantName('平台管理员');
+        navigate('/tenants', { replace: true });
+        return;
+      }
+
+      if ('tenant_id' in result.data && 'tenant_name' in result.data) {
+        setTenantId(result.data.tenant_id);
+        setTenantName(result.data.tenant_name);
+      }
       navigate(redirectTo, { replace: true });
     }
   };
@@ -98,15 +119,36 @@ const LoginPage = () => {
             ) : null}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">租户编码</label>
-                <Input
-                  value={tenantCode}
-                  onChange={(event) => setTenantCode(event.target.value)}
-                  placeholder="默认 default"
+              <div className="grid grid-cols-2 rounded-lg bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setLoginRole('admin')}
+                  className={`rounded-md px-3 py-2 text-sm font-medium transition ${loginRole === 'admin' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500'}`}
                   disabled={loading}
-                />
+                >
+                  租户管理员
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLoginRole('platform_admin')}
+                  className={`rounded-md px-3 py-2 text-sm font-medium transition ${loginRole === 'platform_admin' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-500'}`}
+                  disabled={loading}
+                >
+                  平台管理员
+                </button>
               </div>
+
+              {loginRole === 'admin' ? (
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">租户编码</label>
+                  <Input
+                    value={tenantCode}
+                    onChange={(event) => setTenantCode(event.target.value)}
+                    placeholder="默认 default"
+                    disabled={loading}
+                  />
+                </div>
+              ) : null}
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700">用户名</label>

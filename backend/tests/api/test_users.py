@@ -353,6 +353,45 @@ class TestUserManagement:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert "不能跨租户" in response.json()["detail"]
 
+    def test_platform_admin_can_query_other_tenant_users(
+        self,
+        client,
+        db_session,
+        platform_admin,
+    ):
+        """测试平台管理员可以按租户编码查询其他租户用户"""
+        from app.core.security import create_platform_access_token
+        from app.schemas import Tenant, User
+
+        other_tenant = Tenant(
+            name="平台查询租户",
+            code="platform_target",
+            status=1,
+            plan="basic",
+        )
+        db_session.add(other_tenant)
+        db_session.flush()
+
+        other_user = User(
+            tenant_id=other_tenant.id,
+            name="平台可见用户",
+            phone="13800138998",
+            isblock=0,
+        )
+        db_session.add(other_user)
+        db_session.commit()
+
+        token = create_platform_access_token(str(platform_admin.id))
+        response = client.get(
+            "/api/v1/users/admin/all?tenant_code=platform_target",
+            headers=auth_headers(token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["tenant_id"] == other_tenant.id
+
     def test_get_users_list_as_normal_user_forbidden(self, client, user_token):
         """测试普通用户获取用户列表被禁止"""
         response = client.get(

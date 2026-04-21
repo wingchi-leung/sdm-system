@@ -61,6 +61,26 @@ class TestAuthEndpoints:
         data = response.json()
         assert "access_token" in data
 
+    def test_platform_admin_login_success(self, client, platform_admin):
+        """测试平台管理员登录"""
+        response = client.post("/api/v1/auth/platform-login", json={
+            "username": "platform_admin",
+            "password": "platform123",
+        })
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["role"] == "platform_admin"
+        assert data["platform_admin_id"] == platform_admin.id
+        assert "access_token" in data
+
+    def test_platform_admin_login_wrong_password(self, client, platform_admin):
+        """测试平台管理员密码错误"""
+        response = client.post("/api/v1/auth/platform-login", json={
+            "username": "platform_admin",
+            "password": "wrong",
+        })
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
     def test_user_login_success(self, client, sample_user):
         """测试普通用户登录"""
         response = client.post("/api/v1/auth/user-login", json={

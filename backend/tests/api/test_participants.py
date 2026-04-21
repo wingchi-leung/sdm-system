@@ -232,7 +232,9 @@ class TestParticipantRetrieval:
         for i in range(5):
             participant = ParticipantFactory(
                 activity_id=sample_activity.id,
-                participant_name=f"参与者{i}"
+                participant_name=f"参与者{i}",
+                payment_status=2 if i == 0 else 0,
+                paid_amount=1000 if i == 0 else 0,
             )
             db_session.add(participant)
         db_session.commit()
@@ -245,6 +247,8 @@ class TestParticipantRetrieval:
         data = response.json()
         # 返回 {"items": [...], "total": N} 格式
         assert data.get("total", 0) >= 5
+        assert data["items"][0]["payment_status"] in [0, 2]
+        assert "paid_amount" in data["items"][0]
 
     def test_get_participants_unauthorized(self, client, user_token, sample_activity):
         """测试普通用户获取参与者列表"""

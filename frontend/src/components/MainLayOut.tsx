@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { clearToken, getTenantName, isAuthenticated } from '../lib/auth';
+import { clearToken, getAuthRole, getTenantName, isAuthenticated } from '../lib/auth';
 import { cn } from '../lib/utils';
 
 const menuGroups = [
@@ -47,6 +47,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
+  const authRole = getAuthRole();
 
   if (!authenticated || location.pathname === '/login') {
     return <div className="min-h-screen bg-slate-100">{children}</div>;
@@ -71,7 +72,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             <div key={group.label}>
               <p className="px-3 text-xs text-slate-400">{group.label}</p>
               <div className="mt-2 space-y-1">
-                {group.items.map((item) => {
+                {group.items
+                  .filter((item) => authRole === 'admin' || item.href === '/tenants')
+                  .map((item) => {
                   const Icon = item.icon;
                   const active = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);
 

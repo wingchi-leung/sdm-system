@@ -87,7 +87,21 @@ CREATE TABLE IF NOT EXISTS `admin_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员认证表';
 
 -- 
--- 5. 活动表
+-- 5. 平台管理员认证表（跨租户运营后台）
+-- 
+CREATE TABLE IF NOT EXISTS `platform_admin` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(64) NOT NULL COMMENT '平台管理员用户名',
+  `password_hash` varchar(255) NOT NULL COMMENT '密码哈希',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1-正常 0-禁用',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_platform_admin_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台管理员认证表';
+
+-- 
+-- 6. 活动表
 -- 
 CREATE TABLE IF NOT EXISTS `activity` (
   `id` int NOT NULL AUTO_INCREMENT,

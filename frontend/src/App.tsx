@@ -5,18 +5,21 @@ import ActivityParticipants from './components/ActivityParticipants';
 import CreateActivity from './components/CreateActivity';
 import DashboardPage from './components/DashboardPage';
 import EditActivity from './components/EditActivity';
+import EnrollmentsPage from './components/EnrollmentsPage';
 import LoginPage from './components/LoginPage';
 import MainLayout from './components/MainLayOut';
 import ModulePage from './components/ModulePage';
 import PermissionsPage from './components/PermissionsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ReportsPage from './components/ReportsPage';
 import SignInPage from './components/SignInPage';
 import Statistics from './components/Statistics';
+import TenantManagementPage from './components/TenantManagementPage';
 import UserManagement from './components/UserManagement';
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <MainLayout>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -74,15 +77,7 @@ const App = () => {
             path="/enrollments"
             element={(
               <ProtectedRoute>
-                <ModulePage
-                  title="报名与签到"
-                  description="本轮先通过活动详情和报名名单页承接核心流程，后续会继续抽成独立运营模块。"
-                  highlights={[
-                    '按活动查看报名名单与候补名单',
-                    '签到记录与现场核销',
-                    '导出能力与异常提示',
-                  ]}
-                />
+                <EnrollmentsPage />
               </ProtectedRoute>
             )}
           />
@@ -106,15 +101,7 @@ const App = () => {
             path="/tenants"
             element={(
               <ProtectedRoute>
-                <ModulePage
-                  title="租户管理"
-                  description="该模块将用于平台管理员的跨租户治理，本轮先预留导航与页面容器。"
-                  highlights={[
-                    '租户列表与状态管理',
-                    '租户管理员配置',
-                    '套餐、到期时间与容量信息',
-                  ]}
-                />
+                <TenantManagementPage />
               </ProtectedRoute>
             )}
           />
@@ -122,15 +109,7 @@ const App = () => {
             path="/reports"
             element={(
               <ProtectedRoute>
-                <ModulePage
-                  title="数据报表"
-                  description="报表中心将放在后续阶段建设，当前先通过工作台和活动详情承接核心统计。"
-                  highlights={[
-                    '活动报表',
-                    '报名转化与签到统计',
-                    '支付与用户增长分析',
-                  ]}
-                />
+                <ReportsPage />
               </ProtectedRoute>
             )}
           />

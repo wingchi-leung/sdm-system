@@ -32,6 +32,7 @@ from app.schemas import (
     ActivityParticipant,
     CheckInRecord,
     Tenant,
+    PlatformAdmin,
     Permission,
     Role,
     RolePermission,
@@ -170,6 +171,23 @@ def _create_admin_with_role(
             )
         )
 
+    db_session.commit()
+    db_session.refresh(admin)
+    return admin
+
+
+def _create_platform_admin(
+    db_session: Session,
+    *,
+    username: str = "platform_admin",
+    password: str = "platform123",
+) -> PlatformAdmin:
+    admin = PlatformAdmin(
+        username=username,
+        password_hash=hash_password(password),
+        status=1,
+    )
+    db_session.add(admin)
     db_session.commit()
     db_session.refresh(admin)
     return admin
@@ -338,6 +356,12 @@ def activity_admin_no_permission(db_session: Session, default_tenant: Tenant) ->
         identity_number="110101199001011212",
         permission_codes=None,
     )
+
+
+@pytest.fixture
+def platform_admin(db_session: Session) -> PlatformAdmin:
+    """创建平台管理员"""
+    return _create_platform_admin(db_session)
 
 
 @pytest.fixture

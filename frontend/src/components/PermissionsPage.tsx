@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2, Plus, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
 import { formatDateTime } from '../lib/admin';
+import {
+  extractActivityTypeOptions,
+  summarizeAdminAssignments,
+} from '../lib/web-admin';
 import { formatScopeLabel, groupPermissionsByResource, UserRoleItem } from '../lib/rbac';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -40,10 +44,23 @@ interface AdminUserItem {
   create_time?: string;
 }
 
+interface ActivityItem {
+  id: number;
+  activity_name: string;
+  activity_type_id?: number | null;
+  activity_type_name?: string | null;
+}
+
+interface ActivityListResponse {
+  items: ActivityItem[];
+  total: number;
+}
+
 const PermissionsPage = () => {
   const [roles, setRoles] = useState<RoleItem[]>([]);
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [userRoles, setUserRoles] = useState<Record<number, UserRoleItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,10 +91,11 @@ const PermissionsPage = () => {
     setError(null);
 
     try {
-      const [rolesRes, permissionsRes, usersRes] = await Promise.all([
+      const [rolesRes, permissionsRes, usersRes, activitiesRes] = await Promise.all([
         apiRequest<RoleItem[]>(API_PATHS.roles.list),
         apiRequest<PermissionItem[]>(API_PATHS.roles.permissions),
         apiRequest<AdminUserItem[]>(API_PATHS.users.list),
+        apiRequest<ActivityListResponse>(`${API_PATHS.activities.list}?skip=0&limit=100`),
       ]);
 
       if (rolesRes.error) {
@@ -89,11 +107,15 @@ const PermissionsPage = () => {
       if (usersRes.error) {
         throw new Error(usersRes.error);
       }
+      if (activitiesRes.error) {
+        throw new Error(activitiesRes.error);
+      }
 
       const fetchedUsers = usersRes.data ?? [];
       setRoles(rolesRes.data ?? []);
       setPermissions(permissionsRes.data ?? []);
       setUsers(fetchedUsers);
+      setActivities(activitiesRes.data?.items ?? []);
 
       const roleResults = await Promise.all(
         fetchedUsers.map(async (user) => {
@@ -125,20 +147,42 @@ const PermissionsPage = () => {
     fetchPageData();
   }, [fetchPageData]);
 
-  const filteredUsers = useMemo(() => {
+  const filteredManagers = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
-    if (!normalizedKeyword) {
-      return users;
-    }
 
-    return users.filter((user) => (
-      (user.name || '').toLowerCase().includes(normalizedKeyword)
-      || (user.phone || '').toLowerCase().includes(normalizedKeyword)
-      || String(user.id).includes(normalizedKeyword)
-    ));
-  }, [keyword, users]);
+    return users
+      .filter((user) => (userRoles[user.id] ?? []).length > 0)
+      .filter((user) => {
+        if (!normalizedKeyword) {
+          return true;
+        }
+
+        return (user.name || '').toLowerCase().includes(normalizedKeyword)
+          || (user.phone || '').toLowerCase().includes(normalizedKeyword)
+          || String(user.id).includes(normalizedKeyword);
+      });
+  }, [keyword, userRoles, users]);
 
   const groupedPermissions = useMemo(() => groupPermissionsByResource(permissions), [permissions]);
+  const activityTypeOptions = useMemo(() => extractActivityTypeOptions(activities), [activities]);
+  const assignmentSummary = useMemo(() => summarizeAdminAssignments(userRoles), [userRoles]);
+  const scopeOptions = useMemo(() => {
+    if (scopeType === 'activity_type') {
+      return activityTypeOptions.map((item) => ({
+        value: String(item.id),
+        label: item.name,
+      }));
+    }
+
+    if (scopeType === 'activity') {
+      return activities.map((item) => ({
+        value: String(item.id),
+        label: item.activity_name,
+      }));
+    }
+
+    return [];
+  }, [activities, activityTypeOptions, scopeType]);
 
   const handleAssignRole = async () => {
     if (!selectedUserId || !selectedRoleId) {
@@ -146,11 +190,7 @@ const PermissionsPage = () => {
       return;
     }
     if (scopeType !== 'global' && !scopeId.trim()) {
-      setError('请输入有效的 scope ID');
-      return;
-    }
-    if (scopeType !== 'global' && Number.isNaN(Number(scopeId.trim()))) {
-      setError('scope ID 必须是数字');
+      setError('请选择有效的权限范围');
       return;
     }
 
@@ -213,7 +253,7 @@ const PermissionsPage = () => {
         <div>
           <h1 className="text-3xl font-semibold text-slate-900">权限与管理员</h1>
           <p className="mt-2 text-sm text-slate-600">
-            当前先打通 RBAC 可视化核心链路：角色、权限、用户角色分配与 scope 展示。
+            先把管理员视图、角色分配和 scope 可视化做成正式后台页，继续向完整 RBAC 管理演进。
           </p>
         </div>
         <Button onClick={() => handleAssignDialogChange(true)}>
@@ -228,12 +268,19 @@ const PermissionsPage = () => {
         </Card>
       ) : null}
 
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <Card><CardContent className="p-6"><p className="text-sm text-slate-500">管理员人数</p><p className="mt-3 text-3xl font-semibold">{loading ? '--' : assignmentSummary.managerCount}</p></CardContent></Card>
+        <Card><CardContent className="p-6"><p className="text-sm text-slate-500">角色授权数</p><p className="mt-3 text-3xl font-semibold">{loading ? '--' : assignmentSummary.assignmentCount}</p></CardContent></Card>
+        <Card><CardContent className="p-6"><p className="text-sm text-slate-500">活动类型授权</p><p className="mt-3 text-3xl font-semibold">{loading ? '--' : assignmentSummary.activityTypeAssignments}</p></CardContent></Card>
+        <Card><CardContent className="p-6"><p className="text-sm text-slate-500">单活动授权</p><p className="mt-3 text-3xl font-semibold">{loading ? '--' : assignmentSummary.activityAssignments}</p></CardContent></Card>
+      </div>
+
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <Card className="bg-white/90">
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <div>
-              <CardTitle className="text-xl">管理员角色分配</CardTitle>
-              <p className="mt-1 text-sm text-slate-500">按用户查看当前角色、权限范围和移除操作。</p>
+              <CardTitle className="text-xl">管理员列表</CardTitle>
+              <p className="mt-1 text-sm text-slate-500">只展示已经分配角色的后台管理员，避免与普通用户列表混用。</p>
             </div>
             <div className="w-full max-w-xs">
               <Input
@@ -247,7 +294,7 @@ const PermissionsPage = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>管理员/用户</TableHead>
+                  <TableHead>管理员</TableHead>
                   <TableHead>当前角色</TableHead>
                   <TableHead>创建时间</TableHead>
                   <TableHead className="text-right">操作</TableHead>
@@ -263,14 +310,14 @@ const PermissionsPage = () => {
                       </span>
                     </TableCell>
                   </TableRow>
-                ) : filteredUsers.length === 0 ? (
+                ) : filteredManagers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="py-10 text-center text-slate-500">
-                      暂无可展示的用户
+                      暂无已授权管理员
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredUsers.map((user) => {
+                  filteredManagers.map((user) => {
                     const assignments = userRoles[user.id] ?? [];
                     return (
                       <TableRow key={user.id}>
@@ -281,32 +328,28 @@ const PermissionsPage = () => {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {assignments.length === 0 ? (
-                            <span className="text-sm text-slate-400">未分配角色</span>
-                          ) : (
-                            <div className="space-y-2">
-                              {assignments.map((item) => (
-                                <div key={item.id} className="rounded-xl bg-slate-50 p-3">
-                                  <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                      <p className="text-sm font-medium text-slate-900">{item.role_name}</p>
-                                      <p className="mt-1 text-xs text-slate-500">
-                                        {formatScopeLabel(item.scope_type, item.scope_id)}
-                                      </p>
-                                    </div>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                                      onClick={() => handleRemoveRole(item.id)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                          <div className="space-y-2">
+                            {assignments.map((item) => (
+                              <div key={item.id} className="rounded-xl bg-slate-50 p-3">
+                                <div className="flex items-center justify-between gap-3">
+                                  <div>
+                                    <p className="text-sm font-medium text-slate-900">{item.role_name}</p>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                      {formatScopeLabel(item.scope_type, item.scope_id)}
+                                    </p>
                                   </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                    onClick={() => handleRemoveRole(item.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
-                              ))}
-                            </div>
-                          )}
+                              </div>
+                            ))}
+                          </div>
                         </TableCell>
                         <TableCell>{formatDateTime(user.create_time)}</TableCell>
                         <TableCell className="text-right">
@@ -398,7 +441,7 @@ const PermissionsPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>分配角色</DialogTitle>
-            <DialogDescription>支持全局、活动类型和单活动三个 scope 维度。</DialogDescription>
+            <DialogDescription>支持全局、活动类型和单活动三个 scope 维度，并优先使用可选项而不是手输 ID。</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div>
@@ -435,7 +478,10 @@ const PermissionsPage = () => {
               <label className="mb-1 block text-sm text-slate-600">权限范围</label>
               <select
                 value={scopeType}
-                onChange={(event) => setScopeType(event.target.value)}
+                onChange={(event) => {
+                  setScopeType(event.target.value);
+                  setScopeId('');
+                }}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               >
                 <option value="global">全局</option>
@@ -445,12 +491,21 @@ const PermissionsPage = () => {
             </div>
             {scopeType !== 'global' ? (
               <div>
-                <label className="mb-1 block text-sm text-slate-600">Scope ID</label>
-                <Input
+                <label className="mb-1 block text-sm text-slate-600">
+                  {scopeType === 'activity_type' ? '活动类型' : '活动'}
+                </label>
+                <select
                   value={scopeId}
                   onChange={(event) => setScopeId(event.target.value)}
-                  placeholder={scopeType === 'activity_type' ? '请输入活动类型 ID' : '请输入活动 ID'}
-                />
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="">请选择</option>
+                  {scopeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             ) : null}
           </div>

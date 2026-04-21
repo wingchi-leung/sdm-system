@@ -44,6 +44,17 @@ def create_access_token(sub: str, role: str, tenant_id: int) -> str:
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
+def create_platform_access_token(sub: str) -> str:
+    """生成平台管理员 JWT，不绑定具体租户。"""
+    expire = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
+    payload = {
+        "sub": str(sub),
+        "role": "platform_admin",
+        "exp": expire,
+    }
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+
+
 def decode_access_token(token: str) -> dict | None:
     """解析 JWT"""
     try:

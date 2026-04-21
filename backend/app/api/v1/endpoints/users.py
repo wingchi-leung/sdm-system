@@ -83,23 +83,27 @@ def get_all_users_for_super_admin(
     limit: int = Query(20, ge=1, le=100, description="每页记录数"),
     keyword: Optional[str] = Query(None, description="搜索关键字（姓名、手机号）"),
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin_or_platform),
 ):
     """
-    超级管理员查看所有用户（按租户筛选）
-    仅超级管理员可访问
+    查看用户列表（按租户筛选）
+    平台管理员可跨租户筛选；租户管理员只能查询当前租户。
     """
-    # 检查是否为超级管理员
-    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
-    if not is_super:
-        raise HTTPException(status_code=403, detail="仅超级管理员可访问")
-
     # 根据租户code获取租户
     tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
     if not tenant:
         raise HTTPException(status_code=400, detail="租户不存在")
-    if tenant.id != ctx.tenant_id:
-        raise HTTPException(status_code=403, detail="不能跨租户查看用户")
+
+    if ctx.is_platform_admin:
+        if not crud_tenant.check_tenant_active(db, tenant.id):
+            raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+    else:
+        # 检查是否为租户超级管理员
+        is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
+        if not is_super:
+            raise HTTPException(status_code=403, detail="仅超级管理员可访问")
+        if tenant.id != ctx.tenant_id:
+            raise HTTPException(status_code=403, detail="不能跨租户查看用户")
 
     users, total = crud_user.get_all_users_for_super_admin(
         db,

@@ -13,7 +13,11 @@ from pydantic import BaseModel
 from app.api import deps
 from app.core.config import settings
 from app.crud import crud_auth, crud_user, crud_tenant, crud_rbac
-from app.core.security import create_access_token, BCRYPT_MAX_BYTES
+from app.core.security import (
+    create_access_token,
+    create_platform_access_token,
+    BCRYPT_MAX_BYTES,
+)
 from app.models.user import UserLoginRequest, UserLoginResponse, WechatLoginResponse
 from app.schemas import ActivityType
 
@@ -93,6 +97,13 @@ class LoginResponse(BaseModel):
     activity_types: list[ActivityTypeItem] = []
 
 
+class PlatformLoginResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    role: str = "platform_admin"
+    platform_admin_id: int
+
+
 def _admin_activity_types_for_response(db: Session, user_id: int, tenant_id: int) -> list[dict]:
     """返回该管理员可管理的活动类型列表（基于 RBAC）"""
     # 获取用户的所有角色
@@ -164,6 +175,31 @@ def login(
         tenant_name=tenant.name,
         is_super_admin=is_super,
         activity_types=[ActivityTypeItem(**t) for t in activity_types],
+    )
+
+
+@router.post("/platform-login", response_model=PlatformLoginResponse)
+def platform_login(
+    request: Request,
+    body: LoginRequest,
+    db: Session = Depends(deps.get_db),
+):
+    """平台管理员登录（跨租户运营后台专用）"""
+    _enforce_https_and_rate_limit(request)
+    _check_password_length(body.password)
+
+    admin = crud_auth.authenticate_platform_admin(
+        db,
+        body.username,
+        body.password,
+    )
+    if not admin:
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    token = create_platform_access_token(sub=str(admin.id))
+    return PlatformLoginResponse(
+        access_token=token,
+        platform_admin_id=admin.id,
     )
 
 

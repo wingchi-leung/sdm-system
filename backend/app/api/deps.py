@@ -5,6 +5,7 @@ from app.database import SessionLocal
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
 from app.crud import crud_activity, crud_rbac, crud_tenant
+from app.schemas import PlatformAdmin
 
 security = HTTPBearer(auto_error=False)
 
@@ -30,7 +31,7 @@ class TenantContext:
         self,
         user_id: int | None,
         role: str,
-        tenant_id: int,
+        tenant_id: int | None,
         tenant_code: str | None = None,
         is_authenticated: bool = True,
     ):
@@ -39,6 +40,10 @@ class TenantContext:
         self.tenant_id = tenant_id
         self.tenant_code = tenant_code
         self.is_authenticated = is_authenticated
+
+    @property
+    def is_platform_admin(self) -> bool:
+        return self.role == "platform_admin"
 
 
 def _ensure_tenant_active(db: Session, tenant_id: int) -> str:
@@ -49,6 +54,16 @@ def _ensure_tenant_active(db: Session, tenant_id: int) -> str:
     if not crud_tenant.check_tenant_active(db, tenant_id):
         raise HTTPException(status_code=403, detail="租户已禁用或已过期")
     return tenant.code
+
+
+def _ensure_platform_admin_active(db: Session, admin_id: int) -> None:
+    """确认平台管理员仍然有效。"""
+    admin = db.query(PlatformAdmin).filter(
+        PlatformAdmin.id == admin_id,
+        PlatformAdmin.status == 1,
+    ).first()
+    if not admin:
+        raise HTTPException(status_code=401, detail="平台管理员不存在或已禁用")
 
 
 def get_public_tenant_context(
@@ -103,6 +118,64 @@ def get_current_admin(
     if ctx.role != "admin":
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     return ctx
+
+
+def get_current_platform_admin(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
+) -> TenantContext:
+    """仅平台管理员可访问（不绑定租户）"""
+    payload = _parse_token(credentials)
+    if not payload or payload.get("role") != "platform_admin":
+        raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    try:
+        user_id = int(payload["sub"])
+    except (KeyError, ValueError):
+        raise HTTPException(status_code=401, detail="无效的登录状态")
+    _ensure_platform_admin_active(db, user_id)
+    return TenantContext(
+        user_id=user_id,
+        role="platform_admin",
+        tenant_id=None,
+        tenant_code=None,
+    )
+
+
+def get_current_admin_or_platform(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
+) -> TenantContext:
+    """租户管理员或平台管理员均可访问，由业务层继续判断范围。"""
+    payload = _parse_token(credentials)
+    if not payload:
+        raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    role = payload.get("role")
+    if role == "platform_admin":
+        try:
+            user_id = int(payload["sub"])
+        except (KeyError, ValueError):
+            raise HTTPException(status_code=401, detail="无效的登录状态")
+        _ensure_platform_admin_active(db, user_id)
+        return TenantContext(
+            user_id=user_id,
+            role="platform_admin",
+            tenant_id=None,
+            tenant_code=None,
+        )
+    if role == "admin":
+        try:
+            user_id = int(payload["sub"])
+            tenant_id = int(payload["tenant_id"])
+        except (KeyError, ValueError):
+            raise HTTPException(status_code=401, detail="无效的登录状态")
+        tenant_code = _ensure_tenant_active(db, tenant_id)
+        return TenantContext(
+            user_id=user_id,
+            role="admin",
+            tenant_id=tenant_id,
+            tenant_code=tenant_code,
+        )
+    raise HTTPException(status_code=401, detail="未登录或登录已过期")
 
 
 def get_current_admin_optional(
