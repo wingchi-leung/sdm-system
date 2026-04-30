@@ -346,7 +346,11 @@ def create_payment_order(
         if pending_order.status == crud_payment.PAYMENT_STATUS_PENDING and pending_order.prepay_id:
             pay_service = get_wechat_pay_service()
             return _build_order_response_from_existing_pending(pending_order, pay_service)
-        raise HTTPException(status_code=400, detail="订单创建中，请稍后再试")
+        # 清理卡住的 CREATING 订单（上次下单失败留下的），重新创建
+        if pending_order.status == crud_payment.PAYMENT_STATUS_CREATING:
+            crud_payment.mark_payment_order_failed(db, pending_order)
+        else:
+            raise HTTPException(status_code=400, detail="订单创建中，请稍后再试")
 
     # 4. 获取用户 openid
     openid = _get_user_openid(db, user_id, tenant_id)
@@ -376,12 +380,19 @@ def create_payment_order(
 
         # 调用微信统一下单
         try:
-            result = pay_service.create_jsapi_order(
+            code, response = pay_service.create_jsapi_order(
                 order_no=order_no,
                 amount=normalized_order.actual_fee,
                 description=description,
                 openid=openid,
             )
+            if code != 200:
+                logger.error(f"微信下单失败: HTTP {code}, {response}")
+                crud_payment.mark_payment_order_failed(db, local_order)
+                raise HTTPException(status_code=500, detail="创建支付订单失败")
+            result = response
+        except HTTPException:
+            raise
         except Exception:
             crud_payment.mark_payment_order_failed(db, local_order)
             raise

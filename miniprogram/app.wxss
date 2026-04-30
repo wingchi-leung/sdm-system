@@ -12,51 +12,51 @@ page {
    * ───────────────────────────────────────────────────────────── */
 
   /* 主色调 - 深灰而非纯黑，更柔和 */
-  --primary: #1A1A1A;
-  --primary-dark: #0A0A0A;
-  --primary-light: rgba(26, 26, 26, 0.04);
-  --primary-glow: rgba(26, 26, 26, 0.06);
+  --primary: #2F4F46;
+  --primary-dark: #2F4F46;
+  --primary-light: rgba(47, 79, 70, 0.08);
+  --primary-glow: rgba(47, 79, 70, 0.08);
 
   /* 强调色 - 优雅金色 */
-  --accent: #C9A961;
-  --accent-light: rgba(201, 169, 97, 0.08);
-  --accent-dark: #A68B4E;
+  --accent: #2F4F46;
+  --accent-light: rgba(47, 79, 70, 0.08);
+  --accent-dark: #2F4F46;
 
   /* 背景色 - 温暖的灰白 */
-  --background: #FAFAF8;
-  --background-subtle: #F5F5F3;
+  --background: #FFFFFF;
+  --background-subtle: #F7F7F5;
   --background-card: #FFFFFF;
   --background-elevated: #FFFFFF;
-  --background-warm: #FEFDFB;
+  --background-warm: #FAFAF8;
 
   /* 文字色 - 柔和层次 */
-  --text-primary: #1A1A1A;
-  --text-secondary: #6B6B6B;
-  --text-tertiary: #A0A0A0;
-  --text-muted: #D4D4D4;
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --text-muted: #BBBBBB;
 
   /* 状态色 - 优雅克制 */
   --status-not-started: #9B9B9B;
   --status-not-started-bg: rgba(155, 155, 155, 0.06);
-  --status-ongoing: #5B8C7D;
-  --status-ongoing-bg: rgba(91, 140, 125, 0.06);
+  --status-ongoing: #2F4F46;
+  --status-ongoing-bg: rgba(47, 79, 70, 0.08);
   --status-ended: #9B9B9B;
   --status-ended-bg: rgba(155, 155, 155, 0.06);
 
   /* 语义色 */
-  --success: #5B8C7D;
-  --success-bg: rgba(91, 140, 125, 0.06);
-  --error: #C85A54;
-  --error-bg: rgba(200, 90, 84, 0.06);
-  --warning: #C9A961;
-  --warning-bg: rgba(201, 169, 97, 0.06);
+  --success: #2F4F46;
+  --success-bg: rgba(47, 79, 70, 0.08);
+  --error: #B24137;
+  --error-bg: rgba(178, 65, 55, 0.08);
+  --warning: #8A7451;
+  --warning-bg: rgba(138, 116, 81, 0.08);
   --info: #6B8CAF;
   --info-bg: rgba(107, 140, 175, 0.06);
 
   /* 边框与分割 */
-  --border: rgba(26, 26, 26, 0.06);
-  --border-light: rgba(26, 26, 26, 0.03);
-  --divider: rgba(26, 26, 26, 0.04);
+  --border: #E5E7EB;
+  --border-light: #F0F1F0;
+  --divider: #EEF0EE;
 
   /* ─────────────────────────────────────────────────────────────
    * 阴影系统 - 柔和精致
@@ -83,23 +83,28 @@ page {
    * ───────────────────────────────────────────────────────────── */
   --radius-xs: 4rpx;
   --radius-sm: 8rpx;
-  --radius-md: 12rpx;
-  --radius-lg: 20rpx;
-  --radius-xl: 28rpx;
+  --radius-md: 16rpx;
+  --radius-lg: 16rpx;
+  --radius-xl: 24rpx;
   --radius-full: 9999rpx;
 
   /* ─────────────────────────────────────────────────────────────
    * 字体系统 - 优雅精致
    * ───────────────────────────────────────────────────────────── */
-  --font-display: "PingFang SC", -apple-system, "SF Pro Display", sans-serif;
-  --font-body: "PingFang SC", -apple-system, "SF Pro Text", sans-serif;
+  --font-display: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  --ink: #111111;
+  --green: #2F4F46;
+  --text-soft: #999999;
+  --paper: #F7F7F5;
+  --line: #E5E7EB;
 
   font-family: var(--font-body);
   background-color: var(--background);
   font-size: 28rpx;
   color: var(--text-primary);
-  line-height: 1.6;
-  letter-spacing: 0.02em;
+  line-height: 40rpx;
+  letter-spacing: 0.4rpx;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -117,51 +122,52 @@ page {
 .card {
   background: var(--background-card);
   border-radius: var(--radius-xl);
-  padding: var(--space-xl);
-  margin-bottom: var(--space-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border-light);
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  box-shadow: none;
+  border: none;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .card:active {
   transform: translateY(2rpx);
-  box-shadow: var(--shadow-xs);
+  box-shadow: none;
 }
 
 /* ─────────────────────────────────────────────────────────────
  * 按钮系统 - 优雅触感
  * ───────────────────────────────────────────────────────────── */
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  height: 88rpx;
+  background: var(--primary);
   color: #FFFFFF;
-  border-radius: var(--radius-lg);
+  border-radius: 16rpx;
   font-weight: 500;
   border: none;
-  padding: 36rpx var(--space-2xl);
-  font-size: 32rpx;
-  letter-spacing: 0.04em;
+  padding: 0 32rpx;
+  font-size: 28rpx;
+  letter-spacing: 0.4rpx;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-  box-shadow: 0 8rpx 24rpx rgba(26, 26, 26, 0.12);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 }
 
 .btn-primary::before {
-  content: '';
+  content: none;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(201, 169, 97, 0.1) 0%, transparent 100%);
+  background: transparent;
   opacity: 0;
   transition: opacity 0.5s ease;
 }
 
 .btn-primary:active {
   transform: translateY(2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(26, 26, 26, 0.08);
+  box-shadow: none;
 }
 
 .btn-primary:active::before {
@@ -176,12 +182,12 @@ page {
 .btn-secondary {
   background: transparent;
   color: var(--text-primary);
-  border-radius: var(--radius-lg);
+  border-radius: 16rpx;
   border: 1px solid var(--border);
   padding: 32rpx var(--space-xl);
-  font-size: 30rpx;
+  font-size: 28rpx;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.4rpx;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -217,11 +223,11 @@ page {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10rpx 20rpx;
-  border-radius: var(--radius-sm);
+  padding: 6rpx 12rpx;
+  border-radius: 12rpx;
   font-size: 22rpx;
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.4rpx;
 }
 
 .tag-not-started {
@@ -244,22 +250,22 @@ page {
  * ───────────────────────────────────────────────────────────── */
 .input {
   width: 100%;
-  height: 96rpx;
-  padding: 0 var(--space-md);
+  height: 88rpx;
+  padding: 0 24rpx;
   font-size: 28rpx;
   background: var(--background-warm);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: 16rpx;
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.4rpx;
 }
 
 .input:focus {
   border-color: var(--accent);
   background: var(--background-card);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  box-shadow: none;
 }
 
 .input::placeholder {
@@ -328,3 +334,29 @@ page {
 .delay-2 { animation-delay: 0.2s; }
 .delay-3 { animation-delay: 0.3s; }
 .delay-4 { animation-delay: 0.4s; }
+
+/* ─────────────────────────────────────────────────────────────
+ * Product UI baseline
+ * 不改结构：统一产品级字体、字重、按钮和视觉噪音
+ * ───────────────────────────────────────────────────────────── */
+text,
+input,
+textarea,
+button {
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: 0.4rpx !important;
+}
+
+button {
+  min-height: 88rpx;
+  border-radius: 16rpx;
+  font-weight: 500;
+  box-shadow: none !important;
+}
+
+view,
+button,
+input,
+textarea {
+  box-shadow: none !important;
+}

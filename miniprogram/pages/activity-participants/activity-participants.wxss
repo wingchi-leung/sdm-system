@@ -29,7 +29,7 @@
 
 .total-count {
   font-family: var(--font-display);
-  font-size: 48rpx;
+  font-size: 44rpx;
   font-weight: 500;
   color: var(--text-primary);
   letter-spacing: 0.02em;
@@ -151,4 +151,45 @@
   font-size: 24rpx;
   color: var(--text-tertiary);
   letter-spacing: 0.04em;
+}
+
+/* 视觉降噪：人员列表页去掉硬分割线 */
+.header,
+.table-header,
+.table-row,
+.pagination {
+  border-bottom: none;
+  border-top: none;
+}
+
+.page-btn {
+  border: none;
+  background: #F8F8F6;
+}
+
+/* Product UI refinement：数据页规格统一 */
+.page {
+  padding: 24rpx 32rpx;
+}
+
+.header-title {
+  font-size: 44rpx;
+  line-height: 56rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.header-subtitle,
+.table-cell,
+.empty-text,
+.page-info {
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-weight: 400;
+  letter-spacing: 0.4rpx;
+}
+
+.page-btn {
+  border-radius: 16rpx;
 }

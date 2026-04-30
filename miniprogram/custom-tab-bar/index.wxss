@@ -1,14 +1,13 @@
 .tab-bar {
   position: fixed;
+  right: 0;
   bottom: 0;
   left: 0;
-  right: 0;
-  height: 100rpx;
-  background: #FFFFFF;
-  display: flex;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  padding-bottom: env(safe-area-inset-bottom);
   z-index: 9999;
+  height: 96rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: rgba(255, 255, 255, 0.96);
+  display: flex;
 }
 
 .tab-item {
@@ -17,42 +16,86 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4rpx;
-  transition: all 0.2s ease;
 }
 
 .tab-item:active {
-  background: rgba(0, 0, 0, 0.02);
+  opacity: 0.72;
 }
 
 .tab-icon {
-  width: 48rpx;
-  height: 48rpx;
+  width: 64rpx;
+  height: 64rpx;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+.tab-item:last-child .tab-icon::before {
+  content: '';
+  position: absolute;
+  left: 16rpx;
+  top: 7rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border: 2rpx solid currentColor;
+  border-radius: 50%;
+}
+
+.tab-item:last-child .tab-icon::after {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  bottom: 7rpx;
+  width: 24rpx;
+  height: 13rpx;
+  border: 2rpx solid currentColor;
+  border-radius: 24rpx 24rpx 0 0;
+  border-bottom: 0;
+}
+
 .icon-text {
-  font-size: 40rpx;
-  color: #8C8C8C;
-  font-weight: 300;
-  transition: color 0.2s ease;
+  display: none;
 }
 
-.tab-item.active .icon-text {
-  color: #2C5545;
-  font-weight: 400;
+.tab-logo {
+  width: 60rpx;
+  height: 60rpx;
+  opacity: 1;
 }
 
-.tab-label {
-  font-size: 22rpx;
-  color: #8C8C8C;
-  letter-spacing: 0.04em;
-  transition: color 0.2s ease;
+.tab-icon {
+  color: #6B7280;
 }
 
-.tab-item.active .tab-label {
-  color: #2C5545;
-  font-weight: 500;
+.tab-item.active .tab-icon {
+  color: #0F1A17;
+}
+
+.tab-item:first-child.active .tab-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -8rpx;
+  width: 24rpx;
+  height: 3rpx;
+  border-radius: 999rpx;
+  background: #0F1A17;
+  transform: translateX(-50%);
+}
+
+/* Product UI refinement：无文字导航，仅保留克制图形状态 */
+.tab-bar {
+  height: 88rpx;
+  background: #FFFFFF;
+}
+
+.tab-icon {
+  width: 56rpx;
+  height: 56rpx;
+}
+
+.tab-logo {
+  width: 52rpx;
+  height: 52rpx;
 }

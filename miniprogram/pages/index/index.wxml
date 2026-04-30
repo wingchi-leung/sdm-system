@@ -2,8 +2,9 @@
   <!-- 顶部标题区域 -->
   <view class="header">
     <view class="header-content">
+      <image class="brand-logo" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
       <text class="header-title">活动</text>
-      <text class="header-subtitle">发现精彩活动</text>
+      <text class="header-subtitle">探索增长新路径，预见未来新机会</text>
     </view>
     <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
       <button class="btn-publish" bindtap="goCreateActivity">
@@ -28,13 +29,9 @@
 
   <!-- 空状态 -->
   <view wx:elif="{{activities.length === 0}}" class="state-wrap empty">
-    <view class="empty-illustration">
-      <view class="empty-circle"></view>
-      <view class="empty-line"></view>
-      <view class="empty-line short"></view>
-    </view>
+    <image class="empty-image" src="/assets/icons/noactivity.png" mode="aspectFit" />
     <text class="state-title">暂无活动</text>
-    <text class="state-text">下拉刷新试试</text>
+    <text class="state-text">精彩活动即将上线，敬请期待</text>
     <button class="btn-text" bindtap="onRefresh">刷新</button>
   </view>
 
@@ -68,7 +65,7 @@
         <text class="item-name">{{item.activity_name}}</text>
         <view class="item-info">
           <view class="info-row">
-            <image class="info-icon" src="/assets/icons/clock.svg" mode="aspectFit" />
+            <text class="info-dot"></text>
             <text class="info-text">{{item.start_time_display}}</text>
           </view>
           <text class="info-text" wx:if="{{item.location}}">{{item.location}}</text>

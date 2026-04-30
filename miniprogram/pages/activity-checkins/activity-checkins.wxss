@@ -105,3 +105,45 @@
 .refresh-btn:active {
   background: var(--background-subtle);
 }
+
+/* 视觉降噪：管理数据页去掉硬分割线 */
+.header,
+.table-header,
+.table-row,
+.refresh-section {
+  border-bottom: none;
+  border-top: none;
+}
+
+.refresh-btn {
+  border: none;
+  background: #F8F8F6;
+}
+
+/* Product UI refinement：数据页规格统一 */
+.page {
+  padding: 24rpx 32rpx;
+}
+
+.header-title {
+  font-size: 44rpx;
+  line-height: 56rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.header-subtitle,
+.table-cell,
+.empty-text,
+.refresh-btn {
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-weight: 400;
+  letter-spacing: 0.4rpx;
+}
+
+.refresh-btn {
+  min-height: 88rpx;
+  border-radius: 16rpx;
+}

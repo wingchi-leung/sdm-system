@@ -1,30 +1,25 @@
-/**
- * 活动列表页 - 单列大卡片样式
- */
-
 .page {
   min-height: 100vh;
-  padding: 24rpx 24rpx;
-  background: #f5f5f5;
+  padding: 28rpx 32rpx 140rpx;
+  background: #FFFFFF;
   box-sizing: border-box;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 状态页面
- * ───────────────────────────────────────────────────────────── */
 .state-wrap {
+  min-height: 62vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  padding: 80rpx 40rpx;
 }
 
-.loading {
-  width: 40rpx;
-  height: 40rpx;
-  border: 3rpx solid #ddd;
-  border-top-color: #1890ff;
+.loading,
+.loading-more {
+  width: 42rpx;
+  height: 42rpx;
+  border: 2rpx solid var(--line);
+  border-top-color: var(--green);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -33,139 +28,110 @@
   to { transform: rotate(360deg); }
 }
 
-.state-text {
-  font-size: 28rpx;
-  color: #999;
-  margin-top: 20rpx;
-}
-
 .state-title {
+  margin-top: 18rpx;
+  color: var(--ink);
   font-size: 32rpx;
-  font-weight: 500;
-  color: #333;
-  margin-top: 24rpx;
+  font-weight: 400;
+  letter-spacing: 0.04em;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 空状态插画
- * ───────────────────────────────────────────────────────────── */
-.empty-illustration {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.state-text {
+  margin-top: 14rpx;
+  color: var(--text-soft);
+  font-size: 24rpx;
+  letter-spacing: 0.04em;
 }
 
-.empty-circle {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 50%;
-  background: #eee;
-  margin-bottom: 16rpx;
+.empty-image {
+  width: 220rpx;
+  height: 260rpx;
 }
 
-.empty-line {
-  width: 140rpx;
-  height: 4rpx;
-  background: #ddd;
-  margin-bottom: 12rpx;
-}
-
-.empty-line.short {
-  width: 100rpx;
-}
-
-/* ─────────────────────────────────────────────────────────────
- * 活动列表 - 单列大卡片
- * ───────────────────────────────────────────────────────────── */
 .list {
   display: flex;
   flex-direction: column;
-  gap: 24rpx;
+  gap: 34rpx;
 }
 
 .activity-item {
-  background: #fff;
-  border-radius: 16rpx;
   overflow: hidden;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.08);
+  background: #FFFFFF;
+  box-shadow: none;
 }
 
 .activity-item:active {
-  opacity: 0.9;
+  transform: translateY(2rpx);
 }
 
-/* 海报区域 - 大图展示 */
 .item-poster {
   width: 100%;
-  height: 400rpx;
-  background: #f0f0f0;
+  height: 350rpx;
+  background: #F4F4F2;
   position: relative;
 }
 
 .poster-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
 }
 
-/* 无海报时的占位 */
 .item-poster .no-poster {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #bbb;
-  font-size: 28rpx;
+  color: #B7BBB8;
+  font-size: 24rpx;
+  letter-spacing: 0.12em;
 }
 
-/* 内容区 */
 .item-content {
-  padding: 24rpx;
+  padding: 28rpx 32rpx 34rpx;
 }
 
-/* 头部 - 名称 + 状态 */
 .item-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 16rpx;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 22rpx;
 }
 
 .item-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
   flex: 1;
-  line-height: 1.4;
-  margin-right: 16rpx;
+  color: var(--ink);
+  font-size: 34rpx;
+  line-height: 1.35;
+  font-weight: 400;
+  letter-spacing: 0.02em;
 }
 
-/* 状态标签 */
 .status-tag {
-  font-size: 24rpx;
-  font-weight: 500;
-  padding: 8rpx 16rpx;
-  border-radius: 8rpx;
   flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  color: var(--green);
+  background: rgba(28, 47, 38, 0.08);
+  font-size: 21rpx;
+  letter-spacing: 0.06em;
 }
 
 .status-tag.status-1 {
-  color: #1890ff;
-  background: #e6f7ff;
+  color: #6B7280;
+  background: #F4F4F2;
 }
 
 .status-tag.status-2 {
-  color: #52c41a;
-  background: #f6ffed;
+  color: #FFFFFF;
+  background: var(--green);
 }
 
 .status-tag.status-3 {
-  color: #8c8c8c;
-  background: #f5f5f5;
+  color: #A4A9A5;
+  background: #F5F5F5;
 }
 
-/* 信息行 */
 .item-info {
   display: flex;
   flex-direction: column;
@@ -175,56 +141,81 @@
 .info-row {
   display: flex;
   align-items: center;
-  font-size: 26rpx;
 }
 
 .info-icon {
-  font-size: 20rpx;
-  color: #1890ff;
-  margin-right: 12rpx;
+  width: 12rpx;
+  margin-right: 14rpx;
+  color: var(--green);
+  font-size: 18rpx;
 }
 
 .info-icon.location {
-  color: #52c41a;
+  color: var(--ink);
 }
 
 .info-value {
-  color: #666;
+  color: var(--text-soft);
+  font-size: 25rpx;
+  letter-spacing: 0.03em;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 加载更多状态
- * ───────────────────────────────────────────────────────────── */
-.load-more-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40rpx 0;
-}
-
-.loading-more {
-  width: 32rpx;
-  height: 32rpx;
-  border: 2rpx solid #ddd;
-  border-top-color: #1890ff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.load-more-text {
-  font-size: 26rpx;
-  color: #999;
-  margin-left: 12rpx;
-}
-
+.load-more-wrap,
 .no-more-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40rpx 0;
+  padding: 42rpx 0;
 }
 
+.load-more-text,
 .no-more-text {
-  font-size: 26rpx;
-  color: #999;
+  margin-left: 12rpx;
+  color: #A4A9A5;
+  font-size: 24rpx;
+  letter-spacing: 0.04em;
+}
+
+/* Product UI refinement：不改结构，仅收敛视觉规格 */
+.page {
+  padding: 24rpx 32rpx 112rpx;
+}
+
+.activity-item {
+  border-radius: 24rpx;
+  box-shadow: none;
+}
+
+.item-poster {
+  height: 300rpx;
+  background: #F6F6F6;
+}
+
+.item-content {
+  padding: 24rpx;
+}
+
+.item-name {
+  font-size: 32rpx;
+  line-height: 44rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.status-tag {
+  padding: 4rpx 12rpx;
+  border-radius: 12rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  letter-spacing: 0.4rpx;
+}
+
+.info-value,
+.state-text,
+.load-more-text,
+.no-more-text {
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  letter-spacing: 0.4rpx;
 }

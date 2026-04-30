@@ -1,78 +1,56 @@
-/**
- * 我的页面 - 高级简约风格
- */
-
 .page {
   min-height: 100vh;
-  padding: var(--space-xl) var(--space-lg);
-  background: var(--background);
+  padding: 84rpx 56rpx 150rpx;
+  background: #FFFFFF;
+  box-sizing: border-box;
 }
 
 .content {
-  animation: fadeIn 0.4s ease;
+  animation: fadeIn 0.35s ease;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 加载状态
- * ───────────────────────────────────────────────────────────── */
 .state-wrap {
+  min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 用户信息卡片
- * ───────────────────────────────────────────────────────────── */
 .profile-section {
   display: flex;
   align-items: center;
-  padding: var(--space-xl) 0;
-  margin-bottom: var(--space-2xl);
-  border-bottom: 1px solid var(--divider);
+  padding-bottom: 48rpx;
+  margin-bottom: 38rpx;
 }
 
 .profile-section.admin {
   flex-wrap: wrap;
-  border-bottom: none;
 }
 
 .avatar {
-  width: 64rpx;
-  height: 64rpx;
+  width: 112rpx;
+  height: 112rpx;
+  margin-right: 28rpx;
+  background: #F8F8F6;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--space-lg);
-  flex-shrink: 0;
-  position: relative;
+  color: var(--green);
 }
 
 .avatar::before {
   content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 2px;
-  height: 100%;
-  background: var(--text-primary);
-}
-
-.avatar.admin-avatar::before {
-  background: var(--primary);
+  width: 30rpx;
+  height: 56rpx;
+  border-left: 14rpx solid currentColor;
+  border-top: 2rpx solid currentColor;
+  border-bottom: 2rpx solid currentColor;
+  transform: skewY(-12deg);
 }
 
 .avatar-text {
-  font-family: var(--font-display);
-  font-size: 32rpx;
-  font-weight: 500;
-  color: var(--text-primary);
-  letter-spacing: 0.04em;
-}
-
-.admin-avatar .avatar-text {
-  color: var(--primary);
+  display: none;
 }
 
 .profile-info {
@@ -82,108 +60,84 @@
 
 .profile-name {
   display: block;
-  font-family: var(--font-display);
-  font-size: 32rpx;
-  font-weight: 500;
-  color: var(--text-primary);
-  letter-spacing: 0.06em;
-  margin-bottom: var(--space-xs);
+  color: var(--ink);
+  font-size: 36rpx;
+  line-height: 1.3;
+  font-weight: 400;
+  letter-spacing: 0.04em;
 }
 
 .profile-role {
   display: block;
-  font-size: 22rpx;
-  color: var(--text-tertiary);
-  letter-spacing: 0.08em;
+  margin-top: 8rpx;
+  color: var(--text-soft);
+  font-size: 23rpx;
+  letter-spacing: 0.05em;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  text-transform: uppercase;
 }
 
 .admin-badge {
-  margin-top: var(--space-lg);
-  padding: var(--space-sm) 0;
   width: 100%;
-  border-top: 1px solid var(--divider);
-  text-align: center;
+  margin-top: 26rpx;
+  padding-top: 8rpx;
 }
 
 .admin-badge text {
-  font-size: 20rpx;
-  color: var(--primary);
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  color: var(--green);
+  font-size: 22rpx;
+  letter-spacing: 0.1em;
 }
 
-/* ─────────────────────────────────────────────────────────────
- * 菜单区域
- * ───────────────────────────────────────────────────────────── */
 .menu-section {
-  margin-bottom: var(--space-xl);
+  margin-bottom: 42rpx;
 }
 
 .section-title {
-  font-size: 20rpx;
-  font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  margin-bottom: var(--space-md);
-  padding-left: var(--space-xs);
+  margin-bottom: 18rpx;
+  color: var(--text-soft);
+  font-size: 22rpx;
+  letter-spacing: 0.08em;
 }
 
 .menu-card {
-  border-top: 1px solid var(--divider);
+  background: transparent;
 }
 
 .menu-item {
+  min-height: 96rpx;
+  padding: 22rpx 0;
   display: flex;
   align-items: center;
-  padding: var(--space-lg) 0;
-  border-bottom: 1px solid var(--divider);
-  transition: all 0.2s ease;
-}
-
-.menu-item:last-child {
-  border-bottom: none;
+  box-sizing: border-box;
 }
 
 .menu-item:active {
-  background: var(--background-subtle);
-  margin: 0 calc(-1 * var(--space-lg));
-  padding-left: var(--space-lg);
-  padding-right: var(--space-lg);
+  opacity: 0.72;
 }
 
 .menu-item.disabled {
-  opacity: 0.4;
+  opacity: 0.38;
   pointer-events: none;
 }
 
-.menu-item.logout .menu-text {
-  color: var(--text-tertiary);
-}
-
-/* 菜单图标 */
 .menu-icon {
-  width: 32rpx;
-  height: 32rpx;
+  width: 34rpx;
+  height: 34rpx;
+  margin-right: 24rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: var(--space-md);
-  flex-shrink: 0;
+  color: var(--green);
 }
 
 .icon-symbol {
-  font-size: 20rpx;
-  color: var(--text-primary);
+  color: currentColor;
+  font-size: 25rpx;
   font-weight: 300;
 }
 
-/* 菜单内容 */
 .menu-content {
   flex: 1;
   min-width: 0;
@@ -191,29 +145,76 @@
 
 .menu-text {
   display: block;
+  color: var(--ink);
   font-size: 28rpx;
-  font-weight: 500;
-  color: var(--text-primary);
   letter-spacing: 0.04em;
 }
 
 .menu-hint {
   display: block;
+  margin-top: 6rpx;
+  color: var(--text-soft);
   font-size: 22rpx;
-  color: var(--text-tertiary);
-  margin-top: 4rpx;
   letter-spacing: 0.02em;
 }
 
-/* 箭头 */
-.menu-arrow {
-  font-size: 20rpx;
-  color: var(--text-muted);
-  font-weight: 300;
-  margin-left: var(--space-sm);
-  transition: transform 0.2s ease;
+.menu-item.logout .menu-text {
+  color: var(--text-soft);
 }
 
-.menu-item:active .menu-arrow {
-  transform: translateX(4rpx);
+.menu-arrow {
+  margin-left: 20rpx;
+  color: var(--green);
+  font-size: 28rpx;
+  font-weight: 300;
+}
+
+/* Product UI refinement：不改结构，仅收敛视觉规格 */
+.page {
+  padding: 48rpx 32rpx 112rpx;
+}
+
+.profile-section {
+  padding-bottom: 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.avatar {
+  width: 88rpx;
+  height: 88rpx;
+  margin-right: 16rpx;
+}
+
+.profile-name {
+  font-size: 44rpx;
+  line-height: 56rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.profile-role,
+.admin-badge text,
+.section-title,
+.menu-hint {
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-weight: 400;
+  letter-spacing: 0.4rpx;
+}
+
+.menu-section {
+  margin-bottom: 24rpx;
+}
+
+.menu-item {
+  min-height: 64rpx;
+  padding: 12rpx 0;
+}
+
+.menu-text {
+  font-size: 28rpx;
+  line-height: 40rpx;
+  font-weight: 400;
+  letter-spacing: 0.4rpx;
 }

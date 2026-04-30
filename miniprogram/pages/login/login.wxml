@@ -2,10 +2,10 @@
   <!-- 品牌区域 -->
   <view class="brand-section">
     <view class="brand-icon" bindtap="onGateIconTap">
-      <image class="gate-icon" src="/assets/icons/gate_welcome.svg" mode="aspectFit" />
+      <image class="gate-icon" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
     </view>
-    <text class="brand-title">{{isAdminMode ? '管理员登录' : '欢迎回来'}}</text>
-    <text class="brand-subtitle" wx:if="{{!isAdminMode}}">使用微信一键登录</text>
+    <text class="brand-title">{{isAdminMode ? '管理员登录' : 'PANDORA'}}</text>
+    <text class="brand-subtitle">{{isAdminMode ? 'CONSULTING ADMIN' : 'CONSULTING'}}</text>
   </view>
 
   <!-- 安全提示 -->

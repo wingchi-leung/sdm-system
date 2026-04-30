@@ -51,8 +51,8 @@
 .header-title {
   display: block;
   font-family: var(--font-display);
-  font-size: 48rpx;
-  font-weight: 400;
+  font-size: 44rpx;
+  font-weight: 500;
   color: var(--text-primary);
   letter-spacing: 0.06em;
   margin-bottom: var(--space-sm);
@@ -211,7 +211,7 @@
 
 .input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  box-shadow: none;
 }
 
 .textarea {
@@ -231,7 +231,7 @@
 
 .textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-light);
+  box-shadow: none;
 }
 
 .input-placeholder {
@@ -287,12 +287,12 @@
 .btn-submit {
   width: 100%;
   height: 88rpx;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: #2F4F46;
   border-radius: var(--radius-lg);
   border: none;
   transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
   margin-top: var(--space-2xl);
-  box-shadow: 0 6rpx 18rpx rgba(26, 26, 26, 0.12);
+  box-shadow: none;
   position: relative;
   overflow: hidden;
   display: flex;
@@ -301,13 +301,13 @@
 }
 
 .btn-submit::before {
-  content: '';
+  content: none;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(201, 169, 97, 0.15) 0%, transparent 100%);
+  background: transparent;
   opacity: 0;
   transition: opacity 0.5s ease;
 }
@@ -318,7 +318,7 @@
 
 .btn-submit:active {
   transform: translateY(2rpx);
-  box-shadow: 0 4rpx 12rpx rgba(26, 26, 26, 0.1);
+  box-shadow: none;
 }
 
 .btn-submit:active::before {
@@ -330,7 +330,7 @@
 }
 
 .btn-submit.waitlist {
-  background: linear-gradient(135deg, var(--warning) 0%, #a06a00 100%);
+  background: #2F4F46;
 }
 
 .btn-submit .btn-text {
@@ -374,4 +374,92 @@
 
 .fee-input {
   flex: 1;
+}
+
+/* 视觉降噪：去掉表单分割线，保留留白层级 */
+.header,
+.section-title,
+.section-header,
+.fee-field {
+  border-bottom: none;
+  border-top: none;
+}
+
+.section-divider {
+  display: none;
+}
+
+.input,
+.textarea {
+  border: none;
+  border-radius: 6rpx;
+  background: #F8F8F6;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Product UI refinement：报名页规格统一 */
+.page {
+  padding: 24rpx 32rpx;
+}
+
+.header {
+  margin-bottom: 24rpx;
+  padding-bottom: 0;
+}
+
+.header-title {
+  font-size: 44rpx;
+  line-height: 56rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.header-subtitle,
+.section-title,
+.field-label,
+.readonly-value,
+.fee-hint,
+.loading-text {
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  font-weight: 400;
+  letter-spacing: 0.4rpx;
+  text-transform: none;
+}
+
+.field {
+  margin-bottom: 24rpx;
+}
+
+.input,
+.textarea {
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  letter-spacing: 0.4rpx;
+}
+
+.btn-submit {
+  height: 88rpx;
+  margin-top: 24rpx;
+  border-radius: 16rpx;
+  background: #2F4F46;
+  box-shadow: none;
+}
+
+.btn-submit::before {
+  content: none;
+}
+
+.btn-submit .btn-text {
+  font-size: 28rpx;
+  line-height: 40rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
 }

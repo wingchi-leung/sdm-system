@@ -15,8 +15,9 @@
   <!-- 活动详情 -->
   <view wx:elif="{{activity}}" class="content">
     <!-- 活动海报 -->
-    <view wx:if="{{activity.poster_url}}" class="poster-section">
-      <image class="poster-image" src="{{activity.poster_url}}" mode="widthFix" />
+    <view class="poster-section">
+      <image wx:if="{{activity.poster_url}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFill" />
+      <view wx:else class="poster-fallback">暂无海报</view>
     </view>
 
     <!-- 活动标题区域 -->

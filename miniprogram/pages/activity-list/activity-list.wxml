@@ -7,12 +7,9 @@
 
   <!-- 空状态 -->
   <view wx:elif="{{activities.length === 0 && !loading}}" class="state-wrap empty">
-    <view class="empty-illustration">
-      <view class="empty-circle"></view>
-      <view class="empty-line"></view>
-      <view class="empty-line short"></view>
-    </view>
+    <image class="empty-image" src="/assets/icons/noactivity.png" mode="aspectFit" />
     <text class="state-title">暂无活动</text>
+    <text class="state-text">稍后回来看看新的安排</text>
   </view>
 
   <!-- 活动列表 -->
