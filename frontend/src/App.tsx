@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import ActivityDetail from './components/ActivityDetail';
 import ActivityList from './components/ActivityList';
 import ActivityParticipants from './components/ActivityParticipants';
+import ChangePasswordPage from './components/ChangePasswordPage';
 import CreateActivity from './components/CreateActivity';
 import DashboardPage from './components/DashboardPage';
 import EditActivity from './components/EditActivity';
@@ -24,6 +25,14 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/change-password"
+            element={
+              <ProtectedRoute>
+                <ChangePasswordPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/dashboard"

@@ -18,14 +18,7 @@
   align-items: flex-start;
 }
 
-.brand-logo {
-  width: 360rpx;
-  height: 116rpx;
-  margin-left: -18rpx;
-  margin-bottom: 42rpx;
-  object-fit: contain;
-  object-position: left center;
-}
+
 
 .header-title {
   font-family: var(--font-display);
@@ -272,10 +265,11 @@
 }
 
 .brand-logo {
-  width: 320rpx;
-  height: 100rpx;
-  margin-left: -16rpx;
-  margin-bottom: 24rpx;
+  width: 350rpx;
+  height: 116rpx;
+  margin-left: -130rpx;
+  margin-bottom: 0rpx;
+  object-fit: contain;
 }
 
 .header-title {

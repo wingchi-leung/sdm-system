@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/hash_admin_password.py mysql123456)"
+    ]
+  }
+}

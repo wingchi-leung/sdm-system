@@ -314,3 +314,16 @@ INSERT INTO `permission` (`code`, `name`, `resource`, `action`, `description`) V
 ('user.block', '拉黑用户', 'user', 'block', '拉黑/解除拉黑用户'),
 ('admin.manage', '管理管理员', 'admin', 'manage', '创建和管理管理员账号'),
 ('role.manage', '管理角色', 'role', 'manage', '创建和管理角色权限');
+
+-- 插入角色定义
+INSERT INTO `role` (`id`, `tenant_id`, `name`, `is_system`, `description`) VALUES
+(1, 0, '超级管理员', 1, '拥有所有权限的超级管理员'),
+(2, 0, '参活动管理员', 1, '可管理"参"活动类型下的所有活动');
+
+-- 为超级管理员绑定所有权限
+INSERT INTO `role_permission` (`role_id`, `permission_id`)
+SELECT 1, id FROM `permission`;
+
+-- 为参活动管理员绑定活动相关权限
+INSERT INTO `role_permission` (`role_id`, `permission_id`)
+SELECT 2, id FROM `permission` WHERE `code` LIKE 'activity.%' OR `code` LIKE 'participant.%' OR `code` LIKE 'checkin.%';

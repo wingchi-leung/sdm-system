@@ -33,6 +33,7 @@ export const API_PATHS = {
   auth: {
     login: `${BASE_URL}/auth/login`,
     platformLogin: `${BASE_URL}/auth/platform-login`,
+    setAdminPassword: `${BASE_URL}/auth/set-admin-password`,
   },
   users: {
     list: `${BASE_URL}/users`,
@@ -48,6 +49,9 @@ export const API_PATHS = {
     userRoles: `${BASE_URL}/roles/user-roles`,
     userRoleDetail: (userId: number) => `${BASE_URL}/roles/users/${userId}/roles`,
     deleteUserRole: (userRoleId: number) => `${BASE_URL}/roles/user-roles/${userRoleId}`,
+  },
+  activityTypes: {
+    list: `${BASE_URL}/activity-types`,
   },
   activities: {
     create: `${BASE_URL}/activities`,

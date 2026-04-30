@@ -3,7 +3,6 @@ import { Loader2, Plus, ShieldCheck, Trash2, Users } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
 import { formatDateTime } from '../lib/admin';
 import {
-  extractActivityTypeOptions,
   summarizeAdminAssignments,
 } from '../lib/web-admin';
 import { formatScopeLabel, groupPermissionsByResource, UserRoleItem } from '../lib/rbac';
@@ -44,6 +43,12 @@ interface AdminUserItem {
   create_time?: string;
 }
 
+interface ActivityTypeItem {
+  id: number;
+  type_name: string;
+  code?: string | null;
+}
+
 interface ActivityItem {
   id: number;
   activity_name: string;
@@ -61,6 +66,7 @@ const PermissionsPage = () => {
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [activityTypes, setActivityTypes] = useState<ActivityTypeItem[]>([]);
   const [userRoles, setUserRoles] = useState<Record<number, UserRoleItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +76,9 @@ const PermissionsPage = () => {
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
   const [scopeType, setScopeType] = useState<string>('global');
   const [scopeId, setScopeId] = useState('');
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [selectedAdminUserId, setSelectedAdminUserId] = useState<string>('');
+  const [newPassword, setNewPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const resetAssignForm = useCallback(() => {
@@ -91,11 +100,12 @@ const PermissionsPage = () => {
     setError(null);
 
     try {
-      const [rolesRes, permissionsRes, usersRes, activitiesRes] = await Promise.all([
+      const [rolesRes, permissionsRes, usersRes, activitiesRes, activityTypesRes] = await Promise.all([
         apiRequest<RoleItem[]>(API_PATHS.roles.list),
         apiRequest<PermissionItem[]>(API_PATHS.roles.permissions),
         apiRequest<AdminUserItem[]>(API_PATHS.users.list),
         apiRequest<ActivityListResponse>(`${API_PATHS.activities.list}?skip=0&limit=100`),
+        apiRequest<ActivityTypeItem[]>(API_PATHS.activityTypes.list),
       ]);
 
       if (rolesRes.error) {
@@ -110,12 +120,16 @@ const PermissionsPage = () => {
       if (activitiesRes.error) {
         throw new Error(activitiesRes.error);
       }
+      if (activityTypesRes.error) {
+        throw new Error(activityTypesRes.error);
+      }
 
       const fetchedUsers = usersRes.data ?? [];
       setRoles(rolesRes.data ?? []);
       setPermissions(permissionsRes.data ?? []);
       setUsers(fetchedUsers);
       setActivities(activitiesRes.data?.items ?? []);
+      setActivityTypes(activityTypesRes.data ?? []);
 
       const roleResults = await Promise.all(
         fetchedUsers.map(async (user) => {
@@ -164,13 +178,12 @@ const PermissionsPage = () => {
   }, [keyword, userRoles, users]);
 
   const groupedPermissions = useMemo(() => groupPermissionsByResource(permissions), [permissions]);
-  const activityTypeOptions = useMemo(() => extractActivityTypeOptions(activities), [activities]);
   const assignmentSummary = useMemo(() => summarizeAdminAssignments(userRoles), [userRoles]);
   const scopeOptions = useMemo(() => {
     if (scopeType === 'activity_type') {
-      return activityTypeOptions.map((item) => ({
+      return activityTypes.map((item) => ({
         value: String(item.id),
-        label: item.name,
+        label: item.type_name,
       }));
     }
 
@@ -182,7 +195,7 @@ const PermissionsPage = () => {
     }
 
     return [];
-  }, [activities, activityTypeOptions, scopeType]);
+  }, [activities, activityTypes, scopeType]);
 
   const handleAssignRole = async () => {
     if (!selectedUserId || !selectedRoleId) {
@@ -244,6 +257,36 @@ const PermissionsPage = () => {
       await fetchPageData();
     } catch (removeError) {
       setError(removeError instanceof Error ? removeError.message : '移除角色失败');
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUserId || !newPassword.trim()) {
+      setError('请输入新密码');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await apiRequest(API_PATHS.auth.setAdminPassword, {
+        method: 'POST',
+        body: JSON.stringify({ password: newPassword }),
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      setPasswordDialogOpen(false);
+      setNewPassword('');
+      setSelectedUserId('');
+      alert('密码重置成功');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '密码重置失败');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -356,6 +399,18 @@ const PermissionsPage = () => {
                           <Button
                             variant="outline"
                             size="sm"
+                            className="ml-2"
+                            onClick={() => {
+                              setSelectedUserId(String(user.id));
+                              setPasswordDialogOpen(true);
+                              setNewPassword('');
+                            }}
+                          >
+                            重置密码
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => {
                               setSelectedUserId(String(user.id));
                               setAssignDialogOpen(true);
@@ -441,7 +496,7 @@ const PermissionsPage = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>分配角色</DialogTitle>
-            <DialogDescription>支持全局、活动类型和单活动三个 scope 维度，并优先使用可选项而不是手输 ID。</DialogDescription>
+            <DialogDescription>支持全局、活动类型和单活动三个维度</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
             <div>
@@ -515,6 +570,34 @@ const PermissionsPage = () => {
             </Button>
             <Button onClick={handleAssignRole} disabled={submitting}>
               {submitting ? '提交中...' : '确认分配'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>重置管理员密码</DialogTitle>
+            <DialogDescription>请输入新的管理员密码。</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <label className="mb-1 block text-sm text-slate-600">新密码</label>
+              <Input
+                type="password"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                placeholder="请输入新密码"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+              取消
+            </Button>
+            <Button onClick={handleResetPassword} disabled={submitting}>
+              {submitting ? '提交中...' : '确认重置'}
             </Button>
           </DialogFooter>
         </DialogContent>

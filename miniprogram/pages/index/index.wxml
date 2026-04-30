@@ -4,7 +4,7 @@
     <view class="header-content">
       <image class="brand-logo" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
       <text class="header-title">活动</text>
-      <text class="header-subtitle">探索增长新路径，预见未来新机会</text>
+      <text class="header-subtitle">探索新活动</text>
     </view>
     <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
       <button class="btn-publish" bindtap="goCreateActivity">

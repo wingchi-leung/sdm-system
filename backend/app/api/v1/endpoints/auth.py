@@ -94,6 +94,7 @@ class LoginResponse(BaseModel):
     tenant_id: int
     tenant_name: str
     is_super_admin: bool = True
+    must_reset_password: bool = False
     activity_types: list[ActivityTypeItem] = []
 
 
@@ -168,14 +169,43 @@ def login(
 
     token = create_access_token(sub=str(admin.user_id), role="admin", tenant_id=tenant.id)
     activity_types = _admin_activity_types_for_response(db, admin.user_id, tenant.id)
-    
+
     return LoginResponse(
         access_token=token,
         tenant_id=tenant.id,
         tenant_name=tenant.name,
         is_super_admin=is_super,
+        must_reset_password=bool(admin.must_reset_password),
         activity_types=[ActivityTypeItem(**t) for t in activity_types],
     )
+
+
+class SetAdminPasswordRequest(BaseModel):
+    password: str
+
+
+@router.post("/set-admin-password")
+def set_admin_password(
+    request: Request,
+    body: SetAdminPasswordRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """设置或修改管理员密码（需要先登录）"""
+    _check_password_length(body.password)
+
+    admin = db.query(crud_auth.AdminUser).filter(
+        crud_auth.AdminUser.user_id == ctx.user_id,
+        crud_auth.AdminUser.tenant_id == ctx.tenant_id,
+    ).first()
+
+    if not admin:
+        raise HTTPException(status_code=404, detail="管理员账号不存在")
+
+    admin.password_hash = crud_auth.hash_password(body.password)
+    admin.must_reset_password = 0  # 已改密
+    db.commit()
+    return {"status": "success", "message": "密码设置成功"}
 
 
 @router.post("/platform-login", response_model=PlatformLoginResponse)

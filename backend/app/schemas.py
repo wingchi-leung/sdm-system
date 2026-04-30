@@ -49,7 +49,8 @@ class AdminUser(BaseModel):
     tenant_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=False, index=True)
     username = Column(String(64), nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
+    password_hash = Column(String(255), default="")
+    must_reset_password = Column(Integer, default=1)  # 1=需要改密 0=已改密
 
 
 # ============================================================

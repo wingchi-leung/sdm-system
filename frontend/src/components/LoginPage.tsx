@@ -67,6 +67,11 @@ const LoginPage = () => {
       if ('tenant_id' in result.data && 'tenant_name' in result.data) {
         setTenantId(result.data.tenant_id);
         setTenantName(result.data.tenant_name);
+        // 如果需要改密，跳转到改密页面
+        if ('must_reset_password' in result.data && result.data.must_reset_password) {
+          navigate('/change-password', { replace: true });
+          return;
+        }
       }
       navigate(redirectTo, { replace: true });
     }
@@ -79,14 +84,7 @@ const LoginPage = () => {
       <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="rounded-[32px] bg-slate-950 p-8 text-white shadow-2xl">
           <p className="text-sm uppercase tracking-[0.35em] text-emerald-300">SDM Web Console</p>
-          <h1 className="mt-6 text-4xl font-semibold leading-tight">
-            把零散工具页升级成
-            <br />
-            正式后台
-          </h1>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-300">
-            本轮重点先完成工作台、活动管理和用户管理，后续再继续补权限、租户和报表中心。
-          </p>
+          
 
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             <div className="rounded-2xl border border-white/10 bg-white/5 p-4">

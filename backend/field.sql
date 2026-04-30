@@ -42,3 +42,6 @@ ALTER TABLE permission ADD COLUMN update_time  datetime NULL COMMENT '更新时�
 
 
 ALTER TABLE role_permission ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;
+
+-- admin_user 表新增是否需要改密标志
+ALTER TABLE admin_user ADD COLUMN must_reset_password INT NOT NULL DEFAULT 1 COMMENT '1=需要改密，0=已改密' AFTER password_hash;

@@ -125,9 +125,7 @@ const DashboardPage = () => {
             {getTenantName() || '当前租户'}
             <span className="ml-2 text-base font-normal text-slate-300">工作台</span>
           </h1>
-          <p className="mt-2 max-w-2xl text-sm text-slate-200">
-            当前先落地第一阶段后台骨架，聚焦工作台、活动管理和用户管理三条主流程。
-          </p>
+          
         </div>
         <div className="flex flex-wrap gap-3">
           <Button asChild className="bg-white text-slate-900 hover:bg-slate-100">

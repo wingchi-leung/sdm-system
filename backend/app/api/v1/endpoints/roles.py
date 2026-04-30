@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.crud import crud_rbac
+from app.crud import crud_rbac, crud_auth
 from app.models import rbac as rbac_model
+from app.schemas import AdminUser
 from app.api import deps
 
 router = APIRouter()
@@ -45,7 +46,7 @@ def assign_user_role(
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.require_permission("admin.manage")),
 ):
-    """为用户分配角色"""
+    """为用户分配角色，同时自动创建 admin_user 记录（如果不存在）"""
     try:
         user_role = crud_rbac.assign_user_role(
             db, body.user_id, body.role_id, ctx.tenant_id,
@@ -58,6 +59,27 @@ def assign_user_role(
         crud_rbac.Role.id == body.role_id,
         crud_rbac.Role.tenant_id == ctx.tenant_id,
     ).first()
+
+    # 自动创建 admin_user 记录（如果不存在）
+    existing_admin = db.query(AdminUser).filter(
+        AdminUser.user_id == body.user_id,
+        AdminUser.tenant_id == ctx.tenant_id,
+    ).first()
+    if not existing_admin:
+        user = db.query(crud_rbac.User).filter(
+            crud_rbac.User.id == body.user_id,
+            crud_rbac.User.tenant_id == ctx.tenant_id,
+        ).first()
+        if user and user.phone:
+            admin_user = AdminUser(
+                tenant_id=ctx.tenant_id,
+                user_id=body.user_id,
+                username=user.phone,  # 用手机号做用户名
+                password_hash=crud_auth.hash_password("123456"),
+                must_reset_password=1,  # 需要改密
+            )
+            db.add(admin_user)
+            db.commit()
 
     return {
         "id": user_role.id,
