@@ -44,6 +44,11 @@ def get_posts_by_activity(
     limit: int = 20,
 ) -> tuple[list[dict], int]:
     comment_count_expr = func.count(CommunityComment.id)
+    total = db.query(func.count(CommunityPost.id)).filter(
+        CommunityPost.activity_id == activity_id,
+        CommunityPost.tenant_id == tenant_id,
+        CommunityPost.status == 1,
+    ).scalar() or 0
 
     query = db.query(
         CommunityPost,
@@ -66,7 +71,6 @@ def get_posts_by_activity(
         User.name,
     )
 
-    total = query.count()
     rows = query.order_by(CommunityPost.create_time.desc()).offset(skip).limit(limit).all()
     items = []
     for post, author_name, comment_count in rows:

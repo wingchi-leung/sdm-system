@@ -27,6 +27,41 @@ def create_comment(
     return comment
 
 
+def get_comment_detail(
+    db: Session,
+    *,
+    comment_id: int,
+    tenant_id: int,
+) -> dict | None:
+    row = db.query(
+        CommunityComment,
+        User.name.label("user_name"),
+    ).join(
+        User,
+        (User.id == CommunityComment.user_id) & (User.tenant_id == CommunityComment.tenant_id),
+    ).filter(
+        CommunityComment.id == comment_id,
+        CommunityComment.tenant_id == tenant_id,
+        CommunityComment.status == 1,
+    ).first()
+
+    if not row:
+        return None
+
+    comment, user_name = row
+    return {
+        "id": comment.id,
+        "activity_id": comment.activity_id,
+        "post_id": comment.post_id,
+        "user_id": comment.user_id,
+        "user_name": user_name or "学员",
+        "content": comment.content,
+        "status": comment.status,
+        "create_time": comment.create_time,
+        "update_time": comment.update_time,
+    }
+
+
 def get_comments_by_post(
     db: Session,
     *,
@@ -35,6 +70,12 @@ def get_comments_by_post(
     skip: int = 0,
     limit: int = 50,
 ) -> tuple[list[dict], int]:
+    total = db.query(CommunityComment).filter(
+        CommunityComment.post_id == post_id,
+        CommunityComment.tenant_id == tenant_id,
+        CommunityComment.status == 1,
+    ).count()
+
     query = db.query(
         CommunityComment,
         User.name.label("user_name"),
@@ -47,7 +88,6 @@ def get_comments_by_post(
         CommunityComment.status == 1,
     )
 
-    total = query.count()
     rows = query.order_by(CommunityComment.create_time.asc()).offset(skip).limit(limit).all()
     items = []
     for comment, user_name in rows:

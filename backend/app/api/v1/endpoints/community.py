@@ -154,14 +154,11 @@ def create_comment(
         post_id=post_id,
         user_id=ctx.user_id,
     )
-    items, _ = crud_community_comment.get_comments_by_post(
+    detail = crud_community_comment.get_comment_detail(
         db,
-        post_id=post_id,
+        comment_id=comment.id,
         tenant_id=ctx.tenant_id,
-        skip=0,
-        limit=200,
     )
-    for item in items:
-        if item["id"] == comment.id:
-            return item
-    raise HTTPException(status_code=500, detail="评论创建成功但读取失败")
+    if not detail:
+        raise HTTPException(status_code=500, detail="评论创建成功但读取失败")
+    return detail
