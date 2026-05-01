@@ -11,6 +11,7 @@ passlib[bcrypt]>=1.7.4
 bcrypt>=3.2.0,<4.1.0
 wechatpayv3>=1.2.0
 aiofiles>=23.0.0
+openpyxl>=3.1.0
 
 # 云存储SDK（按需安装）
 # oss2>=2.18.0        # 阿里云OSS

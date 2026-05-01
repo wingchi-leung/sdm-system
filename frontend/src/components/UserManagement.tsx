@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Ban, RefreshCw, Search, ShieldAlert, UserPlus } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
 import { formatDateTime } from '../lib/admin';
+import { getIsSuperAdmin } from '../lib/auth';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
@@ -14,6 +15,8 @@ import {
 } from './ui/dialog';
 import { Input } from './ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { ImportTemplateConfig } from './ImportTemplateConfig';
+import { ImportUsers } from './ImportUsers';
 
 interface UserItem {
   id: number;
@@ -74,6 +77,8 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
   const [formData, setFormData] = useState<UserFormData>(emptyFormData);
   const [blockReason, setBlockReason] = useState('');
+
+  const isSuperAdmin = useMemo(() => getIsSuperAdmin(), []);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -194,6 +199,12 @@ const UserManagement = () => {
             <RefreshCw className="h-4 w-4" />
             刷新
           </Button>
+          {isSuperAdmin && (
+            <>
+              <ImportUsers onImportSuccess={fetchUsers} />
+              <ImportTemplateConfig />
+            </>
+          )}
           <Button onClick={() => setAddDialogOpen(true)}>
             <UserPlus className="h-4 w-4" />
             添加用户

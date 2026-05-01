@@ -1,9 +1,14 @@
 from app.models.user import UserCreate, RegisterRequest, UserBindInfoRequest
+from app.models.user import ImportTemplateRequest, ImportTemplateResponse, ImportResult
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from app.schemas import User
+from app.schemas import User, ImportTemplate
 from app.core.security import hash_password, verify_password
 from fastapi import HTTPException
+import json
+import base64
+import io
+from openpyxl import load_workbook
 
 
 def get_users(db: Session, tenant_id: int) -> list[User]:
@@ -356,3 +361,135 @@ def unblock_user(db: Session, user_id: int, tenant_id: int) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+# ============================================================
+# 导入模板配置 CRUD
+# ============================================================
+
+def get_import_template(db: Session, tenant_id: int) -> ImportTemplate | None:
+    """获取导入模板配置"""
+    return db.query(ImportTemplate).filter(ImportTemplate.tenant_id == tenant_id).first()
+
+
+def save_import_template(db: Session, tenant_id: int, config: ImportTemplateRequest) -> ImportTemplate:
+    """保存导入模板配置"""
+    template = get_import_template(db, tenant_id)
+    if template:
+        template.column_mapping = json.dumps(config.column_mapping)
+        template.is_active = 1
+    else:
+        template = ImportTemplate(
+            tenant_id=tenant_id,
+            column_mapping=json.dumps(config.column_mapping),
+            is_active=1,
+        )
+        db.add(template)
+    db.commit()
+    db.refresh(template)
+    return template
+
+
+def delete_import_template(db: Session, tenant_id: int) -> bool:
+    """删除导入模板配置"""
+    template = get_import_template(db, tenant_id)
+    if not template:
+        return False
+    template.is_active = 0
+    db.commit()
+    return True
+
+
+# 用户字段映射
+USER_FIELD_LABELS = {
+    "name": "姓名",
+    "sex": "性别",
+    "phone": "手机号",
+    "email": "邮箱",
+    "identity_type": "证件类型",
+    "identity_number": "证件号码",
+    "occupation": "职业",
+    "industry": "行业",
+    "age": "年龄",
+}
+
+
+def import_users_from_excel(db: Session, tenant_id: int, file_content_b64: str) -> ImportResult:
+    """
+    从Excel文件导入用户
+    第一行是表头，不导入数据
+    """
+    template = get_import_template(db, tenant_id)
+    if not template or not template.column_mapping:
+        raise HTTPException(status_code=400, detail="请先配置导入模板")
+
+    column_mapping = json.loads(template.column_mapping)
+
+    # 解码Base64文件内容
+    file_content = base64.b64decode(file_content_b64)
+    wb = load_workbook(io.BytesIO(file_content), data_only=True)
+    ws = wb.active
+
+    success_count = 0
+    failed_count = 0
+    errors = []
+
+    # 性别映射
+    sex_map = {"男": "M", "女": "F", "M": "M", "F": "F"}
+
+    # 从第二行开始读取（跳过表头）
+    for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
+        try:
+            user_data = {}
+            for col_idx, field_name in column_mapping.items():
+                cell_value = row[int(col_idx)] if int(col_idx) < len(row) else None
+                if cell_value is not None:
+                    cell_value = str(cell_value).strip()
+
+                # 性别转换
+                if field_name == "sex" and cell_value:
+                    cell_value = sex_map.get(cell_value, cell_value)
+
+                if cell_value:
+                    user_data[field_name] = cell_value
+
+            # 至少需要有姓名
+            if not user_data.get("name"):
+                failed_count += 1
+                errors.append(f"第{row_idx}行：姓名为空")
+                continue
+
+            # 创建用户
+            db_user = User(
+                tenant_id=tenant_id,
+                name=user_data.get("name"),
+                phone=user_data.get("phone"),
+                email=user_data.get("email"),
+                sex=user_data.get("sex"),
+                age=int(user_data["age"]) if user_data.get("age") else None,
+                occupation=user_data.get("occupation"),
+                industry=user_data.get("industry"),
+                identity_type=user_data.get("identity_type"),
+                identity_number=user_data.get("identity_number"),
+                isblock=0,
+            )
+            db.add(db_user)
+            db.commit()
+            success_count += 1
+
+        except IntegrityError as e:
+            db.rollback()
+            failed_count += 1
+            error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+            if "phone" in error_msg.lower() or "duplicate" in error_msg.lower():
+                errors.append(f"第{row_idx}行：手机号已存在")
+            elif "identity" in error_msg.lower():
+                errors.append(f"第{row_idx}行：证件号已存在")
+            else:
+                errors.append(f"第{row_idx}行：数据冲突")
+        except Exception as e:
+            db.rollback()
+            failed_count += 1
+            errors.append(f"第{row_idx}行：{str(e)[:50]}")
+
+    return ImportResult(success=success_count, failed=failed_count, errors=errors[:20])

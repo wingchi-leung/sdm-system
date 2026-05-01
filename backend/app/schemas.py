@@ -217,3 +217,15 @@ class UserRole(BaseModel):
     tenant_id = Column(Integer, nullable=False, index=True)
     scope_type = Column(String(32), nullable=True)
     scope_id = Column(Integer, nullable=True)
+
+
+# ============================================================
+# 导入模板配置表
+# ============================================================
+class ImportTemplate(BaseModel):
+    __tablename__ = "import_template"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    # 模板配置：列索引 -> 字段名 的映射，JSON格式
+    column_mapping = Column(Text, nullable=True)
+    # 是否启用
+    is_active = Column(Integer, default=1)

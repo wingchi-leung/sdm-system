@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import json
 
 from app.crud import crud_user, crud_tenant, crud_rbac
 from app.api import deps
 from app.models import user
+from app.models.user import ImportTemplateRequest, ImportTemplateResponse, ImportExcelRequest, ImportResult
 from app.schemas import User
 
 router = APIRouter()
@@ -173,3 +175,82 @@ def unblock_user(
         raise HTTPException(status_code=403, detail="仅超级管理员可操作")
 
     return crud_user.unblock_user(db, user_id, ctx.tenant_id)
+
+
+# ============================================================
+# 导入模板配置 API（仅超级管理员）
+# ============================================================
+
+@router.get("/import-template", response_model=ImportTemplateResponse)
+def get_import_template(
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """获取导入模板配置"""
+    # 检查是否为超级管理员
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可操作")
+
+    template = crud_user.get_import_template(db, ctx.tenant_id)
+    if not template or not template.column_mapping:
+        return ImportTemplateResponse(column_mapping={}, is_active=False)
+
+    return ImportTemplateResponse(
+        column_mapping=json.loads(template.column_mapping),
+        is_active=template.is_active == 1,
+    )
+
+
+@router.put("/import-template", response_model=ImportTemplateResponse)
+def save_import_template_config(
+    config: ImportTemplateRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """保存导入模板配置"""
+    # 检查是否为超级管理员
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可操作")
+
+    template = crud_user.save_import_template(db, ctx.tenant_id, config)
+    return ImportTemplateResponse(
+        column_mapping=json.loads(template.column_mapping),
+        is_active=template.is_active == 1,
+    )
+
+
+@router.delete("/import-template")
+def delete_import_template_config(
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """删除导入模板配置"""
+    # 检查是否为超级管理员
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可操作")
+
+    crud_user.delete_import_template(db, ctx.tenant_id)
+    return {"message": "删除成功"}
+
+
+@router.post("/import-excel", response_model=ImportResult)
+def import_users_excel(
+    body: ImportExcelRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """导入Excel用户（需要先配置模板）"""
+    # 检查是否为超级管理员
+    is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
+    if not is_super:
+        raise HTTPException(status_code=403, detail="仅超级管理员可操作")
+
+    try:
+        return crud_user.import_users_from_excel(db, ctx.tenant_id, body.file_content)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

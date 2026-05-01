@@ -255,3 +255,35 @@ class UserListForAdminResponse(BaseModel):
 class BlockUserRequest(BaseModel):
     """拉黑用户请求"""
     reason: Optional[str] = Field(None, max_length=255, description="拉黑原因")
+
+
+class ImportTemplateConfig(BaseModel):
+    """导入模板配置"""
+    # 可用字段及其中文显示名称
+    field_name: str       # 字段名，如 name, sex, phone
+    field_label: str      # 中文标签，如 "姓名", "性别", "手机号"
+
+
+class ImportTemplateRequest(BaseModel):
+    """导入模板配置请求"""
+    # 列索引到字段名的映射，如 {"0": "name", "1": "sex", "2": "phone"}
+    column_mapping: dict[str, str]
+
+
+class ImportTemplateResponse(BaseModel):
+    """导入模板配置响应"""
+    column_mapping: dict[str, str]
+    is_active: bool = True
+
+
+class ImportExcelRequest(BaseModel):
+    """导入Excel请求"""
+    # Base64编码的Excel文件内容
+    file_content: str
+
+
+class ImportResult(BaseModel):
+    """导入结果"""
+    success: int = 0      # 成功导入数量
+    failed: int = 0       # 失败数量
+    errors: list[str] = []  # 错误信息列表

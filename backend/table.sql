@@ -327,3 +327,17 @@ SELECT 1, id FROM `permission`;
 -- 为参活动管理员绑定活动相关权限
 INSERT INTO `role_permission` (`role_id`, `permission_id`)
 SELECT 2, id FROM `permission` WHERE `code` LIKE 'activity.%' OR `code` LIKE 'participant.%' OR `code` LIKE 'checkin.%';
+
+--
+-- 14. 导入模板配置表
+--
+CREATE TABLE IF NOT EXISTS `import_template` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `column_mapping` text DEFAULT NULL COMMENT '列映射配置，JSON格式',
+  `is_active` tinyint DEFAULT 1 COMMENT '是否启用：1-启用 0-禁用',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_import_template_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='导入模板配置表';

@@ -42,6 +42,8 @@ export const API_PATHS = {
     adminAll: `${BASE_URL}/users/admin/all`,
     block: (id: number) => `${BASE_URL}/users/${id}/block`,
     unblock: (id: number) => `${BASE_URL}/users/${id}/unblock`,
+    importTemplate: `${BASE_URL}/users/import-template`,
+    importExcel: `${BASE_URL}/users/import-excel`,
   },
   roles: {
     permissions: `${BASE_URL}/roles/permissions`,
