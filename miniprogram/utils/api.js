@@ -327,6 +327,90 @@ function getMyParticipantActivities(activityId) {
   });
 }
 
+/** 获取活动社区文章列表 */
+function getCommunityPosts(activityId, opts = {}) {
+  const { skip = 0, limit = 20 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/posts?activity_id=${encodeURIComponent(activityId)}&skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取社区文章详情 */
+function getCommunityPostDetail(postId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/posts/${postId}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 创建社区文章 */
+function createCommunityPost(data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/posts`,
+      method: 'POST',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取文章评论列表 */
+function getCommunityComments(postId, opts = {}) {
+  const { skip = 0, limit = 50 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/posts/${postId}/comments?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 发表评论 */
+function createCommunityComment(postId, content) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/posts/${postId}/comments`,
+      method: 'POST',
+      header: getHeader(true),
+      data: { content },
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 更新活动信息 */
 function updateActivity(activityId, data) {
   return new Promise((resolve, reject) => {
@@ -644,6 +728,11 @@ module.exports = {
   getActivity,
   getEnrollmentInfo,
   getMyParticipantActivities,
+  getCommunityPosts,
+  getCommunityPostDetail,
+  createCommunityPost,
+  getCommunityComments,
+  createCommunityComment,
   updateActivity,
   deleteActivity,
   getActivityParticipants,

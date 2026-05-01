@@ -1,0 +1,114 @@
+.page {
+  min-height: 100vh;
+  background: #FFFFFF;
+  padding: 24rpx 32rpx 40rpx;
+}
+
+.state-wrap,
+.empty-box {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.state-title,
+.empty-title,
+.page-title {
+  color: var(--ink);
+  font-size: 34rpx;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.state-text,
+.empty-text,
+.page-subtitle,
+.post-meta,
+.post-comments {
+  color: var(--text-soft);
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 28rpx;
+}
+
+.page-subtitle {
+  display: block;
+  margin-top: 8rpx;
+}
+
+.create-btn {
+  min-width: 176rpx;
+  height: 72rpx;
+  margin: 0;
+  border: 0;
+  border-radius: 16rpx;
+  background: #2F4F46;
+  color: #FFFFFF;
+  font-size: 24rpx;
+  line-height: 72rpx;
+}
+
+.create-btn::after {
+  border: 0;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.post-card {
+  overflow: hidden;
+  border-radius: 20rpx;
+  background: #F8F8F6;
+}
+
+.post-cover {
+  width: 100%;
+  height: 260rpx;
+}
+
+.post-body {
+  padding: 24rpx;
+}
+
+.post-title {
+  display: block;
+  color: var(--ink);
+  font-size: 30rpx;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.post-meta {
+  display: block;
+  margin-top: 10rpx;
+}
+
+.post-summary {
+  display: -webkit-box;
+  margin-top: 14rpx;
+  color: var(--ink);
+  font-size: 25rpx;
+  line-height: 1.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.post-comments {
+  display: block;
+  margin-top: 14rpx;
+}

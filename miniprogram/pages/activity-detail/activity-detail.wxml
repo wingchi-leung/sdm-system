@@ -51,6 +51,40 @@
       </view>
     </view>
 
+    <view wx:if="{{showCommunitySection}}" class="community-section">
+      <view class="section-head">
+        <text class="section-title">活动动态</text>
+        <view class="section-actions">
+          <text wx:if="{{communityPosts.length > 0}}" class="section-link" bindtap="onViewCommunityList">查看更多</text>
+          <text wx:if="{{showAdminPanel}}" class="section-link primary" bindtap="onCreateCommunityPost">发布动态</text>
+        </view>
+      </view>
+
+      <view wx:if="{{communityLoading}}" class="community-state">
+        <text class="community-state-text">动态加载中…</text>
+      </view>
+
+      <view wx:elif="{{communityError}}" class="community-state">
+        <text class="community-state-text">{{communityError}}</text>
+      </view>
+
+      <view wx:elif="{{communityPosts.length > 0}}" class="community-list">
+        <view wx:for="{{communityPosts}}" wx:key="id" class="community-card" data-id="{{item.id}}" bindtap="onViewCommunityPost">
+          <image wx:if="{{item.cover_url}}" class="community-cover" src="{{item.cover_url}}" mode="aspectFill" />
+          <view class="community-body">
+            <text class="community-title">{{item.title}}</text>
+            <text class="community-meta">{{item.author_name}} · {{item.create_time_display}}</text>
+            <text class="community-summary">{{item.content}}</text>
+            <text class="community-comments">{{item.comment_count}} 条评论</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="community-empty">
+        <text class="community-empty-text">暂无活动动态</text>
+      </view>
+    </view>
+
     <!-- 管理员面板 -->
     <view wx:if="{{showAdminPanel}}" class="admin-section">
       <text class="section-title">管理功能</text>
@@ -84,6 +118,12 @@
             <text class="action-icon">✎</text>
           </view>
           <text class="action-text">编辑活动</text>
+        </view>
+        <view class="admin-action" bindtap="onCreateCommunityPost">
+          <view class="action-icon-wrap">
+            <text class="action-icon">☰</text>
+          </view>
+          <text class="action-text">发布动态</text>
         </view>
         <view class="admin-action delete" bindtap="onDeleteActivity">
           <view class="action-icon-wrap">

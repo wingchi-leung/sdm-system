@@ -19,6 +19,10 @@ Page({
       { value: 2, label: '进行中' },
       { value: 3, label: '已结束' },
     ],
+    communityPosts: [],
+    communityLoading: false,
+    communityError: null,
+    showCommunitySection: false,
   },
 
   isFirstLoad: true,
@@ -70,6 +74,7 @@ Page({
           name: activity.activity_type_name,
           code: activity.activity_type_code,
         });
+        const showCommunitySection = showAdminPanel || hasRegistered;
         const statusText = activity.status === 1 ? '未开始' : activity.status === 2 ? '进行中' : '已结束';
         const startDisplay = activity.start_time ? this.formatTime(activity.start_time) : '';
         const endDisplay = activity.end_time ? this.formatTime(activity.end_time) : '';
@@ -96,9 +101,19 @@ Page({
             ? (registration.enroll_status === 2 ? '候补中' : '已报名')
             : '',
           actionTipText,
+          showCommunitySection,
           showAdminPanel,
           loading: false,
         });
+        if (showCommunitySection) {
+          this.loadCommunityPreview(activity.id);
+        } else {
+          this.setData({
+            communityPosts: [],
+            communityLoading: false,
+            communityError: null,
+          });
+        }
       })
       .catch((err) => {
         this.setData({
@@ -107,6 +122,26 @@ Page({
         });
         wx.showToast({ title: '加载失败', icon: 'none' });
       });
+  },
+
+  async loadCommunityPreview(activityId) {
+    this.setData({ communityLoading: true, communityError: null });
+    try {
+      const result = await api.getCommunityPosts(activityId, { limit: 3 });
+      this.setData({
+        communityPosts: (result.items || []).map((item) => ({
+          ...item,
+          cover_url: api.getImageUrl(item.cover_url),
+          create_time_display: this.formatDate(item.create_time),
+        })),
+        communityLoading: false,
+      });
+    } catch (err) {
+      this.setData({
+        communityLoading: false,
+        communityError: err.message || '加载活动动态失败',
+      });
+    }
   },
 
   formatTime(iso) {
@@ -118,6 +153,15 @@ Page({
     const h = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
     return `${y}年${m}月${day}日 ${h}:${min}`;
+  },
+
+  formatDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}.${m}.${day}`;
   },
 
   goRegister() {
@@ -177,6 +221,34 @@ Page({
 
   onEditActivity() {
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/edit-activity/edit-activity', { id: this.data.activityId }) });
+  },
+
+  onViewCommunityList() {
+    const activity = this.data.activity || {};
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-post-list/community-post-list', {
+        activityId: this.data.activityId,
+        activityName: activity.activity_name || '',
+      }),
+    });
+  },
+
+  onViewCommunityPost(e) {
+    const postId = e.currentTarget.dataset.id;
+    if (!postId) return;
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-post-detail/community-post-detail', { id: postId }),
+    });
+  },
+
+  onCreateCommunityPost() {
+    const activity = this.data.activity || {};
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-post-create/community-post-create', {
+        activityId: this.data.activityId,
+        activityName: activity.activity_name || '',
+      }),
+    });
   },
 
   onDeleteActivity() {

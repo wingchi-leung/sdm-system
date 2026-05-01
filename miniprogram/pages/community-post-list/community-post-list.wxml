@@ -1,0 +1,37 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">暂时无法查看活动动态</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <view class="page-head">
+      <view>
+        <text class="page-title">活动动态</text>
+        <text wx:if="{{activityName}}" class="page-subtitle">{{activityName}}</text>
+      </view>
+      <button wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">发布动态</button>
+    </view>
+
+    <view wx:if="{{posts.length > 0}}" class="post-list">
+      <view wx:for="{{posts}}" wx:key="id" class="post-card" data-id="{{item.id}}" bindtap="onOpenPost">
+        <image wx:if="{{item.cover_url}}" class="post-cover" src="{{item.cover_url}}" mode="aspectFill" />
+        <view class="post-body">
+          <text class="post-title">{{item.title}}</text>
+          <text class="post-meta">{{item.author_name}} · {{item.create_time_display}}</text>
+          <text class="post-summary">{{item.content}}</text>
+          <text class="post-comments">{{item.comment_count}} 条评论</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-box">
+      <text class="empty-title">还没有活动动态</text>
+      <text class="empty-text">管理员发布文章后，会在这里展示。</text>
+    </view>
+  </view>
+</view>

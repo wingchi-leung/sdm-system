@@ -4,3 +4,4 @@ from .activity_type import *
 from .participant import *
 from .checkin import *
 from .payment import *
+from .community import *
