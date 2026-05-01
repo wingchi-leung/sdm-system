@@ -68,39 +68,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   UNIQUE KEY `uk_tenant_wx_openid` (`tenant_id`, `wx_openid`),
   KEY `idx_user_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
-
--- 
--- 4. 管理员认证表（仅用于登录）
--- 
-CREATE TABLE IF NOT EXISTS `admin_user` (
-  `id` int NOT NULL AUTO_INCREMENT,
-    `tenant_id` int NOT NULL COMMENT '租户ID',
-  `user_id` int NOT NULL COMMENT '关联 user.id',
-  `username` varchar(64) NOT NULL COMMENT '管理员用户名',
-  `password_hash` varchar(255) NOT NULL COMMENT '密码哈希',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_tenant_username` (`tenant_id`, `username`),
-  KEY `idx_admin_tenant_id` (`tenant_id`),
-  KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='管理员认证表';
-
--- 
--- 5. 平台管理员认证表（跨租户运营后台）
--- 
-CREATE TABLE IF NOT EXISTS `platform_admin` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(64) NOT NULL COMMENT '平台管理员用户名',
-  `password_hash` varchar(255) NOT NULL COMMENT '密码哈希',
-  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1-正常 0-禁用',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_platform_admin_username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='平台管理员认证表';
-
--- 
+ 
 -- 6. 活动表
 -- 
 CREATE TABLE IF NOT EXISTS `activity` (
