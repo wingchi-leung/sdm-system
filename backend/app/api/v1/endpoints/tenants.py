@@ -12,7 +12,7 @@ from app.models.tenant import (
     TenantSummary,
     TenantUpdate,
 )
-from app.schemas import AdminUser, Activity, Tenant, User
+from app.schemas import Activity, Tenant, User, UserRole
 
 router = APIRouter()
 
@@ -155,7 +155,7 @@ def get_tenant_stats(
 
     return {
         "tenant_id": tenant_id,
-        "admin_count": db.query(func.count(AdminUser.id)).filter(AdminUser.tenant_id == tenant_id).scalar() or 0,
+        "admin_count": db.query(func.count(UserRole.user_id.distinct())).filter(UserRole.tenant_id == tenant_id).scalar() or 0,
         "activity_count": db.query(func.count(Activity.id)).filter(Activity.tenant_id == tenant_id).scalar() or 0,
         "user_count": db.query(func.count(User.id)).filter(User.tenant_id == tenant_id).scalar() or 0,
     }

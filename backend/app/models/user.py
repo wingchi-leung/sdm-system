@@ -66,6 +66,7 @@ class RegisterRequest(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     password: str = Field(..., min_length=6, max_length=64)
     email: Optional[str] = Field(None, max_length=255)
+    tenant_code: str = Field("default", min_length=1, max_length=32)
 
     @field_validator('email')
     @classmethod

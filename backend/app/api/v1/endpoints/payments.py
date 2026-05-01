@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.core.config import settings
-from app.crud import crud_participant, crud_payment
+from app.crud import crud_credential, crud_participant, crud_payment
 from app.models.participant import ParticipantCreate
 from app.models.payment import (
     PaymentOrderCreate,
@@ -37,14 +37,11 @@ def _get_activity_or_404(db: Session, activity_id: int, tenant_id: int) -> Activ
 
 
 def _get_user_openid(db: Session, user_id: int, tenant_id: int) -> str:
-    """获取用户的 openid"""
-    user = db.query(User).filter(
-        User.id == user_id,
-        User.tenant_id == tenant_id,
-    ).first()
-    if not user or not user.wx_openid:
+    """获取用户的 openid。"""
+    openid = crud_credential.get_wechat_openid(db, user_id, tenant_id)
+    if not openid:
         raise HTTPException(status_code=400, detail="用户未绑定微信，无法支付")
-    return user.wx_openid
+    return openid
 
 
 def _lock_user_for_payment(db: Session, user_id: int, tenant_id: int) -> User:
@@ -484,7 +481,7 @@ async def payment_notify(
 
         if order.status == crud_payment.PAYMENT_STATUS_CLOSED:
             try:
-                remote_order = pay_service.query_order(order_no)
+                _, remote_order = pay_service.query_order(order_no)
             except Exception as query_error:
                 logger.warning("关闭订单 %s 后查询微信状态失败: %s", order_no, query_error)
                 return {"code": "FAIL", "message": "订单已关闭"}
@@ -544,7 +541,7 @@ def query_payment_order(
     ):
         try:
             pay_service = get_wechat_pay_service()
-            remote_order = pay_service.query_order(order_no)
+            _, remote_order = pay_service.query_order(order_no)
         except Exception as query_error:
             logger.warning("查询微信订单状态失败: %s, error=%s", order_no, query_error)
         else:

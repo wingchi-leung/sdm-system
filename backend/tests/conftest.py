@@ -25,14 +25,14 @@ from app.main import app
 from app.schemas import Base  # 使用 schemas 的 Base，包含所有模型
 from app.core.security import hash_password, create_access_token
 from app.schemas import (
-    AdminUser,
     User,
+    UserCredential,
+    UserTenant,
     Activity,
     ActivityType,
     ActivityParticipant,
     CheckInRecord,
     Tenant,
-    PlatformAdmin,
     Permission,
     Role,
     RolePermission,
@@ -105,6 +105,8 @@ def _create_role_with_permissions(
         "activity.delete": ("activity", "delete"),
         "participant.view": ("participant", "view"),
         "user.view": ("user", "view"),
+        "admin.manage": ("admin", "manage"),
+        "role.manage": ("role", "manage"),
     }
     for code in permission_codes:
         resource, action = resource_map.get(code, ("system", "manage"))
@@ -133,25 +135,26 @@ def _create_admin_with_role(
     permission_codes: list[str] | None = None,
     scope_type: str | None = None,
     scope_id: int | None = None,
-) -> AdminUser:
+) -> User:
     user = User(
         tenant_id=tenant_id,
         name=user_name,
         phone=phone,
-        password_hash=hash_password(password),
         identity_number=identity_number,
         isblock=0,
     )
     db_session.add(user)
     db_session.flush()
-
-    admin = AdminUser(
-        tenant_id=tenant_id,
+    db_session.add(UserTenant(user_id=user.id, tenant_id=tenant_id, status=1))
+    db_session.add(UserCredential(
         user_id=user.id,
-        username=username,
-        password_hash=hash_password(password),
-    )
-    db_session.add(admin)
+        tenant_id=tenant_id,
+        credential_type="password",
+        identifier=username,
+        credential_hash=hash_password(password),
+        must_reset_password=0,
+        status=1,
+    ))
     db_session.flush()
 
     if permission_codes:
@@ -172,8 +175,10 @@ def _create_admin_with_role(
         )
 
     db_session.commit()
-    db_session.refresh(admin)
-    return admin
+    db_session.refresh(user)
+    user.user_id = user.id
+    user.username = username
+    return user
 
 
 def _create_platform_admin(
@@ -181,16 +186,42 @@ def _create_platform_admin(
     *,
     username: str = "platform_admin",
     password: str = "platform123",
-) -> PlatformAdmin:
-    admin = PlatformAdmin(
-        username=username,
-        password_hash=hash_password(password),
-        status=1,
+) -> User:
+    role = db_session.query(Role).filter(Role.id == 3, Role.tenant_id == 0).first()
+    if not role:
+        role = Role(
+            id=3,
+            tenant_id=0,
+            name="平台管理员",
+            is_system=1,
+            description="测试平台管理员角色",
+        )
+        db_session.add(role)
+        db_session.flush()
+
+    user = User(
+        tenant_id=0,
+        name="平台管理员",
+        phone=None,
+        identity_number=None,
+        isblock=0,
     )
-    db_session.add(admin)
+    db_session.add(user)
+    db_session.flush()
+    db_session.add(UserCredential(
+        user_id=user.id,
+        tenant_id=0,
+        credential_type="password",
+        identifier=username,
+        credential_hash=hash_password(password),
+        must_reset_password=0,
+        status=1,
+    ))
+    db_session.add(UserRole(user_id=user.id, role_id=3, tenant_id=0, scope_type=None, scope_id=None))
     db_session.commit()
-    db_session.refresh(admin)
-    return admin
+    db_session.refresh(user)
+    user.username = username
+    return user
 
 
 @pytest.fixture(scope="function")
@@ -301,7 +332,7 @@ def sample_activity_type_2(db_session: Session, default_tenant: Tenant) -> Activ
 
 
 @pytest.fixture
-def super_admin(db_session: Session, default_tenant: Tenant) -> AdminUser:
+def super_admin(db_session: Session, default_tenant: Tenant) -> User:
     """创建超级管理员"""
     return _create_admin_with_role(
         db_session,
@@ -317,12 +348,14 @@ def super_admin(db_session: Session, default_tenant: Tenant) -> AdminUser:
             "activity.delete",
             "participant.view",
             "user.view",
+            "admin.manage",
+            "role.manage",
         ],
     )
 
 
 @pytest.fixture
-def activity_admin(db_session: Session, sample_activity_type: ActivityType, default_tenant: Tenant) -> AdminUser:
+def activity_admin(db_session: Session, sample_activity_type: ActivityType, default_tenant: Tenant) -> User:
     """创建活动管理员（有特定类型权限）"""
     return _create_admin_with_role(
         db_session,
@@ -344,7 +377,7 @@ def activity_admin(db_session: Session, sample_activity_type: ActivityType, defa
 
 
 @pytest.fixture
-def activity_admin_no_permission(db_session: Session, default_tenant: Tenant) -> AdminUser:
+def activity_admin_no_permission(db_session: Session, default_tenant: Tenant) -> User:
     """创建无权限的活动管理员"""
     return _create_admin_with_role(
         db_session,
@@ -359,27 +392,27 @@ def activity_admin_no_permission(db_session: Session, default_tenant: Tenant) ->
 
 
 @pytest.fixture
-def platform_admin(db_session: Session) -> PlatformAdmin:
+def platform_admin(db_session: Session) -> User:
     """创建平台管理员"""
     return _create_platform_admin(db_session)
 
 
 @pytest.fixture
-def super_admin_token(super_admin: AdminUser) -> str:
+def super_admin_token(super_admin: User) -> str:
     """超级管理员 token"""
-    return create_access_token(sub=str(super_admin.user_id), role="admin", tenant_id=super_admin.tenant_id)
+    return create_access_token(sub=str(super_admin.id), role="admin", tenant_id=super_admin.tenant_id)
 
 
 @pytest.fixture
-def activity_admin_token(activity_admin: AdminUser) -> str:
+def activity_admin_token(activity_admin: User) -> str:
     """活动管理员 token"""
-    return create_access_token(sub=str(activity_admin.user_id), role="admin", tenant_id=activity_admin.tenant_id)
+    return create_access_token(sub=str(activity_admin.id), role="admin", tenant_id=activity_admin.tenant_id)
 
 
 @pytest.fixture
-def no_perm_admin_token(activity_admin_no_permission: AdminUser) -> str:
+def no_perm_admin_token(activity_admin_no_permission: User) -> str:
     """无权限管理员 token"""
-    return create_access_token(sub=str(activity_admin_no_permission.user_id), role="admin", tenant_id=activity_admin_no_permission.tenant_id)
+    return create_access_token(sub=str(activity_admin_no_permission.id), role="admin", tenant_id=activity_admin_no_permission.tenant_id)
 
 
 @pytest.fixture
@@ -388,12 +421,22 @@ def sample_user(db_session: Session, default_tenant: Tenant) -> User:
     user = User(
         name="测试用户",
         phone="13800138000",
-        password_hash=hash_password("user123"),
         identity_number="110101199001011234",
         isblock=0,
         tenant_id=default_tenant.id,
     )
     db_session.add(user)
+    db_session.flush()
+    db_session.add(UserTenant(user_id=user.id, tenant_id=default_tenant.id, status=1))
+    db_session.add(UserCredential(
+        user_id=user.id,
+        tenant_id=default_tenant.id,
+        credential_type="password",
+        identifier="13800138000",
+        credential_hash=hash_password("user123"),
+        must_reset_password=0,
+        status=1,
+    ))
     db_session.commit()
     db_session.refresh(user)
     return user
@@ -405,13 +448,23 @@ def blocked_user(db_session: Session, default_tenant: Tenant) -> User:
     user = User(
         name="被拉黑用户",
         phone="13800138001",
-        password_hash=hash_password("user123"),
         identity_number="110101199001011235",
         isblock=1,
         block_reason="测试拉黑",
         tenant_id=default_tenant.id,
     )
     db_session.add(user)
+    db_session.flush()
+    db_session.add(UserTenant(user_id=user.id, tenant_id=default_tenant.id, status=1))
+    db_session.add(UserCredential(
+        user_id=user.id,
+        tenant_id=default_tenant.id,
+        credential_type="password",
+        identifier="13800138001",
+        credential_hash=hash_password("user123"),
+        must_reset_password=0,
+        status=1,
+    ))
     db_session.commit()
     db_session.refresh(user)
     return user

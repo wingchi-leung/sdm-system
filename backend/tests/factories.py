@@ -9,8 +9,9 @@ from factory.alchemy import SQLAlchemyModelFactory
 from faker import Faker
 
 from app.schemas import (
-    AdminUser,
     User,
+    UserCredential,
+    UserTenant,
     Activity,
     ActivityType,
     ActivityParticipant,
@@ -33,15 +34,42 @@ class ActivityTypeFactory(SQLAlchemyModelFactory):
 
 
 class AdminUserFactory(SQLAlchemyModelFactory):
-    """管理员工厂"""
+    """管理员用户工厂"""
     class Meta:
-        model = AdminUser
+        model = User
         sqlalchemy_session_persistence = "commit"
 
-    username = factory.Sequence(lambda n: f"admin{n}")
-    password_hash = factory.LazyAttribute(lambda _: hash_password("password123"))
     tenant_id = 1
-    user_id = factory.Sequence(lambda n: n + 1000)
+    name = factory.Sequence(lambda n: f"管理员{n}")
+    phone = factory.Sequence(lambda n: f"1389{n:07d}")
+    identity_number = factory.Sequence(lambda n: f"11010119900101{n:04d}")
+    isblock = 0
+
+    @factory.post_generation
+    def setup_auth(obj, create, extracted, **kwargs):
+        if not create or not obj.id:
+            return
+        session = obj._sa_instance_state.session
+        username = kwargs.get("username") or f"admin{obj.id}"
+        obj.username = username
+        if not session.query(UserTenant).filter_by(user_id=obj.id, tenant_id=obj.tenant_id).first():
+            session.add(UserTenant(user_id=obj.id, tenant_id=obj.tenant_id, status=1))
+        if not session.query(UserCredential).filter_by(
+            user_id=obj.id,
+            tenant_id=obj.tenant_id,
+            credential_type="password",
+            identifier=username,
+        ).first():
+            session.add(UserCredential(
+                user_id=obj.id,
+                tenant_id=obj.tenant_id,
+                credential_type="password",
+                identifier=username,
+                credential_hash=hash_password("password123"),
+                must_reset_password=0,
+                status=1,
+            ))
+        session.flush()
 
 
 class SuperAdminFactory(AdminUserFactory):
@@ -65,11 +93,49 @@ class UserFactory(SQLAlchemyModelFactory):
     phone = factory.Sequence(lambda n: f"138{n:08d}")
     identity_number = factory.LazyAttribute(lambda _: fake.ssn()[:18])
     email = factory.LazyAttribute(lambda _: fake.email())
-    password_hash = factory.LazyAttribute(lambda _: hash_password("password123"))
     sex = factory.LazyAttribute(lambda _: fake.random_element(["M", "F"]))
     isblock = 0
     block_reason = None
-    wx_openid = None
+
+    @factory.post_generation
+    def setup_auth(obj, create, extracted, **kwargs):
+        if not create or not obj.id:
+            return
+        session = obj._sa_instance_state.session
+        if not session.query(UserTenant).filter_by(user_id=obj.id, tenant_id=obj.tenant_id).first():
+            session.add(UserTenant(user_id=obj.id, tenant_id=obj.tenant_id, status=1))
+
+        password = kwargs.get("password")
+        if password and not session.query(UserCredential).filter_by(
+            user_id=obj.id,
+            tenant_id=obj.tenant_id,
+            credential_type="password",
+            identifier=obj.phone,
+        ).first():
+            session.add(UserCredential(
+                user_id=obj.id,
+                tenant_id=obj.tenant_id,
+                credential_type="password",
+                identifier=obj.phone,
+                credential_hash=hash_password(password),
+                must_reset_password=0,
+                status=1,
+            ))
+
+        openid = kwargs.get("wx_openid")
+        if openid and not session.query(UserCredential).filter_by(
+            tenant_id=obj.tenant_id,
+            credential_type="wechat",
+            identifier=openid,
+        ).first():
+            session.add(UserCredential(
+                user_id=obj.id,
+                tenant_id=obj.tenant_id,
+                credential_type="wechat",
+                identifier=openid,
+                status=1,
+            ))
+        session.flush()
 
 
 class BlockedUserFactory(UserFactory):

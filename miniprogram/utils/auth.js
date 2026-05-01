@@ -127,13 +127,15 @@ function pickFromLoginResponse(res, keys) {
 }
 
 function parseAdminMeta(res) {
-  const isSuperRaw = pickFromLoginResponse(res, ['is_super_admin', 'super_admin']);
+  // 新格式：res.auth.is_super_admin / res.auth.activity_types
+  const authObj = res.auth || res;
+  const isSuperRaw = pickFromLoginResponse(authObj, ['is_super_admin', 'super_admin']);
   let adminLevel = null;
   if (isSuperRaw != null) {
     adminLevel = Number(isSuperRaw) === 1 || isSuperRaw === true ? 'super' : 'activity_type_admin';
   }
   const typeRaw = normalizeText(
-    pickFromLoginResponse(res, ['admin_level', 'admin_type', 'scope'])
+    pickFromLoginResponse(authObj, ['admin_level', 'admin_type', 'scope'])
   ).toLowerCase();
   if (typeRaw) {
     if (typeRaw === 'super' || typeRaw === 'super_admin') adminLevel = 'super';
@@ -146,7 +148,7 @@ function parseAdminMeta(res) {
     }
   }
   const activityTypes = normalizeActivityTypes(
-    pickFromLoginResponse(res, [
+    pickFromLoginResponse(authObj, [
       'activity_types',
       'managed_activity_types',
       'allowed_activity_types',
@@ -154,7 +156,6 @@ function parseAdminMeta(res) {
     ])
   );
   if (!adminLevel) {
-    // 后端缺少明确分级时，只能按已返回的活动类型范围展示权限，避免前端误判为超级管理员
     adminLevel = activityTypes.length > 0 ? 'activity_type_admin' : null;
   }
   return { adminLevel, activityTypes };

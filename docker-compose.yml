@@ -1,0 +1,86 @@
+version: '3.8'
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: sdm-tunnel
+    restart: unless-stopped
+    volumes:
+      - ./tunnel/config.yml:/etc/cloudflared/config.yml:ro
+      - ./tunnel/certs:/etc/cloudflared/certs:ro
+    command: tunnel --config /etc/cloudflared/config.yml run
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  # 数据库 MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: sdm-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DB}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 后端 FastAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sdm-backend
+    restart: unless-stopped
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+      - JWT_SECRET=${JWT_SECRET}
+      - WECHAT_APPID=${WECHAT_APPID}
+      - WECHAT_SECRET=${WECHAT_SECRET}
+      - WECHAT_PAY_MCH_ID=${WECHAT_PAY_MCH_ID}
+      - WECHAT_PAY_API_V3_KEY=${WECHAT_PAY_API_V3_KEY}
+      - WECHAT_PAY_SERIAL_NO=${WECHAT_PAY_SERIAL_NO}
+      - WECHAT_PAY_NOTIFY_URL=${WECHAT_PAY_NOTIFY_URL}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - STORAGE_TYPE=local
+      - STORAGE_BASE_URL=http://localhost:8000/uploads
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # 前端 React (craco)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sdm-frontend
+    restart: unless-stopped
+    environment:
+      - REACT_APP_API_BASE_URL=${API_BASE_URL}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  mysql-data:
+  
+
+networks:
+  default:
+    name: sdm-network
+    driver: bridge

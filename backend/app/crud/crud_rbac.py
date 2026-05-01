@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from app.schemas import Permission, Role, RolePermission, User, UserRole
 from typing import List, Optional
 
@@ -27,7 +28,7 @@ def has_permission(
     if not perm:
         return False
 
-    # 2. 查询用户的所有角色授权
+    # 2. 查询用户的所有角色授权（包含系统角色 tenant_id=0）
     user_roles = db.query(UserRole, Role, RolePermission).join(
         Role, UserRole.role_id == Role.id
     ).join(
@@ -35,7 +36,7 @@ def has_permission(
     ).filter(
         UserRole.user_id == user_id,
         UserRole.tenant_id == tenant_id,
-        Role.tenant_id == tenant_id,
+        or_(Role.tenant_id == tenant_id, Role.tenant_id == 0),
         RolePermission.permission_id == perm.id
     ).all()
 
@@ -72,7 +73,7 @@ def get_user_permissions(db: Session, user_id: int, tenant_id: int) -> List[str]
     ).filter(
         UserRole.user_id == user_id,
         UserRole.tenant_id == tenant_id,
-        Role.tenant_id == tenant_id,
+        or_(Role.tenant_id == tenant_id, Role.tenant_id == 0),
     ).distinct().all()
 
     return [p[0] for p in perms]
@@ -97,7 +98,7 @@ def assign_user_role(
 
     role = db.query(Role).filter(
         Role.id == role_id,
-        Role.tenant_id == tenant_id,
+        or_(Role.tenant_id == tenant_id, Role.tenant_id == 0),
     ).first()
     if not role:
         raise ValueError("角色不存在或不属于当前租户")
@@ -109,13 +110,20 @@ def assign_user_role(
     if not user:
         raise ValueError("用户不存在或不属于当前租户")
 
-    existing = db.query(UserRole).filter(
+    existing_query = db.query(UserRole).filter(
         UserRole.user_id == user_id,
         UserRole.role_id == role_id,
         UserRole.tenant_id == tenant_id,
-        UserRole.scope_type == scope_type,
-        UserRole.scope_id == scope_id,
-    ).first()
+    )
+    if scope_type is None:
+        existing_query = existing_query.filter(UserRole.scope_type.is_(None))
+    else:
+        existing_query = existing_query.filter(UserRole.scope_type == scope_type)
+    if scope_id is None:
+        existing_query = existing_query.filter(UserRole.scope_id.is_(None))
+    else:
+        existing_query = existing_query.filter(UserRole.scope_id == scope_id)
+    existing = existing_query.first()
     if existing:
         raise ValueError("该角色已分配给当前用户")
 
@@ -154,8 +162,10 @@ def get_user_roles(db: Session, user_id: int, tenant_id: int) -> List[UserRole]:
 
 
 def get_all_roles(db: Session, tenant_id: int) -> List[Role]:
-    """获取所有角色"""
-    return db.query(Role).filter(Role.tenant_id == tenant_id).all()
+    """获取所有角色（包含系统预设角色 tenant_id=0）"""
+    return db.query(Role).filter(
+        (Role.tenant_id == tenant_id) | (Role.tenant_id == 0)
+    ).all()
 
 
 def get_all_permissions(db: Session) -> List[Permission]:

@@ -2,13 +2,14 @@ from app.models.user import UserCreate, RegisterRequest, UserBindInfoRequest
 from app.models.user import ImportTemplateRequest, ImportTemplateResponse, ImportResult
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from app.schemas import User, ImportTemplate
-from app.core.security import hash_password, verify_password
+from app.schemas import User, ImportTemplate, UserCredential, UserTenant
 from fastapi import HTTPException
 import json
 import base64
 import io
 from openpyxl import load_workbook
+
+from app.crud import crud_credential
 
 
 def get_users(db: Session, tenant_id: int) -> list[User]:
@@ -33,17 +34,37 @@ def get_user_by_phone(db: Session, phone: str, tenant_id: int) -> User | None:
 
 
 def get_user_by_wx_openid(db: Session, openid: str, tenant_id: int) -> User | None:
-    """根据微信 openid 获取用户（租户隔离）"""
-    return db.query(User).filter(
-        User.wx_openid == openid,
-        User.tenant_id == tenant_id
+    """根据微信 openid 获取用户（通过 user_credential）。"""
+    return db.query(User).join(
+        UserCredential,
+        UserCredential.user_id == User.id,
+    ).filter(
+        UserCredential.tenant_id == tenant_id,
+        UserCredential.credential_type == "wechat",
+        UserCredential.identifier == openid,
+        UserCredential.status == 1,
+        User.tenant_id == tenant_id,
     ).first()
+
+
+def _ensure_user_tenant_membership(db: Session, user_id: int, tenant_id: int) -> None:
+    membership = db.query(UserTenant).filter(
+        UserTenant.user_id == user_id,
+        UserTenant.tenant_id == tenant_id,
+    ).first()
+    if membership:
+        if membership.status != 1:
+            membership.status = 1
+        return
+    db.add(UserTenant(user_id=user_id, tenant_id=tenant_id, status=1))
+    db.flush()
 
 
 def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname: str | None = None) -> User:
     """微信授权登录：存在则返回，不存在则创建"""
     user = get_user_by_wx_openid(db, openid, tenant_id)
     if user:
+        _ensure_user_tenant_membership(db, user.id, tenant_id)
         return user
     try:
         db_user = User(
@@ -51,14 +72,14 @@ def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname
             name=nickname or "微信用户",
             phone=None,
             email=None,
-            password_hash=None,
             identity_number=None,
             sex=None,
             isblock=0,
             block_reason=None,
-            wx_openid=openid,
         )
         db.add(db_user)
+        db.flush()
+        _ensure_user_tenant_membership(db, db_user.id, tenant_id)
         db.commit()
         db.refresh(db_user)
         return db_user
@@ -91,12 +112,13 @@ def create_user(db: Session, user: UserCreate, tenant_id: int) -> User:
             identity_number=user.identity_number,
             phone=user.phone,
             email=user.email,
-            password_hash=None,
             sex=user.sex,
             isblock=user.isblock,
             block_reason=user.block_reason,
         )
         db.add(db_user)
+        db.flush()
+        _ensure_user_tenant_membership(db, db_user.id, tenant_id)
         db.commit()
         db.refresh(db_user)
         return db_user
@@ -142,13 +164,22 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
             name=body.name.strip(),
             phone=body.phone.strip(),
             email=body.email,
-            password_hash=hash_password(body.password),
             identity_number=None,
             sex=None,
             isblock=0,
             block_reason=None,
         )
         db.add(db_user)
+        db.flush()
+        _ensure_user_tenant_membership(db, db_user.id, tenant_id)
+        crud_credential.create_password_credential(
+            db=db,
+            user_id=db_user.id,
+            tenant_id=tenant_id,
+            identifier=body.phone.strip(),
+            password=body.password,
+            must_reset=False,
+        )
         db.commit()
         db.refresh(db_user)
         return db_user
@@ -174,13 +205,11 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
 
 
 def authenticate_user(db: Session, phone: str, password: str, tenant_id: int) -> User | None:
-    """普通用户认证（租户隔离）"""
-    user = get_user_by_phone(db, phone, tenant_id)
-    if not user or not user.password_hash:
+    """普通用户认证（通过 user_credential 进行密码校验）。"""
+    cred = crud_credential.authenticate_by_password(db, tenant_id, phone, password)
+    if not cred:
         return None
-    if not verify_password(password, user.password_hash):
-        return None
-    return user
+    return get_user(db, cred.user_id, tenant_id)
 
 
 def is_user_profile_incomplete(db: Session, user_id: int, tenant_id: int) -> bool:
@@ -252,6 +281,8 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     if existing_identity:
         raise HTTPException(status_code=400, detail="该证件号已被使用")
 
+    old_phone = user.phone
+
     # 更新字段
     user.name = bind_info.name
     user.sex = sex_value
@@ -263,6 +294,7 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     user.identity_number = bind_info.identity_number
     user.identity_type = bind_info.identity_type
 
+    crud_credential.sync_phone_identifiers(db, user_id, tenant_id, old_phone, bind_phone)
     db.commit()
     db.refresh(user)
     return user
@@ -272,6 +304,7 @@ def get_or_create_user_by_phone(db: Session, phone: str, tenant_id: int, name: s
     """根据手机号查找或创建用户（用于手机号授权登录）"""
     user = get_user_by_phone(db, phone, tenant_id)
     if user:
+        _ensure_user_tenant_membership(db, user.id, tenant_id)
         return user
     try:
         db_user = User(
@@ -279,14 +312,14 @@ def get_or_create_user_by_phone(db: Session, phone: str, tenant_id: int, name: s
             name=name or f"用户{phone[-4:]}",
             phone=phone,
             email=None,
-            password_hash=None,
             identity_number=None,
             sex=None,
             isblock=0,
             block_reason=None,
-            wx_openid=None,
         )
         db.add(db_user)
+        db.flush()
+        _ensure_user_tenant_membership(db, db_user.id, tenant_id)
         db.commit()
         db.refresh(db_user)
         return db_user

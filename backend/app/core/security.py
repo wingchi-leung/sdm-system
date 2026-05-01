@@ -32,32 +32,23 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-def create_access_token(sub: str, role: str, tenant_id: int) -> str:
-    """生成 JWT，包含租户信息"""
+def create_access_token(sub: str | int, tenant_id: int | None = None, **_kw) -> str:
+    """生成 JWT。tid=0 或 None 表示平台级用户。"""
     expire = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
         "sub": str(sub),
-        "role": role,
-        "tenant_id": tenant_id,
-        "exp": expire
-    }
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
-
-
-def create_platform_access_token(sub: str) -> str:
-    """生成平台管理员 JWT，不绑定具体租户。"""
-    expire = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
-    payload = {
-        "sub": str(sub),
-        "role": "platform_admin",
+        "tid": tenant_id if tenant_id else 0,
         "exp": expire,
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
 def decode_access_token(token: str) -> dict | None:
-    """解析 JWT"""
+    """解析 JWT，兼容新旧格式"""
     try:
-        return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        if "tid" not in payload and "tenant_id" in payload:
+            payload["tid"] = payload["tenant_id"]
+        return payload
     except JWTError:
         return None

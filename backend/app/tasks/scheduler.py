@@ -88,7 +88,7 @@ def close_expired_payment_orders():
                 logger.info(f"关闭过期订单: {locked_order.order_no}")
             except Exception as e:
                 try:
-                    remote_order = pay_service.query_order(order.order_no)
+                    _, remote_order = pay_service.query_order(order.order_no)
                 except Exception as query_error:
                     failed_count += 1
                     logger.warning(

@@ -32,8 +32,9 @@ export function isUnsafeApiUrl(): boolean {
 export const API_PATHS = {
   auth: {
     login: `${BASE_URL}/auth/login`,
-    platformLogin: `${BASE_URL}/auth/platform-login`,
+    setPassword: `${BASE_URL}/auth/set-password`,
     setAdminPassword: `${BASE_URL}/auth/set-admin-password`,
+    me: `${BASE_URL}/auth/me`,
   },
   users: {
     list: `${BASE_URL}/users`,
@@ -127,16 +128,30 @@ export const apiRequest = async <T>(
   }
 };
 
+export interface LoginResponseData {
+  access_token: string;
+  user: { id: number; name: string | null; phone: string | null };
+  tenant: { id: number; name: string; code: string } | null;
+  auth: {
+    is_admin: boolean;
+    is_platform_admin: boolean;
+    is_super_admin: boolean;
+    permissions: string[];
+    activity_types: { id: number; name: string; code: string | null }[];
+    must_reset_password: boolean;
+  };
+}
+
 export const loginApi = async (
-  username: string,
+  identifier: string,
   password: string,
   tenantCode: string = 'default',
-): Promise<ApiResponse<{ access_token: string; tenant_id: number; tenant_name: string }>> => {
+): Promise<ApiResponse<LoginResponseData>> => {
   try {
     const response = await fetch(API_PATHS.auth.login, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, tenant_code: tenantCode }),
+      body: JSON.stringify({ identifier, password, tenant_code: tenantCode }),
     });
     const data = await response.json();
 
@@ -144,45 +159,8 @@ export const loginApi = async (
       return { error: data.detail || '登录失败' };
     }
 
-    return {
-      data: {
-        access_token: data.access_token,
-        tenant_id: data.tenant_id,
-        tenant_name: data.tenant_name,
-      },
-    };
+    return { data };
   } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : '网络错误',
-    };
-  }
-};
-
-export const platformLoginApi = async (
-  username: string,
-  password: string,
-): Promise<ApiResponse<{ access_token: string; platform_admin_id: number }>> => {
-  try {
-    const response = await fetch(API_PATHS.auth.platformLogin, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password, tenant_code: 'platform' }),
-    });
-    const data = await response.json();
-
-    if (!response.ok) {
-      return { error: data.detail || '平台管理员登录失败' };
-    }
-
-    return {
-      data: {
-        access_token: data.access_token,
-        platform_admin_id: data.platform_admin_id,
-      },
-    };
-  } catch (error) {
-    return {
-      error: error instanceof Error ? error.message : '网络错误',
-    };
+    return { error: error instanceof Error ? error.message : '网络错误' };
   }
 };

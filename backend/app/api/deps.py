@@ -1,13 +1,15 @@
-from typing import Generator
+from typing import Generator, Optional
 from fastapi import Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import SessionLocal
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
 from app.crud import crud_activity, crud_rbac, crud_tenant
-from app.schemas import PlatformAdmin
+from app.schemas import User, UserRole
 
 security = HTTPBearer(auto_error=False)
+
+PLATFORM_ADMIN_ROLE_ID = 3
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -19,35 +21,72 @@ def get_db() -> Generator[Session, None, None]:
 
 
 def _parse_token(credentials: HTTPAuthorizationCredentials | None) -> dict | None:
-    """解析 Bearer token，返回 payload 或 None"""
     if not credentials or credentials.scheme != "Bearer":
         return None
     return decode_access_token(credentials.credentials)
 
 
-class TenantContext:
-    """租户上下文"""
+def _extract_identity(payload: dict) -> tuple[int, int]:
+    """从 JWT payload 提取 (user_id, tenant_id)，兼容新旧格式"""
+    try:
+        user_id = int(payload["sub"])
+    except (KeyError, ValueError):
+        raise HTTPException(status_code=401, detail="无效的登录状态")
+    tid = payload.get("tid")
+    if tid is None:
+        tid = payload.get("tenant_id")
+    if tid is None:
+        raise HTTPException(status_code=401, detail="无效的登录状态")
+    return user_id, int(tid)
+
+
+class AuthContext:
+    """认证上下文，替代旧的 TenantContext"""
     def __init__(
         self,
         user_id: int | None,
-        role: str,
         tenant_id: int | None,
         tenant_code: str | None = None,
         is_authenticated: bool = True,
     ):
         self.user_id = user_id
-        self.role = role
         self.tenant_id = tenant_id
         self.tenant_code = tenant_code
         self.is_authenticated = is_authenticated
+        self._roles: list | None = None
+
+    def _load_roles(self, db: Session) -> list:
+        if self._roles is None:
+            if self.user_id is not None and self.tenant_id is not None:
+                self._roles = crud_rbac.get_user_roles(db, self.user_id, self.tenant_id)
+            else:
+                self._roles = []
+        return self._roles
+
+    def has_any_role(self, db: Session) -> bool:
+        return len(self._load_roles(db)) > 0
+
+    def has_platform_admin_role(self, db: Session) -> bool:
+        roles = self._load_roles(db)
+        return any(r.role_id == PLATFORM_ADMIN_ROLE_ID for r in roles)
 
     @property
     def is_platform_admin(self) -> bool:
-        return self.role == "platform_admin"
+        return self.tenant_id is not None and self.tenant_id == 0
+
+    @property
+    def role(self) -> str:
+        """向后兼容：旧代码读 ctx.role"""
+        if self.tenant_id == 0 or self.tenant_id is None:
+            return "platform_admin"
+        return "admin"
+
+
+# 向后兼容别名
+TenantContext = AuthContext
 
 
 def _ensure_tenant_active(db: Session, tenant_id: int) -> str:
-    """确认租户仍然有效，返回租户编码。"""
     tenant = crud_tenant.get_tenant(db, tenant_id)
     if not tenant:
         raise HTTPException(status_code=401, detail="租户不存在或登录已过期")
@@ -56,255 +95,200 @@ def _ensure_tenant_active(db: Session, tenant_id: int) -> str:
     return tenant.code
 
 
-def _ensure_platform_admin_active(db: Session, admin_id: int) -> None:
-    """确认平台管理员仍然有效。"""
-    admin = db.query(PlatformAdmin).filter(
-        PlatformAdmin.id == admin_id,
-        PlatformAdmin.status == 1,
-    ).first()
-    if not admin:
-        raise HTTPException(status_code=401, detail="平台管理员不存在或已禁用")
+# --- PLACEHOLDER_DEPS_CONTINUE ---
 
 
 def get_public_tenant_context(
     tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
     db: Session = Depends(get_db),
-) -> TenantContext:
-    """未登录访问时解析租户上下文。"""
+) -> AuthContext:
     tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
     if not tenant or not crud_tenant.check_tenant_active(db, tenant.id):
         raise HTTPException(status_code=400, detail="租户不存在或已禁用")
-    return TenantContext(
+    return AuthContext(
         user_id=None,
-        role="public",
         tenant_id=tenant.id,
         tenant_code=tenant.code,
         is_authenticated=False,
     )
 
 
-def get_tenant_context(
+def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
-) -> TenantContext:
-    """解析 JWT，返回租户上下文"""
+) -> AuthContext:
+    """任意已登录用户可访问（不检查角色）"""
     payload = _parse_token(credentials)
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
-    
-    role = payload.get("role")
-    if role not in ("admin", "user"):
-        raise HTTPException(status_code=401, detail="无效的登录状态")
-    
-    try:
-        user_id = int(payload["sub"])
-        tenant_id = int(payload["tenant_id"])
-    except (KeyError, ValueError):
-        raise HTTPException(status_code=401, detail="无效的登录状态")
-    
-    tenant_code = _ensure_tenant_active(db, tenant_id)
-    return TenantContext(
+    user_id, tenant_id = _extract_identity(payload)
+    tenant_code = None
+    if tenant_id and tenant_id > 0:
+        tenant_code = _ensure_tenant_active(db, tenant_id)
+    return AuthContext(
         user_id=user_id,
-        role=role,
+        tenant_id=tenant_id,
+        tenant_code=tenant_code,
+    )
+
+
+def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
+) -> AuthContext | None:
+    payload = _parse_token(credentials)
+    if not payload:
+        return None
+    try:
+        user_id, tenant_id = _extract_identity(payload)
+    except HTTPException:
+        return None
+    tenant_code = None
+    if tenant_id and tenant_id > 0:
+        try:
+            tenant_code = _ensure_tenant_active(db, tenant_id)
+        except HTTPException:
+            return None
+    return AuthContext(
+        user_id=user_id,
         tenant_id=tenant_id,
         tenant_code=tenant_code,
     )
 
 
 def get_current_admin(
-    ctx: TenantContext = Depends(get_tenant_context),
-) -> TenantContext:
-    """仅管理员可访问"""
-    if ctx.role != "admin":
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
+) -> AuthContext:
+    """要求当前用户在该租户下有至少一个角色"""
+    payload = _parse_token(credentials)
+    if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
+    user_id, tenant_id = _extract_identity(payload)
+    if not tenant_id or tenant_id <= 0:
+        raise HTTPException(status_code=403, detail="需要租户管理员权限")
+    tenant_code = _ensure_tenant_active(db, tenant_id)
+    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, tenant_code=tenant_code)
+    if not ctx.has_any_role(db):
+        raise HTTPException(status_code=403, detail="该用户没有管理员权限")
+    return ctx
+
+
+# --- PLACEHOLDER_DEPS_CONTINUE2 ---
+
+
+def get_current_admin_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    db: Session = Depends(get_db),
+) -> AuthContext | None:
+    payload = _parse_token(credentials)
+    if not payload:
+        return None
+    try:
+        user_id, tenant_id = _extract_identity(payload)
+    except HTTPException:
+        return None
+    if not tenant_id or tenant_id <= 0:
+        return None
+    try:
+        tenant_code = _ensure_tenant_active(db, tenant_id)
+    except HTTPException:
+        return None
+    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, tenant_code=tenant_code)
+    if not ctx.has_any_role(db):
+        return None
     return ctx
 
 
 def get_current_platform_admin(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
-) -> TenantContext:
-    """仅平台管理员可访问（不绑定租户）"""
+) -> AuthContext:
+    """要求当前用户有平台管理员角色"""
     payload = _parse_token(credentials)
-    if not payload or payload.get("role") != "platform_admin":
+    if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
-    try:
-        user_id = int(payload["sub"])
-    except (KeyError, ValueError):
-        raise HTTPException(status_code=401, detail="无效的登录状态")
-    _ensure_platform_admin_active(db, user_id)
-    return TenantContext(
-        user_id=user_id,
-        role="platform_admin",
-        tenant_id=None,
-        tenant_code=None,
-    )
+    user_id, tenant_id = _extract_identity(payload)
+    if tenant_id != 0:
+        raise HTTPException(status_code=403, detail="需要平台管理员权限")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="用户不存在")
+    ctx = AuthContext(user_id=user_id, tenant_id=0, tenant_code=None)
+    if not ctx.has_platform_admin_role(db):
+        raise HTTPException(status_code=403, detail="需要平台管理员权限")
+    return ctx
 
 
 def get_current_admin_or_platform(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
-) -> TenantContext:
-    """租户管理员或平台管理员均可访问，由业务层继续判断范围。"""
+) -> AuthContext:
+    """租户管理员或平台管理员均可访问"""
     payload = _parse_token(credentials)
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
-    role = payload.get("role")
-    if role == "platform_admin":
-        try:
-            user_id = int(payload["sub"])
-        except (KeyError, ValueError):
-            raise HTTPException(status_code=401, detail="无效的登录状态")
-        _ensure_platform_admin_active(db, user_id)
-        return TenantContext(
-            user_id=user_id,
-            role="platform_admin",
-            tenant_id=None,
-            tenant_code=None,
-        )
-    if role == "admin":
-        try:
-            user_id = int(payload["sub"])
-            tenant_id = int(payload["tenant_id"])
-        except (KeyError, ValueError):
-            raise HTTPException(status_code=401, detail="无效的登录状态")
-        tenant_code = _ensure_tenant_active(db, tenant_id)
-        return TenantContext(
-            user_id=user_id,
-            role="admin",
-            tenant_id=tenant_id,
-            tenant_code=tenant_code,
-        )
-    raise HTTPException(status_code=401, detail="未登录或登录已过期")
-
-
-def get_current_admin_optional(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    db: Session = Depends(get_db),
-) -> TenantContext | None:
-    """可选管理员鉴权"""
-    payload = _parse_token(credentials)
-    if not payload or payload.get("role") != "admin":
-        return None
-    try:
-        user_id = int(payload["sub"])
-        tenant_id = int(payload["tenant_id"])
-        tenant_code = _ensure_tenant_active(db, tenant_id)
-        return TenantContext(
-            user_id=user_id,
-            role="admin",
-            tenant_id=tenant_id,
-            tenant_code=tenant_code,
-        )
-    except (KeyError, ValueError):
-        return None
-
-
-def get_current_user(
-    ctx: TenantContext = Depends(get_tenant_context),
-) -> TenantContext:
-    """任意已登录用户可访问"""
-    return ctx
-
-
-def get_current_user_optional(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
-    db: Session = Depends(get_db),
-) -> TenantContext | None:
-    """可选鉴权"""
-    payload = _parse_token(credentials)
-    if not payload:
-        return None
-    role = payload.get("role")
-    if role not in ("admin", "user"):
-        return None
-    try:
-        user_id = int(payload["sub"])
-        tenant_id = int(payload["tenant_id"])
-        tenant_code = _ensure_tenant_active(db, tenant_id)
-        return TenantContext(
-            user_id=user_id,
-            role=role,
-            tenant_id=tenant_id,
-            tenant_code=tenant_code,
-        )
-    except (KeyError, ValueError):
-        return None
+    user_id, tenant_id = _extract_identity(payload)
+    if tenant_id == 0:
+        ctx = AuthContext(user_id=user_id, tenant_id=0, tenant_code=None)
+        if ctx.has_platform_admin_role(db):
+            return ctx
+        raise HTTPException(status_code=403, detail="需要管理员权限")
+    tenant_code = _ensure_tenant_active(db, tenant_id)
+    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, tenant_code=tenant_code)
+    if ctx.has_any_role(db):
+        return ctx
+    raise HTTPException(status_code=403, detail="需要管理员权限")
 
 
 def require_permission(permission_code: str):
-    """权限检查装饰器（RBAC）"""
     def checker(
         db: Session = Depends(get_db),
-        ctx: TenantContext = Depends(get_current_admin),
-    ) -> TenantContext:
+        ctx: AuthContext = Depends(get_current_admin),
+    ) -> AuthContext:
         if not crud_rbac.has_permission(db, ctx.user_id, permission_code, ctx.tenant_id):
             raise HTTPException(status_code=403, detail=f"缺少权限: {permission_code}")
         return ctx
     return checker
 
 
-def require_activity_permission(permission_code: str, activity_id: int):
-    """活动级别权限检查（RBAC）"""
-    def checker(
-        db: Session = Depends(get_db),
-        ctx: TenantContext = Depends(get_current_admin),
-    ) -> TenantContext:
-        if has_activity_permission(db, ctx, activity_id, permission_code):
-            return ctx
-
-        raise HTTPException(status_code=403, detail=f"无该活动的{permission_code}权限")
-    return checker
-
-
 def require_activity_admin(
     activity_id: int,
     db: Session,
-    ctx: TenantContext,
+    ctx: AuthContext,
     permission_code: str = "participant.view",
-) -> TenantContext:
-    """兼容旧调用方式的活动管理员校验。"""
+) -> AuthContext:
     activity = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
-
     if has_activity_permission(db, ctx, activity_id, permission_code):
         return ctx
-
     raise HTTPException(status_code=403, detail="无权限查看此活动")
 
 
 def has_activity_permission(
     db: Session,
-    ctx: TenantContext,
+    ctx: AuthContext,
     activity_id: int,
     permission_code: str,
 ) -> bool:
-    """按全局、活动类型、单活动三个 scope 校验活动权限。"""
     activity = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
-
     if crud_rbac.has_permission(db, ctx.user_id, permission_code, ctx.tenant_id):
         return True
-
     if activity.activity_type_id and crud_rbac.has_permission(
-        db,
-        ctx.user_id,
-        permission_code,
-        ctx.tenant_id,
-        resource_id=activity.activity_type_id,
-        resource_type="activity_type",
+        db, ctx.user_id, permission_code, ctx.tenant_id,
+        resource_id=activity.activity_type_id, resource_type="activity_type",
     ):
         return True
-
     if crud_rbac.has_permission(
-        db,
-        ctx.user_id,
-        permission_code,
-        ctx.tenant_id,
-        resource_id=activity_id,
-        resource_type="activity",
+        db, ctx.user_id, permission_code, ctx.tenant_id,
+        resource_id=activity_id, resource_type="activity",
     ):
         return True
     return False
+
+
+# 向后兼容：旧代码中 get_tenant_context 的调用
+get_tenant_context = get_current_user

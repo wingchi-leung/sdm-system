@@ -6,6 +6,7 @@
   - 微信支付公钥模式（新商户默认）：配置 WECHAT_PAY_PUBLIC_KEY_PATH + WECHAT_PAY_PUBLIC_KEY_ID
   - 平台证书模式（旧商户）：不配置上述两项，库自动从 /v3/certificates 拉取证书
 """
+import json
 import os
 import time
 import uuid
@@ -112,7 +113,7 @@ class WeChatPayService:
         description: str,
         openid: str,
         expire_minutes: int = 30,
-    ) -> dict[str, Any]:
+    ) -> tuple[int, dict[str, Any]]:
         """
         调用微信统一下单接口。
 
@@ -124,18 +125,20 @@ class WeChatPayService:
             expire_minutes: 订单有效期（分钟）
 
         Returns:
-            微信下单结果，含 prepay_id 等字段
+            (HTTP状态码, 微信下单结果 dict，含 prepay_id 等字段)
         """
         expire_time = (datetime.now() + timedelta(minutes=expire_minutes)).strftime(
             "%Y-%m-%dT%H:%M:%S+08:00"
         )
-        return self._client.pay(
+        code, response_text = self._client.pay(
             description=description,
             out_trade_no=order_no,
             amount={"total": amount, "currency": "CNY"},
             payer={"openid": openid},
             time_expire=expire_time,
         )
+        result = json.loads(response_text) if response_text else {}
+        return code, result
 
     def get_mini_program_payment_params(self, prepay_id: str) -> dict[str, str]:
         """
@@ -151,8 +154,10 @@ class WeChatPayService:
         nonce_str = uuid.uuid4().hex
         package = f"prepay_id={prepay_id}"
         # 签名串格式：appId\ntimeStamp\nnonceStr\npackage\n
-        sign_str = f"{settings.WECHAT_APPID}\n{timestamp}\n{nonce_str}\n{package}\n"
-        signature = self._client.sign(sign_str)
+        # sign() 内部用 '\n'.join(data) + '\n' 拼接，故传入 list
+        signature = self._client.sign(
+            [settings.WECHAT_APPID, timestamp, nonce_str, package]
+        )
         return {
             "appId": settings.WECHAT_APPID,
             "timeStamp": timestamp,
@@ -162,13 +167,17 @@ class WeChatPayService:
             "paySign": signature,
         }
 
-    def query_order(self, order_no: str) -> dict[str, Any]:
+    def query_order(self, order_no: str) -> tuple[int, dict[str, Any]]:
         """查询微信侧订单状态。"""
-        return self._client.query(out_trade_no=order_no)
+        code, response_text = self._client.query(out_trade_no=order_no)
+        result = json.loads(response_text) if response_text else {}
+        return code, result
 
-    def close_order(self, order_no: str) -> dict[str, Any]:
+    def close_order(self, order_no: str) -> tuple[int, dict[str, Any]]:
         """关闭微信侧订单。"""
-        return self._client.close(out_trade_no=order_no)
+        code, response_text = self._client.close(out_trade_no=order_no)
+        result = json.loads(response_text) if response_text else {}
+        return code, result
 
     def decrypt_callback(
         self,

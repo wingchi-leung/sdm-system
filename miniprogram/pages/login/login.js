@@ -165,8 +165,8 @@ Page({
             .then((data) => {
               auth.saveUserToken({
                 accessToken: data.access_token,
-                userId: data.user_id,
-                userName: data.user_name || '微信用户',
+                userId: data.user?.id || data.user_id,
+                userName: data.user?.name || data.user_name || '微信用户',
               });
 
               // 保存首次登录标识
@@ -276,8 +276,8 @@ Page({
     const handleLoginSuccess = (data) => {
       auth.saveUserToken({
         accessToken: data.access_token,
-        userId: data.user_id,
-        userName: data.user_name || '微信用户',
+        userId: data.user?.id || data.user_id,
+        userName: data.user?.name || data.user_name || '微信用户',
       });
       if (data.phone) wx.setStorageSync('wechat_phone', data.phone);
       if (data.is_first_login || data.require_bind_info) {

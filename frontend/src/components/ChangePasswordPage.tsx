@@ -32,7 +32,7 @@ const ChangePasswordPage = () => {
     setLoading(true);
 
     try {
-      const response = await apiRequest(API_PATHS.auth.setAdminPassword, {
+      const response = await apiRequest(API_PATHS.auth.setPassword, {
         method: 'POST',
         body: JSON.stringify({ password }),
       });

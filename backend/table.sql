@@ -341,3 +341,48 @@ CREATE TABLE IF NOT EXISTS `import_template` (
   PRIMARY KEY (`id`),
   KEY `idx_import_template_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='导入模板配置表';
+
+--
+-- 15. 用户凭证表（统一登录凭证，支持多种登录方式）
+--
+CREATE TABLE IF NOT EXISTS `user_credential` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL COMMENT '关联 user.id',
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `credential_type` varchar(32) NOT NULL COMMENT '凭证类型：password / wechat / phone_code',
+  `identifier` varchar(255) NOT NULL COMMENT '登录标识：用户名 / openid / 手机号',
+  `credential_hash` varchar(255) DEFAULT NULL COMMENT '凭证哈希（password 类型存 bcrypt hash）',
+  `must_reset_password` tinyint NOT NULL DEFAULT 0 COMMENT '1=需要改密 0=正常（仅 password 类型有意义）',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '1-正常 0-禁用',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_credential_lookup` (`tenant_id`, `credential_type`, `identifier`),
+  KEY `idx_user_credential_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户凭证表';
+
+--
+-- 16. 用户-租户关联表
+--
+CREATE TABLE IF NOT EXISTS `user_tenant` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL COMMENT '关联 user.id',
+  `tenant_id` int NOT NULL COMMENT '关联 tenant.id',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '1-正常 0-禁用',
+  `joined_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '加入时间',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_tenant` (`user_id`, `tenant_id`),
+  KEY `idx_user_tenant_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户-租户关联表';
+
+-- 平台管理员角色（系统预设）
+INSERT INTO `role` (`id`, `tenant_id`, `name`, `is_system`, `description`) VALUES
+(3, 0, '平台管理员', 1, '跨租户运营管理')
+ON DUPLICATE KEY UPDATE `name` = '平台管理员';
+
+-- 为平台管理员绑定所有权限
+INSERT INTO `role_permission` (`role_id`, `permission_id`)
+SELECT 3, id FROM `permission`
+ON DUPLICATE KEY UPDATE `role_id` = 3;

@@ -1,10 +1,15 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 from functools import lru_cache
 import sys
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+    )
+
     PROJECT_NAME: str = "SDM system"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
@@ -81,10 +86,6 @@ class Settings(BaseSettings):
     COS_BUCKET: Optional[str] = None  # 如: mybucket-1250000000
     COS_REGION: Optional[str] = None  # 如: ap-guangzhou
     COS_CDN_DOMAIN: Optional[str] = None  # CDN加速域名（可选）
-
-    class Config:
-        env_file = ".env"
-
 
 # 默认 JWT 密钥值，用于检测是否配置
 _DEFAULT_JWT_SECRET = "change-me-in-production"

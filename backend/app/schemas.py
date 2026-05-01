@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, func, UniqueConstraint
+from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger, func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
@@ -42,28 +42,6 @@ class ActivityType(BaseModel):
 
 
 # ============================================================
-# 管理员认证表（仅用于登录）
-# ============================================================
-class AdminUser(BaseModel):
-    __tablename__ = "admin_user"
-    tenant_id = Column(Integer, nullable=False, index=True)
-    user_id = Column(Integer, nullable=False, index=True)
-    username = Column(String(64), nullable=False, index=True)
-    password_hash = Column(String(255), default="")
-    must_reset_password = Column(Integer, default=1)  # 1=需要改密 0=已改密
-
-
-# ============================================================
-# 平台管理员认证表（跨租户运营后台使用）
-# ============================================================
-class PlatformAdmin(BaseModel):
-    __tablename__ = "platform_admin"
-    username = Column(String(64), unique=True, nullable=False, index=True)
-    password_hash = Column(String(255), nullable=False)
-    status = Column(Integer, default=1, nullable=False)  # 1-正常 0-禁用
-
-
-# ============================================================
 # 用户表
 # ============================================================
 class User(BaseModel):
@@ -78,14 +56,12 @@ class User(BaseModel):
     identity_type = Column(String(20), nullable=True)
     phone = Column(String(255), index=True)
     email = Column(String(255), nullable=True)
-    password_hash = Column(String(255), nullable=True)
     sex = Column(String(2))
     age = Column(Integer, nullable=True)
     occupation = Column(String(100), nullable=True)
     industry = Column(String(100), nullable=True)
     isblock = Column(Integer, default=0)
     block_reason = Column(String(255), nullable=True)
-    wx_openid = Column(String(64), nullable=True, index=True)
 
 
 # ============================================================
@@ -229,3 +205,34 @@ class ImportTemplate(BaseModel):
     column_mapping = Column(Text, nullable=True)
     # 是否启用
     is_active = Column(Integer, default=1)
+
+
+# ============================================================
+# 用户凭证表（统一登录凭证）
+# ============================================================
+class UserCredential(BaseModel):
+    __tablename__ = "user_credential"
+    __table_args__ = (
+        UniqueConstraint('tenant_id', 'credential_type', 'identifier', name='uk_credential_lookup'),
+    )
+    user_id = Column(Integer, nullable=False, index=True)
+    tenant_id = Column(Integer, nullable=False, index=True)
+    credential_type = Column(String(32), nullable=False)
+    identifier = Column(String(255), nullable=False)
+    credential_hash = Column(String(255), nullable=True)
+    must_reset_password = Column(SmallInteger, default=0, nullable=False)
+    status = Column(SmallInteger, default=1, nullable=False)
+
+
+# ============================================================
+# 用户-租户关联表
+# ============================================================
+class UserTenant(BaseModel):
+    __tablename__ = "user_tenant"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'tenant_id', name='uk_user_tenant'),
+    )
+    user_id = Column(Integer, nullable=False, index=True)
+    tenant_id = Column(Integer, nullable=False, index=True)
+    status = Column(SmallInteger, default=1, nullable=False)
+    joined_at = Column(DateTime, default=func.now())

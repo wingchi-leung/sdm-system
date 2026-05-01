@@ -100,14 +100,14 @@ function getUnstartedActivities() {
   });
 }
 
-/** 管理员登录 */
+/** 管理员登录（统一密码登录） */
 function adminLogin(username, password) {
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${baseUrl}/auth/login`,
       method: 'POST',
       header: getHeader(),
-      data: { username, password, tenant_code: getTenantCode() },
+      data: { identifier: username, password, tenant_code: getTenantCode() },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -117,14 +117,14 @@ function adminLogin(username, password) {
   });
 }
 
-/** 普通用户登录 */
+/** 普通用户登录（统一密码登录） */
 function userLogin(phone, password) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/auth/user-login`,
+      url: `${baseUrl}/auth/login`,
       method: 'POST',
       header: getHeader(),
-      data: { phone, password, tenant_code: getTenantCode() },
+      data: { identifier: phone, password, tenant_code: getTenantCode() },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -253,10 +253,10 @@ function createActivity({
 function wechatLogin(code) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/auth/wechat-login`,
+      url: `${baseUrl}/auth/wechat`,
       method: 'POST',
       header: getHeader(),
-      data: { code: code || '', tenant_code: getTenantCode() },
+      data: { code: code || '', tenant_code: getTenantCode(), mode: 'openid' },
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -455,11 +455,11 @@ function checkBindStatus() {
 
 /** 手机号授权登录：传入 getPhoneNumber 返回的 code 和 wx.login 返回的 login_code */
 function phoneLogin(code, loginCode) {
-  const data = { code: code || '', tenant_code: getTenantCode() };
+  const data = { code: code || '', tenant_code: getTenantCode(), mode: 'phone' };
   if (loginCode) data.login_code = loginCode;
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/auth/phone-login`,
+      url: `${baseUrl}/auth/wechat`,
       method: 'POST',
       header: getHeader(),
       data,

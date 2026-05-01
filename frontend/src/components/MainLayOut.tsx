@@ -12,25 +12,33 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { clearToken, getAuthRole, getTenantName, isAuthenticated } from '../lib/auth';
+import { clearToken, getIsSuperAdmin, getPermissions, getTenantName, isAuthenticated, isPlatformAdmin } from '../lib/auth';
 import { cn } from '../lib/utils';
 
-const menuGroups = [
+interface MenuItem {
+  href: string;
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  requiredPermission?: string;
+  requiredSuperAdmin?: boolean;
+}
+
+const menuGroups: { label: string; items: MenuItem[] }[] = [
   {
     label: '主工作流',
     items: [
-      { href: '/dashboard', title: '工作台', icon: LayoutDashboard },
+      { href: '/dashboard', title: '工作台', icon: LayoutDashboard, requiredSuperAdmin: true },
       { href: '/activities', title: '活动管理', icon: CalendarRange },
       { href: '/enrollments', title: '报名与签到', icon: CreditCard },
-      { href: '/users', title: '用户管理', icon: Users },
+      { href: '/users', title: '用户管理', icon: Users, requiredSuperAdmin: true },
     ],
   },
   {
     label: '平台能力',
     items: [
-      { href: '/permissions', title: '权限与管理员', icon: ShieldCheck },
+      { href: '/permissions', title: '权限与管理员', icon: ShieldCheck, requiredPermission: 'role.manage' },
       { href: '/tenants', title: '租户管理', icon: Building2 },
-      { href: '/reports', title: '数据报表', icon: BarChart3 },
+      { href: '/reports', title: '数据报表', icon: BarChart3, requiredSuperAdmin: true },
       { href: '/settings', title: '系统设置', icon: Settings },
     ],
   },
@@ -47,7 +55,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const authenticated = isAuthenticated();
-  const authRole = getAuthRole();
+  const platformAdmin = isPlatformAdmin();
+  const isSuperAdmin = getIsSuperAdmin();
+  const permissions = getPermissions();
 
   if (!authenticated || location.pathname === '/login') {
     return <div className="min-h-screen bg-slate-100">{children}</div>;
@@ -73,7 +83,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               <p className="px-3 text-xs text-slate-400">{group.label}</p>
               <div className="mt-2 space-y-1">
                 {group.items
-                  .filter((item) => authRole === 'admin' || item.href === '/tenants')
+                  .filter((item) => {
+                    if (platformAdmin) return true;
+                    if (item.href === '/tenants') return false;
+                    if (item.requiredSuperAdmin && !isSuperAdmin) return false;
+                    if (!item.requiredPermission) return true;
+                    return permissions.includes(item.requiredPermission);
+                  })
                   .map((item) => {
                   const Icon = item.icon;
                   const active = location.pathname === item.href || location.pathname.startsWith(`${item.href}/`);

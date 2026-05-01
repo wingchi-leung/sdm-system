@@ -130,3 +130,4 @@ temp/
 # ========== 其他 ==========
 *.bak
 *.orig
+.env.example
