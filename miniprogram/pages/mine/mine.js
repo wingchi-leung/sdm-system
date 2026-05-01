@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 
 Page({
@@ -39,13 +40,13 @@ Page({
         api.getUserProfile(),
         api.getMyParticipantActivities(),
       ])
-        .then(([profile, registrations]) => {
+        .then(async ([profile, registrations]) => {
           this.setData({
             view: 'user',
             profile,
             userName: auth.getUserName(),
             adminProfile: null,
-            myActivities: this.buildMyActivities(registrations.items || []),
+            myActivities: await this.buildMyActivities(registrations.items || []),
             loading: false,
           });
         })
@@ -78,13 +79,13 @@ Page({
     };
   },
 
-  buildMyActivities(items) {
-    return (items || []).map((item) => ({
+  async buildMyActivities(items) {
+    const mappedItems = (items || []).map((item) => ({
       ...item,
-      poster_url: api.getImageUrl(item.poster_url),
       start_time_display: this.formatTime(item.start_time),
       enroll_status_text: item.enroll_status === 2 ? '候补中' : '已报名',
     }));
+    return image.resolveActivityPosters(mappedItems);
   },
 
   formatTime(iso) {

@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 
 // 分页配置
@@ -41,11 +42,8 @@ Page({
   },
 
   // 处理活动数据，转换图片URL
-  processActivities(items) {
-    return (items || []).map(item => ({
-      ...item,
-      poster_url: api.getImageUrl(item.poster_url),
-    }));
+  async processActivities(items) {
+    return image.resolveActivityPosters(items || []);
   },
 
   // 刷新列表
@@ -53,7 +51,7 @@ Page({
     this._isLoaded = true;
     try {
       const result = await api.getActivities({ skip: 0, limit: PAGE_SIZE });
-      const activities = this.processActivities(result.items);
+      const activities = await this.processActivities(result.items);
       this.setData({
         activities: activities,
         hasMore: (result.items || []).length >= PAGE_SIZE,
@@ -81,7 +79,7 @@ Page({
     this.setData({ loadingMore: true });
     try {
       const result = await api.getActivities({ skip: this.data.skip, limit: PAGE_SIZE });
-      const newItems = this.processActivities(result.items);
+      const newItems = await this.processActivities(result.items);
       this.setData({
         activities: [...this.data.activities, ...newItems],
         hasMore: newItems.length >= PAGE_SIZE,

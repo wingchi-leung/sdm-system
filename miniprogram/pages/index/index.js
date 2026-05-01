@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 
 /** 把接口/网络错误转成可读文案，避免显示 [object Object] */
@@ -55,7 +56,7 @@ Page({
       tasks.push(api.getMyParticipantActivities());
     }
     return Promise.all(tasks)
-      .then(([res, registrationRes]) => {
+      .then(async ([res, registrationRes]) => {
         const registrationMap = {};
         (registrationRes?.items || []).forEach((item) => {
           registrationMap[item.id] = item;
@@ -65,7 +66,6 @@ Page({
           const registration = registrationMap[a.id];
           return {
             ...a,
-            poster_url: api.getImageUrl(a.poster_url),
             start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
             status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
             date_day: dateDisplay.day,
@@ -76,6 +76,7 @@ Page({
               : '',
           };
         });
+        items = await image.resolveActivityPosters(items);
         if (auth.isActivityTypeAdmin()) {
           items = items.filter((a) => auth.canManageActivityType(a));
         }

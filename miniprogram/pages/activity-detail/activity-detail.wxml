@@ -16,7 +16,7 @@
   <view wx:elif="{{activity}}" class="content">
     <!-- 活动海报 -->
     <view class="poster-section">
-      <image wx:if="{{activity.poster_url}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFill" />
+      <image wx:if="{{activity.poster_url && !posterLoadFailed}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFill" bindload="onPosterLoad" binderror="onPosterError" />
       <view wx:else class="poster-fallback">暂无海报</view>
     </view>
 

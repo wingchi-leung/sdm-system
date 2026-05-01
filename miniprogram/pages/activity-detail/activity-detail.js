@@ -1,11 +1,13 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
+const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 
 Page({
   data: {
     activityId: null,
     activity: null,
+    posterLoadFailed: false,
     canEnroll: false,
     hasRegistered: false,
     registrationStatusText: '',
@@ -52,14 +54,14 @@ Page({
   },
 
   loadActivity(activityId) {
-    this.setData({ loading: true, error: null });
+    this.setData({ loading: true, error: null, posterLoadFailed: false });
     const tasks = [api.getActivity(activityId)];
     if (auth.isUser()) {
       tasks.push(api.getMyParticipantActivities(activityId));
     }
 
     Promise.all(tasks)
-      .then(([activity, registrationRes]) => {
+      .then(async ([activity, registrationRes]) => {
         const registration = registrationRes && registrationRes.items && registrationRes.items[0]
           ? registrationRes.items[0]
           : null;
@@ -82,10 +84,12 @@ Page({
           actionTipText = '活动已结束，无法报名';
         }
 
+        const posterUrl = await image.resolveDisplayUrl(activity.poster_url);
+
         this.setData({
           activity: {
             ...activity,
-            poster_url: api.getImageUrl(activity.poster_url),
+            poster_url: posterUrl,
             status_text: statusText,
             start_display: startDisplay,
             end_display: endDisplay,
@@ -107,6 +111,28 @@ Page({
         });
         wx.showToast({ title: '加载失败', icon: 'none' });
       });
+  },
+
+  onPosterLoad() {
+    if (this.data.posterLoadFailed) {
+      this.setData({ posterLoadFailed: false });
+    }
+  },
+
+  onPosterError(e) {
+    const posterUrl = this.data.activity && this.data.activity.poster_url
+      ? this.data.activity.poster_url
+      : '';
+    console.error('活动海报加载失败', {
+      posterUrl,
+      detail: e && e.detail ? e.detail : null,
+    });
+    this.setData({ posterLoadFailed: true });
+    wx.showToast({
+      title: '海报加载失败，请检查图片域名配置',
+      icon: 'none',
+      duration: 2500,
+    });
   },
 
   formatTime(iso) {
