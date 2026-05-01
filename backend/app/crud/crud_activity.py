@@ -160,9 +160,12 @@ def update_activity(
                 t = crud_activity_type.get_or_create_by_name(db, type_name.strip(), tenant_id)
                 update_data["activity_type_id"] = t.id
 
+        nullable_fields = {"tag", "end_time", "poster_url", "location", "max_participants"}
+
         for field, value in update_data.items():
-            if value is not None:
-                setattr(db_activity, field, value)
+            if value is None and field not in nullable_fields:
+                continue
+            setattr(db_activity, field, value)
 
         db_activity.update_time = datetime.now()
         db.commit()

@@ -217,6 +217,17 @@ class TestActivityCRUD:
         )
         assert updated.activity_type_id is not None
 
+    def test_update_activity_can_clear_poster_url(self, db_session: Session):
+        """测试更新时可以清空海报地址"""
+        activity = ActivityFactory(poster_url="http://example.com/uploads/posters/old.jpg")
+        db_session.commit()
+
+        update_data = ActivityUpdate(poster_url=None)
+        updated = update_activity(
+            db_session, activity.id, update_data, tenant_id=1
+        )
+        assert updated.poster_url is None
+
     def test_update_activity_not_found(self, db_session: Session):
         """测试更新不存在的活动"""
         update_data = ActivityUpdate(activity_name="新名称")

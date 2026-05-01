@@ -141,6 +141,7 @@ Page({
         }
         this.setData({
           posterLocalPath: tempFile.tempFilePath,
+          error: null,
         });
       },
       fail: () => {
@@ -216,6 +217,11 @@ Page({
       }
 
       const result = await api.updateActivity(id, updateData);
+      this.setData({
+        posterUrl: api.getImageUrl(result.poster_url) || '',
+        posterLocalPath: '',
+        submitting: false,
+      });
       wx.showToast({ title: '更新成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1000);
     } catch (err) {

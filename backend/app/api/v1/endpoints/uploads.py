@@ -2,7 +2,9 @@
 import os
 import uuid
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+
 from app.api import deps
 from app.core.config import settings
 from app.storage import get_storage
@@ -14,14 +16,34 @@ storage = get_storage()
 
 
 def _validate_image(file: UploadFile) -> None:
-    """验证图片文件"""
-    # 检查文件类型
-    allowed_types = settings.ALLOWED_POSTER_TYPES.split(",")
-    content_type = file.content_type or ""
-    if content_type not in allowed_types:
+    """验证图片文件。
+
+    微信真机上传时 content_type 可能为空或被设置成 application/octet-stream，
+    因此这里同时兼容文件扩展名校验，避免真机图片被误判。
+    """
+    allowed_types = {
+        item.strip().lower()
+        for item in settings.ALLOWED_POSTER_TYPES.split(",")
+        if item.strip()
+    }
+    allowed_extensions = {".png", ".jpg", ".jpeg"}
+
+    content_type = (file.content_type or "").strip().lower()
+    extension = os.path.splitext(file.filename or "")[1].lower()
+
+    content_type_allowed = not content_type or content_type in allowed_types or content_type == "application/octet-stream"
+    extension_allowed = extension in allowed_extensions
+
+    if not extension_allowed and not content_type_allowed:
         raise HTTPException(
             status_code=400,
             detail="不支持的文件类型，仅支持 PNG 和 JPG 格式"
+        )
+
+    if extension and not extension_allowed:
+        raise HTTPException(
+            status_code=400,
+            detail="不支持的文件扩展名，仅支持 PNG 和 JPG 格式"
         )
 
 

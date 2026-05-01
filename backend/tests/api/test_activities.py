@@ -249,6 +249,31 @@ class TestActivityUpdate:
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    def test_update_activity_poster_url(self, client, super_admin_token, sample_activity):
+        """测试更新活动海报地址"""
+        response = client.put(
+            f"/api/v1/activities/{sample_activity.id}",
+            headers=auth_headers(super_admin_token),
+            json={"poster_url": "http://example.com/uploads/posters/new-poster.jpg"}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["poster_url"] == "http://example.com/uploads/posters/new-poster.jpg"
+
+    def test_clear_activity_poster_url(self, client, super_admin_token, sample_activity, db_session):
+        """测试可以清空活动海报地址"""
+        sample_activity.poster_url = "http://example.com/uploads/posters/old-poster.jpg"
+        db_session.commit()
+
+        response = client.put(
+            f"/api/v1/activities/{sample_activity.id}",
+            headers=auth_headers(super_admin_token),
+            json={"poster_url": None}
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["poster_url"] is None
+
 
 @pytest.mark.api
 class TestActivityStatus:
