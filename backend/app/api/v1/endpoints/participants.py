@@ -123,3 +123,22 @@ def get_activity_participants(
         limit=limit
     )
     return {"items": participants, "total": total}
+
+
+@router.get("/me/activities", response_model=participant.ParticipantActivityListResponse)
+def get_my_participant_activities(
+    activity_id: int | None = Query(default=None, ge=1),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """获取当前登录用户报名过的活动列表。"""
+    if ctx.role == "admin":
+        raise HTTPException(status_code=403, detail="管理员账号没有报名活动")
+
+    items, total = crud_participant.get_user_participant_activities(
+        db,
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        activity_id=activity_id,
+    )
+    return {"items": items, "total": total}

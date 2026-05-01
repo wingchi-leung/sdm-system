@@ -307,6 +307,26 @@ function getEnrollmentInfo(activityId) {
   });
 }
 
+/** 获取当前用户报名过的活动 */
+function getMyParticipantActivities(activityId) {
+  let url = `${baseUrl}/participants/me/activities`;
+  if (activityId != null) {
+    url += `?activity_id=${encodeURIComponent(activityId)}`;
+  }
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 更新活动信息 */
 function updateActivity(activityId, data) {
   return new Promise((resolve, reject) => {
@@ -546,16 +566,22 @@ function uploadPoster(filePath) {
         'Authorization': `Bearer ${token}`,
       },
       success: (res) => {
+        let data = null;
+        if (typeof res.data === 'string') {
+          try {
+            data = JSON.parse(res.data);
+          } catch (e) {
+            reject(new ApiError(res.statusCode, '服务器返回格式异常'));
+            return;
+          }
+        } else {
+          data = res.data;
+        }
+
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          const data = JSON.parse(res.data);
           resolve(data);
         } else {
-          try {
-            const data = JSON.parse(res.data);
-            reject(new ApiError(res.statusCode, data.detail || '上传失败'));
-          } catch (e) {
-            reject(new ApiError(res.statusCode, '上传失败'));
-          }
+          reject(new ApiError(res.statusCode, data?.detail || data?.message || '上传失败'));
         }
       },
       fail: (err) => reject(err),
@@ -617,6 +643,7 @@ module.exports = {
   phoneLogin,
   getActivity,
   getEnrollmentInfo,
+  getMyParticipantActivities,
   updateActivity,
   deleteActivity,
   getActivityParticipants,

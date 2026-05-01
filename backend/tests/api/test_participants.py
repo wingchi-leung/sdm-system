@@ -291,6 +291,96 @@ class TestParticipantRetrieval:
         data = response.json()
         assert data.get("total", 0) == 0
 
+    def test_get_my_participant_activities(
+        self,
+        client,
+        user_token,
+        sample_user,
+        sample_activity,
+        db_session,
+    ):
+        """测试普通用户可查看自己的报名活动"""
+        from app.schemas import ActivityParticipant
+
+        db_session.add(
+            ActivityParticipant(
+                tenant_id=sample_user.tenant_id,
+                activity_id=sample_activity.id,
+                user_id=sample_user.id,
+                participant_name=sample_user.name,
+                phone=sample_user.phone,
+                identity_number=sample_user.identity_number,
+                enroll_status=1,
+            )
+        )
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/participants/me/activities",
+            headers=auth_headers(user_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["id"] == sample_activity.id
+        assert data["items"][0]["enroll_status"] == 1
+
+    def test_get_my_participant_activities_can_filter_by_activity(
+        self,
+        client,
+        user_token,
+        sample_user,
+        sample_activity,
+        active_activity,
+        db_session,
+    ):
+        """测试可按活动过滤当前用户报名记录"""
+        from app.schemas import ActivityParticipant
+
+        db_session.add_all([
+            ActivityParticipant(
+                tenant_id=sample_user.tenant_id,
+                activity_id=sample_activity.id,
+                user_id=sample_user.id,
+                participant_name=sample_user.name,
+                phone=sample_user.phone,
+                identity_number=sample_user.identity_number,
+                enroll_status=1,
+            ),
+            ActivityParticipant(
+                tenant_id=sample_user.tenant_id,
+                activity_id=active_activity.id,
+                user_id=sample_user.id,
+                participant_name=sample_user.name,
+                phone=sample_user.phone,
+                identity_number="110101199001019999",
+                enroll_status=2,
+            ),
+        ])
+        db_session.commit()
+
+        response = client.get(
+            f"/api/v1/participants/me/activities?activity_id={active_activity.id}",
+            headers=auth_headers(user_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["id"] == active_activity.id
+        assert data["items"][0]["enroll_status"] == 2
+
+    def test_admin_cannot_get_my_participant_activities(
+        self,
+        client,
+        super_admin_token,
+    ):
+        """测试管理员不能查看自己的报名活动列表"""
+        response = client.get(
+            "/api/v1/participants/me/activities",
+            headers=auth_headers(super_admin_token),
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
 
 @pytest.mark.api
 class TestParticipantManagement:

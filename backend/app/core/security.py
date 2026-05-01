@@ -32,12 +32,19 @@ def verify_password(plain: str, hashed: str) -> bool:
     return pwd_context.verify(plain, hashed)
 
 
-def create_access_token(sub: str | int, tenant_id: int | None = None, **_kw) -> str:
+def create_access_token(
+    sub: str | int,
+    tenant_id: int | None = None,
+    role: str = "user",
+    **_kw,
+) -> str:
     """生成 JWT。tid=0 或 None 表示平台级用户。"""
     expire = datetime.utcnow() + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
     payload = {
         "sub": str(sub),
         "tid": tenant_id if tenant_id else 0,
+        "tenant_id": tenant_id if tenant_id else 0,
+        "role": role,
         "exp": expire,
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)

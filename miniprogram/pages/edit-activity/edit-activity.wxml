@@ -10,6 +10,11 @@
       <input class="input" value="{{activityTypeName}}" bindinput="onTypeNameInput" placeholder="请输入活动类型" placeholder-class="input-placeholder" />
     </view>
 
+    <view class="field">
+      <text class="field-label">活动标签</text>
+      <input class="input" value="{{tag}}" bindinput="onTagInput" placeholder="默认跟活动类型一致，可手动修改" placeholder-class="input-placeholder" />
+    </view>
+
     <!-- 活动海报 -->
     <view class="field">
       <text class="field-label">活动海报</text>

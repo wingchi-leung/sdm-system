@@ -46,11 +46,13 @@ class AuthContext:
         self,
         user_id: int | None,
         tenant_id: int | None,
+        role: str = "user",
         tenant_code: str | None = None,
         is_authenticated: bool = True,
     ):
         self.user_id = user_id
         self.tenant_id = tenant_id
+        self._role = role
         self.tenant_code = tenant_code
         self.is_authenticated = is_authenticated
         self._roles: list | None = None
@@ -79,7 +81,7 @@ class AuthContext:
         """向后兼容：旧代码读 ctx.role"""
         if self.tenant_id == 0 or self.tenant_id is None:
             return "platform_admin"
-        return "admin"
+        return self._role
 
 
 # 向后兼容别名
@@ -108,6 +110,7 @@ def get_public_tenant_context(
     return AuthContext(
         user_id=None,
         tenant_id=tenant.id,
+        role="public",
         tenant_code=tenant.code,
         is_authenticated=False,
     )
@@ -122,12 +125,14 @@ def get_current_user(
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     user_id, tenant_id = _extract_identity(payload)
+    role = payload.get("role", "user")
     tenant_code = None
     if tenant_id and tenant_id > 0:
         tenant_code = _ensure_tenant_active(db, tenant_id)
     return AuthContext(
         user_id=user_id,
         tenant_id=tenant_id,
+        role=role,
         tenant_code=tenant_code,
     )
 
@@ -143,6 +148,7 @@ def get_current_user_optional(
         user_id, tenant_id = _extract_identity(payload)
     except HTTPException:
         return None
+    role = payload.get("role", "user")
     tenant_code = None
     if tenant_id and tenant_id > 0:
         try:
@@ -152,6 +158,7 @@ def get_current_user_optional(
     return AuthContext(
         user_id=user_id,
         tenant_id=tenant_id,
+        role=role,
         tenant_code=tenant_code,
     )
 
@@ -167,8 +174,11 @@ def get_current_admin(
     user_id, tenant_id = _extract_identity(payload)
     if not tenant_id or tenant_id <= 0:
         raise HTTPException(status_code=403, detail="需要租户管理员权限")
+    role = payload.get("role", "user")
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="该用户没有管理员权限")
     tenant_code = _ensure_tenant_active(db, tenant_id)
-    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, tenant_code=tenant_code)
+    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, role=role, tenant_code=tenant_code)
     if not ctx.has_any_role(db):
         raise HTTPException(status_code=403, detail="该用户没有管理员权限")
     return ctx
@@ -190,11 +200,14 @@ def get_current_admin_optional(
         return None
     if not tenant_id or tenant_id <= 0:
         return None
+    role = payload.get("role", "user")
+    if role != "admin":
+        return None
     try:
         tenant_code = _ensure_tenant_active(db, tenant_id)
     except HTTPException:
         return None
-    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, tenant_code=tenant_code)
+    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, role=role, tenant_code=tenant_code)
     if not ctx.has_any_role(db):
         return None
     return ctx
@@ -230,12 +243,15 @@ def get_current_admin_or_platform(
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     user_id, tenant_id = _extract_identity(payload)
     if tenant_id == 0:
-        ctx = AuthContext(user_id=user_id, tenant_id=0, tenant_code=None)
+        ctx = AuthContext(user_id=user_id, tenant_id=0, role="admin", tenant_code=None)
         if ctx.has_platform_admin_role(db):
             return ctx
         raise HTTPException(status_code=403, detail="需要管理员权限")
+    role = payload.get("role", "user")
+    if role != "admin":
+        raise HTTPException(status_code=403, detail="需要管理员权限")
     tenant_code = _ensure_tenant_active(db, tenant_id)
-    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, tenant_code=tenant_code)
+    ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, role=role, tenant_code=tenant_code)
     if ctx.has_any_role(db):
         return ctx
     raise HTTPException(status_code=403, detail="需要管理员权限")

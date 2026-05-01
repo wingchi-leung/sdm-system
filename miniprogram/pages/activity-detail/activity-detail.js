@@ -7,6 +7,9 @@ Page({
     activityId: null,
     activity: null,
     canEnroll: false,
+    hasRegistered: false,
+    registrationStatusText: '',
+    actionTipText: '',
     isAdmin: false,
     showAdminPanel: false,
     loading: true,
@@ -50,9 +53,17 @@ Page({
 
   loadActivity(activityId) {
     this.setData({ loading: true, error: null });
+    const tasks = [api.getActivity(activityId)];
+    if (auth.isUser()) {
+      tasks.push(api.getMyParticipantActivities(activityId));
+    }
 
-    api.getActivity(activityId)
-      .then((activity) => {
+    Promise.all(tasks)
+      .then(([activity, registrationRes]) => {
+        const registration = registrationRes && registrationRes.items && registrationRes.items[0]
+          ? registrationRes.items[0]
+          : null;
+        const hasRegistered = !!registration;
         const canEnroll = activity.status === 1 || activity.status === 2;
         const showAdminPanel = auth.canManageActivityType({
           id: activity.activity_type_id,
@@ -62,6 +73,14 @@ Page({
         const statusText = activity.status === 1 ? '未开始' : activity.status === 2 ? '进行中' : '已结束';
         const startDisplay = activity.start_time ? this.formatTime(activity.start_time) : '';
         const endDisplay = activity.end_time ? this.formatTime(activity.end_time) : '';
+        let actionTipText = '';
+        if (hasRegistered) {
+          actionTipText = registration.enroll_status === 2 ? '您已在候补中' : '您已报名该活动';
+        } else if (auth.isAdmin()) {
+          actionTipText = '管理员账号不可直接报名';
+        } else if (!canEnroll) {
+          actionTipText = '活动已结束，无法报名';
+        }
 
         this.setData({
           activity: {
@@ -71,7 +90,12 @@ Page({
             start_display: startDisplay,
             end_display: endDisplay,
           },
-          canEnroll,
+          canEnroll: canEnroll && !hasRegistered && !auth.isAdmin(),
+          hasRegistered,
+          registrationStatusText: hasRegistered
+            ? (registration.enroll_status === 2 ? '候补中' : '已报名')
+            : '',
+          actionTipText,
           showAdminPanel,
           loading: false,
         });

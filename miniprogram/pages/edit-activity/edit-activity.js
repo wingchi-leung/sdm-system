@@ -23,6 +23,7 @@ Page({
   },
 
   onLoad(options) {
+    this.tagTouched = false;
     tenant.applyPageOptions(options);
     if (!auth.isAdmin()) {
       wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
@@ -65,6 +66,7 @@ Page({
         posterUrl: api.getImageUrl(activity.poster_url) || '',
         location: activity.location || '',
       });
+      this.tagTouched = !!(activity.tag || '').trim();
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
     }
@@ -93,7 +95,9 @@ Page({
   },
 
   onTagInput(e) {
-    this.setData({ tag: e.detail.value });
+    const tag = e.detail.value;
+    this.tagTouched = !!(tag || '').trim();
+    this.setData({ tag });
   },
 
   onTypeNameInput(e) {
@@ -139,6 +143,9 @@ Page({
           posterLocalPath: tempFile.tempFilePath,
         });
       },
+      fail: () => {
+        wx.showToast({ title: '未选择海报', icon: 'none' });
+      },
     });
   },
 
@@ -180,19 +187,22 @@ Page({
       let posterUrl = this.data.posterUrl;
       if (this.data.posterLocalPath) {
         try {
+          wx.showLoading({ title: '上传海报中' });
           const uploadResult = await api.uploadPoster(this.data.posterLocalPath);
           posterUrl = uploadResult.url;
         } catch (err) {
-          wx.showToast({ title: '海报上传失败', icon: 'none' });
+          wx.showToast({ title: err.message || '海报上传失败', icon: 'none' });
           this.setData({ submitting: false });
           return;
+        } finally {
+          wx.hideLoading();
         }
       }
 
       const updateData = {
         activity_name: activityName.trim(),
         start_time: this.toLocalISOString(startDate, startTime),
-        tag: tag.trim() || null,
+        tag: tag.trim() || activityTypeName.trim() || null,
         poster_url: posterUrl || null,
         location: (location || '').trim() || null,
       };

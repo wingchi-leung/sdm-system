@@ -50,11 +50,19 @@ Page({
 
   load() {
     this.setData({ loading: true, error: null });
-    return api
-      .getEnrollableActivities()
-      .then((res) => {
+    const tasks = [api.getEnrollableActivities()];
+    if (auth.isUser()) {
+      tasks.push(api.getMyParticipantActivities());
+    }
+    return Promise.all(tasks)
+      .then(([res, registrationRes]) => {
+        const registrationMap = {};
+        (registrationRes?.items || []).forEach((item) => {
+          registrationMap[item.id] = item;
+        });
         let items = (res.items || []).map((a) => {
           const dateDisplay = this.formatDateForDisplay(a.start_time);
+          const registration = registrationMap[a.id];
           return {
             ...a,
             poster_url: api.getImageUrl(a.poster_url),
@@ -62,6 +70,10 @@ Page({
             status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
             date_day: dateDisplay.day,
             date_month: dateDisplay.month,
+            has_registered: !!registration,
+            registration_status_text: registration
+              ? (registration.enroll_status === 2 ? '候补中' : '已报名')
+              : '',
           };
         });
         if (auth.isActivityTypeAdmin()) {

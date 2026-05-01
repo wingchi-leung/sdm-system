@@ -226,3 +226,45 @@ def get_participant_by_user(
         ActivityParticipant.user_id == user_id,
         ActivityParticipant.tenant_id == tenant_id,
     ).first()
+
+
+def get_user_participant_activities(
+    db: Session,
+    user_id: int,
+    tenant_id: int,
+    activity_id: int | None = None,
+) -> tuple[list[dict], int]:
+    """获取当前用户报名过的活动列表。"""
+    query = db.query(ActivityParticipant, Activity).join(
+        Activity,
+        (Activity.id == ActivityParticipant.activity_id)
+        & (Activity.tenant_id == ActivityParticipant.tenant_id),
+    ).filter(
+        ActivityParticipant.user_id == user_id,
+        ActivityParticipant.tenant_id == tenant_id,
+    )
+
+    if activity_id is not None:
+        query = query.filter(ActivityParticipant.activity_id == activity_id)
+
+    rows = query.order_by(ActivityParticipant.create_time.desc()).all()
+    items = []
+    for participant, activity in rows:
+        items.append({
+            "id": activity.id,
+            "activity_name": activity.activity_name,
+            "activity_type_id": activity.activity_type_id,
+            "activity_type_name": getattr(activity, "activity_type_name", None),
+            "start_time": activity.start_time,
+            "end_time": activity.end_time,
+            "status": activity.status,
+            "tag": activity.tag,
+            "poster_url": activity.poster_url,
+            "location": activity.location,
+            "enroll_status": participant.enroll_status,
+            "payment_status": participant.payment_status,
+            "paid_amount": participant.paid_amount,
+            "participant_id": participant.id,
+            "participant_create_time": participant.create_time,
+        })
+    return items, len(items)

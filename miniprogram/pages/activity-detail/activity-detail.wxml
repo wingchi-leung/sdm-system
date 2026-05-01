@@ -25,6 +25,9 @@
       <view class="status-badge {{activity.status === 1 ? 'not-started' : (activity.status === 2 ? 'ongoing' : 'ended')}}">
         {{activity.status_text}}
       </view>
+      <view wx:if="{{hasRegistered}}" class="status-badge ongoing">
+        {{registrationStatusText}}
+      </view>
       <text class="activity-title">{{activity.activity_name}}</text>
     </view>
 
@@ -99,7 +102,7 @@
         </button>
       </view>
       <view wx:else class="disabled-tip">
-        <text>活动已结束，无法报名</text>
+        <text>{{actionTipText}}</text>
       </view>
     </view>
   </view>

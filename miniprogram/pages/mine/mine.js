@@ -8,6 +8,7 @@ Page({
     profile: null,
     adminProfile: null,
     loading: true,
+    myActivities: [],
   },
 
   onLoad(options) {
@@ -34,14 +35,17 @@ Page({
     }
     if (auth.isUser()) {
       this.setData({ loading: true });
-      api
-        .getUserProfile()
-        .then((profile) => {
+      Promise.all([
+        api.getUserProfile(),
+        api.getMyParticipantActivities(),
+      ])
+        .then(([profile, registrations]) => {
           this.setData({
             view: 'user',
             profile,
             userName: auth.getUserName(),
             adminProfile: null,
+            myActivities: this.buildMyActivities(registrations.items || []),
             loading: false,
           });
         })
@@ -51,6 +55,7 @@ Page({
             profile: null,
             userName: auth.getUserName(),
             adminProfile: null,
+            myActivities: [],
             loading: false,
           });
         });
@@ -73,6 +78,25 @@ Page({
     };
   },
 
+  buildMyActivities(items) {
+    return (items || []).map((item) => ({
+      ...item,
+      poster_url: api.getImageUrl(item.poster_url),
+      start_time_display: this.formatTime(item.start_time),
+      enroll_status_text: item.enroll_status === 2 ? '候补中' : '已报名',
+    }));
+  },
+
+  formatTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const m = d.getMonth() + 1;
+    const day = d.getDate();
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${m}月${day}日 ${h}:${min}`;
+  },
+
   logout() {
     auth.logout();
     wx.showToast({ title: '已退出', icon: 'none' });
@@ -88,8 +112,14 @@ Page({
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/create-activity/create-activity') });
   },
 
-goActivityList() {
+  goActivityList() {
     wx.switchTab({ url: '/pages/index/index' });
+  },
+
+  goMyActivityDetail(e) {
+    const { id } = e.currentTarget.dataset;
+    if (!id) return;
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', { id }) });
   },
 
   goActivityManage() {

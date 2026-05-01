@@ -186,6 +186,12 @@
   letter-spacing: 0.08em;
 }
 
+.status-tag.status-registered {
+  left: auto;
+  right: 0;
+  background: rgba(46, 125, 50, 0.92);
+}
+
 .status-tag.status-1 {
   background: rgba(107, 114, 128, 0.88);
 }

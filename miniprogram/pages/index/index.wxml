@@ -58,6 +58,9 @@
         <view class="status-tag {{item.status === 1 ? 'status-1' : (item.status === 2 ? 'status-2' : 'status-3')}}">
           {{item.status_text}}
         </view>
+        <view wx:if="{{item.has_registered}}" class="status-tag status-registered">
+          {{item.registration_status_text}}
+        </view>
       </view>
 
       <!-- 内容区 -->

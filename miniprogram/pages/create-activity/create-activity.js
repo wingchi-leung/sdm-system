@@ -4,6 +4,10 @@ const tenant = require('../../utils/tenant');
 
 const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
 
+function getDefaultTagFromType(activityTypeName) {
+  return (activityTypeName || '').trim();
+}
+
 Page({
   data: {
     activityName: '',
@@ -33,6 +37,7 @@ Page({
   },
 
   onLoad(options) {
+    this.tagTouched = false;
     tenant.applyPageOptions(options);
     if (!auth.isAdmin()) {
       wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
@@ -57,6 +62,7 @@ Page({
         activityTypeOptions: allowedTypes,
         activityTypeIndex: 0,
         activityTypeName: initial.name || '',
+        tag: getDefaultTagFromType(initial.name),
       });
       return;
     }
@@ -76,11 +82,18 @@ Page({
   },
 
   onTagInput(e) {
-    this.setData({ tag: e.detail.value, error: null });
+    const tag = e.detail.value;
+    this.tagTouched = !!(tag || '').trim();
+    this.setData({ tag, error: null });
   },
 
   onActivityTypeInput(e) {
-    this.setData({ activityTypeName: e.detail.value, activityTypeIndex: -1, error: null });
+    const activityTypeName = e.detail.value;
+    const nextData = { activityTypeName, activityTypeIndex: -1, error: null };
+    if (!this.tagTouched) {
+      nextData.tag = getDefaultTagFromType(activityTypeName);
+    }
+    this.setData(nextData);
   },
 
   onActivityTypeChange(e) {
@@ -91,6 +104,7 @@ Page({
       activityTypeIndex: idx,
       activityTypeName: selected.name || '',
       error: null,
+      ...(this.tagTouched ? {} : { tag: getDefaultTagFromType(selected.name) }),
     });
   },
 
@@ -172,6 +186,9 @@ Page({
           posterLocalPath: tempFile.tempFilePath,
           error: null,
         });
+      },
+      fail: () => {
+        wx.showToast({ title: '未选择海报', icon: 'none' });
       },
     });
   },
@@ -264,11 +281,14 @@ Page({
       let posterUrl = '';
       if (this.data.posterLocalPath) {
         try {
+          wx.showLoading({ title: '上传海报中' });
           const uploadResult = await api.uploadPoster(this.data.posterLocalPath);
           posterUrl = uploadResult.url;
         } catch (err) {
           this.setData({ error: '海报上传失败: ' + (err.message || '未知错误'), submitting: false });
           return;
+        } finally {
+          wx.hideLoading();
         }
       }
 

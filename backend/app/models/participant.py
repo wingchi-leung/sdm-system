@@ -86,3 +86,26 @@ class ParticipantResponse(ParticipantBase):
 class ParticipantListResponse(BaseModel):
     items: List[ParticipantResponse]
     total: int
+
+
+class ParticipantActivitySummary(BaseModel):
+    id: int
+    activity_name: str
+    activity_type_id: Optional[int] = None
+    activity_type_name: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    status: int
+    tag: Optional[str] = None
+    poster_url: Optional[str] = None
+    location: Optional[str] = None
+    enroll_status: int
+    payment_status: Optional[int] = None
+    paid_amount: Optional[int] = None
+    participant_id: int
+    participant_create_time: datetime
+
+
+class ParticipantActivityListResponse(BaseModel):
+    items: List[ParticipantActivitySummary]
+    total: int
