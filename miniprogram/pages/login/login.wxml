@@ -63,7 +63,7 @@
 
     <view class="hero-header">
       <view class="hero-title-row">
-        <text class="hero-caption">轻启</text>
+        <text class="hero-caption"></text>
       </view>
     </view>
 
