@@ -113,7 +113,7 @@
   box-sizing: border-box;
   border: 1px solid var(--form-border);
   border-radius: 20rpx;
-  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  background: var(--form-surface);
   color: var(--ink);
   font-size: 28rpx;
   letter-spacing: 0.03em;

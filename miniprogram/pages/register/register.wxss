@@ -200,7 +200,7 @@
   height: 96rpx;
   padding: 0 var(--space-md);
   font-size: 30rpx;
-  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  background: var(--form-surface);
   border: 1px solid var(--form-border);
   border-radius: var(--radius-md);
   box-sizing: border-box;
@@ -220,7 +220,7 @@
   min-height: 140rpx;
   padding: var(--space-md);
   font-size: 30rpx;
-  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  background: var(--form-surface);
   border: 1px solid var(--form-border);
   border-radius: var(--radius-md);
   box-sizing: border-box;

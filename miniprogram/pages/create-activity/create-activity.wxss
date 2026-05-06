@@ -96,9 +96,11 @@
 }
 
 .datetime-row .picker-value {
+  display: flex;
+  align-items: center;
   height: 88rpx;
   padding: 0 var(--space-md);
-  line-height: 88rpx;
+  line-height: 40rpx;
   font-size: 26rpx;
   color: var(--text-primary);
   letter-spacing: 0.04em;
@@ -313,9 +315,8 @@
 .switch-row {
   padding: 0 var(--space-md);
   border: 1px solid var(--form-border);
-  border-bottom: 1px solid var(--form-border);
   border-radius: 20rpx;
-  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  background: var(--form-surface);
   box-shadow: var(--form-shadow);
 }
 

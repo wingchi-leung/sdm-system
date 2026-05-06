@@ -58,11 +58,11 @@ page {
   --border-light: #F0F1F0;
   --divider: #EEF0EE;
   --form-surface: #FFFFFF;
-  --form-surface-soft: #FCFCFA;
-  --form-border: rgba(47, 79, 70, 0.10);
-  --form-border-strong: rgba(47, 79, 70, 0.18);
-  --form-shadow: 0 10rpx 32rpx rgba(47, 79, 70, 0.06);
-  --form-shadow-focus: 0 14rpx 40rpx rgba(47, 79, 70, 0.10);
+  --form-surface-soft: #FFFFFF;
+  --form-border: rgba(17, 17, 17, 0.08);
+  --form-border-strong: rgba(47, 79, 70, 0.22);
+  --form-shadow: none;
+  --form-shadow-focus: none;
 
   /* ─────────────────────────────────────────────────────────────
    * 阴影系统 - 柔和精致
