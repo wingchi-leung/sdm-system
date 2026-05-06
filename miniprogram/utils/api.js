@@ -25,6 +25,16 @@ function getImageUrl(url) {
   if (!url) return '';
   // 已经是完整URL，直接返回
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    if (url.startsWith('http://localhost:') || url.startsWith('https://localhost:') || url.startsWith('http://127.0.0.1:') || url.startsWith('https://127.0.0.1:')) {
+      try {
+        const pathStart = url.indexOf('/uploads/');
+        if (pathStart >= 0) {
+          return staticBaseUrl + url.substring(pathStart);
+        }
+      } catch (e) {
+        return url;
+      }
+    }
     return url;
   }
   // 相对路径，拼接静态资源基础URL
@@ -298,6 +308,22 @@ function getEnrollmentInfo(activityId) {
       url: withTenant(`${baseUrl}/activities/${activityId}/enrollment-info`),
       method: 'GET',
       header: getHeader(),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取当前管理员可用于发布活动的活动类型 */
+function getAvailableActivityTypes() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activity-types/available`,
+      method: 'GET',
+      header: getHeader(true),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -631,6 +657,7 @@ module.exports = {
   getImageUrl,
   isUnsafeBaseUrl,
   getActivities,
+  getAvailableActivityTypes,
   getEnrollableActivities,
   getUnstartedActivities,
   adminLogin,

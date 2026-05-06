@@ -141,6 +141,14 @@ Page({
       api
         .adminLogin(account.trim(), password)
         .then((res) => {
+          const authInfo = res && res.auth ? res.auth : {};
+          if (!authInfo.is_admin && !authInfo.is_platform_admin) {
+            this.setData({
+              error: '该账号没有管理员权限',
+              submitting: false,
+            });
+            return;
+          }
           auth.saveAdminToken(res.access_token, res);
           wx.showToast({ title: '登录成功', icon: 'success' });
           setTimeout(() => {

@@ -72,6 +72,18 @@ function getAdminActivityTypes() {
   return normalizeActivityTypes(Array.isArray(list) ? list : []);
 }
 
+function setAdminActivityTypes(list) {
+  const activityTypes = normalizeActivityTypes(list);
+  wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, activityTypes);
+  if (getRole() !== 'admin') return;
+  if (getAdminLevel() === 'super') return;
+  if (activityTypes.length > 0) {
+    wx.setStorageSync(KEY_ADMIN_LEVEL, 'activity_type_admin');
+  } else {
+    wx.removeStorageSync(KEY_ADMIN_LEVEL);
+  }
+}
+
 function isLoggedIn() {
   const t = getToken();
   return t != null && t !== '';
@@ -200,6 +212,7 @@ module.exports = {
   getUserName,
   getAdminLevel,
   getAdminActivityTypes,
+  setAdminActivityTypes,
   isLoggedIn,
   isAdmin,
   isUser,

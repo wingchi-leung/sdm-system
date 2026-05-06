@@ -48,33 +48,70 @@ Page({
     const isTypeAdmin = auth.isActivityTypeAdmin();
     const allowedTypes = auth.getAdminActivityTypes();
 
-    if (isTypeAdmin && allowedTypes.length === 0) {
-      wx.showToast({ title: '当前账号未授权任何活动类型', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
-      return;
-    }
-
-    if (isTypeAdmin) {
-      const initial = allowedTypes[0] || {};
-      this.setData({
-        isSuperAdmin,
-        isTypeAdmin,
-        activityTypeOptions: allowedTypes,
-        activityTypeIndex: 0,
-        activityTypeName: initial.name || '',
-        tag: getDefaultTagFromType(initial.name),
-      });
-      return;
-    }
-
-    // 超级管理员：活动类型由后端已有类型或手动输入决定，不在前端写死业务默认值
     this.setData({
       isSuperAdmin,
       isTypeAdmin,
-      activityTypeOptions: [],
+      activityTypeOptions: allowedTypes,
       activityTypeIndex: -1,
       activityTypeName: '',
     });
+    if (isTypeAdmin && allowedTypes.length > 0) {
+      this.applyActivityTypeOptions(allowedTypes);
+    }
+    this.loadAvailableActivityTypes();
+  },
+
+  normalizeActivityTypeOptions(list) {
+    return (Array.isArray(list) ? list : [])
+      .map((item) => auth.normalizeActivityType(item))
+      .filter((item) => item && item.name);
+  },
+
+  applyActivityTypeOptions(list) {
+    const options = this.normalizeActivityTypeOptions(list);
+    if (this.data.isTypeAdmin) {
+      const initial = options[0] || {};
+      const nextData = {
+        activityTypeOptions: options,
+        activityTypeIndex: options.length > 0 ? 0 : -1,
+        activityTypeName: initial.name || '',
+        error: null,
+      };
+      if (!this.tagTouched) {
+        nextData.tag = getDefaultTagFromType(initial.name);
+      }
+      this.setData(nextData);
+      return;
+    }
+
+    this.setData({
+      activityTypeOptions: options,
+      error: null,
+    });
+  },
+
+  async loadAvailableActivityTypes() {
+    try {
+      const list = await api.getAvailableActivityTypes();
+      const options = this.normalizeActivityTypeOptions(list);
+      auth.setAdminActivityTypes(options);
+      this.applyActivityTypeOptions(options);
+      if (this.data.isTypeAdmin && options.length === 0) {
+        wx.showToast({ title: '当前账号未授权任何活动类型', icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 1500);
+      }
+    } catch (err) {
+      const cachedTypes = auth.getAdminActivityTypes();
+      if (cachedTypes.length > 0) {
+        this.applyActivityTypeOptions(cachedTypes);
+        return;
+      }
+      if (this.data.isTypeAdmin) {
+        const msg = err && err.message ? err.message : '活动类型加载失败';
+        wx.showToast({ title: msg, icon: 'none' });
+        setTimeout(() => wx.navigateBack(), 1500);
+      }
+    }
   },
 
   onNameInput(e) {
