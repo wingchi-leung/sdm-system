@@ -238,8 +238,8 @@ class UserListItemForAdmin(BaseModel):
     industry: str | None = None
     isblock: int = 0
     block_reason: str | None = None
-    create_time: datetime
-    update_time: datetime
+    create_time: datetime | None = None
+    update_time: datetime | None = None
 
     class Config:
         from_attributes = True

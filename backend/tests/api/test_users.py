@@ -3,6 +3,7 @@
 """
 import pytest
 from fastapi import status
+from types import SimpleNamespace
 from tests.conftest import auth_headers
 
 
@@ -326,6 +327,44 @@ class TestUserManagement:
         data = response.json()
         assert "items" in data
         assert data["total"] >= 1
+
+    def test_get_all_users_tolerates_legacy_invalid_timestamps(self, client, super_admin_token, monkeypatch):
+        """测试历史用户脏数据不会导致管理员列表 500"""
+        from app.api.v1.endpoints import users as users_endpoint
+
+        legacy_user = SimpleNamespace(
+            id=99,
+            tenant_id=1,
+            name="历史用户",
+            phone="13800138999",
+            email=None,
+            sex="M",
+            age=None,
+            occupation=None,
+            industry=None,
+            isblock=0,
+            block_reason=None,
+            create_time="0000-00-00 00:00:00",
+            update_time=None,
+        )
+
+        monkeypatch.setattr(
+            users_endpoint.crud_user,
+            "get_all_users_for_super_admin",
+            lambda *args, **kwargs: ([legacy_user], 1),
+        )
+
+        response = client.get(
+            "/api/v1/users/admin/all",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 1
+        assert data["items"][0]["id"] == 99
+        assert data["items"][0]["create_time"] is None
+        assert data["items"][0]["update_time"] is None
 
     def test_get_all_users_rejects_cross_tenant_query(
         self,

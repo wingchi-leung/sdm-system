@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
+from datetime import datetime
 
 from app.crud import crud_user, crud_tenant, crud_rbac
 from app.api import deps
@@ -10,6 +11,39 @@ from app.models.user import ImportTemplateRequest, ImportTemplateResponse, Impor
 from app.schemas import User
 
 router = APIRouter()
+
+
+def _normalize_admin_user_list_time(value) -> datetime | None:
+    """兼容历史脏数据，避免时间字段异常导致整页 500。"""
+    if value in (None, "", "0000-00-00 00:00:00"):
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+    return None
+
+
+def _serialize_admin_user_list_item(db_user: User) -> user.UserListItemForAdmin:
+    """手动组装响应，兼容线上历史数据中的空时间或异常值。"""
+    return user.UserListItemForAdmin(
+        id=db_user.id,
+        tenant_id=db_user.tenant_id,
+        name=db_user.name,
+        phone=db_user.phone,
+        email=db_user.email,
+        sex=db_user.sex,
+        age=db_user.age,
+        occupation=db_user.occupation,
+        industry=db_user.industry,
+        isblock=db_user.isblock or 0,
+        block_reason=db_user.block_reason,
+        create_time=_normalize_admin_user_list_time(getattr(db_user, "create_time", None)),
+        update_time=_normalize_admin_user_list_time(getattr(db_user, "update_time", None)),
+    )
 
 
 @router.post("/register", response_model=user.UserResponse)
@@ -116,7 +150,7 @@ def get_all_users_for_super_admin(
     )
 
     return user.UserListForAdminResponse(
-        items=[user.UserListItemForAdmin.model_validate(u) for u in users],
+        items=[_serialize_admin_user_list_item(u) for u in users],
         total=total,
         skip=skip,
         limit=limit,
