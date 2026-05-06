@@ -182,12 +182,12 @@
 
 .field-label {
   display: block;
-  font-size: 22rpx;
-  color: var(--text-tertiary);
-  margin-bottom: var(--space-sm);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 14rpx;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-transform: none;
 }
 
 .field-label.required::before {
@@ -200,18 +200,19 @@
   height: 96rpx;
   padding: 0 var(--space-md);
   font-size: 30rpx;
-  background: var(--background-warm);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  border: 1px solid var(--form-border);
   border-radius: var(--radius-md);
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
+  box-shadow: var(--form-shadow);
 }
 
 .input:focus {
-  border-color: var(--accent);
-  box-shadow: none;
+  border-color: var(--form-border-strong);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .textarea {
@@ -219,19 +220,20 @@
   min-height: 140rpx;
   padding: var(--space-md);
   font-size: 30rpx;
-  background: var(--background-warm);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  border: 1px solid var(--form-border);
   border-radius: var(--radius-md);
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
   letter-spacing: 0.02em;
   line-height: 1.6;
+  box-shadow: var(--form-shadow);
 }
 
 .textarea:focus {
-  border-color: var(--accent);
-  box-shadow: none;
+  border-color: var(--form-border-strong);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .input-placeholder {
@@ -391,15 +393,7 @@
 
 .input,
 .textarea {
-  border: none;
-  border-radius: 6rpx;
-  background: #F8F8F6;
-}
-
-.input:focus,
-.textarea:focus {
-  border-color: transparent;
-  box-shadow: none;
+  border-radius: 20rpx;
 }
 
 /* Product UI refinement：报名页规格统一 */
@@ -439,7 +433,7 @@
 
 .input,
 .textarea {
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   font-size: 28rpx;
   line-height: 40rpx;
   letter-spacing: 0.4rpx;

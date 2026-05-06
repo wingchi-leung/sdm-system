@@ -55,12 +55,12 @@
 
 .field-label {
   display: block;
-  font-size: 22rpx;
-  color: var(--text-muted);
-  margin-bottom: var(--space-sm);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 14rpx;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-transform: none;
 }
 
 .field-label::after {
@@ -74,20 +74,21 @@
 .input {
   width: 100%;
   height: 88rpx;
-  padding: 0 0;
+  padding: 0 var(--space-md);
   font-size: 28rpx;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  border: 1px solid var(--form-border);
+  border-radius: 20rpx;
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
   letter-spacing: 0.04em;
+  box-shadow: var(--form-shadow);
 }
 
 .input:focus {
-  border-bottom-color: var(--text-primary);
+  border-color: var(--form-border-strong);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .input-placeholder {
@@ -102,13 +103,17 @@
   align-items: center;
   justify-content: space-between;
   height: 88rpx;
-  padding: 0 0;
-  border-bottom: 1px solid var(--border);
+  padding: 0 var(--space-md);
+  border: 1px solid var(--form-border);
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
   transition: all 0.3s ease;
+  box-shadow: var(--form-shadow);
 }
 
 .picker-field:active {
-  opacity: 0.6;
+  border-color: var(--form-border-strong);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .picker-text {
@@ -177,15 +182,8 @@
 }
 
 .input,
-.picker-value {
-  padding: 0 var(--space-md);
-  border-bottom: none;
-  border-radius: 6rpx;
-  background: #F8F8F6;
-}
-
-.input:focus {
-  border-bottom-color: transparent;
+.picker-field {
+  border-radius: 20rpx;
 }
 
 /* Product UI refinement：资料页规格统一 */
@@ -222,9 +220,9 @@
 }
 
 .input,
-.picker-value {
+.picker-field {
   height: 88rpx;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   font-size: 28rpx;
   line-height: 40rpx;
   letter-spacing: 0.4rpx;

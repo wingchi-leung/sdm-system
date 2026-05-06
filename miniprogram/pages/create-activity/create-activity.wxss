@@ -25,12 +25,12 @@
 
 .field-label {
   display: block;
-  font-size: 22rpx;
-  color: var(--text-muted);
-  margin-bottom: var(--space-sm);
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  margin-bottom: 14rpx;
   font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-transform: none;
 }
 
 .input {
@@ -64,12 +64,11 @@
   align-items: center;
   justify-content: space-between;
   height: 88rpx;
-  border-bottom: 1px solid var(--border);
-  transition: border-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 .picker-row:active {
-  border-bottom-color: var(--text-tertiary);
+  transform: translateY(1rpx);
 }
 
 .picker-value {
@@ -98,12 +97,20 @@
 
 .datetime-row .picker-value {
   height: 88rpx;
+  padding: 0 var(--space-md);
   line-height: 88rpx;
   font-size: 26rpx;
   color: var(--text-primary);
   letter-spacing: 0.04em;
-  border-bottom: 1px solid var(--border);
   transition: all 0.3s ease;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 12rpx;
+  color: var(--text-tertiary);
+  font-size: 22rpx;
+  line-height: 32rpx;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -171,7 +178,6 @@
   align-items: center;
   justify-content: space-between;
   height: 88rpx;
-  border-bottom: 1px solid var(--border);
 }
 
 .switch-label {
@@ -306,14 +312,19 @@
 .datetime-row .picker-value,
 .switch-row {
   padding: 0 var(--space-md);
-  border-bottom: none;
-  border-radius: 6rpx;
-  background: #F8F8F6;
+  border: 1px solid var(--form-border);
+  border-bottom: 1px solid var(--form-border);
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
+  box-shadow: var(--form-shadow);
 }
 
 .input:focus,
-.picker-row:active {
-  border-bottom-color: transparent;
+.picker-row:active,
+.datetime-row .picker-value:active,
+.switch-row:active {
+  border-color: var(--form-border-strong);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .payment-section {
@@ -332,8 +343,9 @@
 .field-label,
 .fee-label,
 .fee-hint,
+.field-hint,
 .upload-hint {
-  color: #999999;
+  color: var(--text-tertiary);
   font-size: 24rpx;
   line-height: 34rpx;
   font-weight: 400;
@@ -346,7 +358,7 @@
 .datetime-row .picker-value,
 .switch-row {
   height: 88rpx;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   font-size: 28rpx;
   line-height: 40rpx;
   letter-spacing: 0.4rpx;

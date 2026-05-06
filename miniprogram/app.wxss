@@ -57,6 +57,12 @@ page {
   --border: #E5E7EB;
   --border-light: #F0F1F0;
   --divider: #EEF0EE;
+  --form-surface: #FFFFFF;
+  --form-surface-soft: #FCFCFA;
+  --form-border: rgba(47, 79, 70, 0.10);
+  --form-border-strong: rgba(47, 79, 70, 0.18);
+  --form-shadow: 0 10rpx 32rpx rgba(47, 79, 70, 0.06);
+  --form-shadow-focus: 0 14rpx 40rpx rgba(47, 79, 70, 0.10);
 
   /* ─────────────────────────────────────────────────────────────
    * 阴影系统 - 柔和精致
@@ -253,19 +259,20 @@ page {
   height: 88rpx;
   padding: 0 24rpx;
   font-size: 28rpx;
-  background: var(--background-warm);
-  border: 1px solid var(--border);
+  background: var(--form-surface);
+  border: 1px solid var(--form-border);
   border-radius: 16rpx;
   box-sizing: border-box;
   color: var(--text-primary);
   transition: all 0.3s ease;
   letter-spacing: 0.4rpx;
+  box-shadow: var(--form-shadow);
 }
 
 .input:focus {
-  border-color: var(--accent);
-  background: var(--background-card);
-  box-shadow: none;
+  border-color: var(--form-border-strong);
+  background: var(--form-surface);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .input::placeholder {

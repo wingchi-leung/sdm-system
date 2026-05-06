@@ -97,9 +97,9 @@
 .field-label {
   display: block;
   margin-bottom: 12rpx;
-  color: var(--text-soft);
+  color: var(--text-secondary);
   font-size: 22rpx;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
 }
 
 .input-wrap {
@@ -111,12 +111,18 @@
   height: 88rpx;
   padding: 0 28rpx;
   box-sizing: border-box;
-  border: 0;
-  border-radius: 6rpx;
-  background: #F8F8F6;
+  border: 1px solid var(--form-border);
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, var(--form-surface-soft) 0%, var(--form-surface) 100%);
   color: var(--ink);
   font-size: 28rpx;
   letter-spacing: 0.03em;
+  box-shadow: var(--form-shadow);
+}
+
+.input:focus {
+  border-color: var(--form-border-strong);
+  box-shadow: var(--form-shadow-focus);
 }
 
 .input-placeholder {
@@ -236,7 +242,7 @@
 
 .input {
   height: 88rpx;
-  border-radius: 16rpx;
+  border-radius: 20rpx;
   font-size: 28rpx;
   line-height: 40rpx;
 }
