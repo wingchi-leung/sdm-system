@@ -68,6 +68,7 @@ Page({
     submitting: false,
     error: null,
     identityError: null, // 身份证格式错误提示
+    phoneReadonly: false,
   },
 
   onLoad(options) {
@@ -80,6 +81,7 @@ Page({
     if (wechatPhone) {
       this.setData({
         'formData.phone': wechatPhone,
+        phoneReadonly: true,
       });
     }
   },
@@ -100,6 +102,9 @@ Page({
   onEmailInput(e) { this.setData({ 'formData.email': e.detail.value, error: null }); },
   // 手机号只允许数字，过滤任何非数字字符
   onPhoneInput(e) {
+    if (this.data.phoneReadonly) {
+      return;
+    }
     const val = e.detail.value.replace(/\D/g, '').slice(0, 11);
     this.setData({ 'formData.phone': val, error: null });
   },

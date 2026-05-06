@@ -58,11 +58,25 @@
   </block>
 
   <block wx:else>
-    <view class="bg-orb orb-left"></view>
-    <view class="bg-orb orb-right"></view>
+    <view class="landscape-scene">
+      <view class="mist mist-top"></view>
+      <view class="mist mist-mid"></view>
+      <view class="mist mist-bottom"></view>
+      <view class="peak peak-1"></view>
+      <view class="peak peak-2"></view>
+      <view class="peak peak-3"></view>
+      <view class="peak peak-4"></view>
+      <view class="peak peak-5"></view>
+      <view class="peak peak-6"></view>
+      <view class="peak peak-7"></view>
+      <view class="peak peak-8"></view>
+      <view class="peak peak-9"></view>
+    </view>
 
     <view class="hero-header">
       <view class="hero-title-row">
+        <text class="hero-mark">山</text>
+        <text class="hero-caption">轻启</text>
       </view>
     </view>
 
