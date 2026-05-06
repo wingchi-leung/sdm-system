@@ -9,6 +9,7 @@ const KEY_USER_ID = 'user_id';
 const KEY_USER_NAME = 'user_name';
 const KEY_ADMIN_LEVEL = 'admin_level'; // super | activity_type_admin
 const KEY_ADMIN_ACTIVITY_TYPES = 'admin_activity_types'; // [{ id, name, code }]
+const KEY_ADMIN_PERMISSIONS = 'admin_permissions'; // ['user.view', ...]
 
 function normalizeText(v) {
   return (v == null ? '' : String(v)).trim();
@@ -72,6 +73,13 @@ function getAdminActivityTypes() {
   return normalizeActivityTypes(Array.isArray(list) ? list : []);
 }
 
+function normalizePermissions(list) {
+  return (Array.isArray(list) ? list : [])
+    .map((item) => normalizeText(item))
+    .filter(Boolean)
+    .filter((item, index, arr) => arr.indexOf(item) === index);
+}
+
 function setAdminActivityTypes(list) {
   const activityTypes = normalizeActivityTypes(list);
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, activityTypes);
@@ -82,6 +90,17 @@ function setAdminActivityTypes(list) {
   } else {
     wx.removeStorageSync(KEY_ADMIN_LEVEL);
   }
+}
+
+function getAdminPermissions() {
+  return normalizePermissions(wx.getStorageSync(KEY_ADMIN_PERMISSIONS));
+}
+
+function hasAdminPermission(permissionCode) {
+  if (!isAdmin()) return false;
+  const code = normalizeText(permissionCode);
+  if (!code) return false;
+  return getAdminPermissions().includes(code);
 }
 
 function isLoggedIn() {
@@ -167,10 +186,13 @@ function parseAdminMeta(res) {
       'authorized_activity_types',
     ])
   );
+  const permissions = normalizePermissions(
+    pickFromLoginResponse(authObj, ['permissions'])
+  );
   if (!adminLevel) {
     adminLevel = activityTypes.length > 0 ? 'activity_type_admin' : null;
   }
-  return { adminLevel, activityTypes };
+  return { adminLevel, activityTypes, permissions };
 }
 
 /** 保存管理员登录结果 */
@@ -182,6 +204,7 @@ function saveAdminToken(accessToken, meta = null) {
   const parsed = parseAdminMeta(meta || {});
   wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
+  wx.setStorageSync(KEY_ADMIN_PERMISSIONS, parsed.permissions);
 }
 
 /** 保存普通用户登录结果 */
@@ -192,6 +215,7 @@ function saveUserToken({ accessToken, userId, userName }) {
   wx.setStorageSync(KEY_USER_NAME, userName || '');
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
+  wx.removeStorageSync(KEY_ADMIN_PERMISSIONS);
 }
 
 function logout() {
@@ -201,6 +225,7 @@ function logout() {
   wx.removeStorageSync(KEY_USER_NAME);
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
+  wx.removeStorageSync(KEY_ADMIN_PERMISSIONS);
 }
 
 module.exports = {
@@ -212,6 +237,7 @@ module.exports = {
   getUserName,
   getAdminLevel,
   getAdminActivityTypes,
+  getAdminPermissions,
   setAdminActivityTypes,
   isLoggedIn,
   isAdmin,
@@ -219,6 +245,7 @@ module.exports = {
   isSuperAdmin,
   isActivityTypeAdmin,
   canManageActivityType,
+  hasAdminPermission,
   saveAdminToken,
   saveUserToken,
   logout,

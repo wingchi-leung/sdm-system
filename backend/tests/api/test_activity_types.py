@@ -33,6 +33,26 @@ def test_available_activity_types_returns_all_for_super_admin(
 
 
 @pytest.mark.api
+def test_admin_login_returns_permissions_for_miniprogram_gating(
+    client,
+    super_admin,
+):
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "identifier": super_admin.username,
+            "password": "admin123",
+            "tenant_code": "default",
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    permissions = response.json()["auth"]["permissions"]
+    assert "activity.create" in permissions
+    assert "user.view" in permissions
+
+
+@pytest.mark.api
 def test_available_activity_types_returns_scoped_types_for_activity_admin(
     client,
     activity_admin,

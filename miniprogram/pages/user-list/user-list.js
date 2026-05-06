@@ -15,9 +15,8 @@ Page({
 
   onLoad(options) {
     tenant.applyPageOptions(options);
-    // 检查是否为超级管理员
-    if (!auth.isSuperAdmin()) {
-      wx.showToast({ title: '仅超级管理员可访问', icon: 'none' });
+    if (!auth.hasAdminPermission('user.view')) {
+      wx.showToast({ title: '当前账号无用户查看权限', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);
       return;
     }

@@ -68,10 +68,12 @@ Page({
 
   buildAdminProfile() {
     const isSuper = auth.isSuperAdmin();
+    const canViewUsers = auth.hasAdminPermission('user.view');
     const types = auth.getAdminActivityTypes();
     const typeNames = types.map((t) => t.name).filter(Boolean);
     return {
       isSuper,
+      canViewUsers,
       levelText: isSuper ? '超级管理员' : '活动管理员',
       typeNames,
       typeNamesText: typeNames.join('、'),
@@ -128,6 +130,10 @@ Page({
   },
 
   goUserList() {
+    if (!auth.hasAdminPermission('user.view')) {
+      wx.showToast({ title: '当前账号无用户查看权限', icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/user-list/user-list') });
   },
 });

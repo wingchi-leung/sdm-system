@@ -96,7 +96,7 @@
           </view>
           <text class="menu-arrow">→</text>
         </view>
-        <view wx:if="{{adminProfile && adminProfile.isSuper}}" class="menu-item" bindtap="goUserList">
+        <view wx:if="{{adminProfile && adminProfile.canViewUsers}}" class="menu-item" bindtap="goUserList">
           <view class="menu-icon">
             <text class="icon-symbol">◉</text>
           </view>
