@@ -4,8 +4,10 @@
     data-index="0"
     bindtap="switchTab"
   >
-    <view class="tab-icon">
+    <view class="tab-bubble">
+      <view class="tab-icon">
       <image class="tab-logo" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
+      </view>
     </view>
   </view>
   <view
@@ -13,8 +15,10 @@
     data-index="1"
     bindtap="switchTab"
   >
-    <view class="tab-icon">
-      <text class="icon-text">○</text>
+    <view class="tab-bubble">
+      <view class="tab-icon">
+        <image class="tab-personnel" src="/assets/icons/tab-personnel.png" mode="aspectFit" />
+      </view>
     </view>
   </view>
 </view>

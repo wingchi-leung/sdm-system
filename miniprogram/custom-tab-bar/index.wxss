@@ -4,16 +4,17 @@
   bottom: 0;
   left: 0;
   z-index: 9999;
-  height: 96rpx;
+  height: 112rpx;
   padding-bottom: env(safe-area-inset-bottom);
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.94);
   display: flex;
+  align-items: center;
+  box-shadow: 0 -8rpx 30rpx rgba(15, 26, 23, 0.06);
 }
 
 .tab-item {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
@@ -22,40 +23,27 @@
   opacity: 0.72;
 }
 
+.tab-bubble {
+  min-width: 96rpx;
+  height: 72rpx;
+  padding: 0 22rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.22s ease;
+}
+
 .tab-icon {
-  width: 64rpx;
-  height: 64rpx;
+  width: 48rpx;
+  height: 48rpx;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.tab-item:last-child .tab-icon::before {
-  content: '';
-  position: absolute;
-  left: 16rpx;
-  top: 7rpx;
-  width: 12rpx;
-  height: 12rpx;
-  border: 2rpx solid currentColor;
-  border-radius: 50%;
-}
-
-.tab-item:last-child .tab-icon::after {
-  content: '';
-  position: absolute;
-  left: 10rpx;
-  bottom: 7rpx;
-  width: 24rpx;
-  height: 13rpx;
-  border: 2rpx solid currentColor;
-  border-radius: 24rpx 24rpx 0 0;
-  border-bottom: 0;
-}
-
-.icon-text {
-  display: none;
+  opacity: 0.72;
+  transform: scale(0.96);
+  transition: all 0.22s ease;
 }
 
 .tab-logo {
@@ -64,38 +52,32 @@
   opacity: 1;
 }
 
-.tab-icon {
-  color: #6B7280;
+.tab-personnel {
+  width: 52rpx;
+  height: 52rpx;
+  opacity: 0.84;
+}
+
+.tab-item.active .tab-bubble {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1rpx solid rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 12rpx 32rpx rgba(15, 26, 23, 0.10),
+    inset 0 1rpx 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(18rpx);
+  -webkit-backdrop-filter: blur(18rpx);
 }
 
 .tab-item.active .tab-icon {
-  color: #0F1A17;
-}
-
-.tab-item:first-child.active .tab-icon::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: -8rpx;
-  width: 24rpx;
-  height: 3rpx;
-  border-radius: 999rpx;
-  background: #0F1A17;
-  transform: translateX(-50%);
-}
-
-/* Product UI refinement：无文字导航，仅保留克制图形状态 */
-.tab-bar {
-  height: 88rpx;
-  background: #FFFFFF;
-}
-
-.tab-icon {
-  width: 56rpx;
-  height: 56rpx;
+  opacity: 1;
+  transform: scale(1);
 }
 
 .tab-logo {
-  width: 80rpx;
-  height: 80rpx;
+  width: 74rpx;
+  height: 74rpx;
+}
+
+.tab-item.active .tab-personnel {
+  opacity: 1;
 }
