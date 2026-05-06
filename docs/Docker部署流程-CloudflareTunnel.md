@@ -2,6 +2,12 @@
 
 本文档描述如何使用 Docker 和 Cloudflare Tunnel 在个人笔记本上部署 SDM System（后端 + 前端 + 小程序），并实现公网访问。适用于预演环境和未来一键迁移到新笔记本。
 
+本项目当前已固定为：
+
+- Docker 容器内不再直接读取宿主机 `C:\...` 这类绝对路径证书
+- 微信支付证书统一通过仓库根目录 `secrets/wechat_pay/` 挂载到容器内 `/run/secrets/wechat_pay/`
+- 后端镜像构建时排除 `backend/.env`，避免把旧机器的本地配置打进镜像
+
 ---
 
 ## 一、整体架构
@@ -107,7 +113,27 @@ CORS_ORIGINS=https://web.你的域名.com,https://api.你的域名.com
 # 微信配置（可选）
 WECHAT_APPID=wx4157e7ad044df60a
 WECHAT_SECRET=你的小程序Secret
+
+# 微信支付证书路径（Docker 容器内路径）
+WECHAT_PAY_PRIVATE_KEY_PATH=/run/secrets/wechat_pay/apiclient_key.pem
+WECHAT_PAY_PUBLIC_KEY_PATH=/run/secrets/wechat_pay/wx_public_key.pem
+WECHAT_PAY_PUBLIC_KEY_ID=你的微信支付公钥ID
 ```
+
+#### 2.1.1 准备微信支付证书目录
+
+在项目根目录创建并放置证书文件：
+
+```bash
+secrets/wechat_pay/apiclient_key.pem
+secrets/wechat_pay/wx_public_key.pem
+```
+
+说明：
+
+- `apiclient_key.pem` 为商户私钥，支付下单必需
+- `wx_public_key.pem` 与 `WECHAT_PAY_PUBLIC_KEY_ID` 配套使用，适用于微信支付公钥模式
+- 如果迁移到新机器，只要把 `secrets/wechat_pay/` 整个目录复制过去即可
 
 #### 2.2 启动 Docker 服务
 
@@ -195,7 +221,28 @@ production: {
    docker compose up -d
    ```
 
-**完成。** 总共约 15-20 分钟。
+5. **复制支付证书**
+   ```bash
+   # 将旧机器项目根目录下的 secrets/wechat_pay 整个目录复制到新机器同一路径
+   ```
+
+6. **确认根目录 `.env`**
+   - `WECHAT_APPID`
+   - `WECHAT_SECRET`
+   - `WECHAT_PAY_MCH_ID`
+   - `WECHAT_PAY_API_V3_KEY`
+   - `WECHAT_PAY_SERIAL_NO`
+   - `WECHAT_PAY_PRIVATE_KEY_PATH=/run/secrets/wechat_pay/apiclient_key.pem`
+   - `WECHAT_PAY_PUBLIC_KEY_PATH=/run/secrets/wechat_pay/wx_public_key.pem`
+   - `WECHAT_PAY_PUBLIC_KEY_ID`
+   - `WECHAT_PAY_NOTIFY_URL=https://api.你的域名.com/api/v1/payments/notify`
+
+7. **重建后端镜像**
+   ```bash
+   docker compose up -d --build backend
+   ```
+
+**完成。** 总共约 15-20 分钟；如果包含微信支付证书和数据库迁移，建议预留 30 分钟。
 
 ---
 
@@ -205,6 +252,8 @@ production: {
 - [ ] 项目文件已复制
 - [ ] cloudflared 已认证
 - [ ] `.env` 文件已配置（数据库、JWT_SECRET、TUNNEL_TOKEN）
+- [ ] `secrets/wechat_pay/` 已复制到新机器
+- [ ] `.env` 中微信支付证书路径为容器内路径 `/run/secrets/wechat_pay/...`
 - [ ] `docker compose up -d` 执行成功
 - [ ] 公网访问验证（后端 + 前端）
 
@@ -237,6 +286,9 @@ WECHAT_SECRET=你的小程序Secret
 WECHAT_PAY_MCH_ID=1609691882
 WECHAT_PAY_API_V3_KEY=kQ1C6ORvqaJnjuK0hoFfGihwPvb2e5E1
 WECHAT_PAY_SERIAL_NO=7C99C423F531D4AB49D64ADF9FA9250DAFE16986
+WECHAT_PAY_PRIVATE_KEY_PATH=/run/secrets/wechat_pay/apiclient_key.pem
+WECHAT_PAY_PUBLIC_KEY_PATH=/run/secrets/wechat_pay/wx_public_key.pem
+WECHAT_PAY_PUBLIC_KEY_ID=你的微信支付公钥ID
 WECHAT_PAY_NOTIFY_URL=https://api.你的域名.com/api/v1/payments/notify
 ```
 
@@ -253,6 +305,7 @@ docker compose logs backend
 # 常见问题：
 # - 数据库连接失败：检查 MYSQL_HOST 是否为 mysql
 # - 端口被占用：docker compose ps 查看
+# - 微信支付私钥不存在：确认 `secrets/wechat_pay/apiclient_key.pem` 已复制，且 `.env` 中路径为 `/run/secrets/wechat_pay/apiclient_key.pem`
 ```
 
 ### 前端启动失败
@@ -293,6 +346,29 @@ docker compose logs mysql
 1. 确认 cloudflared 容器正在运行：`docker compose ps`
 2. 确认 DNS 解析正确：在 [dnschecker.org](https://dnschecker.org) 检查你的域名 CNAME
 3. 查看 cloudflared 日志检查连接状态：`docker compose logs cloudflared`
+
+### 微信支付下单失败
+
+1. 确认根目录 `.env` 已配置：
+   - `WECHAT_APPID`
+   - `WECHAT_SECRET`
+   - `WECHAT_PAY_MCH_ID`
+   - `WECHAT_PAY_API_V3_KEY`
+   - `WECHAT_PAY_SERIAL_NO`
+   - `WECHAT_PAY_PRIVATE_KEY_PATH=/run/secrets/wechat_pay/apiclient_key.pem`
+   - `WECHAT_PAY_NOTIFY_URL`
+2. 确认证书文件存在：
+   - `secrets/wechat_pay/apiclient_key.pem`
+   - `secrets/wechat_pay/wx_public_key.pem`（公钥模式）
+3. 进入容器检查：
+   ```bash
+   docker exec -it sdm-backend sh
+   ls -la /run/secrets/wechat_pay
+   ```
+4. 如果刚修改过 `.env` 或证书目录，重建后端：
+   ```bash
+   docker compose up -d --build backend
+   ```
 
 ---
 

@@ -50,6 +50,9 @@ services:
       - WECHAT_PAY_MCH_ID=${WECHAT_PAY_MCH_ID}
       - WECHAT_PAY_API_V3_KEY=${WECHAT_PAY_API_V3_KEY}
       - WECHAT_PAY_SERIAL_NO=${WECHAT_PAY_SERIAL_NO}
+      - WECHAT_PAY_PRIVATE_KEY_PATH=${WECHAT_PAY_PRIVATE_KEY_PATH:-/run/secrets/wechat_pay/apiclient_key.pem}
+      - WECHAT_PAY_PUBLIC_KEY_PATH=${WECHAT_PAY_PUBLIC_KEY_PATH:-/run/secrets/wechat_pay/wx_public_key.pem}
+      - WECHAT_PAY_PUBLIC_KEY_ID=${WECHAT_PAY_PUBLIC_KEY_ID}
       - WECHAT_PAY_NOTIFY_URL=${WECHAT_PAY_NOTIFY_URL}
       - CORS_ORIGINS=${CORS_ORIGINS}
       - STORAGE_TYPE=local
@@ -58,6 +61,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend/uploads:/app/uploads
+      - ./secrets/wechat_pay:/run/secrets/wechat_pay:ro
     depends_on:
       mysql:
         condition: service_healthy
