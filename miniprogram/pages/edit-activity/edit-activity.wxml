@@ -30,7 +30,7 @@
           <text class="upload-text">上传海报</text>
           <text class="upload-hint">支持PNG、JPG格式，最大5MB</text>
         </view>
-      </view>
+      </view>      
       <text class="field-hint" wx:if="{{posterLocalPath}}">已选择新海报，保存修改后会自动上传</text>
       <text class="field-hint" wx:elif="{{posterUrl}}">点击下方按钮可重新选择海报</text>
       <button class="btn-submit" type="default" bindtap="onChoosePoster" disabled="{{submitting}}" style="margin-top: 16rpx;">

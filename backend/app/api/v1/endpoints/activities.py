@@ -198,7 +198,7 @@ def get_activity_checkins(
     if not activity:
         raise HTTPException(status_code=404, detail="活动不存在")
 
-    if not deps.has_activity_permission(db, ctx, activity_id, "participant.view"):
+    if not deps.has_activity_permission(db, ctx, activity_id, "checkin.manage"):
         raise HTTPException(status_code=403, detail="无权限查看此活动")
 
     return crud_checkin.get_activity_checkins(db, activity_id, ctx.tenant_id, skip=skip, limit=limit)

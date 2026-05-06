@@ -174,10 +174,8 @@ def get_current_admin(
     user_id, tenant_id = _extract_identity(payload)
     if not tenant_id or tenant_id <= 0:
         raise HTTPException(status_code=403, detail="需要租户管理员权限")
-    role = payload.get("role", "user")
-    if role != "admin":
-        raise HTTPException(status_code=403, detail="该用户没有管理员权限")
     tenant_code = _ensure_tenant_active(db, tenant_id)
+    role = payload.get("role", "user")
     ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, role=role, tenant_code=tenant_code)
     if not ctx.has_any_role(db):
         raise HTTPException(status_code=403, detail="该用户没有管理员权限")
@@ -201,8 +199,6 @@ def get_current_admin_optional(
     if not tenant_id or tenant_id <= 0:
         return None
     role = payload.get("role", "user")
-    if role != "admin":
-        return None
     try:
         tenant_code = _ensure_tenant_active(db, tenant_id)
     except HTTPException:
@@ -248,8 +244,6 @@ def get_current_admin_or_platform(
             return ctx
         raise HTTPException(status_code=403, detail="需要管理员权限")
     role = payload.get("role", "user")
-    if role != "admin":
-        raise HTTPException(status_code=403, detail="需要管理员权限")
     tenant_code = _ensure_tenant_active(db, tenant_id)
     ctx = AuthContext(user_id=user_id, tenant_id=tenant_id, role=role, tenant_code=tenant_code)
     if ctx.has_any_role(db):

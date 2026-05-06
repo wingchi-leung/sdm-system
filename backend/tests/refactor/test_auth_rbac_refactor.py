@@ -2,7 +2,9 @@ import pytest
 from fastapi import status
 
 from app.crud import crud_rbac
+from app.core.security import decode_access_token
 from app.schemas import Role, User, UserCredential, UserTenant
+from tests.conftest import auth_headers
 
 
 @pytest.mark.api
@@ -143,3 +145,31 @@ def test_assign_user_role_accepts_system_role(db_session, default_tenant):
 
     assert user_role.role_id == system_role.id
     assert user_role.tenant_id == default_tenant.id
+
+
+@pytest.mark.api
+def test_admin_login_issues_admin_role_token_and_can_access_admin_endpoint(
+    client,
+    super_admin,
+    active_activity,
+):
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "identifier": super_admin.username,
+            "password": "admin123",
+            "tenant_code": "default",
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    payload = response.json()
+    token = payload["access_token"]
+    decoded = decode_access_token(token)
+    assert decoded["role"] == "admin"
+
+    stats_response = client.get(
+        f"/api/v1/activities/{active_activity.id}/statistics/",
+        headers=auth_headers(token),
+    )
+    assert stats_response.status_code == status.HTTP_200_OK

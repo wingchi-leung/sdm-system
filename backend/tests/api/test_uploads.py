@@ -29,7 +29,7 @@ class TestPosterUpload:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["url"]
+        assert data["url"].startswith("/uploads/posters/")
         assert data["filename"].endswith(".jpg")
 
     def test_upload_poster_rejects_invalid_extension(

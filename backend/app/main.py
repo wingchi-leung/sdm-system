@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.database  import SessionLocal
-from app.core.config import settings
+from app.core.config import resolve_local_upload_dir, settings
 from app.api.v1.router import api_router
 import logging
 import os
@@ -15,7 +15,19 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
+    db = None
     # 启动时启动定时任务
+    try:
+        from app.crud import crud_rbac
+        db = SessionLocal()
+        crud_rbac.ensure_system_rbac_seed(db)
+        logger.info("RBAC 基础权限与系统角色已校准")
+    except Exception as e:
+        logger.error(f"校准 RBAC 基础数据失败: {e}")
+    finally:
+        if db is not None:
+            db.close()
+
     try:
         from app.tasks.scheduler import start_scheduler
         start_scheduler(interval_seconds=300)  # 每 5 分钟执行一次
@@ -84,9 +96,7 @@ app.add_middleware(
 # 本地存储模式下，挂载静态文件目录用于访问上传的文件
 # 云存储模式下不需要，文件直接从云存储URL访问
 if settings.STORAGE_TYPE == "local":
-    uploads_dir = settings.LOCAL_UPLOAD_DIR
-    if not os.path.isabs(uploads_dir):
-        uploads_dir = os.path.join(os.getcwd(), uploads_dir)
+    uploads_dir = resolve_local_upload_dir(settings.LOCAL_UPLOAD_DIR)
     if not os.path.exists(uploads_dir):
         os.makedirs(uploads_dir, exist_ok=True)
     app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")

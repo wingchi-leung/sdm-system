@@ -146,7 +146,6 @@
           <text class="upload-hint">支持PNG、JPG格式，最大5MB</text>
         </view>
       </view>
-      <text class="field-hint" wx:if="{{posterLocalPath}}">已选择海报，发布时会自动上传</text>
     </view>
 
     <!-- 错误提示 -->

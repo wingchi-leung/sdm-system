@@ -1,7 +1,31 @@
-from sqlalchemy.orm import Session
 from sqlalchemy import or_
+from sqlalchemy.orm import Session
+
 from app.schemas import Permission, Role, RolePermission, User, UserRole
 from typing import List, Optional
+
+
+SYSTEM_PERMISSIONS = [
+    ("activity.create", "创建活动", "activity", "create", "创建新活动"),
+    ("activity.edit", "编辑活动", "activity", "edit", "编辑活动信息"),
+    ("activity.delete", "删除活动", "activity", "delete", "删除活动"),
+    ("activity.view", "查看活动", "activity", "view", "查看活动详情"),
+    ("activity.publish", "发布活动", "activity", "publish", "发布或取消发布活动"),
+    ("participant.view", "查看报名", "participant", "view", "查看报名列表"),
+    ("participant.export", "导出报名", "participant", "export", "导出报名数据"),
+    ("participant.approve", "审核报名", "participant", "approve", "审核报名申请"),
+    ("checkin.manage", "管理签到", "checkin", "manage", "签到和查看签到记录"),
+    ("user.view", "查看用户", "user", "view", "查看用户列表"),
+    ("user.block", "拉黑用户", "user", "block", "拉黑或解除拉黑用户"),
+    ("admin.manage", "管理管理员", "admin", "manage", "创建和管理管理员账号"),
+    ("role.manage", "管理角色", "role", "manage", "创建和管理角色权限"),
+]
+
+SYSTEM_ROLES = [
+    (1, 0, "超级管理员", 1, "拥有所有权限的超级管理员"),
+    (2, 0, "参活动管理员", 1, '可管理"参"活动类型下的所有活动'),
+    (3, 0, "平台管理员", 1, "跨租户运营管理"),
+]
 
 
 def has_permission(
@@ -180,3 +204,69 @@ def get_role_permissions(db: Session, role_id: int) -> List[Permission]:
     ).filter(
         RolePermission.role_id == role_id
     ).all()
+
+
+def ensure_system_rbac_seed(db: Session) -> None:
+    """确保系统基础权限、角色与角色权限绑定存在。"""
+    permission_map: dict[str, Permission] = {}
+    for code, name, resource, action, description in SYSTEM_PERMISSIONS:
+        permission = db.query(Permission).filter(Permission.code == code).first()
+        if permission is None:
+            permission = Permission(
+                code=code,
+                name=name,
+                resource=resource,
+                action=action,
+                description=description,
+            )
+            db.add(permission)
+            db.flush()
+        else:
+            permission.name = name
+            permission.resource = resource
+            permission.action = action
+            permission.description = description
+        permission_map[code] = permission
+
+    for role_id, tenant_id, name, is_system, description in SYSTEM_ROLES:
+        role = db.query(Role).filter(Role.id == role_id).first()
+        if role is None:
+            role = Role(
+                id=role_id,
+                tenant_id=tenant_id,
+                name=name,
+                is_system=is_system,
+                description=description,
+            )
+            db.add(role)
+            db.flush()
+        else:
+            role.tenant_id = tenant_id
+            role.name = name
+            role.is_system = is_system
+            role.description = description
+
+    super_codes = [code for code, *_ in SYSTEM_PERMISSIONS]
+    activity_admin_codes = [
+        code for code, *_ in SYSTEM_PERMISSIONS
+        if code.startswith("activity.") or code.startswith("participant.") or code.startswith("checkin.")
+    ]
+    platform_codes = list(super_codes)
+
+    role_bindings = {
+        1: super_codes,
+        2: activity_admin_codes,
+        3: platform_codes,
+    }
+
+    for role_id, codes in role_bindings.items():
+        for code in codes:
+            permission_id = permission_map[code].id
+            existing = db.query(RolePermission).filter(
+                RolePermission.role_id == role_id,
+                RolePermission.permission_id == permission_id,
+            ).first()
+            if existing is None:
+                db.add(RolePermission(role_id=role_id, permission_id=permission_id))
+
+    db.commit()

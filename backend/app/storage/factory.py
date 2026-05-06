@@ -4,7 +4,7 @@ from app.storage.base import StorageBase
 from app.storage.local_storage import LocalStorage
 from app.storage.oss_storage import AliyunOSSStorage
 from app.storage.cos_storage import TencentCOSStorage
-from app.core.config import settings
+from app.core.config import resolve_local_upload_dir, settings
 
 
 @lru_cache()
@@ -42,7 +42,7 @@ def get_storage() -> StorageBase:
 
     if storage_type == "local":
         return LocalStorage(
-            upload_dir=settings.LOCAL_UPLOAD_DIR,
+            upload_dir=resolve_local_upload_dir(settings.LOCAL_UPLOAD_DIR),
             base_url=settings.STORAGE_BASE_URL,
         )
 

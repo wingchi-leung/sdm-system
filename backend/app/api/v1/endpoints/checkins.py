@@ -31,13 +31,13 @@ def list_checkin_records(
 ):
     """签到记录列表（含活动名称）"""
     if activity_id is not None:
-        if not deps.has_activity_permission(db, ctx, activity_id, "participant.view"):
+        if not deps.has_activity_permission(db, ctx, activity_id, "checkin.manage"):
             raise HTTPException(status_code=403, detail="无权限查看此活动")
         return crud_checkin.get_recent_checkins(
             db, tenant_id=ctx.tenant_id, skip=skip, limit=limit, activity_id=activity_id
         )
 
-    if crud_rbac.has_permission(db, ctx.user_id, "participant.view", ctx.tenant_id):
+    if crud_rbac.has_permission(db, ctx.user_id, "checkin.manage", ctx.tenant_id):
         return crud_checkin.get_recent_checkins(
             db, tenant_id=ctx.tenant_id, skip=skip, limit=limit
         )

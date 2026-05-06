@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 from functools import lru_cache
 import sys
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -86,6 +87,17 @@ class Settings(BaseSettings):
     COS_BUCKET: Optional[str] = None  # 如: mybucket-1250000000
     COS_REGION: Optional[str] = None  # 如: ap-guangzhou
     COS_CDN_DOMAIN: Optional[str] = None  # CDN加速域名（可选）
+
+
+BACKEND_BASE_DIR = Path(__file__).resolve().parents[2]
+
+
+def resolve_local_upload_dir(upload_dir: str) -> str:
+    """将本地上传目录解析为稳定的绝对路径，避免受启动目录影响。"""
+    path = Path(upload_dir)
+    if path.is_absolute():
+        return str(path)
+    return str((BACKEND_BASE_DIR / path).resolve())
 
 # 默认 JWT 密钥值，用于检测是否配置
 _DEFAULT_JWT_SECRET = "change-me-in-production"

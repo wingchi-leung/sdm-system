@@ -84,7 +84,10 @@ async def upload_poster(
 
     # 使用存储服务上传文件
     # 存储服务会根据配置自动选择本地存储或云存储
-    file_url = await storage.upload(content, filename, folder="posters")
+    folder = "posters"
+    file_url = await storage.upload(content, filename, folder=folder)
+    if settings.STORAGE_TYPE == "local":
+        file_url = f"/uploads/{folder}/{filename}"
 
     return {
         "url": file_url,

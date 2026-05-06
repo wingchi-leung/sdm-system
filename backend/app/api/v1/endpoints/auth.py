@@ -102,6 +102,10 @@ def _build_auth_info(db: Session, user_id: int, tenant_id: int) -> AuthInfo:
     )
 
 
+def _token_role_from_auth(auth_info: AuthInfo) -> str:
+    return "admin" if auth_info.is_admin or auth_info.is_platform_admin else "user"
+
+
 # ============================================================
 # POST /auth/login — 统一密码登录
 # ============================================================
@@ -136,7 +140,7 @@ def login(request: Request, body: LoginRequest, db: Session = Depends(deps.get_d
         raise HTTPException(status_code=403, detail=f"账号已被拉黑：{user.block_reason or '账号已被禁用'}")
 
     auth_info = _build_auth_info(db, user.id, tenant_id)
-    token = create_access_token(user.id, tenant_id)
+    token = create_access_token(user.id, tenant_id, role=_token_role_from_auth(auth_info))
 
     return LoginResponse(
         access_token=token,
@@ -292,7 +296,7 @@ def wechat_auth(request: Request, body: WechatAuthRequest, db: Session = Depends
 
     is_first_login = crud_user.is_user_profile_incomplete(db, user.id, tenant.id)
     auth_info = _build_auth_info(db, user.id, tenant.id)
-    token = create_access_token(user.id, tenant.id)
+    token = create_access_token(user.id, tenant.id, role=_token_role_from_auth(auth_info))
 
     return WechatAuthResponse(
         access_token=token,

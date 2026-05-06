@@ -158,6 +158,28 @@ Page({
     });
   },
 
+  refreshPreviousPage() {
+    const pages = getCurrentPages();
+    const previousPage = pages[pages.length - 2];
+    if (!previousPage) {
+      return;
+    }
+
+    if (typeof previousPage.loadActivity === 'function' && previousPage.data && previousPage.data.activityId) {
+      previousPage.loadActivity(previousPage.data.activityId);
+      return;
+    }
+
+    if (typeof previousPage.refreshList === 'function') {
+      previousPage.refreshList();
+      return;
+    }
+
+    if (typeof previousPage.loadActivities === 'function') {
+      previousPage.loadActivities(true);
+    }
+  },
+
   async submit() {
     const { id, activityName, tag, startDate, startTime, endDate, endTime, activityTypeName, location } = this.data;
 
@@ -216,12 +238,20 @@ Page({
         updateData.activity_type_name = activityTypeName.trim();
       }
 
-      const result = await api.updateActivity(id, updateData);
+      await api.updateActivity(id, updateData);
+      const latestActivity = await api.getActivity(id);
+      const latestPosterUrl = api.getImageUrl(latestActivity.poster_url) || '';
+
+      if (this.data.posterLocalPath && !latestPosterUrl) {
+        throw new Error('海报上传成功，但活动海报地址未保存成功');
+      }
+
       this.setData({
-        posterUrl: api.getImageUrl(result.poster_url) || '',
+        posterUrl: latestPosterUrl,
         posterLocalPath: '',
         submitting: false,
       });
+      this.refreshPreviousPage();
       wx.showToast({ title: '更新成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1000);
     } catch (err) {
