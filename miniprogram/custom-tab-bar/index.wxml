@@ -6,7 +6,7 @@
   >
     <view class="tab-bubble">
       <view class="tab-icon">
-      <image class="tab-logo" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
+        <image class="tab-activity" src="/assets/icons/tab-activity-calendar.png" mode="aspectFit" />
       </view>
     </view>
   </view>

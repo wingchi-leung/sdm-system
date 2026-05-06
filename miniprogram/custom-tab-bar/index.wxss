@@ -46,7 +46,7 @@
   transition: all 0.22s ease;
 }
 
-.tab-logo {
+.tab-activity {
   width: 68rpx;
   height: 68rpx;
   opacity: 1;
@@ -73,7 +73,7 @@
   transform: scale(1);
 }
 
-.tab-logo {
+.tab-item.active .tab-activity {
   width: 82rpx;
   height: 82rpx;
 }
