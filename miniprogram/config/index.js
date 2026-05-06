@@ -7,6 +7,11 @@ const LOCAL_DEV_HOST = 'http://10.4.28.234:8000';
 const TUNNEL_HOST = 'https://api.chronono.org';
 const PROD_HOST = 'https://api.chronono.org';
 
+// 开发者工具调试模式：
+// - 'local': 走本机/局域网后端
+// - 'remote': 走 Cloudflare Tunnel / Docker 暴露的 HTTPS 后端
+const DEVTOOLS_API_MODE = 'local';
+
 // 环境配置
 const ENV = {
   // 开发环境：本地开发，可使用 HTTP
@@ -55,9 +60,10 @@ function getResolvedConfig() {
   }
 
   if (isDevtools()) {
+    const useLocalDevtools = DEVTOOLS_API_MODE === 'local';
     return {
-      baseUrl: selected.localBaseUrl,
-      staticBaseUrl: selected.localStaticBaseUrl,
+      baseUrl: useLocalDevtools ? selected.localBaseUrl : selected.remoteBaseUrl,
+      staticBaseUrl: useLocalDevtools ? selected.localStaticBaseUrl : selected.remoteStaticBaseUrl,
       tenantCode: selected.tenantCode,
       debug: selected.debug,
     };
