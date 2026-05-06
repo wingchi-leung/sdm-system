@@ -161,6 +161,33 @@ class PaymentOrder(BaseModel):
 
 
 # ============================================================
+# 社区文章表
+# ============================================================
+class CommunityPost(BaseModel):
+    __tablename__ = "community_post"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    activity_id = Column(Integer, nullable=False, index=True)
+    author_user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    content = Column(Text, nullable=False)
+    cover_url = Column(String(500), nullable=True)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+# ============================================================
+# 社区评论表
+# ============================================================
+class CommunityComment(BaseModel):
+    __tablename__ = "community_comment"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    activity_id = Column(Integer, nullable=False, index=True)
+    post_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+# ============================================================
 # RBAC 权限系统
 # ============================================================
 class Permission(BaseModel):

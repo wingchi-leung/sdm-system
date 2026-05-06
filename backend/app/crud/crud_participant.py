@@ -228,6 +228,18 @@ def get_participant_by_user(
     ).first()
 
 
+def has_user_joined_activity(
+    db: Session,
+    *,
+    activity_id: int,
+    user_id: int,
+    tenant_id: int,
+) -> bool:
+    """判断用户是否已报名指定活动（含候补）。"""
+    participant = get_participant_by_user(db, activity_id, user_id, tenant_id)
+    return participant is not None and participant.enroll_status in (1, 2)
+
+
 def get_user_participant_activities(
     db: Session,
     user_id: int,

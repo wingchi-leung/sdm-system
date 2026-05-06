@@ -43,7 +43,6 @@ class TestParticipantRegistration:
             tenant_id=sample_user.tenant_id,
             name="其他用户",
             phone="13800138066",
-            password_hash=sample_user.password_hash,
             identity_number="110101199001016666",
             isblock=0,
         )

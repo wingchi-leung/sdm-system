@@ -1,0 +1,56 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">暂时无法查看动态</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <image wx:if="{{post.cover_url}}" class="post-cover" src="{{post.cover_url}}" mode="aspectFill" />
+
+    <view class="post-card">
+      <text class="post-title">{{post.title}}</text>
+      <text class="post-meta">{{post.author_name}} · {{post.create_time_display}}</text>
+      <text class="post-content">{{post.content}}</text>
+    </view>
+
+    <view class="comment-section">
+      <view class="comment-head">
+        <text class="comment-title">评论</text>
+        <text class="comment-count">{{comments.length}} 条</text>
+      </view>
+
+      <view wx:if="{{comments.length > 0}}" class="comment-list">
+        <view wx:for="{{comments}}" wx:key="id" class="comment-card">
+          <view class="comment-top">
+            <text class="comment-user">{{item.user_name}}</text>
+            <text class="comment-time">{{item.create_time_display}}</text>
+          </view>
+          <text class="comment-content">{{item.content}}</text>
+        </view>
+      </view>
+
+      <view wx:else class="comment-empty">
+        <text class="comment-empty-text">还没有评论，来留下第一条吧。</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && !error && canComment}}" class="comment-bar">
+    <input
+      class="comment-input"
+      placeholder="写下你的评论"
+      placeholder-class="comment-placeholder"
+      value="{{commentContent}}"
+      bindinput="onCommentInput"
+      confirm-type="send"
+      bindconfirm="onSubmitComment"
+    />
+    <button class="comment-btn" disabled="{{commentSubmitting}}" bindtap="onSubmitComment">
+      {{commentSubmitting ? '提交中' : '发送'}}
+    </button>
+  </view>
+</view>

@@ -12,7 +12,10 @@
     "pages/activity-participants/activity-participants",
     "pages/activity-checkins/activity-checkins",
     "pages/activity-statistics/activity-statistics",
-    "pages/user-list/user-list"
+    "pages/user-list/user-list",
+    "pages/community-post-list/community-post-list",
+    "pages/community-post-detail/community-post-detail",
+    "pages/community-post-create/community-post-create"
   ],
   "window": {
     "backgroundTextStyle": "dark",
