@@ -35,8 +35,8 @@
 }
 
 .tab-icon {
-  width: 48rpx;
-  height: 48rpx;
+  width: 54rpx;
+  height: 54rpx;
   position: relative;
   display: flex;
   align-items: center;
@@ -47,14 +47,14 @@
 }
 
 .tab-logo {
-  width: 60rpx;
-  height: 60rpx;
+  width: 68rpx;
+  height: 68rpx;
   opacity: 1;
 }
 
 .tab-personnel {
-  width: 52rpx;
-  height: 52rpx;
+  width: 58rpx;
+  height: 58rpx;
   opacity: 0.84;
 }
 
@@ -74,8 +74,8 @@
 }
 
 .tab-logo {
-  width: 74rpx;
-  height: 74rpx;
+  width: 82rpx;
+  height: 82rpx;
 }
 
 .tab-item.active .tab-personnel {
