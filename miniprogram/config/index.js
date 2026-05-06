@@ -3,19 +3,25 @@
  * 支持多环境：开发环境、生产环境
  */
 
+const LOCAL_DEV_HOST = 'http://10.4.28.234:8000';
+const TUNNEL_HOST = 'https://api.chronono.org';
+const PROD_HOST = 'https://api.chronono.org';
+
 // 环境配置
 const ENV = {
   // 开发环境：本地开发，可使用 HTTP
   development: {
-    baseUrl: 'http://192.168.1.35:8000/api/v1', // 请根据实际情况修改
-    staticBaseUrl: 'http://192.168.1.35:8000', // 静态资源基础URL
+    localBaseUrl: `${LOCAL_DEV_HOST}/api/v1`,
+    localStaticBaseUrl: LOCAL_DEV_HOST,
+    remoteBaseUrl: `${TUNNEL_HOST}/api/v1`,
+    remoteStaticBaseUrl: TUNNEL_HOST,
     tenantCode: 'default',
     debug: true,
   },
   // 生产环境：必须使用 HTTPS
   production: {
-    baseUrl: 'https://api.sdm-system.com/api/v1',
-    staticBaseUrl: 'https://api.sdm-system.com',
+    baseUrl: `${PROD_HOST}/api/v1`,
+    staticBaseUrl: PROD_HOST,
     tenantCode: 'default',
     debug: false,
   }
@@ -31,14 +37,48 @@ function getEnv() {
   return 'development';
 }
 
+function isDevtools() {
+  try {
+    const systemInfo = wx.getSystemInfoSync();
+    return systemInfo.platform === 'devtools';
+  } catch (err) {
+    return false;
+  }
+}
+
 const currentEnv = getEnv();
 const selected = ENV[currentEnv];
 
+function getResolvedConfig() {
+  if (currentEnv === 'production') {
+    return selected;
+  }
+
+  if (isDevtools()) {
+    return {
+      baseUrl: selected.localBaseUrl,
+      staticBaseUrl: selected.localStaticBaseUrl,
+      tenantCode: selected.tenantCode,
+      debug: selected.debug,
+    };
+  }
+
+  return {
+    baseUrl: selected.remoteBaseUrl,
+    staticBaseUrl: selected.remoteStaticBaseUrl,
+    tenantCode: selected.tenantCode,
+    debug: selected.debug,
+  };
+}
+
+const resolved = getResolvedConfig();
+
 module.exports = {
-  baseUrl: selected.baseUrl,
-  staticBaseUrl: selected.staticBaseUrl,
-  tenantCode: selected.tenantCode,
-  debug: selected.debug,
+  baseUrl: resolved.baseUrl,
+  staticBaseUrl: resolved.staticBaseUrl,
+  tenantCode: resolved.tenantCode,
+  debug: resolved.debug,
   env: currentEnv,
   isProduction: currentEnv === 'production',
+  isDevtools: isDevtools(),
 };

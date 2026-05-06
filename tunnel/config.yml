@@ -1,11 +1,12 @@
 # Cloudflare Tunnel 配置
 
-tunnel: 8044c22b-3241-4d6a-b6af-497de5e6518c
-credentials-file: /etc/cloudflared/certs/8044c22b-3241-4d6a-b6af-497de5e6518c.json
+tunnel: 215fcc07-11ca-49ae-82cc-3c3b3ad27e18
+credentials-file: /etc/cloudflared/certs/215fcc07-11ca-49ae-82cc-3c3b3ad27e18.json
+protocol: http2
 
 ingress:
-  - hostname: api.claudeskill.top
+  - hostname: api.chronono.org
     service: http://host.docker.internal:8000
-  - hostname: web.claudeskill.top
+  - hostname: web.chronono.org
     service: http://host.docker.internal:3000
   - service: http_status:404
