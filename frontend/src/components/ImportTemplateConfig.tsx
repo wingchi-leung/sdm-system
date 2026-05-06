@@ -139,7 +139,7 @@ export const ImportTemplateConfig: React.FC<ImportTemplateConfigProps> = ({ onCo
   };
 
   const handleDelete = async () => {
-    if (!confirm('确定要删除导入模板配置吗？')) return;
+    if (!window.confirm('确定要删除导入模板配置吗？')) return;
 
     try {
       await apiRequest(API_PATHS.users.importTemplate, {

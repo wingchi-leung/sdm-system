@@ -121,8 +121,9 @@ export const ImportUsers: React.FC<ImportUsersProps> = ({ onImportSuccess }) => 
       if (response.error) {
         alert(response.error);
       } else {
-        setResult(response.data || null);
-        if (response.data?.success > 0) {
+        const importResult = response.data ?? null;
+        setResult(importResult);
+        if ((importResult?.success ?? 0) > 0) {
           onImportSuccess?.();
         }
       }
