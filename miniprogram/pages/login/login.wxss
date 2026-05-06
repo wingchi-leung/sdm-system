@@ -152,11 +152,11 @@
   height: 88rpx;
   border: 0;
   border-radius: 999rpx;
-  background: #2F4F46;
+  background: #111111;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12rpx 30rpx rgba(47, 79, 70, 0.18);
+  box-shadow: 0 12rpx 30rpx rgba(17, 17, 17, 0.18);
 }
 
 .btn-wechat::after {
