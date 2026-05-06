@@ -93,6 +93,61 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+interface ApiValidationErrorItem {
+  type?: string;
+  loc?: Array<string | number>;
+  msg?: string;
+  input?: unknown;
+}
+
+function isValidationErrorItem(value: unknown): value is ApiValidationErrorItem {
+  return typeof value === 'object' && value !== null;
+}
+
+export function formatApiError(errorPayload: unknown, fallback: string): string {
+  if (typeof errorPayload === 'string' && errorPayload.trim()) {
+    return errorPayload;
+  }
+
+  if (Array.isArray(errorPayload)) {
+    const messages = errorPayload
+      .filter(isValidationErrorItem)
+      .map((item) => {
+        const message = typeof item.msg === 'string' ? item.msg : '';
+        const location = Array.isArray(item.loc)
+          ? item.loc
+            .filter((segment) => typeof segment === 'string' || typeof segment === 'number')
+            .join('.')
+          : '';
+
+        if (location && message) {
+          return `${location}: ${message}`;
+        }
+
+        return message || '';
+      })
+      .filter(Boolean);
+
+    if (messages.length > 0) {
+      return messages.join('；');
+    }
+  }
+
+  if (typeof errorPayload === 'object' && errorPayload !== null) {
+    const payload = errorPayload as Record<string, unknown>;
+
+    if (typeof payload.message === 'string' && payload.message.trim()) {
+      return payload.message;
+    }
+
+    if (typeof payload.detail === 'string' && payload.detail.trim()) {
+      return payload.detail;
+    }
+  }
+
+  return fallback;
+}
+
 export const apiRequest = async <T>(
   url: string,
   options: RequestInit = {},
@@ -117,7 +172,7 @@ export const apiRequest = async <T>(
     const payload = text ? JSON.parse(text) : null;
 
     if (!response.ok) {
-      throw new Error(payload?.detail || payload?.message || '请求失败');
+      throw new Error(formatApiError(payload?.detail ?? payload?.message ?? payload, '请求失败'));
     }
 
     return { data: payload as T };
@@ -156,7 +211,7 @@ export const loginApi = async (
     const data = await response.json();
 
     if (!response.ok) {
-      return { error: data.detail || '登录失败' };
+      return { error: formatApiError(data?.detail ?? data?.message ?? data, '登录失败') };
     }
 
     return { data };
