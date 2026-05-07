@@ -10,14 +10,12 @@
   </view>
 
   <view wx:else class="content">
-    <view class="hero">
-      <text class="hero-title">设置你的头像</text>
-      <text class="hero-text">可以使用默认头像，也可以上传自己的头像图片</text>
-    </view>
-
     <view class="preview-card">
-      <image class="preview-avatar" src="{{selectedAvatarDisplayUrl || currentAvatarDisplayUrl}}" mode="aspectFill" />
-      <text class="preview-hint">当前预览</text>
+      <view class="preview-shell">
+        <view class="preview-avatar-wrap" animation="{{previewAnimation}}">
+          <image class="preview-avatar" src="{{selectedAvatarDisplayUrl || currentAvatarDisplayUrl}}" mode="aspectFill" />
+        </view>
+      </view>
     </view>
 
     <view class="section">
@@ -38,12 +36,12 @@
     <view class="section">
       <text class="section-title">自定义头像</text>
       <view class="upload-card">
-        <view class="upload-info">
-          <text class="upload-title">{{customAvatarUrl ? '已上传自定义头像' : '从相册或相机上传'}}</text>
+        <view class="upload-copy">
+          <text class="upload-title">{{customAvatarUrl ? '已选择自定义头像' : '上传你自己的头像'}}</text>
           <text class="upload-text">支持 PNG、JPG，建议使用正方形图片</text>
         </view>
         <button class="upload-btn" bindtap="onChooseAvatar" loading="{{submitting}}">
-          {{customAvatarUrl ? '重新上传' : '上传头像'}}
+          <text class="upload-btn-label">{{customAvatarUrl ? '重新上传' : '上传头像'}}</text>
         </button>
       </view>
     </view>
@@ -53,7 +51,7 @@
     </view>
 
     <button class="save-btn" bindtap="onSave" loading="{{submitting}}" disabled="{{submitting}}">
-      保存头像
+      <text class="save-btn-label">保存头像</text>
     </button>
   </view>
 </view>
