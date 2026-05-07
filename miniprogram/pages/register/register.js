@@ -1,8 +1,11 @@
 const api = require("../../utils/api");
 const auth = require("../../utils/auth");
 const tenant = require("../../utils/tenant");
-
-const PENDING_ORDER_KEY = 'pending_payment_order'; // Storage key for pending payment
+const {
+  buildPendingOrderStorageKey,
+  buildOrderHistoryStorageKey,
+  upsertOrderRecord,
+} = require('../../utils/payment-order');
 
 Page({
   data: {
@@ -87,7 +90,7 @@ Page({
 
     // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
     try {
-      const stored = wx.getStorageSync(`${PENDING_ORDER_KEY}_${tenant.getTenantCode()}`);
+      const stored = wx.getStorageSync(buildPendingOrderStorageKey(tenant.getTenantCode()));
       if (stored && stored.activityId === activityId && stored.orderNo) {
         this.setData({
           paymentOrderNo: stored.orderNo,
@@ -383,15 +386,44 @@ Page({
    * @param {string} orderNo - 订单号，传空字符串表示清除
    */
   _persistPendingOrder(orderNo) {
-    const { activityId } = this.data;
+    const { activityId, activity, actualFee } = this.data;
+    const tenantCode = tenant.getTenantCode();
     try {
       if (orderNo) {
-        wx.setStorageSync(`${PENDING_ORDER_KEY}_${tenant.getTenantCode()}`, { activityId, orderNo });
+        const payload = {
+          activityId,
+          activityName: activity ? activity.activity_name : '',
+          actualFee: actualFee || 0,
+          orderNo,
+          createTime: new Date().toISOString(),
+          updateTime: new Date().toISOString(),
+        };
+        wx.setStorageSync(buildPendingOrderStorageKey(tenantCode), payload);
+        this._upsertOrderHistory({
+          order_no: orderNo,
+          activity_id: activityId,
+          activity_name: payload.activityName,
+          actual_fee: payload.actualFee,
+          status: 0,
+          create_time: payload.createTime,
+          update_time: payload.updateTime,
+        });
       } else {
-        wx.removeStorageSync(`${PENDING_ORDER_KEY}_${tenant.getTenantCode()}`);
+        wx.removeStorageSync(buildPendingOrderStorageKey(tenantCode));
       }
     } catch (_) {
       // Storage 操作失败不影响主流程
+    }
+  },
+
+  _upsertOrderHistory(record) {
+    const historyKey = buildOrderHistoryStorageKey(tenant.getTenantCode());
+    try {
+      const current = wx.getStorageSync(historyKey) || [];
+      const next = upsertOrderRecord(current, record);
+      wx.setStorageSync(historyKey, next);
+    } catch (_) {
+      // 本地订单历史仅作为用户侧展示，不阻断主流程
     }
   },
 
@@ -435,11 +467,22 @@ Page({
         return this.confirmPaymentResult(orderNo);
       })
       .then((orderDetail) => {
+        const successOrderNo = orderDetail && orderDetail.order_no
+          ? orderDetail.order_no
+          : this.data.paymentOrderNo;
         const message = orderDetail && orderDetail.participant_enroll_status === 2
           ? '支付成功，已进入候补'
           : '报名成功';
         // 支付成功，清除持久化的订单号
         this._persistPendingOrder('');
+        this._upsertOrderHistory({
+          order_no: successOrderNo,
+          activity_id: this.data.activityId,
+          activity_name: this.data.activity ? this.data.activity.activity_name : '',
+          actual_fee: this.data.actualFee || 0,
+          status: 1,
+          update_time: orderDetail && orderDetail.update_time ? orderDetail.update_time : new Date().toISOString(),
+        });
         this.setData({
           paymentOrderNo: '',
           submitting: false,
@@ -466,6 +509,16 @@ Page({
         }
         if (paymentOrderNo && !msg.includes('订单号')) {
           msg = `${msg}（订单号：${paymentOrderNo}）`;
+        }
+        if (paymentOrderNo) {
+          this._upsertOrderHistory({
+            order_no: paymentOrderNo,
+            activity_id: this.data.activityId,
+            activity_name: this.data.activity ? this.data.activity.activity_name : '',
+            actual_fee: this.data.actualFee || 0,
+            status: err && err.errMsg && err.errMsg.includes('cancel') ? 0 : 2,
+            update_time: new Date().toISOString(),
+          });
         }
         this.setData({ error: msg, submitting: false });
       });

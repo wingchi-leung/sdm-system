@@ -2,6 +2,7 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
+const { formatParticipantActivities } = require('../../utils/mine-data');
 
 Page({
   data: {
@@ -82,11 +83,7 @@ Page({
   },
 
   async buildMyActivities(items) {
-    const mappedItems = (items || []).map((item) => ({
-      ...item,
-      start_time_display: this.formatTime(item.start_time),
-      enroll_status_text: item.enroll_status === 2 ? '候补中' : '已报名',
-    }));
+    const mappedItems = formatParticipantActivities(items, this.formatTime.bind(this));
     return image.resolveActivityPosters(mappedItems);
   },
 
@@ -123,6 +120,14 @@ Page({
     const { id } = e.currentTarget.dataset;
     if (!id) return;
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', { id }) });
+  },
+
+  goMyActivities() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/my-activities/my-activities') });
+  },
+
+  goMyOrders() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/my-orders/my-orders') });
   },
 
   goActivityManage() {

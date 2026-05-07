@@ -143,7 +143,8 @@
 .community-empty {
   padding: 28rpx 24rpx;
   border-radius: 16rpx;
-  background: #F8F8F6;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
 }
 
 .community-state-text,
@@ -162,7 +163,8 @@
 .community-card {
   overflow: hidden;
   border-radius: 16rpx;
-  background: #F8F8F6;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
 }
 
 .community-card:active {
@@ -251,7 +253,8 @@
 .admin-action {
   min-height: 112rpx;
   padding: 18rpx 8rpx;
-  background: #F8F8F6;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -324,7 +327,9 @@
 
 .disabled-tip {
   padding: 28rpx;
-  background: #F8F8F6;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
+  border-radius: 16rpx;
   text-align: center;
 }
 

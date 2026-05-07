@@ -31,7 +31,8 @@
   width: 112rpx;
   height: 112rpx;
   margin-right: 28rpx;
-  background: #F8F8F6;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -102,15 +103,22 @@
 }
 
 .menu-card {
-  background: transparent;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
+  border-radius: 24rpx;
+  overflow: hidden;
 }
 
 .menu-item {
   min-height: 96rpx;
-  padding: 22rpx 0;
+  padding: 24rpx;
   display: flex;
   align-items: center;
   box-sizing: border-box;
+}
+
+.menu-item + .menu-item {
+  border-top: 1rpx solid #F1F1F1;
 }
 
 .menu-item:active {
@@ -209,7 +217,7 @@
 
 .menu-item {
   min-height: 64rpx;
-  padding: 12rpx 0;
+  padding: 20rpx 24rpx;
 }
 
 .menu-text {

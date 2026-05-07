@@ -1,0 +1,85 @@
+.page {
+  min-height: 100vh;
+  padding: 32rpx;
+  background: #FFFFFF;
+  box-sizing: border-box;
+}
+
+.state-wrap {
+  min-height: 62vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.state-title {
+  color: var(--ink);
+  font-size: 30rpx;
+  line-height: 42rpx;
+  font-weight: 500;
+}
+
+.state-text {
+  margin-top: 12rpx;
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.order-card {
+  padding: 24rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
+  border-radius: 24rpx;
+}
+
+.order-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.order-title {
+  flex: 1;
+  color: var(--ink);
+  font-size: 30rpx;
+  line-height: 42rpx;
+  font-weight: 500;
+}
+
+.order-status {
+  flex-shrink: 0;
+  padding: 8rpx 14rpx;
+  color: var(--green);
+  font-size: 22rpx;
+  line-height: 1;
+  background: #F4F8F6;
+  border-radius: 999rpx;
+}
+
+.order-amount {
+  display: block;
+  margin-top: 18rpx;
+  color: var(--ink);
+  font-size: 34rpx;
+  line-height: 46rpx;
+  font-weight: 500;
+}
+
+.order-meta {
+  display: block;
+  margin-top: 10rpx;
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+  word-break: break-all;
+}

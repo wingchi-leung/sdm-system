@@ -1,0 +1,35 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">加载失败</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:elif="{{activities.length}}" class="list">
+    <view
+      class="activity-card"
+      wx:for="{{activities}}"
+      wx:key="participant_id"
+      data-id="{{item.id}}"
+      bindtap="goActivityDetail"
+    >
+      <image wx:if="{{item.poster_url}}" class="activity-poster" src="{{item.poster_url}}" mode="aspectFill" />
+      <view class="activity-body">
+        <view class="activity-head">
+          <text class="activity-title">{{item.activity_name}}</text>
+          <text class="activity-status">{{item.enroll_status_text}}</text>
+        </view>
+        <text class="activity-time">{{item.start_time_display}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view wx:else class="state-wrap">
+    <text class="state-title">还没有报名活动</text>
+    <text class="state-text">报名成功后会在这里看到全部历史活动</text>
+  </view>
+</view>
