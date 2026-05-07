@@ -3,14 +3,16 @@
  * 支持多环境：开发环境、生产环境
  */
 
-const LOCAL_DEV_HOST = 'http://10.4.28.234:8000';
+const { resolveConfig } = require('./resolve');
+
+const LOCAL_DEV_HOST = 'http://127.0.0.1:8000';
 const TUNNEL_HOST = 'https://api.chronono.org';
 const PROD_HOST = 'https://api.chronono.org';
 
 // 开发者工具调试模式：
 // - 'local': 走本机/局域网后端
 // - 'remote': 走 Cloudflare Tunnel / Docker 暴露的 HTTPS 后端
-const DEVTOOLS_API_MODE = 'remote';
+const DEVTOOLS_API_MODE = 'local';
 
 // 环境配置
 const ENV = {
@@ -55,26 +57,12 @@ const currentEnv = getEnv();
 const selected = ENV[currentEnv];
 
 function getResolvedConfig() {
-  if (currentEnv === 'production') {
-    return selected;
-  }
-
-  if (isDevtools()) {
-    const useLocalDevtools = DEVTOOLS_API_MODE === 'local';
-    return {
-      baseUrl: useLocalDevtools ? selected.localBaseUrl : selected.remoteBaseUrl,
-      staticBaseUrl: useLocalDevtools ? selected.localStaticBaseUrl : selected.remoteStaticBaseUrl,
-      tenantCode: selected.tenantCode,
-      debug: selected.debug,
-    };
-  }
-
-  return {
-    baseUrl: selected.remoteBaseUrl,
-    staticBaseUrl: selected.remoteStaticBaseUrl,
-    tenantCode: selected.tenantCode,
-    debug: selected.debug,
-  };
+  return resolveConfig({
+    currentEnv,
+    isDevtools: isDevtools(),
+    devtoolsApiMode: DEVTOOLS_API_MODE,
+    selected,
+  });
 }
 
 const resolved = getResolvedConfig();

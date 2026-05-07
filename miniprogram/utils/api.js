@@ -4,6 +4,7 @@
  */
 const config = require('../config/index');
 const tenant = require('./tenant');
+const { normalizeApiErrorMessage } = require('./request-error');
 const baseUrl = config.baseUrl;
 const staticBaseUrl = config.staticBaseUrl;
 
@@ -278,8 +279,7 @@ function wechatLogin(code) {
 
 function ApiError(code, message) {
   this.statusCode = code;
-  const m = message;
-  this.message = typeof m === 'string' ? m : (m && m.detail) ? (Array.isArray(m.detail) ? (m.detail[0] && m.detail[0].msg) || String(m.detail) : m.detail) : (m && m.msg) || String(m);
+  this.message = normalizeApiErrorMessage(code, message);
 }
 ApiError.prototype.toString = function () {
   return 'ApiError(' + this.statusCode + '): ' + this.message;
