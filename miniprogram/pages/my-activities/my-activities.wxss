@@ -5,6 +5,30 @@
   box-sizing: border-box;
 }
 
+.hero {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  background: #F7FAF8;
+  border: 1rpx solid #E8EEEA;
+  border-radius: 24rpx;
+}
+
+.hero-title {
+  display: block;
+  color: var(--ink);
+  font-size: 36rpx;
+  line-height: 48rpx;
+  font-weight: 500;
+}
+
+.hero-text {
+  display: block;
+  margin-top: 8rpx;
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
 .state-wrap {
   min-height: 62vh;
   display: flex;
@@ -47,6 +71,16 @@
   display: block;
 }
 
+.activity-poster.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #B7BBB8;
+  font-size: 24rpx;
+  letter-spacing: 0.12em;
+  background: #F7F7F7;
+}
+
 .activity-body {
   padding: 24rpx;
 }
@@ -76,10 +110,30 @@
   border-radius: 999rpx;
 }
 
-.activity-time {
+.activity-status.is-waiting {
+  color: #9A6700;
+  background: #FFF7E6;
+}
+
+.activity-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-top: 14rpx;
+}
+
+.activity-time,
+.activity-location {
+  display: block;
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
+.activity-arrow {
   display: block;
   margin-top: 14rpx;
-  color: #999999;
+  color: var(--green);
   font-size: 24rpx;
   line-height: 34rpx;
 }

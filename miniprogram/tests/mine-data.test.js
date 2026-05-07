@@ -19,7 +19,9 @@ test('报名活动列表补充展示字段', () => {
 
   assert.equal(items[0].start_time_display, '格式化:2026-05-07T08:00:00.000Z');
   assert.equal(items[0].enroll_status_text, '已报名');
+  assert.equal(items[0].enroll_status_class, 'is-registered');
   assert.equal(items[1].enroll_status_text, '候补中');
+  assert.equal(items[1].enroll_status_class, 'is-waiting');
 });
 
 test('订单状态文案映射正确', () => {
@@ -66,4 +68,5 @@ test('订单展示列表补充金额和状态文案', () => {
 
   assert.equal(list[0].amount_display, '¥88.00');
   assert.equal(list[0].status_text, '支付成功');
+  assert.equal(list[0].status_class, 'is-success');
 });

@@ -3,6 +3,8 @@ function formatParticipantActivities(items = [], formatTime) {
     ...item,
     start_time_display: typeof formatTime === 'function' ? formatTime(item.start_time) : '',
     enroll_status_text: item.enroll_status === 2 ? '候补中' : '已报名',
+    enroll_status_class: item.enroll_status === 2 ? 'is-waiting' : 'is-registered',
+    location_display: item.location || '线上活动',
   }));
 }
 

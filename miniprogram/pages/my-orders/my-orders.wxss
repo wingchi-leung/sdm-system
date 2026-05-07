@@ -5,6 +5,30 @@
   box-sizing: border-box;
 }
 
+.hero {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  background: #F7FAF8;
+  border: 1rpx solid #E8EEEA;
+  border-radius: 24rpx;
+}
+
+.hero-title {
+  display: block;
+  color: var(--ink);
+  font-size: 36rpx;
+  line-height: 48rpx;
+  font-weight: 500;
+}
+
+.hero-text {
+  display: block;
+  margin-top: 8rpx;
+  color: #999999;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
 .state-wrap {
   min-height: 62vh;
   display: flex;
@@ -64,6 +88,17 @@
   line-height: 1;
   background: #F4F8F6;
   border-radius: 999rpx;
+}
+
+.order-status.is-pending {
+  color: #9A6700;
+  background: #FFF7E6;
+}
+
+.order-status.is-failed,
+.order-status.is-closed {
+  color: #B42318;
+  background: #FEF3F2;
 }
 
 .order-amount {

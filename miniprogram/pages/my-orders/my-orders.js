@@ -13,6 +13,7 @@ Page({
     loading: true,
     error: null,
     orders: [],
+    summaryText: '暂无订单',
   },
 
   onLoad(options) {
@@ -46,15 +47,21 @@ Page({
 
       const refreshedRecords = await this.refreshPendingOrders(records);
       wx.setStorageSync(historyKey, refreshedRecords);
+      const pendingCount = refreshedRecords.filter((item) => normalizeOrderRecord(item).status === 0).length;
+      const successCount = refreshedRecords.filter((item) => normalizeOrderRecord(item).status === 1).length;
 
       this.setData({
         orders: formatOrderList(refreshedRecords),
+        summaryText: refreshedRecords.length
+          ? `共 ${refreshedRecords.length} 笔订单，待支付 ${pendingCount} 笔，成功 ${successCount} 笔`
+          : '暂无订单',
         loading: false,
       });
     } catch (err) {
       this.setData({
         loading: false,
         orders: [],
+        summaryText: '暂无订单',
         error: err && err.message ? err.message : '加载订单失败',
       });
     }

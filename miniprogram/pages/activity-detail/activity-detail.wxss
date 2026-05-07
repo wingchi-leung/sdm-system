@@ -73,6 +73,8 @@
   border-radius: 8rpx 8rpx 0 0;
   position: relative;
   z-index: 1;
+  border: 1rpx solid #ECECEC;
+  border-bottom: 0;
 }
 
 .status-badge {
@@ -84,6 +86,8 @@
   color: var(--green);
   font-size: 21rpx;
   letter-spacing: 0.08em;
+  margin-right: 12rpx;
+  margin-bottom: 12rpx;
 }
 
 .status-badge.ongoing {
@@ -109,6 +113,10 @@
 
 .info-card {
   margin: 6rpx 56rpx 48rpx;
+  padding: 12rpx 24rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
+  border-radius: 0 0 24rpx 24rpx;
 }
 
 .community-section {
@@ -145,6 +153,7 @@
   border-radius: 16rpx;
   background: #FFFFFF;
   border: 1rpx solid #ECECEC;
+  text-align: center;
 }
 
 .community-state-text,
@@ -165,6 +174,7 @@
   border-radius: 16rpx;
   background: #FFFFFF;
   border: 1rpx solid #ECECEC;
+  box-sizing: border-box;
 }
 
 .community-card:active {
@@ -269,6 +279,7 @@
 .admin-action.delete {
   grid-column: span 3;
   background: rgba(178, 65, 55, 0.04);
+  border-color: rgba(178, 65, 55, 0.12);
 }
 
 .action-icon-wrap {

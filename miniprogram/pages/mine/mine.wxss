@@ -18,13 +18,25 @@
 
 .profile-section {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   padding-bottom: 48rpx;
   margin-bottom: 38rpx;
 }
 
 .profile-section.admin {
+  flex-direction: row;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  background: #FFFFFF;
+  border: 1rpx solid #ECECEC;
+  border-radius: 24rpx;
 }
 
 .avatar {
@@ -57,6 +69,36 @@
 .profile-info {
   flex: 1;
   min-width: 0;
+}
+
+.profile-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.summary-item {
+  padding: 22rpx 24rpx;
+  background: #F7FAF8;
+  border: 1rpx solid #E8EEEA;
+  border-radius: 20rpx;
+}
+
+.summary-value {
+  display: block;
+  color: var(--ink);
+  font-size: 34rpx;
+  line-height: 46rpx;
+  font-weight: 500;
+}
+
+.summary-label {
+  display: block;
+  margin-top: 6rpx;
+  color: #999999;
+  font-size: 22rpx;
+  line-height: 32rpx;
 }
 
 .profile-name {
@@ -167,7 +209,11 @@
 }
 
 .menu-item.logout .menu-text {
-  color: var(--text-soft);
+  color: #B42318;
+}
+
+.menu-item.logout .menu-arrow {
+  color: #B42318;
 }
 
 .menu-arrow {

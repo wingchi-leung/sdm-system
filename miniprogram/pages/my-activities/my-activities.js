@@ -8,6 +8,7 @@ Page({
     loading: true,
     error: null,
     activities: [],
+    summaryText: '共 0 条报名记录',
   },
 
   onLoad(options) {
@@ -29,11 +30,13 @@ Page({
       const resolvedActivities = await image.resolveActivityPosters(activities);
       this.setData({
         activities: resolvedActivities,
+        summaryText: `共 ${resolvedActivities.length} 条报名记录`,
         loading: false,
       });
     } catch (err) {
       this.setData({
         activities: [],
+        summaryText: '共 0 条报名记录',
         loading: false,
         error: err && err.message ? err.message : '加载报名活动失败',
       });

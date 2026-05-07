@@ -16,6 +16,13 @@ function getOrderStatusText(status) {
   return '待支付';
 }
 
+function getOrderStatusClass(status) {
+  if (status === 1) return 'is-success';
+  if (status === 2) return 'is-failed';
+  if (status === 3) return 'is-closed';
+  return 'is-pending';
+}
+
 function normalizeOrderRecord(record = {}) {
   const actualFee = Number(record.actual_fee || record.actualFee || 0);
   const createTime = record.create_time || record.createTime || '';
@@ -67,6 +74,7 @@ function formatOrderList(records = []) {
       ...item,
       amount_display: `¥${(item.actual_fee / 100).toFixed(2)}`,
       status_text: getOrderStatusText(item.status),
+      status_class: getOrderStatusClass(item.status),
       time_display: item.update_time || item.create_time || '',
     };
   });
@@ -78,6 +86,7 @@ module.exports = {
   buildPendingOrderStorageKey,
   buildOrderHistoryStorageKey,
   getOrderStatusText,
+  getOrderStatusClass,
   normalizeOrderRecord,
   upsertOrderRecord,
   formatOrderList,
