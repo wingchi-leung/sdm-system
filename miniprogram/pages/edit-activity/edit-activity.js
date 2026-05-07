@@ -22,18 +22,44 @@ Page({
     uploading: false,
   },
 
+  resetSensitiveData() {
+    this.setData({
+      activityName: '',
+      tag: '',
+      startDate: '',
+      startTime: '',
+      endDate: '',
+      endTime: '',
+      activityTypeName: '',
+      posterUrl: '',
+      posterLocalPath: '',
+      location: '',
+      submitting: false,
+      uploading: false,
+    });
+  },
+
+  ensureAdminAccess() {
+    if (auth.isAdmin()) return true;
+    this.resetSensitiveData();
+    wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1500);
+    return false;
+  },
+
   onLoad(options) {
     this.tagTouched = false;
     tenant.applyPageOptions(options);
-    if (!auth.isAdmin()) {
-      wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
-      return;
-    }
+    if (!this.ensureAdminAccess()) return;
     if (options.id) {
       this.setData({ id: options.id });
       this.loadActivity(options.id);
     }
+  },
+
+  onShow() {
+    if (!this.data.id) return;
+    this.ensureAdminAccess();
   },
 
   async loadActivity(id) {
@@ -181,6 +207,10 @@ Page({
   },
 
   async submit() {
+    if (!auth.isAdmin()) {
+      this.ensureAdminAccess();
+      return;
+    }
     const { id, activityName, tag, startDate, startTime, endDate, endTime, activityTypeName, location } = this.data;
 
     if (!activityName.trim()) {

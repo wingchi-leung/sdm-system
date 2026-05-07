@@ -10,24 +10,51 @@ Page({
     loading: true,
   },
 
+  resetSensitiveData() {
+    this.setData({
+      statistics: null,
+      checkinRate: '',
+      loading: false,
+    });
+  },
+
+  ensureAdminAccess() {
+    if (auth.isAdmin()) return true;
+    this.resetSensitiveData();
+    wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1500);
+    return false;
+  },
+
   onLoad(options) {
     tenant.applyPageOptions(options);
-    if (!auth.isAdmin()) {
-      wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
-      return;
-    }
+    if (!this.ensureAdminAccess()) return;
     if (options.id) {
       this.setData({
         activityId: options.id,
         activityName: decodeURIComponent(options.name || ''),
       });
       wx.setNavigationBarTitle({ title: `${this.data.activityName} - 报名统计` });
+      this._skipNextShow = true;
       this.loadStatistics();
     }
   },
 
+  onShow() {
+    if (this._skipNextShow) {
+      this._skipNextShow = false;
+      return;
+    }
+    if (!this.data.activityId) return;
+    if (!this.ensureAdminAccess()) return;
+    this.loadStatistics();
+  },
+
   async loadStatistics() {
+    if (!auth.isAdmin()) {
+      this.resetSensitiveData();
+      return;
+    }
     try {
       const statistics = await api.getActivityStatistics(this.data.activityId);
       // 计算签到率

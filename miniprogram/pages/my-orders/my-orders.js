@@ -22,10 +22,28 @@ Page({
   },
 
   onShow() {
+    if (!this.ensureUserAccess()) return;
     this.loadOrders();
   },
 
+  ensureUserAccess() {
+    if (auth.isUser()) return true;
+    this.setData({
+      loading: false,
+      orders: [],
+      summaryText: '暂无订单',
+      error: null,
+    });
+    wx.showToast({ title: '请使用普通用户账号查看', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1200);
+    return false;
+  },
+
   async loadOrders() {
+    if (!auth.isUser()) {
+      this.ensureUserAccess();
+      return;
+    }
     this.setData({ loading: true, error: null });
     try {
       const tenantCode = tenant.getTenantCode();

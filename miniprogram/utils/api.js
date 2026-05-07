@@ -689,7 +689,7 @@ function createPaymentOrder(payload) {
 function queryPaymentOrder(orderNo) {
   return new Promise((resolve, reject) => {
     wx.request({
-      url: `${baseUrl}/payments/order/${orderNo}`,
+      url: `${baseUrl}/payments/order/${encodeURIComponent(orderNo)}`,
       method: 'GET',
       header: getHeader(true),
       success: (res) => {

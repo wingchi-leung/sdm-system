@@ -26,6 +26,25 @@ Page({
     error: null,
   },
 
+  resetSensitiveData() {
+    this.setData({
+      activity: null,
+      title: '',
+      content: '',
+      coverLocalPath: '',
+      submitting: false,
+      error: null,
+    });
+  },
+
+  ensureAdminAccess() {
+    if (auth.isAdmin()) return true;
+    this.resetSensitiveData();
+    wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1200);
+    return false;
+  },
+
   async onLoad(options) {
     tenant.applyPageOptions(options);
     const activityId = Number(options.activityId || 0);
@@ -33,11 +52,7 @@ Page({
       this.setData({ error: '缺少活动参数' });
       return;
     }
-    if (!auth.isAdmin()) {
-      wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1200);
-      return;
-    }
+    if (!this.ensureAdminAccess()) return;
     this.setData({
       activityId,
       activityName: decodeDisplayText(options.activityName),
@@ -56,6 +71,11 @@ Page({
     } catch (err) {
       this.setData({ error: err.message || '加载活动信息失败' });
     }
+  },
+
+  onShow() {
+    if (!this.data.activityId) return;
+    this.ensureAdminAccess();
   },
 
   onTitleInput(e) {
@@ -89,6 +109,10 @@ Page({
   },
 
   async onSubmit() {
+    if (!auth.isAdmin()) {
+      this.ensureAdminAccess();
+      return;
+    }
     const title = (this.data.title || '').trim();
     const content = (this.data.content || '').trim();
     if (!title) {

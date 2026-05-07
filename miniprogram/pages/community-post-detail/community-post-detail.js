@@ -28,6 +28,10 @@ Page({
     this.loadPageData();
   },
 
+  onShow() {
+    this.setData({ canComment: auth.isUser() });
+  },
+
   async loadPageData() {
     this.setData({ loading: true, error: null });
     try {
@@ -76,7 +80,8 @@ Page({
       wx.showToast({ title: '请输入评论内容', icon: 'none' });
       return;
     }
-    if (!this.data.canComment) {
+    if (!auth.isUser()) {
+      this.setData({ canComment: false });
       wx.showToast({ title: '当前账号不可发表评论', icon: 'none' });
       return;
     }
