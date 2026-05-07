@@ -200,6 +200,15 @@ production: {
 
 ## 四、未来迁移到新笔记本（一键部署）
 
+### 当前 Docker 化约定（2026-05-08 更新）
+
+- `docker compose up -d --build` 会构建并启动 `mysql`、`backend`、`frontend`、`cloudflared`。
+- MySQL 首次创建数据卷时会自动执行 `backend/table.sql`，脚本挂载路径为 `/docker-entrypoint-initdb.d/01-table.sql`。
+- 如果 `sdm-system_mysql-data` 数据卷已经存在，MySQL 不会重复执行初始化 SQL；需要重置空库时才使用 `docker compose down -v`，这会删除当前容器数据库数据。
+- 前端容器使用 `REACT_APP_API_URL=${API_BASE_URL}/api/v1` 与 `REACT_APP_STATIC_URL=${STATIC_BASE_URL}`，需要和 `.env` 保持一致。
+- Cloudflare Tunnel 在容器网络内转发到 `backend:8000` 与 `frontend:3000`，避免依赖宿主机端口解析。
+- 同一个 Cloudflare Tunnel 凭据如果在旧电脑和新电脑同时运行，Cloudflare 会在多个 connector 间分流；迁移切换时需要停掉旧电脑的 `cloudflared`，否则公网请求可能仍命中旧电脑。
+
 ### 迁移步骤
 
 1. **在新笔记本上装 Docker Desktop**（约 10 分钟）
