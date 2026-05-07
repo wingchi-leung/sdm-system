@@ -1,15 +1,13 @@
 <view class="page">
   <!-- 顶部标题区域 -->
   <view class="header">
-    <view class="header-content">
-      <text class="header-title">活动</text>
-      <text class="header-subtitle">探索新活动</text>
-    </view>
-    <view class="header-actions">
+    <view class="header-left">
       <view class="header-avatar" wx:if="{{isUser}}" bindtap="goMine">
         <image wx:if="{{headerAvatarUrl}}" class="header-avatar-image" src="{{headerAvatarUrl}}" mode="aspectFill" />
         <text wx:else class="header-avatar-text">{{headerAvatarText}}</text>
       </view>
+    </view>
+    <view class="header-actions">
       <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
         <button class="btn-publish" bindtap="goCreateActivity">
           <text class="publish-icon">+</text>
