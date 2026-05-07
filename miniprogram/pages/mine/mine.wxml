@@ -8,12 +8,14 @@
     <!-- 用户信息卡片 -->
     <view class="profile-section">
       <view class="profile-card">
-        <view class="avatar">
-          <text class="avatar-text">{{userName ? userName[0] : '用'}}</text>
+        <view class="avatar avatar-clickable" bindtap="goAvatarPicker">
+          <image wx:if="{{avatarDisplayUrl}}" class="avatar-image" src="{{avatarDisplayUrl}}" mode="aspectFill" />
+          <text wx:else class="avatar-fallback">{{userName ? userName[0] : '用'}}</text>
         </view>
         <view class="profile-info">
           <text class="profile-name">{{userName || '用户'}}</text>
           <text class="profile-role">普通用户</text>
+          <text class="profile-link" bindtap="goAvatarPicker">点击设置头像</text>
         </view>
       </view>
       <view class="profile-summary">

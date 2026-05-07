@@ -12,6 +12,9 @@ function isLocalPath(url) {
 }
 
 function resolveDisplayUrl(url) {
+  if (url && String(url).startsWith('/assets/')) {
+    return Promise.resolve(String(url));
+  }
   const fullUrl = api.getImageUrl(url);
   if (!fullUrl) {
     return Promise.resolve('');

@@ -29,6 +29,8 @@ ALTER TABLE user_role ADD COLUMN update_time  datetime NULL COMMENT '更新时�
 
 ALTER TABLE permission ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;
 
+ALTER TABLE user ADD COLUMN avatar_url VARCHAR(500) NULL COMMENT '头像地址' AFTER industry;
+
 
 ALTER TABLE role_permission ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;
 

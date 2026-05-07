@@ -3,6 +3,7 @@ const auth = require('../../utils/auth');
 const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 const { formatParticipantActivities } = require('../../utils/mine-data');
+const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
 
 Page({
   data: {
@@ -42,10 +43,12 @@ Page({
         api.getMyParticipantActivities(),
       ])
         .then(async ([profile, registrations]) => {
+          const avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
           this.setData({
             view: 'user',
             profile,
             userName: auth.getUserName(),
+            avatarDisplayUrl,
             adminProfile: null,
             myActivities: await this.buildMyActivities(registrations.items || []),
             loading: false,
@@ -56,6 +59,7 @@ Page({
             view: 'user',
             profile: null,
             userName: auth.getUserName(),
+            avatarDisplayUrl: '',
             adminProfile: null,
             myActivities: [],
             loading: false,
@@ -128,6 +132,10 @@ Page({
 
   goMyOrders() {
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/my-orders/my-orders') });
+  },
+
+  goAvatarPicker() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/avatar-picker/avatar-picker') });
   },
 
   goActivityManage() {

@@ -12,6 +12,24 @@ from openpyxl import load_workbook
 from app.crud import crud_credential
 
 
+def _is_valid_avatar_url(value: str) -> bool:
+    text = (value or "").strip()
+    if not text:
+        return False
+    if text in {
+        "builtin:avatar-1",
+        "builtin:avatar-2",
+        "builtin:avatar-3",
+        "builtin:avatar-4",
+    }:
+        return True
+    if text.startswith("/uploads/avatars/"):
+        return True
+    if text.startswith("http://") or text.startswith("https://"):
+        return "/uploads/avatars/" in text
+    return False
+
+
 def get_users(db: Session, tenant_id: int) -> list[User]:
     """获取用户列表（租户隔离）"""
     return db.query(User).filter(User.tenant_id == tenant_id).all()
@@ -295,6 +313,22 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     user.identity_type = bind_info.identity_type
 
     crud_credential.sync_phone_identifiers(db, user_id, tenant_id, old_phone, bind_phone)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def update_user_avatar(db: Session, user_id: int, tenant_id: int, avatar_url: str) -> User:
+    """更新用户头像。"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    normalized_avatar_url = (avatar_url or "").strip()
+    if not _is_valid_avatar_url(normalized_avatar_url):
+        raise HTTPException(status_code=400, detail="头像地址不合法")
+
+    user.avatar_url = normalized_avatar_url
     db.commit()
     db.refresh(user)
     return user

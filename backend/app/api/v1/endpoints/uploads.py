@@ -94,3 +94,35 @@ async def upload_poster(
         "filename": filename,
         "size": len(content),
     }
+
+
+@router.post("/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """上传用户头像。"""
+    _validate_image(file)
+
+    content = await file.read()
+    if len(content) > settings.MAX_POSTER_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"文件过大，最大允许 {settings.MAX_POSTER_SIZE // (1024 * 1024)}MB"
+        )
+
+    ext = os.path.splitext(file.filename or "avatar.jpg")[1].lower()
+    if ext not in [".png", ".jpg", ".jpeg"]:
+        ext = ".jpg"
+
+    filename = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex[:8]}{ext}"
+    folder = "avatars"
+    file_url = await storage.upload(content, filename, folder=folder)
+    if settings.STORAGE_TYPE == "local":
+        file_url = f"/uploads/{folder}/{filename}"
+
+    return {
+        "url": file_url,
+        "filename": filename,
+        "size": len(content),
+    }

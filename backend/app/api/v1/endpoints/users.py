@@ -97,6 +97,21 @@ def bind_user_info(
         raise HTTPException(status_code=400, detail=f"绑定失败: {str(e)}")
 
 
+@router.put("/avatar", response_model=user.UserResponse)
+def update_user_avatar(
+    body: user.UserAvatarUpdateRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """更新当前用户头像。"""
+    return crud_user.update_user_avatar(
+        db=db,
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        avatar_url=body.avatar_url,
+    )
+
+
 @router.get("/check-bind-status")
 def check_bind_status(
     db: Session = Depends(deps.get_db),

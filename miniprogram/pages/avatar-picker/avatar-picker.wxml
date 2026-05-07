@@ -1,0 +1,59 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error && !avatarOptions.length}}" class="state-wrap">
+    <text class="state-title">加载失败</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <view class="hero">
+      <text class="hero-title">设置你的头像</text>
+      <text class="hero-text">可以使用默认头像，也可以上传自己的头像图片</text>
+    </view>
+
+    <view class="preview-card">
+      <image class="preview-avatar" src="{{selectedAvatarDisplayUrl || currentAvatarDisplayUrl}}" mode="aspectFill" />
+      <text class="preview-hint">当前预览</text>
+    </view>
+
+    <view class="section">
+      <text class="section-title">默认头像</text>
+      <view class="avatar-grid">
+        <view
+          wx:for="{{avatarOptions}}"
+          wx:key="key"
+          class="avatar-option {{selectedAvatarKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onSelectBuiltinAvatar"
+        >
+          <image class="avatar-image" src="{{item.path}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">自定义头像</text>
+      <view class="upload-card">
+        <view class="upload-info">
+          <text class="upload-title">{{customAvatarUrl ? '已上传自定义头像' : '从相册或相机上传'}}</text>
+          <text class="upload-text">支持 PNG、JPG，建议使用正方形图片</text>
+        </view>
+        <button class="upload-btn" bindtap="onChooseAvatar" loading="{{submitting}}">
+          {{customAvatarUrl ? '重新上传' : '上传头像'}}
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{error}}" class="error-box">
+      <text class="error-text">{{error}}</text>
+    </view>
+
+    <button class="save-btn" bindtap="onSave" loading="{{submitting}}" disabled="{{submitting}}">
+      保存头像
+    </button>
+  </view>
+</view>

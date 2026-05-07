@@ -264,6 +264,29 @@ class TestUserProfile:
         assert admin_user.name == "管理员本人"
         assert admin_user.sex == "M"
 
+    def test_update_avatar_to_builtin_avatar(self, client, user_token):
+        """测试用户可以切换到默认头像。"""
+        response = client.put(
+            "/api/v1/users/avatar",
+            headers=auth_headers(user_token),
+            json={"avatar_url": "builtin:avatar-2"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["avatar_url"] == "builtin:avatar-2"
+
+    def test_update_avatar_rejects_invalid_url(self, client, user_token):
+        """测试头像地址非法时返回友好错误。"""
+        response = client.put(
+            "/api/v1/users/avatar",
+            headers=auth_headers(user_token),
+            json={"avatar_url": "/uploads/posters/not-avatar.jpg"},
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "头像地址不合法" in response.json()["detail"]
+
 
 @pytest.mark.api
 class TestUserManagement:

@@ -60,6 +60,7 @@ class User(BaseModel):
     age = Column(Integer, nullable=True)
     occupation = Column(String(100), nullable=True)
     industry = Column(String(100), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
     isblock = Column(Integer, default=0)
     block_reason = Column(String(255), nullable=True)
 

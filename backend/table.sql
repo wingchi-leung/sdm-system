@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `age` int DEFAULT NULL COMMENT '年龄',
   `occupation` varchar(100) DEFAULT NULL COMMENT '职业',
   `industry` varchar(100) DEFAULT NULL COMMENT '行业',
+  `avatar_url` varchar(500) DEFAULT NULL COMMENT '头像地址',
   `isblock` tinyint DEFAULT 0 COMMENT '0-正常 1-拉黑',
   `block_reason` varchar(255) DEFAULT NULL COMMENT '拉黑原因',
   `wx_openid` varchar(64) DEFAULT NULL COMMENT '微信小程序 openid',
@@ -354,3 +355,5 @@ ON DUPLICATE KEY UPDATE `name` = '平台管理员';
 INSERT INTO `role_permission` (`role_id`, `permission_id`)
 SELECT 3, id FROM `permission`
 ON DUPLICATE KEY UPDATE `role_id` = 3;
+
+ALTER TABLE user ADD COLUMN avatar_url VARCHAR(500) NULL COMMENT '头像地址' AFTER industry;
