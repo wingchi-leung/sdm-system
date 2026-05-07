@@ -236,6 +236,7 @@
 
 ## 2026-05-07 小程序开发环境接口策略补充
 
-- 小程序开发者工具默认直连 `http://127.0.0.1:8000` 的本地后端，避免 Cloudflare Tunnel 异常导致首页启动即加载失败。
+- 小程序开发者工具默认直连远端 `https://api.chronono.org`，与真机开发版保持一致；如需切回本地调试，可在 `miniprogram/config/index.js` 中临时改为 `local`。
 - 非开发者工具场景的开发版继续走远程 HTTPS 接口，正式版仍固定走生产 HTTPS 接口。
+- `cloudflared` 容器显式指定公共 DNS，用于规避 Docker 内部 DNS 解析 Cloudflare Tunnel SRV 记录失败，减少 `530 / 1033` 远端入口故障。
 - 当接口返回 Cloudflare Tunnel 或其他 HTML 错页时，小程序统一展示中文友好提示，不再把整段 HTML 直接暴露给用户。

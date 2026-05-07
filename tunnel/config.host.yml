@@ -1,0 +1,10 @@
+tunnel: 215fcc07-11ca-49ae-82cc-3c3b3ad27e18
+credentials-file: C:\Users\g0132\.cloudflared\215fcc07-11ca-49ae-82cc-3c3b3ad27e18.json
+protocol: http2
+
+ingress:
+  - hostname: api.chronono.org
+    service: http://localhost:8000
+  - hostname: web.chronono.org
+    service: http://localhost:3000
+  - service: http_status:404

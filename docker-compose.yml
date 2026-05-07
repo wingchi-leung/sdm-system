@@ -5,6 +5,9 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: sdm-tunnel
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
     volumes:
       - ./tunnel/config.yml:/etc/cloudflared/config.yml:ro
       - ./tunnel/certs:/etc/cloudflared/certs:ro
