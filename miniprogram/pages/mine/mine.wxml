@@ -14,20 +14,9 @@
         </view>
         <view class="profile-info">
           <text class="profile-name">{{userName || '用户'}}</text>
-          <text class="profile-role">普通用户</text>
-          <text class="profile-link" bindtap="goAvatarPicker">点击设置头像</text>
         </view>
       </view>
-      <view class="profile-summary">
-        <view class="summary-item">
-          <text class="summary-value">{{myActivities.length}}</text>
-          <text class="summary-label">报名记录</text>
-        </view>
-        <view class="summary-item">
-          <text class="summary-value">2</text>
-          <text class="summary-label">服务入口</text>
-        </view>
-      </view>
+      
     </view>
 
     <!-- 菜单列表 -->
@@ -44,7 +33,7 @@
         <view class="menu-item" bindtap="goMyOrders">
           <view class="menu-content">
             <text class="menu-text">我的订单</text>
-            <text class="menu-hint">查看付费报名订单与支付状态</text>
+            <text class="menu-hint">查看订单与状态</text>
           </view>
           <text class="menu-arrow">→</text>
         </view>
