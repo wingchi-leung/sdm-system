@@ -8,13 +8,16 @@ const {
 Page({
   data: {
     loading: true,
-    submitting: false,
+    uploading: false,
+    saving: false,
     error: null,
     avatarOptions: [],
     selectedAvatarKey: '',
     customAvatarUrl: '',
+    customAvatarPreviewUrl: '',
     currentAvatarDisplayUrl: '',
     selectedAvatarDisplayUrl: '',
+    previewAnimation: null,
   },
 
   onLoad(options) {
@@ -31,9 +34,12 @@ Page({
       const displayUrl = await resolveAvatarDisplayUrl(currentAvatarUrl);
       this.setData({
         loading: false,
+        uploading: false,
+        saving: false,
         avatarOptions,
         selectedAvatarKey: currentAvatarUrl,
         customAvatarUrl: avatarOptions.some((item) => item.key === currentAvatarUrl) ? '' : currentAvatarUrl,
+        customAvatarPreviewUrl: avatarOptions.some((item) => item.key === currentAvatarUrl) ? '' : displayUrl,
         currentAvatarDisplayUrl: displayUrl,
         selectedAvatarDisplayUrl: displayUrl,
       });
@@ -43,6 +49,19 @@ Page({
         error: err && err.message ? err.message : '加载头像资料失败',
       });
     }
+  },
+
+  runPreviewSpin() {
+    const animation = wx.createAnimation({
+      duration: 820,
+      timingFunction: 'ease-in-out',
+    });
+    animation.rotate(0).step({ duration: 0 });
+    this.setData({ previewAnimation: animation.export() });
+    setTimeout(() => {
+      animation.rotate(1080).step();
+      this.setData({ previewAnimation: animation.export() });
+    }, 20);
   },
 
   async onSelectBuiltinAvatar(e) {
@@ -55,6 +74,7 @@ Page({
       selectedAvatarDisplayUrl: displayUrl,
       error: null,
     });
+    this.runPreviewSpin();
   },
 
   onChooseAvatar() {
@@ -66,19 +86,33 @@ Page({
       success: async (res) => {
         const file = (res.tempFiles || [])[0];
         if (!file) return;
+        const previousState = {
+          selectedAvatarKey: this.data.selectedAvatarKey,
+          customAvatarUrl: this.data.customAvatarUrl,
+          customAvatarPreviewUrl: this.data.customAvatarPreviewUrl,
+          selectedAvatarDisplayUrl: this.data.selectedAvatarDisplayUrl,
+        };
         try {
-          this.setData({ submitting: true, error: null });
+          this.setData({
+            uploading: true,
+            error: null,
+            selectedAvatarDisplayUrl: file.tempFilePath,
+            customAvatarPreviewUrl: file.tempFilePath,
+          });
+          this.runPreviewSpin();
           const uploadResult = await api.uploadAvatar(file.tempFilePath);
-          const displayUrl = await resolveAvatarDisplayUrl(uploadResult.url);
           this.setData({
             selectedAvatarKey: uploadResult.url,
             customAvatarUrl: uploadResult.url,
-            selectedAvatarDisplayUrl: displayUrl,
-            submitting: false,
+            uploading: false,
           });
         } catch (err) {
           this.setData({
-            submitting: false,
+            uploading: false,
+            selectedAvatarKey: previousState.selectedAvatarKey,
+            customAvatarUrl: previousState.customAvatarUrl,
+            customAvatarPreviewUrl: previousState.customAvatarPreviewUrl,
+            selectedAvatarDisplayUrl: previousState.selectedAvatarDisplayUrl,
             error: err && err.message ? err.message : '上传头像失败',
           });
         }
@@ -88,24 +122,24 @@ Page({
   },
 
   async onSave() {
-    if (this.data.submitting) return;
+    if (this.data.uploading || this.data.saving) return;
     const avatarUrl = this.data.selectedAvatarKey || this.data.customAvatarUrl;
     if (!avatarUrl) {
       this.setData({ error: '请选择一个头像' });
       return;
     }
-    this.setData({ submitting: true, error: null });
+    this.setData({ saving: true, error: null });
     try {
       await api.updateUserAvatar(avatarUrl);
       wx.showToast({ title: '头像已更新', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 800);
     } catch (err) {
       this.setData({
-        submitting: false,
+        saving: false,
         error: err && err.message ? err.message : '保存头像失败',
       });
       return;
     }
-    this.setData({ submitting: false });
+    this.setData({ saving: false });
   },
 });

@@ -51,6 +51,25 @@ function getHeader(useAuth = false) {
   return header;
 }
 
+function requestWithBody({ url, method, useAuth = false, data }) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method,
+      header: getHeader(useAuth),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(res.data);
+          return;
+        }
+        reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 function withTenant(url) {
   const joiner = url.includes('?') ? '&' : '?';
   return `${url}${joiner}tenant_code=${encodeURIComponent(getTenantCode())}`;
@@ -182,17 +201,22 @@ function getUserProfile() {
 
 /** 更新当前用户头像 */
 function updateUserAvatar(avatarUrl) {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${baseUrl}/users/avatar`,
-      method: 'PUT',
-      header: getHeader(true),
-      data: { avatar_url: avatarUrl },
-      success: (res) => {
-        if (res.statusCode === 200) resolve(res.data);
-        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-      },
-      fail: (err) => reject(err),
+  const url = `${baseUrl}/users/avatar`;
+  const payload = { avatar_url: avatarUrl };
+  return requestWithBody({
+    url,
+    method: 'PUT',
+    useAuth: true,
+    data: payload,
+  }).catch((err) => {
+    if (!err || err.statusCode !== 405) {
+      throw err;
+    }
+    return requestWithBody({
+      url,
+      method: 'POST',
+      useAuth: true,
+      data: payload,
     });
   });
 }

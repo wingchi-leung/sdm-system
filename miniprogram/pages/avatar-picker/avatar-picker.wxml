@@ -38,10 +38,9 @@
       <view class="upload-card">
         <view class="upload-copy">
           <text class="upload-title">{{customAvatarUrl ? '已选择自定义头像' : '上传你自己的头像'}}</text>
-          <text class="upload-text">支持 PNG、JPG，建议使用正方形图片</text>
         </view>
-        <button class="upload-btn" bindtap="onChooseAvatar" loading="{{submitting}}">
-          <text class="upload-btn-label">{{customAvatarUrl ? '重新上传' : '上传头像'}}</text>
+        <button class="upload-btn" bindtap="onChooseAvatar" loading="{{uploading}}" disabled="{{uploading || saving}}">
+          <text class="upload-btn-label">{{uploading ? '上传中' : (customAvatarUrl ? '重新上传' : '上传头像')}}</text>
         </button>
       </view>
     </view>
@@ -50,8 +49,8 @@
       <text class="error-text">{{error}}</text>
     </view>
 
-    <button class="save-btn" bindtap="onSave" loading="{{submitting}}" disabled="{{submitting}}">
-      <text class="save-btn-label">保存头像</text>
+    <button class="save-btn" bindtap="onSave" loading="{{saving}}" disabled="{{uploading || saving}}">
+      <text class="save-btn-label">{{saving ? '保存中' : '保存'}}</text>
     </button>
   </view>
 </view>

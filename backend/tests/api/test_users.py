@@ -276,6 +276,18 @@ class TestUserProfile:
         data = response.json()
         assert data["avatar_url"] == "builtin:avatar-2"
 
+    def test_update_avatar_accepts_post_for_compatibility(self, client, user_token):
+        """测试头像更新接口兼容 POST，避免代理环境拦截 PUT。"""
+        response = client.post(
+            "/api/v1/users/avatar",
+            headers=auth_headers(user_token),
+            json={"avatar_url": "builtin:avatar-3"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["avatar_url"] == "builtin:avatar-3"
+
     def test_update_avatar_rejects_invalid_url(self, client, user_token):
         """测试头像地址非法时返回友好错误。"""
         response = client.put(
