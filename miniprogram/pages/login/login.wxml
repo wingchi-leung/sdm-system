@@ -3,7 +3,7 @@
     <view class="admin-legacy-page">
       <view class="admin-brand-section">
         <view class="admin-brand-icon" bindtap="onGateIconTap">
-          <image class="admin-gate-icon" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
+          <image class="admin-gate-icon" src="/assets/icons/mainlogo-door.webp" mode="aspectFit" />
         </view>
         <text class="admin-brand-title">管理员登录</text>
         <text class="admin-brand-subtitle">CONSULTING ADMIN</text>
@@ -58,7 +58,7 @@
   </block>
 
   <block wx:else>
-    <image class="login-bg-image" src="/assets/login_background.png" mode="aspectFill" />
+    <image class="login-bg-image" src="/assets/login_background.webp" mode="aspectFill" />
     <view class="login-bg-fade"></view>
 
     <view class="hero-header">
@@ -70,7 +70,7 @@
     <view class="hero-body">
       <view class="brand-section">
         <view class="brand-icon" bindtap="onGateIconTap">
-          <image class="gate-icon" src="/assets/icons/mainlogo-door.png" mode="aspectFit" />
+          <image class="gate-icon" src="/assets/icons/mainlogo-door.webp" mode="aspectFit" />
         </view>
         <text class="brand-title">开启成长之门</text>
         <text class="brand-subtitle">探索知识，遇见更好的自己</text>
