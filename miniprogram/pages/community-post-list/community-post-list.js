@@ -22,6 +22,12 @@ Page({
     showCreateButton: false,
   },
 
+  resolvePageState() {
+    this.setData({
+      showCreateButton: auth.isAdmin(),
+    });
+  },
+
   onLoad(options) {
     tenant.applyPageOptions(options);
     const activityId = Number(options.activityId || 0);
@@ -32,13 +38,14 @@ Page({
     this.setData({
       activityId,
       activityName: decodeDisplayText(options.activityName),
-      showCreateButton: auth.isAdmin(),
     });
+    this.resolvePageState();
     this.loadPosts();
   },
 
   onShow() {
     if (this.data.activityId) {
+      this.resolvePageState();
       this.loadPosts();
     }
   },

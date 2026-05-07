@@ -90,7 +90,10 @@ Page({
 
     // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
     try {
-      const stored = wx.getStorageSync(buildPendingOrderStorageKey(tenant.getTenantCode()));
+      const stored = wx.getStorageSync(buildPendingOrderStorageKey(
+        tenant.getTenantCode(),
+        auth.getUserId()
+      ));
       if (stored && stored.activityId === activityId && stored.orderNo) {
         this.setData({
           paymentOrderNo: stored.orderNo,
@@ -388,6 +391,7 @@ Page({
   _persistPendingOrder(orderNo) {
     const { activityId, activity, actualFee } = this.data;
     const tenantCode = tenant.getTenantCode();
+    const userId = auth.getUserId();
     try {
       if (orderNo) {
         const payload = {
@@ -398,7 +402,7 @@ Page({
           createTime: new Date().toISOString(),
           updateTime: new Date().toISOString(),
         };
-        wx.setStorageSync(buildPendingOrderStorageKey(tenantCode), payload);
+        wx.setStorageSync(buildPendingOrderStorageKey(tenantCode, userId), payload);
         this._upsertOrderHistory({
           order_no: orderNo,
           activity_id: activityId,
@@ -409,7 +413,7 @@ Page({
           update_time: payload.updateTime,
         });
       } else {
-        wx.removeStorageSync(buildPendingOrderStorageKey(tenantCode));
+        wx.removeStorageSync(buildPendingOrderStorageKey(tenantCode, userId));
       }
     } catch (_) {
       // Storage 操作失败不影响主流程
@@ -417,7 +421,7 @@ Page({
   },
 
   _upsertOrderHistory(record) {
-    const historyKey = buildOrderHistoryStorageKey(tenant.getTenantCode());
+    const historyKey = buildOrderHistoryStorageKey(tenant.getTenantCode(), auth.getUserId());
     try {
       const current = wx.getStorageSync(historyKey) || [];
       const next = upsertOrderRecord(current, record);

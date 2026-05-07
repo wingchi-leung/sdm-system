@@ -4,6 +4,8 @@ const assert = require('node:assert/strict');
 const { formatParticipantActivities } = require('../utils/mine-data');
 const {
   getOrderStatusText,
+  buildPendingOrderStorageKey,
+  buildOrderHistoryStorageKey,
   upsertOrderRecord,
   formatOrderList,
 } = require('../utils/payment-order');
@@ -69,4 +71,19 @@ test('订单展示列表补充金额和状态文案', () => {
   assert.equal(list[0].amount_display, '¥88.00');
   assert.equal(list[0].status_text, '支付成功');
   assert.equal(list[0].status_class, 'is-success');
+});
+
+test('订单缓存 key 按租户和用户隔离', () => {
+  assert.equal(
+    buildPendingOrderStorageKey('tenant-a', 101),
+    'pending_payment_order_tenant-a_101'
+  );
+  assert.equal(
+    buildOrderHistoryStorageKey('tenant-a', 101),
+    'payment_order_history_tenant-a_101'
+  );
+  assert.notEqual(
+    buildOrderHistoryStorageKey('tenant-a', 101),
+    buildOrderHistoryStorageKey('tenant-a', 202)
+  );
 });

@@ -1,12 +1,20 @@
 const PENDING_ORDER_KEY = 'pending_payment_order';
 const ORDER_HISTORY_KEY = 'payment_order_history';
 
-function buildPendingOrderStorageKey(tenantCode) {
-  return `${PENDING_ORDER_KEY}_${tenantCode || 'default'}`;
+function buildPendingOrderStorageKey(tenantCode, userId = null) {
+  const tenantPart = tenantCode || 'default';
+  const userPart = userId != null && userId !== ''
+    ? String(userId)
+    : 'guest';
+  return `${PENDING_ORDER_KEY}_${tenantPart}_${userPart}`;
 }
 
-function buildOrderHistoryStorageKey(tenantCode) {
-  return `${ORDER_HISTORY_KEY}_${tenantCode || 'default'}`;
+function buildOrderHistoryStorageKey(tenantCode, userId = null) {
+  const tenantPart = tenantCode || 'default';
+  const userPart = userId != null && userId !== ''
+    ? String(userId)
+    : 'guest';
+  return `${ORDER_HISTORY_KEY}_${tenantPart}_${userPart}`;
 }
 
 function getOrderStatusText(status) {

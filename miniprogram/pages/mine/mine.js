@@ -26,18 +26,34 @@ Page({
     this.checkAuth();
   },
 
+  resetPageState(overrides = {}) {
+    this.setData({
+      view: 'user',
+      profile: null,
+      adminProfile: null,
+      loading: true,
+      myActivities: [],
+      userName: '',
+      avatarDisplayUrl: '',
+      ...overrides,
+    });
+  },
+
   checkAuth() {
     if (auth.isAdmin()) {
-      this.setData({
+      this.resetPageState({
         view: 'admin',
         loading: false,
-        profile: null,
         adminProfile: this.buildAdminProfile(),
       });
       return;
     }
     if (auth.isUser()) {
-      this.setData({ loading: true });
+      this.resetPageState({
+        view: 'user',
+        loading: true,
+        userName: auth.getUserName() || '',
+      });
       Promise.all([
         api.getUserProfile(),
         api.getMyParticipantActivities(),
@@ -67,6 +83,7 @@ Page({
         });
       return;
     }
+    this.resetPageState({ loading: false });
     // 未登录直接跳转登录页
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
   },
@@ -103,6 +120,7 @@ Page({
 
   logout() {
     auth.logout();
+    this.resetPageState({ loading: false });
     wx.showToast({ title: '已退出', icon: 'none' });
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
   },

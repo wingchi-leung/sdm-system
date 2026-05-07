@@ -10,6 +10,8 @@ const KEY_USER_NAME = 'user_name';
 const KEY_ADMIN_LEVEL = 'admin_level'; // super | activity_type_admin
 const KEY_ADMIN_ACTIVITY_TYPES = 'admin_activity_types'; // [{ id, name, code }]
 const KEY_ADMIN_PERMISSIONS = 'admin_permissions'; // ['user.view', ...]
+const KEY_REQUIRE_BIND_INFO = 'require_bind_info';
+const KEY_WECHAT_PHONE = 'wechat_phone';
 
 function normalizeText(v) {
   return (v == null ? '' : String(v)).trim();
@@ -201,6 +203,8 @@ function saveAdminToken(accessToken, meta = null) {
   wx.setStorageSync(KEY_ROLE, 'admin');
   wx.removeStorageSync(KEY_USER_ID);
   wx.removeStorageSync(KEY_USER_NAME);
+  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
+  wx.removeStorageSync(KEY_WECHAT_PHONE);
   const parsed = parseAdminMeta(meta || {});
   wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
@@ -213,6 +217,8 @@ function saveUserToken({ accessToken, userId, userName }) {
   wx.setStorageSync(KEY_ROLE, 'user');
   wx.setStorageSync(KEY_USER_ID, userId);
   wx.setStorageSync(KEY_USER_NAME, userName || '');
+  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
+  wx.removeStorageSync(KEY_WECHAT_PHONE);
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
   wx.removeStorageSync(KEY_ADMIN_PERMISSIONS);
@@ -226,6 +232,8 @@ function logout() {
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
   wx.removeStorageSync(KEY_ADMIN_PERMISSIONS);
+  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
+  wx.removeStorageSync(KEY_WECHAT_PHONE);
 }
 
 module.exports = {

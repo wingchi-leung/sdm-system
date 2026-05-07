@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 const {
   buildPendingOrderStorageKey,
@@ -28,8 +29,9 @@ Page({
     this.setData({ loading: true, error: null });
     try {
       const tenantCode = tenant.getTenantCode();
-      const historyKey = buildOrderHistoryStorageKey(tenantCode);
-      const pendingKey = buildPendingOrderStorageKey(tenantCode);
+      const userId = auth.getUserId();
+      const historyKey = buildOrderHistoryStorageKey(tenantCode, userId);
+      const pendingKey = buildPendingOrderStorageKey(tenantCode, userId);
       let records = wx.getStorageSync(historyKey) || [];
       const pendingOrder = wx.getStorageSync(pendingKey);
 

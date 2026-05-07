@@ -29,6 +29,16 @@ Page({
     headerAvatarText: '用',
   },
 
+  resetPageState(overrides = {}) {
+    this.setData({
+      loading: true,
+      error: null,
+      activities: [],
+      headerAvatarUrl: '',
+      ...overrides,
+    });
+  },
+
   resolveAdminState() {
     const isAdmin = auth.isAdmin();
     const isUser = auth.isUser();
@@ -37,6 +47,7 @@ Page({
       isAdmin,
       isUser,
       canCreateActivity,
+      headerAvatarUrl: isUser ? this.data.headerAvatarUrl : '',
       headerAvatarText: auth.getUserName() ? String(auth.getUserName()).slice(0, 1) : '用',
     });
   },
@@ -60,7 +71,8 @@ Page({
   },
 
   load() {
-    this.setData({ loading: true, error: null });
+    this.resetPageState();
+    this.resolveAdminState();
     const tasks = [api.getEnrollableActivities()];
     if (auth.isUser()) {
       tasks.push(api.getMyParticipantActivities());
