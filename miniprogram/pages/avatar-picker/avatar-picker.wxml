@@ -13,7 +13,7 @@
     <view class="preview-card">
       <view class="preview-shell">
         <view class="preview-avatar-wrap" animation="{{previewAnimation}}">
-          <image class="preview-avatar" src="{{selectedAvatarDisplayUrl || currentAvatarDisplayUrl}}" mode="aspectFill" />
+          <image class="preview-avatar" src="{{selectedAvatarDisplayUrl || currentAvatarDisplayUrl}}" mode="aspectFill" binderror="onPreviewImageError" />
         </view>
       </view>
     </view>
