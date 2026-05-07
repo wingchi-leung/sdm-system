@@ -30,14 +30,14 @@
 }
 
 .header-subtitle {
-  margin-top: 18rpx;
+  margin-top: 8rpx;
   font-size: 24rpx;
   color: var(--text-soft);
   letter-spacing: 0.04em;
 }
 
 .header-action {
-  padding-top: 112rpx;
+  padding-top: 4rpx;
 }
 
 .btn-publish {
@@ -270,14 +270,6 @@
   padding: 0 32rpx 24rpx;
 }
 
-.brand-logo {
-  width: 350rpx;
-  height: 116rpx;
-  margin-left: -130rpx;
-  margin-bottom: 0rpx;
-  object-fit: contain;
-}
-
 .header-title {
   font-size: 44rpx;
   line-height: 56rpx;
@@ -296,7 +288,7 @@
 }
 
 .header-action {
-  padding-top: 124rpx;
+  padding-top: 4rpx;
 }
 
 .list {

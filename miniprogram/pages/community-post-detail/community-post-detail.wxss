@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  padding-bottom: 140rpx;
+  padding-bottom: 156rpx;
   background: #FFFFFF;
 }
 
@@ -19,7 +19,7 @@
 .post-title,
 .comment-title {
   color: var(--ink);
-  font-size: 34rpx;
+  font-size: 38rpx;
   line-height: 1.5;
   font-weight: 500;
 }
@@ -36,7 +36,7 @@
 
 .post-cover {
   width: 100%;
-  height: 360rpx;
+  height: 380rpx;
 }
 
 .post-card,
@@ -45,44 +45,54 @@
 }
 
 .post-card {
-  padding: 32rpx 0;
+  padding: 32rpx 0 12rpx;
+}
+
+.post-caption {
+  display: block;
+  color: var(--text-soft);
+  font-size: 24rpx;
+  line-height: 1.6;
+  letter-spacing: 0.12em;
 }
 
 .post-meta {
   display: block;
-  margin-top: 10rpx;
+  margin-top: 14rpx;
 }
 
 .post-content {
   display: block;
-  margin-top: 28rpx;
+  margin-top: 30rpx;
   color: var(--ink);
   font-size: 28rpx;
-  line-height: 1.9;
+  line-height: 2;
   white-space: pre-wrap;
 }
 
 .comment-section {
-  padding-top: 8rpx;
+  padding-top: 24rpx;
 }
 
 .comment-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20rpx;
+  margin-bottom: 22rpx;
 }
 
 .comment-list {
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 18rpx;
 }
 
 .comment-card {
+  border: 1px solid var(--form-border);
   padding: 24rpx;
-  border-radius: 16rpx;
-  background: #F8F8F6;
+  border-radius: 20rpx;
+  background: #FFFFFF;
+  box-shadow: var(--form-shadow);
 }
 
 .comment-top {
@@ -100,10 +110,10 @@
 
 .comment-content {
   display: block;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   color: var(--ink);
   font-size: 25rpx;
-  line-height: 1.8;
+  line-height: 1.9;
   white-space: pre-wrap;
 }
 
@@ -116,16 +126,26 @@
   align-items: center;
   gap: 16rpx;
   padding: 20rpx 24rpx calc(20rpx + env(safe-area-inset-bottom));
-  background: #FFFFFF;
-  border-top: 1rpx solid #ECECE8;
+  background: rgba(255, 255, 255, 0.98);
+  border-top: 1rpx solid var(--border-light);
+  backdrop-filter: blur(12rpx);
+}
+
+.comment-input-wrap {
+  flex: 1;
+  border: 1px solid var(--form-border);
+  border-radius: 18rpx;
+  background: var(--form-surface);
+  box-shadow: var(--form-shadow);
 }
 
 .comment-input {
-  flex: 1;
+  width: 100%;
   height: 80rpx;
   padding: 0 24rpx;
-  border-radius: 16rpx;
-  background: #F8F8F6;
+  box-sizing: border-box;
+  border-radius: 18rpx;
+  background: transparent;
   font-size: 26rpx;
   color: var(--ink);
 }

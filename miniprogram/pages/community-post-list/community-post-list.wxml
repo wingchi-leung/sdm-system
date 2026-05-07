@@ -10,7 +10,8 @@
 
   <view wx:else class="content">
     <view class="page-head">
-      <view>
+      <view class="page-head-main">
+        <text class="page-caption">活动社区</text>
         <text class="page-title">活动动态</text>
         <text wx:if="{{activityName}}" class="page-subtitle">{{activityName}}</text>
       </view>
@@ -21,10 +22,13 @@
       <view wx:for="{{posts}}" wx:key="id" class="post-card" data-id="{{item.id}}" bindtap="onOpenPost">
         <image wx:if="{{item.cover_url}}" class="post-cover" src="{{item.cover_url}}" mode="aspectFill" />
         <view class="post-body">
+          <view class="post-meta-row">
+            <text class="post-meta">{{item.author_name}} · {{item.create_time_display}}</text>
+            <text class="post-comments">{{item.comment_count}} 条评论</text>
+          </view>
           <text class="post-title">{{item.title}}</text>
-          <text class="post-meta">{{item.author_name}} · {{item.create_time_display}}</text>
           <text class="post-summary">{{item.content}}</text>
-          <text class="post-comments">{{item.comment_count}} 条评论</text>
+          <text class="post-link">查看全文</text>
         </view>
       </view>
     </view>

@@ -2,6 +2,16 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
+function decodeDisplayText(value) {
+  const text = value == null ? '' : String(value);
+  if (!text) return '';
+  try {
+    return decodeURIComponent(text);
+  } catch (_) {
+    return text;
+  }
+}
+
 Page({
   data: {
     activityId: null,
@@ -21,7 +31,7 @@ Page({
     }
     this.setData({
       activityId,
-      activityName: options.activityName || '',
+      activityName: decodeDisplayText(options.activityName),
       showCreateButton: auth.isAdmin(),
     });
     this.loadPosts();

@@ -12,6 +12,7 @@
     <image wx:if="{{post.cover_url}}" class="post-cover" src="{{post.cover_url}}" mode="aspectFill" />
 
     <view class="post-card">
+      <text class="post-caption">活动动态</text>
       <text class="post-title">{{post.title}}</text>
       <text class="post-meta">{{post.author_name}} · {{post.create_time_display}}</text>
       <text class="post-content">{{post.content}}</text>
@@ -40,15 +41,17 @@
   </view>
 
   <view wx:if="{{!loading && !error && canComment}}" class="comment-bar">
-    <input
-      class="comment-input"
-      placeholder="写下你的评论"
-      placeholder-class="comment-placeholder"
-      value="{{commentContent}}"
-      bindinput="onCommentInput"
-      confirm-type="send"
-      bindconfirm="onSubmitComment"
-    />
+    <view class="comment-input-wrap">
+      <input
+        class="comment-input"
+        placeholder="写下你的评论"
+        placeholder-class="comment-placeholder"
+        value="{{commentContent}}"
+        bindinput="onCommentInput"
+        confirm-type="send"
+        bindconfirm="onSubmitComment"
+      />
+    </view>
     <button class="comment-btn" disabled="{{commentSubmitting}}" bindtap="onSubmitComment">
       {{commentSubmitting ? '提交中' : '发送'}}
     </button>

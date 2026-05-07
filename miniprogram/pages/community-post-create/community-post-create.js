@@ -4,6 +4,16 @@ const tenant = require('../../utils/tenant');
 
 const MAX_POSTER_SIZE = 5 * 1024 * 1024;
 
+function decodeDisplayText(value) {
+  const text = value == null ? '' : String(value);
+  if (!text) return '';
+  try {
+    return decodeURIComponent(text);
+  } catch (_) {
+    return text;
+  }
+}
+
 Page({
   data: {
     activityId: null,
@@ -30,7 +40,7 @@ Page({
     }
     this.setData({
       activityId,
-      activityName: options.activityName || '',
+      activityName: decodeDisplayText(options.activityName),
     });
     try {
       const activity = await api.getActivity(activityId);

@@ -2,7 +2,6 @@
   <!-- 顶部标题区域 -->
   <view class="header">
     <view class="header-content">
-      <image class="brand-logo" src="/assets/icons/mainlogo-door.webp" mode="aspectFit" />
       <text class="header-title">活动</text>
       <text class="header-subtitle">探索新活动</text>
     </view>
