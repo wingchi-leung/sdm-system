@@ -1,9 +1,27 @@
 const api = require('../../utils/api');
 const tenant = require('../../utils/tenant');
 const {
+  getDefaultAvatarKey,
+  getDefaultAvatarPath,
   getBuiltinAvatarList,
+  normalizeAvatarValue,
   resolveAvatarDisplayUrl,
 } = require('../../utils/avatar');
+
+function compressAvatarImage(filePath) {
+  if (!filePath || typeof wx.compressImage !== 'function') {
+    return Promise.resolve(filePath);
+  }
+
+  return new Promise((resolve) => {
+    wx.compressImage({
+      src: filePath,
+      quality: 72,
+      success: (res) => resolve(res.tempFilePath || filePath),
+      fail: () => resolve(filePath),
+    });
+  });
+}
 
 Page({
   data: {
@@ -30,7 +48,7 @@ Page({
     try {
       const profile = await api.getUserProfile();
       const avatarOptions = getBuiltinAvatarList();
-      const currentAvatarUrl = profile.avatar_url || avatarOptions[0].key;
+      const currentAvatarUrl = normalizeAvatarValue(profile.avatar_url || avatarOptions[0].key);
       const displayUrl = await resolveAvatarDisplayUrl(currentAvatarUrl);
       this.setData({
         loading: false,
@@ -49,6 +67,18 @@ Page({
         error: err && err.message ? err.message : '加载头像资料失败',
       });
     }
+  },
+
+  onPreviewImageError() {
+    const fallbackKey = getDefaultAvatarKey();
+    this.setData({
+      selectedAvatarKey: fallbackKey,
+      customAvatarUrl: '',
+      customAvatarPreviewUrl: '',
+      currentAvatarDisplayUrl: getDefaultAvatarPath(),
+      selectedAvatarDisplayUrl: getDefaultAvatarPath(),
+      error: '旧头像地址已失效，已为你切换到默认头像',
+    });
   },
 
   runPreviewSpin() {
@@ -99,8 +129,8 @@ Page({
             selectedAvatarDisplayUrl: file.tempFilePath,
             customAvatarPreviewUrl: file.tempFilePath,
           });
-          this.runPreviewSpin();
-          const uploadResult = await api.uploadAvatar(file.tempFilePath);
+          const uploadPath = await compressAvatarImage(file.tempFilePath);
+          const uploadResult = await api.uploadAvatar(uploadPath);
           this.setData({
             selectedAvatarKey: uploadResult.url,
             customAvatarUrl: uploadResult.url,

@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const auth = require('../../utils/auth');
 const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 const { formatParticipantActivities } = require('../../utils/mine-data');
@@ -16,10 +17,28 @@ Page({
   },
 
   onShow() {
+    if (!this.ensureUserAccess()) return;
     this.loadActivities();
   },
 
+  ensureUserAccess() {
+    if (auth.isUser()) return true;
+    this.setData({
+      loading: false,
+      activities: [],
+      summaryText: '共 0 条报名记录',
+      error: null,
+    });
+    wx.showToast({ title: '请使用普通用户账号查看', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1200);
+    return false;
+  },
+
   async loadActivities() {
+    if (!auth.isUser()) {
+      this.ensureUserAccess();
+      return;
+    }
     this.setData({ loading: true, error: null });
     try {
       const registrations = await api.getMyParticipantActivities();

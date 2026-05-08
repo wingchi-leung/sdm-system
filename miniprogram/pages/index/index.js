@@ -2,6 +2,7 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
+const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
 
 /** 把接口/网络错误转成可读文案，避免显示 [object Object] */
 function formatLoadError(err) {
@@ -22,13 +23,33 @@ Page({
     loading: true,
     error: null,
     isAdmin: false,
+    isUser: false,
     canCreateActivity: false,
+    headerAvatarUrl: '',
+    headerAvatarText: '用',
+  },
+
+  resetPageState(overrides = {}) {
+    this.setData({
+      loading: true,
+      error: null,
+      activities: [],
+      headerAvatarUrl: '',
+      ...overrides,
+    });
   },
 
   resolveAdminState() {
     const isAdmin = auth.isAdmin();
+    const isUser = auth.isUser();
     const canCreateActivity = auth.isSuperAdmin() || auth.getAdminActivityTypes().length > 0;
-    this.setData({ isAdmin, canCreateActivity });
+    this.setData({
+      isAdmin,
+      isUser,
+      canCreateActivity,
+      headerAvatarUrl: isUser ? this.data.headerAvatarUrl : '',
+      headerAvatarText: auth.getUserName() ? String(auth.getUserName()).slice(0, 1) : '用',
+    });
   },
 
   onLoad(options) {
@@ -50,13 +71,15 @@ Page({
   },
 
   load() {
-    this.setData({ loading: true, error: null });
+    this.resetPageState();
+    this.resolveAdminState();
     const tasks = [api.getEnrollableActivities()];
     if (auth.isUser()) {
       tasks.push(api.getMyParticipantActivities());
+      tasks.push(api.getUserProfile());
     }
     return Promise.all(tasks)
-      .then(async ([res, registrationRes]) => {
+      .then(async ([res, registrationRes, profile]) => {
         const registrationMap = {};
         (registrationRes?.items || []).forEach((item) => {
           registrationMap[item.id] = item;
@@ -80,11 +103,14 @@ Page({
         if (auth.isActivityTypeAdmin()) {
           items = items.filter((a) => auth.canManageActivityType(a));
         }
-        this.setData({ activities: items, loading: false });
+        const headerAvatarUrl = auth.isUser()
+          ? await resolveAvatarDisplayUrl(profile && profile.avatar_url)
+          : '';
+        this.setData({ activities: items, loading: false, headerAvatarUrl });
       })
       .catch((err) => {
         const msg = formatLoadError(err);
-        this.setData({ error: msg, loading: false, activities: [] });
+        this.setData({ error: msg, loading: false, activities: [], headerAvatarUrl: '' });
       });
   },
 
@@ -103,6 +129,10 @@ Page({
 
   goCreateActivity() {
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/create-activity/create-activity') });
+  },
+
+  goMine() {
+    wx.switchTab({ url: '/pages/mine/mine' });
   },
 
   statusText(status) {

@@ -13,17 +13,45 @@ Page({
     hasMore: true,
   },
 
+  resetSensitiveData() {
+    this.setData({
+      users: [],
+      loading: false,
+      total: 0,
+      skip: 0,
+      hasMore: true,
+    });
+  },
+
+  ensureUserViewAccess() {
+    if (auth.hasAdminPermission('user.view')) return true;
+    this.resetSensitiveData();
+    wx.showToast({ title: '当前账号无用户查看权限', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1500);
+    return false;
+  },
+
   onLoad(options) {
     tenant.applyPageOptions(options);
-    if (!auth.hasAdminPermission('user.view')) {
-      wx.showToast({ title: '当前账号无用户查看权限', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
-      return;
-    }
+    if (!this.ensureUserViewAccess()) return;
+    this._skipNextShow = true;
     this.loadUsers();
   },
 
+  onShow() {
+    if (this._skipNextShow) {
+      this._skipNextShow = false;
+      return;
+    }
+    if (!this.ensureUserViewAccess()) return;
+    this.loadUsers(false);
+  },
+
   async loadUsers(append = false) {
+    if (!auth.hasAdminPermission('user.view')) {
+      this.resetSensitiveData();
+      return;
+    }
     if (this.data.loading && append) return;
 
     this.setData({ loading: true });

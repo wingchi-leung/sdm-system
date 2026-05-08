@@ -90,7 +90,10 @@ Page({
 
     // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
     try {
-      const stored = wx.getStorageSync(buildPendingOrderStorageKey(tenant.getTenantCode()));
+      const stored = wx.getStorageSync(buildPendingOrderStorageKey(
+        tenant.getTenantCode(),
+        auth.getUserId()
+      ));
       if (stored && stored.activityId === activityId && stored.orderNo) {
         this.setData({
           paymentOrderNo: stored.orderNo,
@@ -326,8 +329,7 @@ Page({
     const {
       activity, name, phone, identityNumber, identityType,
       sex, age, occupation, email, industry,
-      whyJoin, channel, expectation, activityUnderstanding, hasQuestions,
-      userInfo
+      whyJoin, channel, expectation, activityUnderstanding, hasQuestions
     } = this.data;
 
     // 转换性别格式（显示为男/女，提交为 M/F）
@@ -347,7 +349,6 @@ Page({
       occupation: occupation || undefined,
       email: email || undefined,
       industry: industry || undefined,
-      user_id: userInfo ? userInfo.id : undefined,
       // 问卷
       why_join: whyJoin.trim(),
       channel: channel.trim(),
@@ -388,6 +389,7 @@ Page({
   _persistPendingOrder(orderNo) {
     const { activityId, activity, actualFee } = this.data;
     const tenantCode = tenant.getTenantCode();
+    const userId = auth.getUserId();
     try {
       if (orderNo) {
         const payload = {
@@ -398,7 +400,7 @@ Page({
           createTime: new Date().toISOString(),
           updateTime: new Date().toISOString(),
         };
-        wx.setStorageSync(buildPendingOrderStorageKey(tenantCode), payload);
+        wx.setStorageSync(buildPendingOrderStorageKey(tenantCode, userId), payload);
         this._upsertOrderHistory({
           order_no: orderNo,
           activity_id: activityId,
@@ -409,7 +411,7 @@ Page({
           update_time: payload.updateTime,
         });
       } else {
-        wx.removeStorageSync(buildPendingOrderStorageKey(tenantCode));
+        wx.removeStorageSync(buildPendingOrderStorageKey(tenantCode, userId));
       }
     } catch (_) {
       // Storage 操作失败不影响主流程
@@ -417,7 +419,7 @@ Page({
   },
 
   _upsertOrderHistory(record) {
-    const historyKey = buildOrderHistoryStorageKey(tenant.getTenantCode());
+    const historyKey = buildOrderHistoryStorageKey(tenant.getTenantCode(), auth.getUserId());
     try {
       const current = wx.getStorageSync(historyKey) || [];
       const next = upsertOrderRecord(current, record);
@@ -440,13 +442,22 @@ Page({
       })
       .then((orderData) => {
         const orderNo = orderData.order_no || '';
+        if (!orderNo) {
+          throw new Error('支付订单创建异常，请重新发起支付');
+        }
         this.setData({ paymentOrderNo: orderNo });
         // 持久化订单号，防止用户关闭小程序后丢失
         this._persistPendingOrder(orderNo);
 
         // 2. 获取支付参数
         const paymentParams = orderData.payment_params;
-        if (!paymentParams) {
+        if (
+          !paymentParams ||
+          !paymentParams.timeStamp ||
+          !paymentParams.nonceStr ||
+          !paymentParams.package ||
+          !paymentParams.paySign
+        ) {
           throw new Error('获取支付参数失败');
         }
 
@@ -458,7 +469,7 @@ Page({
             package: paymentParams.package,
             signType: paymentParams.signType,
             paySign: paymentParams.paySign,
-            success: () => resolve(orderData.order_no),
+            success: () => resolve(orderNo),
             fail: (err) => reject(err),
           });
         });
@@ -564,6 +575,10 @@ Page({
 
     if (!auth.isLoggedIn()) {
       wx.showToast({ title: '请先登录后再报名', icon: 'none' });
+      return;
+    }
+    if (!auth.isUser()) {
+      wx.showToast({ title: '请使用普通用户账号报名', icon: 'none' });
       return;
     }
 

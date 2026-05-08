@@ -7,6 +7,14 @@ const BUILTIN_AVATARS = [
   { key: 'builtin:avatar-4', label: '默认头像 4', path: '/assets/avatars/avatar-4.svg' },
 ];
 
+function getDefaultAvatarKey() {
+  return BUILTIN_AVATARS[0].key;
+}
+
+function getDefaultAvatarPath() {
+  return BUILTIN_AVATARS[0].path;
+}
+
 function getBuiltinAvatarList() {
   return BUILTIN_AVATARS.map((item) => ({ ...item }));
 }
@@ -22,10 +30,36 @@ function getBuiltinAvatarPath(value) {
   return matched ? matched.path : '';
 }
 
-async function resolveAvatarDisplayUrl(avatarUrl) {
+function isSupportedCustomAvatarUrl(value) {
+  const text = value == null ? '' : String(value).trim();
+  if (!text) return false;
+  if (text.startsWith('/uploads/avatars/')) {
+    return true;
+  }
+  if (text.startsWith('http://') || text.startsWith('https://')) {
+    return /\/uploads\/avatars\//.test(text);
+  }
+  return false;
+}
+
+function normalizeAvatarValue(avatarUrl) {
   const text = avatarUrl == null ? '' : String(avatarUrl).trim();
   if (!text) {
-    return BUILTIN_AVATARS[0].path;
+    return getDefaultAvatarKey();
+  }
+  if (isBuiltinAvatarKey(text) || text.startsWith('/assets/')) {
+    return text;
+  }
+  if (isSupportedCustomAvatarUrl(text)) {
+    return text;
+  }
+  return getDefaultAvatarKey();
+}
+
+async function resolveAvatarDisplayUrl(avatarUrl) {
+  const text = normalizeAvatarValue(avatarUrl);
+  if (!text) {
+    return getDefaultAvatarPath();
   }
   if (isBuiltinAvatarKey(text)) {
     return getBuiltinAvatarPath(text);
@@ -38,8 +72,12 @@ async function resolveAvatarDisplayUrl(avatarUrl) {
 
 module.exports = {
   BUILTIN_AVATARS,
+  getDefaultAvatarKey,
+  getDefaultAvatarPath,
   getBuiltinAvatarList,
   isBuiltinAvatarKey,
   getBuiltinAvatarPath,
+  isSupportedCustomAvatarUrl,
+  normalizeAvatarValue,
   resolveAvatarDisplayUrl,
 };

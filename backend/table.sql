@@ -361,4 +361,39 @@ ALTER TABLE permission ADD COLUMN update_time datetime DEFAULT CURRENT_TIMESTAMP
 ALTER TABLE role_permission ADD COLUMN update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 ALTER TABLE user_role ADD COLUMN update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
 
-ALTER TABLE user ADD COLUMN avatar_url VARCHAR(500) NULL COMMENT '头像地址' AFTER industry;
+
+CREATE TABLE IF NOT EXISTS `community_post` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL,
+  `activity_id` int NOT NULL,
+  `author_user_id` int NOT NULL,
+  `title` varchar(120) NOT NULL,
+  `content` text NOT NULL,
+  `cover_url` varchar(500) DEFAULT NULL,
+  `status` tinyint NOT NULL DEFAULT 1,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_community_post_tenant_id` (`tenant_id`),
+  KEY `idx_community_post_activity_id` (`activity_id`),
+  KEY `idx_community_post_author_user_id` (`author_user_id`),
+  KEY `idx_community_post_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区文章表';
+
+CREATE TABLE IF NOT EXISTS `community_comment` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL,
+  `activity_id` int NOT NULL,
+  `post_id` int NOT NULL,
+  `user_id` int NOT NULL,
+  `content` text NOT NULL,
+  `status` tinyint NOT NULL DEFAULT 1,
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_community_comment_tenant_id` (`tenant_id`),
+  KEY `idx_community_comment_activity_id` (`activity_id`),
+  KEY `idx_community_comment_post_id` (`post_id`),
+  KEY `idx_community_comment_user_id` (`user_id`),
+  KEY `idx_community_comment_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';

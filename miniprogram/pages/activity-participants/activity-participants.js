@@ -14,17 +14,46 @@ Page({
     isAdmin: false,
   },
 
+  resetSensitiveData() {
+    this.setData({
+      participants: [],
+      total: 0,
+      currentPage: 0,
+      totalPages: 1,
+      loading: false,
+      isAdmin: false,
+    });
+  },
+
+  ensureAdminAccess() {
+    if (auth.isAdmin()) {
+      this.setData({ isAdmin: true });
+      return true;
+    }
+    this.resetSensitiveData();
+    wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1500);
+    return false;
+  },
+
   onLoad(options) {
     tenant.applyPageOptions(options);
-    if (!auth.isAdmin()) {
-      wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
-      return;
-    }
+    if (!this.ensureAdminAccess()) return;
     if (options.id) {
-      this.setData({ activityId: options.id, isAdmin: auth.isAdmin() });
+      this.setData({ activityId: options.id });
+      this._skipNextShow = true;
       this.loadParticipants();
     }
+  },
+
+  onShow() {
+    if (this._skipNextShow) {
+      this._skipNextShow = false;
+      return;
+    }
+    if (!this.data.activityId) return;
+    if (!this.ensureAdminAccess()) return;
+    this.loadParticipants();
   },
 
   async loadParticipants() {

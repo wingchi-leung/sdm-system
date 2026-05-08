@@ -36,14 +36,43 @@ Page({
     maxParticipants: '',
   },
 
+  resetFormState() {
+    this.setData({
+      activityName: '',
+      activityTypeName: '',
+      activityTypeIndex: -1,
+      activityTypeOptions: [],
+      isSuperAdmin: false,
+      isTypeAdmin: false,
+      tag: '',
+      startDate: '',
+      startTime: '',
+      endDate: '',
+      endTime: '',
+      submitting: false,
+      error: null,
+      suggestedFeeYuan: '',
+      suggestedFee: 0,
+      posterUrl: '',
+      posterLocalPath: '',
+      location: '',
+      uploading: false,
+      maxParticipants: '',
+    });
+  },
+
+  ensureAdminAccess() {
+    if (auth.isAdmin()) return true;
+    this.resetFormState();
+    wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
+    setTimeout(() => wx.navigateBack(), 1500);
+    return false;
+  },
+
   onLoad(options) {
     this.tagTouched = false;
     tenant.applyPageOptions(options);
-    if (!auth.isAdmin()) {
-      wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
-      setTimeout(() => wx.navigateBack(), 1500);
-      return;
-    }
+    if (!this.ensureAdminAccess()) return;
     const isSuperAdmin = auth.isSuperAdmin();
     const isTypeAdmin = auth.isActivityTypeAdmin();
     const allowedTypes = auth.getAdminActivityTypes();
@@ -59,6 +88,10 @@ Page({
       this.applyActivityTypeOptions(allowedTypes);
     }
     this.loadAvailableActivityTypes();
+  },
+
+  onShow() {
+    this.ensureAdminAccess();
   },
 
   normalizeActivityTypeOptions(list) {
@@ -264,6 +297,10 @@ Page({
   },
 
   submit() {
+    if (!auth.isAdmin()) {
+      this.ensureAdminAccess();
+      return;
+    }
     const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee, location, maxParticipants } = this.data;
     const tag = (this.data.tag || '').trim();
     const activityType = this.getSelectedActivityType();

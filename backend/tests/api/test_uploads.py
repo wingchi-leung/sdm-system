@@ -5,8 +5,15 @@ from io import BytesIO
 
 import pytest
 from fastapi import status
+from PIL import Image
 
 from tests.conftest import auth_headers
+
+
+def _make_png_bytes(size: tuple[int, int] = (1600, 1600)) -> bytes:
+    buffer = BytesIO()
+    Image.new("RGBA", size, (42, 128, 196, 255)).save(buffer, format="PNG")
+    return buffer.getvalue()
 
 
 @pytest.mark.api
@@ -71,3 +78,43 @@ class TestAvatarUpload:
         data = response.json()
         assert data["url"].startswith("/uploads/avatars/")
         assert data["filename"].endswith(".jpg")
+
+    def test_upload_avatar_optimizes_large_image(
+        self,
+        client,
+        user_token,
+    ):
+        original = _make_png_bytes()
+
+        response = client.post(
+            "/api/v1/uploads/avatar",
+            headers=auth_headers(user_token),
+            files={
+                "file": ("avatar.png", BytesIO(original), "image/png"),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["url"].startswith("/uploads/avatars/")
+        assert data["filename"].endswith(".jpg")
+        assert data["size"] < len(original)
+
+    def test_uploaded_files_use_long_cache_headers(
+        self,
+        client,
+        user_token,
+    ):
+        response = client.post(
+            "/api/v1/uploads/avatar",
+            headers=auth_headers(user_token),
+            files={
+                "file": ("avatar.jpg", BytesIO(b"fake-avatar-bytes"), "application/octet-stream"),
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        static_response = client.get(response.json()["url"])
+
+        assert static_response.status_code == status.HTTP_200_OK
+        assert static_response.headers["cache-control"] == "public, max-age=31536000, immutable"
