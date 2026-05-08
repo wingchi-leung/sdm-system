@@ -3,9 +3,11 @@ from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.database  import SessionLocal
+from app.database  import SessionLocal, engine
 from app.core.config import resolve_local_upload_dir, settings
 from app.api.v1.router import api_router
+from app.db_migrations import ensure_runtime_schema
+from app.schemas import Base
 import logging
 import os
 
@@ -16,6 +18,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     db = None
+    try:
+        ensure_runtime_schema(engine, Base.metadata)
+    except Exception as e:
+        logger.error(f"补齐运行期数据库结构失败: {e}")
+
     # 启动时启动定时任务
     try:
         from app.crud import crud_rbac
