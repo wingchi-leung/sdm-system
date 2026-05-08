@@ -58,24 +58,25 @@
   </block>
 
   <block wx:else>
-    <image class="login-bg-image" src="/assets/login_background.webp" mode="aspectFill" />
-    <view class="login-bg-fade"></view>
+    <image class="login-bg-image" src="/assets/login_mountain_sharp.jpg" mode="aspectFill" />
+    <view class="login-sky-mask"></view>
 
-    <view class="hero-header">
-      <view class="hero-title-row">
-        <text class="hero-caption"></text>
-      </view>
+    <view class="top-actions">
+      <button class="setting-btn" plain bindtap="onGateIconTap" aria-label="设置">
+        <text class="setting-dot"></text>
+        <text class="setting-dot"></text>
+        <text class="setting-dot"></text>
+      </button>
     </view>
 
-    <view class="hero-body">
-      <view class="brand-section">
-        <view class="brand-icon" bindtap="onGateIconTap">
-          <image class="gate-icon" src="/assets/icons/mainlogo-door.webp" mode="aspectFit" />
-        </view>
-        <text class="brand-title">开启成长之门</text>
-        <text class="brand-subtitle">探索知识，遇见更好的自己</text>
-      </view>
+    <view class="hero-copy">
+      <text class="hero-title">Welcome</text>
+      <text class="hero-subtitle">探索知识，遇见更好的自己</text>
+      <view class="hero-line"></view>
+    </view>
 
+    <view class="login-panel safe-area-bottom">
+      <view class="panel-curve"></view>
       <view class="message-wrap">
         <view class="unsafe-tip" wx:if="{{unsafeTip}}">
           <view class="tip-icon">
@@ -89,12 +90,10 @@
         </view>
       </view>
 
-      <view class="login-action-section">
-        <button class="btn-wechat hero-login-btn" disabled="{{submitting}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
-          <text class="wechat-text">{{submitting ? '登录中...' : '微信一键登录'}}</text>
-        </button>
-        <text class="login-hint">授权后快速登录</text>
-      </view>
+      <button class="btn-wechat" disabled="{{submitting}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
+        <text class="wechat-text">{{submitting ? '登录中...' : '微信一键登录'}}</text>
+      </button>
+      <text class="login-hint">授权后快速进入活动系统</text>
     </view>
   </block>
 </view>

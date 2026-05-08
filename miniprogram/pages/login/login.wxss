@@ -1,15 +1,14 @@
 .page {
   position: relative;
   min-height: 100vh;
-  padding: 0 40rpx 56rpx;
-  background: #FFFFFF;
+  background: #F5F7FA;
   box-sizing: border-box;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .page-admin {
   padding: 0 32rpx;
+  overflow-y: auto;
 }
 
 .login-bg-image {
@@ -17,95 +16,112 @@
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 76vh;
   pointer-events: none;
 }
 
-.login-bg-fade {
+.login-sky-mask {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.24) 20%, rgba(255, 255, 255, 0.72) 42%, rgba(255, 255, 255, 0.96) 64%, #FFFFFF 82%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.18) 18%, rgba(255, 255, 255, 0.60) 52%, rgba(255, 255, 255, 0.94) 78%, #FFFFFF 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 54%, rgba(245, 247, 250, 0.62) 74%, #F5F7FA 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.02) 48%, rgba(13, 38, 65, 0.04) 100%);
 }
 
-.hero-header {
+.top-actions {
   position: relative;
-  z-index: 1;
-  padding-top: 92rpx;
-}
-
-.hero-title-row {
+  z-index: 2;
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
+  padding: 92rpx 46rpx 0;
 }
 
-.hero-caption {
-  color: rgba(34, 45, 72, 0.48);
-  font-size: 24rpx;
-  line-height: 34rpx;
-  letter-spacing: 6rpx;
-}
-
-.hero-body {
-  position: relative;
-  z-index: 1;
-  min-height: calc(100vh - 220rpx);
-  display: flex;
-  flex-direction: column;
-  padding-bottom: 48rpx;
-}
-
-.brand-section {
-  flex: 1;
-  min-height: 600rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-top: 0;
-  margin-top: -72rpx;
-}
-
-.brand-icon {
-  width: 280rpx;
-  height: 280rpx;
+.setting-btn {
+  width: 72rpx;
+  height: 72rpx;
+  min-height: 72rpx;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 32rpx;
+  gap: 6rpx;
 }
 
-.gate-icon {
-  width: 220rpx;
-  height: 220rpx;
+.setting-btn::after {
+  border: 0;
 }
 
-.brand-title {
-  color: #111111;
-  font-size: 50rpx;
-  line-height: 1.2;
+.setting-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #101923;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 22rpx 56rpx 0;
+}
+
+.hero-title {
+  color: #111923;
+  font-size: 54rpx;
+  line-height: 68rpx;
+  font-weight: 700;
+}
+
+.hero-subtitle {
+  margin-top: 18rpx;
+  color: rgba(35, 55, 79, 0.48);
+  font-size: 26rpx;
+  line-height: 38rpx;
   font-weight: 500;
-  letter-spacing: 0.4rpx;
-  text-shadow: 0 2rpx 16rpx rgba(255, 255, 255, 0.78);
 }
 
-.brand-subtitle {
-  margin-top: 14rpx;
-  color: rgba(34, 45, 72, 0.38);
-  font-size: 24rpx;
-  line-height: 36rpx;
-  font-weight: 400;
-  letter-spacing: 0.2rpx;
-  text-shadow: 0 2rpx 14rpx rgba(255, 255, 255, 0.86);
+.hero-line {
+  width: 34rpx;
+  height: 4rpx;
+  margin-top: 22rpx;
+  border-radius: 999rpx;
+  background: rgba(35, 55, 79, 0.18);
+}
+
+.login-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  min-height: 410rpx;
+  padding: 126rpx 56rpx 48rpx;
+  box-sizing: border-box;
+  background: #F8F9FB;
+}
+
+.panel-curve {
+  position: absolute;
+  left: -76rpx;
+  right: -76rpx;
+  top: -76rpx;
+  height: 172rpx;
+  border-radius: 0 0 50% 50%;
+  background: #F8F9FB;
+  transform: rotate(-5deg);
+  transform-origin: 50% 100%;
 }
 
 .message-wrap {
   position: relative;
   z-index: 2;
-  margin-top: 0;
-  margin-bottom: 32rpx;
+  margin-bottom: 28rpx;
 }
 
 .unsafe-tip,
@@ -113,7 +129,7 @@
   margin-bottom: 20rpx;
   padding: 22rpx 24rpx;
   border-radius: 24rpx;
-  border: 1px solid rgba(17, 17, 17, 0.06);
+  border: 1px solid rgba(17, 25, 35, 0.06);
   background: rgba(255, 255, 255, 0.92);
   display: flex;
   align-items: flex-start;
@@ -143,27 +159,20 @@
   font-size: 24rpx;
   line-height: 36rpx;
   font-weight: 400;
-  letter-spacing: 0.4rpx;
-}
-
-.login-action-section {
-  padding: 0 0 40rpx;
-  margin-top: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .btn-wechat {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  height: 88rpx;
+  height: 94rpx;
+  min-height: 94rpx;
   border: 0;
   border-radius: 999rpx;
-  background: #111111;
+  background: #101923;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 12rpx 30rpx rgba(17, 17, 17, 0.18);
 }
 
 .btn-wechat::after {
@@ -176,24 +185,25 @@
 }
 
 .btn-wechat[disabled] {
-  opacity: 0.5;
+  opacity: 0.52;
 }
 
 .wechat-text {
   color: #FFFFFF;
-  font-size: 28rpx;
-  line-height: 40rpx;
-  font-weight: 500;
-  letter-spacing: 0.4rpx;
+  font-size: 30rpx;
+  line-height: 42rpx;
+  font-weight: 600;
 }
 
 .login-hint {
-  margin-top: 18rpx;
-  color: rgba(17, 17, 17, 0.42);
-  font-size: 22rpx;
-  line-height: 32rpx;
+  position: relative;
+  z-index: 2;
+  display: block;
+  margin-top: 28rpx;
+  color: rgba(17, 25, 35, 0.42);
+  font-size: 24rpx;
+  line-height: 34rpx;
   text-align: center;
-  letter-spacing: 0.2rpx;
 }
 
 .admin-legacy-page {
@@ -229,11 +239,9 @@
 
 .admin-brand-title {
   color: var(--ink);
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 44rpx;
   line-height: 56rpx;
   font-weight: 500;
-  letter-spacing: 0.5rpx;
 }
 
 .admin-brand-subtitle {
@@ -242,7 +250,6 @@
   font-size: 24rpx;
   line-height: 34rpx;
   font-weight: 400;
-  letter-spacing: 0.4rpx;
 }
 
 .admin-unsafe-tip,
@@ -275,7 +282,6 @@
   font-size: 24rpx;
   line-height: 34rpx;
   font-weight: 400;
-  letter-spacing: 0.4rpx;
 }
 
 .admin-error-text {
@@ -283,7 +289,6 @@
   font-size: 24rpx;
   line-height: 34rpx;
   font-weight: 400;
-  letter-spacing: 0.4rpx;
 }
 
 .admin-form-section {
@@ -300,7 +305,6 @@
   color: var(--text-secondary);
   font-size: 24rpx;
   line-height: 34rpx;
-  letter-spacing: 0.4rpx;
 }
 
 .admin-input-wrap {
@@ -318,13 +322,6 @@
   color: var(--ink);
   font-size: 28rpx;
   line-height: 40rpx;
-  letter-spacing: 0.03em;
-  box-shadow: var(--form-shadow);
-}
-
-.admin-input:focus {
-  border-color: var(--form-border-strong);
-  box-shadow: var(--form-shadow-focus);
 }
 
 .admin-input-placeholder {
@@ -334,6 +331,7 @@
 .admin-btn-submit {
   width: 100%;
   height: 88rpx;
+  min-height: 88rpx;
   margin-top: 28rpx;
   border: 0;
   border-radius: 16rpx;
@@ -359,7 +357,6 @@
   color: #FFFFFF;
   font-size: 28rpx;
   font-weight: 500;
-  letter-spacing: 0.4rpx;
 }
 
 .admin-switch-mode {
@@ -371,5 +368,4 @@
   color: var(--text-soft);
   font-size: 24rpx;
   line-height: 34rpx;
-  letter-spacing: 0.4rpx;
 }
