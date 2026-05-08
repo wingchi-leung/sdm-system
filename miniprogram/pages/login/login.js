@@ -179,19 +179,19 @@ Page({
 
               // 保存首次登录标识
               if (data.is_first_login || data.require_bind_info) {
-                wx.setStorageSync('require_bind_info', true);
+                auth.markRequireBindInfo(data.phone);
               }
-
-              wx.showToast({ title: '登录成功', icon: 'success' });
 
               // 根据是否需要绑定信息跳转
               if (data.require_bind_info) {
+                wx.showToast({ title: '请先完成信息绑定', icon: 'none' });
                 setTimeout(() => {
                   wx.redirectTo({
                     url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info')
                   });
                 }, 800);
               } else {
+                wx.showToast({ title: '登录成功', icon: 'success' });
                 setTimeout(() => {
                   this.navigateAfterLogin('user');
                 }, 800);
@@ -234,19 +234,19 @@ Page({
 
             // 保存首次登录标识
             if (data.is_first_login || data.require_bind_info) {
-              wx.setStorageSync('require_bind_info', true);
+              auth.markRequireBindInfo(data.phone);
             }
-
-            wx.showToast({ title: '登录成功', icon: 'success' });
 
             // 根据是否需要绑定信息跳转
               if (data.require_bind_info) {
+                wx.showToast({ title: '请先完成信息绑定', icon: 'none' });
                 setTimeout(() => {
                   wx.redirectTo({
                     url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info')
                   });
                 }, 800);
             } else {
+              wx.showToast({ title: '登录成功', icon: 'success' });
               setTimeout(() => {
                 this.navigateAfterLogin('user');
               }, 800);
@@ -287,20 +287,22 @@ Page({
         userId: data.user?.id || data.user_id,
         userName: data.user?.name || data.user_name || '微信用户',
       });
-      if (data.phone) wx.setStorageSync('wechat_phone', data.phone);
       if (data.is_first_login || data.require_bind_info) {
-        wx.setStorageSync('require_bind_info', true);
+        auth.markRequireBindInfo(data.phone);
+      } else if (data.phone) {
+        wx.setStorageSync('wechat_phone', data.phone);
       }
       const successTitle = data.wechat_payment_ready === false ? '登录成功，支付绑定待刷新' : '登录成功';
-      wx.showToast({ title: successTitle, icon: 'success' });
-      if (data.wechat_payment_hint) {
-        setTimeout(() => {
-          wx.showToast({ title: data.wechat_payment_hint, icon: 'none', duration: 2500 });
-        }, 900);
-      }
       if (data.require_bind_info) {
+        wx.showToast({ title: '请先完成信息绑定', icon: 'none' });
         setTimeout(() => wx.redirectTo({ url: tenant.appendTenantToUrl('/pages/bind-user-info/bind-user-info') }), 800);
       } else {
+        wx.showToast({ title: successTitle, icon: 'success' });
+        if (data.wechat_payment_hint) {
+          setTimeout(() => {
+            wx.showToast({ title: data.wechat_payment_hint, icon: 'none', duration: 2500 });
+          }, 900);
+        }
         setTimeout(() => this.navigateAfterLogin('user'), 800);
       }
     };

@@ -202,8 +202,7 @@ Page({
     api.bindUserInfo(submitData)
       .then(() => {
         this._hasSubmitted = true;
-        wx.removeStorageSync('require_bind_info');
-        wx.removeStorageSync('wechat_phone');
+        auth.clearRequireBindInfo();
         wx.showToast({ title: '绑定成功', icon: 'success' });
         setTimeout(() => {
           wx.switchTab({
