@@ -187,26 +187,16 @@ def get_all_users_for_super_admin(
     )
 
 
-@router.get("/{user_id}", response_model=user.UserResponse)
-def read_user(
-    user_id: int,
-    db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext = Depends(deps.get_current_admin),
-):
-    """获取用户详情"""
-    db_user = crud_user.get_user(db, user_id=user_id, tenant_id=ctx.tenant_id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
-
-
-@router.get("/", response_model=List[user.UserResponse])
+@router.get("/", response_model=List[user.UserListItemForAdmin])
 def get_users(
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.require_permission("user.view")),
 ):
     """用户列表"""
-    return crud_user.get_users(db, tenant_id=ctx.tenant_id)
+    return [
+        _serialize_admin_user_list_item(db_user)
+        for db_user in crud_user.get_users(db, tenant_id=ctx.tenant_id)
+    ]
 
 
 @router.post("/{user_id}/block", response_model=user.UserResponse)
@@ -318,3 +308,16 @@ def import_users_excel(
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/{user_id}", response_model=user.UserResponse)
+def read_user(
+    user_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """获取用户详情"""
+    db_user = crud_user.get_user(db, user_id=user_id, tenant_id=ctx.tenant_id)
+    if db_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return db_user

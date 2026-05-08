@@ -351,6 +351,26 @@ class TestUserManagement:
         data = response.json()
         assert len(data) >= 5
 
+    def test_get_users_list_tolerates_legacy_non_phone_identifier(self, client, super_admin_token, db_session, default_tenant):
+        """测试历史账号把登录名写入 phone 时，权限页用户列表不再 500。"""
+        from app.schemas import User
+
+        db_session.add(User(
+            tenant_id=default_tenant.id,
+            name="历史管理员",
+            phone="wechat_admin",
+            isblock=0,
+        ))
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/users/",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert any(item["phone"] == "wechat_admin" for item in response.json())
+
     def test_get_all_users_admin_route_not_shadowed(self, client, super_admin_token, sample_user):
         """测试 /admin/all 不会被 /{user_id} 动态路由挡住"""
         response = client.get(
@@ -362,6 +382,25 @@ class TestUserManagement:
         data = response.json()
         assert "items" in data
         assert data["total"] >= 1
+
+    def test_import_template_route_not_shadowed_by_user_detail(self, client, super_admin_token):
+        """测试导入模板读取路由不会被 /{user_id} 动态路由挡住。"""
+        save_response = client.put(
+            "/api/v1/users/import-template",
+            headers=auth_headers(super_admin_token),
+            json={"column_mapping": {"0": "name", "1": "phone"}},
+        )
+        assert save_response.status_code == status.HTTP_200_OK
+
+        response = client.get(
+            "/api/v1/users/import-template",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["is_active"] is True
+        assert data["column_mapping"] == {"0": "name", "1": "phone"}
 
     def test_get_all_users_tolerates_legacy_invalid_timestamps(self, client, super_admin_token, monkeypatch):
         """测试历史用户脏数据不会导致管理员列表 500"""
