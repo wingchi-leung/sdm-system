@@ -50,20 +50,22 @@
   align-items: center;
   justify-content: center;
   color: var(--green);
+  overflow: hidden;
 }
 
-.avatar::before {
-  content: '';
-  width: 30rpx;
-  height: 56rpx;
-  border-left: 14rpx solid currentColor;
-  border-top: 2rpx solid currentColor;
-  border-bottom: 2rpx solid currentColor;
-  transform: skewY(-12deg);
+.avatar-clickable:active {
+  opacity: 0.84;
 }
 
-.avatar-text {
-  display: none;
+.avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-fallback {
+  color: var(--green);
+  font-size: 34rpx;
+  font-weight: 500;
 }
 
 .profile-info {
@@ -119,6 +121,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.profile-link {
+  display: block;
+  margin-top: 10rpx;
+  color: var(--green);
+  font-size: 22rpx;
+  line-height: 32rpx;
 }
 
 .admin-badge {

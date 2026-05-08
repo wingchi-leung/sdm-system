@@ -48,3 +48,26 @@ class TestPosterUpload:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "扩展名" in response.json()["detail"]
+
+
+@pytest.mark.api
+class TestAvatarUpload:
+    """用户头像上传测试"""
+
+    def test_upload_avatar_accepts_octet_stream_from_wechat(
+        self,
+        client,
+        user_token,
+    ):
+        response = client.post(
+            "/api/v1/uploads/avatar",
+            headers=auth_headers(user_token),
+            files={
+                "file": ("avatar.jpg", BytesIO(b"fake-avatar-bytes"), "application/octet-stream"),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["url"].startswith("/uploads/avatars/")
+        assert data["filename"].endswith(".jpg")

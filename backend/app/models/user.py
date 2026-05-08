@@ -11,6 +11,7 @@ class UserBase(BaseModel):
     phone: Optional[str] = Field(None, max_length=11)
     email: Optional[str] = Field(None, max_length=255)
     sex: Optional[str] = Field(None, max_length=2, pattern=r'^[MF]$')
+    avatar_url: Optional[str] = Field(None, max_length=500)
     isblock: int = Field(0, ge=0, le=1, description="0-正常 1-拉黑")
     block_reason: Optional[str] = Field(None, max_length=255)
 
@@ -212,6 +213,11 @@ class UserBindInfoResponse(BaseModel):
     """用户信息绑定响应"""
     success: bool
     message: str = ""
+
+
+class UserAvatarUpdateRequest(BaseModel):
+    """用户头像更新请求"""
+    avatar_url: str = Field(..., min_length=1, max_length=500)
 
 
 class AdminUserListItem(BaseModel):

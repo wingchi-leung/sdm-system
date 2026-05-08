@@ -8,24 +8,15 @@
     <!-- 用户信息卡片 -->
     <view class="profile-section">
       <view class="profile-card">
-        <view class="avatar">
-          <text class="avatar-text">{{userName ? userName[0] : '用'}}</text>
+        <view class="avatar avatar-clickable" bindtap="goAvatarPicker">
+          <image wx:if="{{avatarDisplayUrl}}" class="avatar-image" src="{{avatarDisplayUrl}}" mode="aspectFill" />
+          <text wx:else class="avatar-fallback">{{userName ? userName[0] : '用'}}</text>
         </view>
         <view class="profile-info">
           <text class="profile-name">{{userName || '用户'}}</text>
-          <text class="profile-role">普通用户</text>
         </view>
       </view>
-      <view class="profile-summary">
-        <view class="summary-item">
-          <text class="summary-value">{{myActivities.length}}</text>
-          <text class="summary-label">报名记录</text>
-        </view>
-        <view class="summary-item">
-          <text class="summary-value">2</text>
-          <text class="summary-label">服务入口</text>
-        </view>
-      </view>
+      
     </view>
 
     <!-- 菜单列表 -->
@@ -42,7 +33,7 @@
         <view class="menu-item" bindtap="goMyOrders">
           <view class="menu-content">
             <text class="menu-text">我的订单</text>
-            <text class="menu-hint">查看付费报名订单与支付状态</text>
+            <text class="menu-hint">查看订单与状态</text>
           </view>
           <text class="menu-arrow">→</text>
         </view>

@@ -1,0 +1,56 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error && !avatarOptions.length}}" class="state-wrap">
+    <text class="state-title">加载失败</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <view class="preview-card">
+      <view class="preview-shell">
+        <view class="preview-avatar-wrap" animation="{{previewAnimation}}">
+          <image class="preview-avatar" src="{{selectedAvatarDisplayUrl || currentAvatarDisplayUrl}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">默认头像</text>
+      <view class="avatar-grid">
+        <view
+          wx:for="{{avatarOptions}}"
+          wx:key="key"
+          class="avatar-option {{selectedAvatarKey === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onSelectBuiltinAvatar"
+        >
+          <image class="avatar-image" src="{{item.path}}" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">自定义头像</text>
+      <view class="upload-card">
+        <view class="upload-copy">
+          <text class="upload-title">{{customAvatarUrl ? '已选择自定义头像' : '上传你自己的头像'}}</text>
+        </view>
+        <button class="upload-btn" bindtap="onChooseAvatar" loading="{{uploading}}" disabled="{{uploading || saving}}">
+          <text class="upload-btn-label">{{uploading ? '上传中' : (customAvatarUrl ? '重新上传' : '上传头像')}}</text>
+        </button>
+      </view>
+    </view>
+
+    <view wx:if="{{error}}" class="error-box">
+      <text class="error-text">{{error}}</text>
+    </view>
+
+    <button class="save-btn" bindtap="onSave" loading="{{saving}}" disabled="{{uploading || saving}}">
+      <text class="save-btn-label">{{saving ? '保存中' : '保存'}}</text>
+    </button>
+  </view>
+</view>
