@@ -273,3 +273,46 @@
   font-weight: 500;
   letter-spacing: 0.4rpx;
 }
+
+/* 用户管理页小控件统一为稳定胶囊尺寸 */
+.user-status,
+.action-btn,
+.search-btn,
+.clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.user-status {
+  min-width: 72rpx;
+  min-height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.action-btn {
+  min-width: 112rpx;
+  min-height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+  letter-spacing: 0.4rpx;
+}
+
+.search-btn,
+.clear-btn {
+  min-height: 52rpx;
+  padding: 0 20rpx;
+  border-radius: 26rpx;
+  background: #F8F8F6;
+  font-size: 24rpx;
+  font-weight: 500;
+}

@@ -355,9 +355,13 @@ button {
 }
 
 button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 88rpx;
   border-radius: 16rpx;
   font-weight: 500;
+  line-height: 1;
   box-shadow: none !important;
 }
 
