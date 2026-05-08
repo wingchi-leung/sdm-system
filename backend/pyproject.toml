@@ -17,6 +17,7 @@ dependencies = [
     "bcrypt>=3.2.0,<4.1.0",  # passlib 依赖 __about__，bcrypt 4.1+ 已移除，故锁定 4.0.x
     "wechatpayv3>=1.2.0",     # 微信支付
     "aiofiles>=23.0.0",       # 异步文件操作
+    "pillow>=10.0.0",         # 头像图片压缩
 ]
 
 [project.optional-dependencies]

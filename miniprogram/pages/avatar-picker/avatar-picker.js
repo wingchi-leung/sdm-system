@@ -8,6 +8,21 @@ const {
   resolveAvatarDisplayUrl,
 } = require('../../utils/avatar');
 
+function compressAvatarImage(filePath) {
+  if (!filePath || typeof wx.compressImage !== 'function') {
+    return Promise.resolve(filePath);
+  }
+
+  return new Promise((resolve) => {
+    wx.compressImage({
+      src: filePath,
+      quality: 72,
+      success: (res) => resolve(res.tempFilePath || filePath),
+      fail: () => resolve(filePath),
+    });
+  });
+}
+
 Page({
   data: {
     loading: true,
@@ -114,7 +129,8 @@ Page({
             selectedAvatarDisplayUrl: file.tempFilePath,
             customAvatarPreviewUrl: file.tempFilePath,
           });
-          const uploadResult = await api.uploadAvatar(file.tempFilePath);
+          const uploadPath = await compressAvatarImage(file.tempFilePath);
+          const uploadResult = await api.uploadAvatar(uploadPath);
           this.setData({
             selectedAvatarKey: uploadResult.url,
             customAvatarUrl: uploadResult.url,

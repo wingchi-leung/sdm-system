@@ -66,6 +66,23 @@ class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
         return await call_next(request)
 
 
+class UploadCacheControlMiddleware(BaseHTTPMiddleware):
+    """给上传后的静态资源添加缓存头，降低重复加载耗时。"""
+
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        if (
+            request.method in {"GET", "HEAD"}
+            and request.url.path.startswith("/uploads/")
+            and response.status_code == 200
+        ):
+            response.headers.setdefault(
+                "Cache-Control",
+                "public, max-age=31536000, immutable",
+            )
+        return response
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
@@ -76,6 +93,7 @@ app = FastAPI(
 
 # 添加请求体大小限制中间件
 app.add_middleware(RequestSizeLimitMiddleware, max_body_size=settings.MAX_REQUEST_BODY_SIZE)
+app.add_middleware(UploadCacheControlMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
