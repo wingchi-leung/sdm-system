@@ -356,6 +356,11 @@ INSERT INTO `role_permission` (`role_id`, `permission_id`)
 SELECT 3, id FROM `permission`
 ON DUPLICATE KEY UPDATE `role_id` = 3;
 
+-- RBAC 表补齐 ORM TimestampModel 需要的更新时间字段
+ALTER TABLE permission ADD COLUMN update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ALTER TABLE role_permission ADD COLUMN update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+ALTER TABLE user_role ADD COLUMN update_time datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
 
 CREATE TABLE IF NOT EXISTS `community_post` (
   `id` int NOT NULL AUTO_INCREMENT,

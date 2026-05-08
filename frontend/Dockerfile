@@ -1,5 +1,4 @@
-# 前端 Dockerfile (craco/react-scripts)
-FROM node:18-alpine
+FROM docker.m.daocloud.io/library/node:18-alpine
 
 WORKDIR /app
 
@@ -7,14 +6,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # 安装依赖
-RUN npm install
+RUN npm config set registry https://registry.npmmirror.com && npm ci
 
 # 复制其他源代码
 COPY . .
 
-# 构建
+# 构建检查
 RUN npm run build
 
-# 启动（生产模式）
 EXPOSE 3000
+
 CMD ["npm", "start"]

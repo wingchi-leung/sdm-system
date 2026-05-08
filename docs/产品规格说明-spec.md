@@ -1,4 +1,12 @@
-# SDM 系统 — 产品规格说明（Spec）
+# SDM 系统 – 产品规格说明（Spec）
+
+## 部署规格补充（2026-05-08）
+
+- 当前工程支持 Docker Compose 一键启动后端、Web 前端、MySQL 与 Cloudflare Tunnel。
+- MySQL 首次初始化由 compose 挂载 `backend/table.sql` 自动完成；已有数据卷不会重复初始化。
+- Web 前端通过 `REACT_APP_API_URL` 与 `REACT_APP_STATIC_URL` 读取后端 API 与静态资源地址。
+- Cloudflare Tunnel 容器内转发目标为 `backend:8000` 与 `frontend:3000`，公网域名 `api.chronono.org` / `web.chronono.org` 依赖 tunnel connector。
+- 迁移时如果旧电脑仍运行同一个 tunnel 凭据，公网流量可能被分到旧电脑；正式切换前需停掉旧电脑 tunnel 或在 Cloudflare Dashboard 移除旧 connector。
 
 ## 一、产品愿景与目标
 
