@@ -238,6 +238,11 @@ Page({
     this.setData({ location: e.detail.value, error: null });
   },
 
+  // 构造本地时间字符串，避免 toISOString() 转 UTC 导致时间少 8 小时。
+  toLocalDateTimeString(dateStr, timeStr) {
+    return `${dateStr}T${timeStr}:00`;
+  },
+
   // 选择海报
   onChoosePoster() {
     wx.chooseMedia({
@@ -370,8 +375,8 @@ Page({
         await api.createActivity({
           activity_name: activityName.trim(),
           tag: tag || activityType.name || '',
-          start_time: start_time.toISOString(),
-          end_time: end_time.toISOString(),
+          start_time: this.toLocalDateTimeString(startDate, startTime),
+          end_time: this.toLocalDateTimeString(endDate, endTime),
           activity_type_id: activityType.id,
           activity_type_name: activityType.name || '',
           participants: [],

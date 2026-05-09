@@ -54,11 +54,8 @@ Page({
         loading: true,
         userName: auth.getUserName() || '',
       });
-      Promise.all([
-        api.getUserProfile(),
-        api.getMyParticipantActivities(),
-      ])
-        .then(async ([profile, registrations]) => {
+      api.getUserProfile()
+        .then(async (profile) => {
           const avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
           this.setData({
             view: 'user',
@@ -66,7 +63,7 @@ Page({
             userName: auth.getUserName(),
             avatarDisplayUrl,
             adminProfile: null,
-            myActivities: await this.buildMyActivities(registrations.items || []),
+            myActivities: [],
             loading: false,
           });
         })
