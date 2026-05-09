@@ -26,7 +26,7 @@
         <view class="menu-item" bindtap="goMyActivities">
           <view class="menu-content">
             <text class="menu-text">报名活动</text>
-            <text class="menu-hint">{{myActivities.length ? ('共 ' + myActivities.length + ' 条报名记录') : '查看已报名和候补中的活动'}}</text>
+            <text class="menu-hint">查看已报名和候补中的活动</text>
           </view>
           <text class="menu-arrow">→</text>
         </view>

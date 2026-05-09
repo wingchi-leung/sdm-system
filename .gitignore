@@ -120,6 +120,14 @@ miniprogram/log/
 *.sqlite
 *.sqlite3
 
+# Backend runtime uploads
+/backend/uploads/**
+!/backend/uploads/
+!/backend/uploads/avatars/
+!/backend/uploads/posters/
+!/backend/uploads/avatars/.gitkeep
+!/backend/uploads/posters/.gitkeep
+
 # ========== 日志与临时文件 ==========
 *.log
 logs/

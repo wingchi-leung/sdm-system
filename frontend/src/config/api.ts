@@ -37,7 +37,7 @@ export const API_PATHS = {
     me: `${BASE_URL}/auth/me`,
   },
   users: {
-    list: `${BASE_URL}/users`,
+    list: `${BASE_URL}/users/`,
     create: `${BASE_URL}/users/create`,
     detail: (id: number) => `${BASE_URL}/users/${id}`,
     adminAll: `${BASE_URL}/users/admin/all`,
@@ -57,8 +57,8 @@ export const API_PATHS = {
     list: `${BASE_URL}/activity-types`,
   },
   activities: {
-    create: `${BASE_URL}/activities`,
-    list: `${BASE_URL}/activities`,
+    create: `${BASE_URL}/activities/`,
+    list: `${BASE_URL}/activities/`,
     unstart: `${BASE_URL}/activities/unstarted/`,
     detail: (id: number) => `${BASE_URL}/activities/${id}`,
     update: (id: number) => `${BASE_URL}/activities/${id}`,
@@ -73,8 +73,8 @@ export const API_PATHS = {
     list: (id: number) => `${BASE_URL}/participants/${id}/`,
   },
   checkins: {
-    list: `${BASE_URL}/checkins`,
-    add: `${BASE_URL}/checkins`,
+    list: `${BASE_URL}/checkins/`,
+    add: `${BASE_URL}/checkins/`,
     verify: `${BASE_URL}/verify-sign-in`,
   },
   tenants: {

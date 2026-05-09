@@ -69,17 +69,17 @@ Page({
       let startDate = '';
       let startTime = '';
       if (activity.start_time) {
-        const startDt = new Date(activity.start_time);
-        startDate = this.formatDate(startDt);
-        startTime = this.formatTime(startDt);
+        const startParts = this.parseDateTimeParts(activity.start_time);
+        startDate = startParts.date;
+        startTime = startParts.time;
       }
       // 解析结束时间
       let endDate = '';
       let endTime = '';
       if (activity.end_time) {
-        const endDt = new Date(activity.end_time);
-        endDate = this.formatDate(endDt);
-        endTime = this.formatTime(endDt);
+        const endParts = this.parseDateTimeParts(activity.end_time);
+        endDate = endParts.date;
+        endTime = endParts.time;
       }
       this.setData({
         activityName: activity.activity_name,
@@ -109,6 +109,20 @@ Page({
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${hours}:${minutes}`;
+  },
+
+  // 后端返回无时区的本地时间，直接按字符串回填 picker，避免 Date 做时区换算。
+  parseDateTimeParts(value) {
+    const text = String(value || '');
+    const match = text.match(/^(\d{4}-\d{2}-\d{2})[T\s](\d{2}:\d{2})/);
+    if (match) {
+      return { date: match[1], time: match[2] };
+    }
+    const date = new Date(text);
+    if (isNaN(date.getTime())) {
+      return { date: '', time: '' };
+    }
+    return { date: this.formatDate(date), time: this.formatTime(date) };
   },
 
   // 构造本地时间 ISO 字符串（不带时区转换）

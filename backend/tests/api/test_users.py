@@ -351,6 +351,26 @@ class TestUserManagement:
         data = response.json()
         assert len(data) >= 5
 
+    def test_get_users_list_tolerates_legacy_non_phone_identifier(self, client, super_admin_token, db_session, default_tenant):
+        """测试历史账号把登录名写入 phone 时，权限页用户列表不再 500。"""
+        from app.schemas import User
+
+        db_session.add(User(
+            tenant_id=default_tenant.id,
+            name="历史管理员",
+            phone="wechat_admin",
+            isblock=0,
+        ))
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/users/",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert any(item["phone"] == "wechat_admin" for item in response.json())
+
     def test_get_all_users_admin_route_not_shadowed(self, client, super_admin_token, sample_user):
         """测试 /admin/all 不会被 /{user_id} 动态路由挡住"""
         response = client.get(
@@ -362,6 +382,80 @@ class TestUserManagement:
         data = response.json()
         assert "items" in data
         assert data["total"] >= 1
+
+    def test_import_template_route_not_shadowed_by_user_detail(self, client, super_admin_token):
+        """测试导入模板读取路由不会被 /{user_id} 动态路由挡住。"""
+        save_response = client.put(
+            "/api/v1/users/import-template",
+            headers=auth_headers(super_admin_token),
+            json={"column_mapping": {"0": "name", "1": "phone"}},
+        )
+        assert save_response.status_code == status.HTTP_200_OK
+
+        response = client.get(
+            "/api/v1/users/import-template",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["is_active"] is True
+        assert data["column_mapping"] == {"0": "name", "1": "phone"}
+
+    def test_import_excel_supports_block_fields_and_identity_type_labels(
+        self,
+        client,
+        super_admin_token,
+        db_session,
+        default_tenant,
+    ):
+        """测试 Excel 导入支持是否拉黑、拉黑原因和中文证件类型。"""
+        import base64
+        import io
+
+        from openpyxl import Workbook
+        from app.schemas import User
+
+        mapping = {
+            "0": "name",
+            "1": "phone",
+            "2": "identity_type",
+            "3": "identity_number",
+            "4": "isblock",
+            "5": "block_reason",
+        }
+        save_response = client.put(
+            "/api/v1/users/import-template",
+            headers=auth_headers(super_admin_token),
+            json={"column_mapping": mapping},
+        )
+        assert save_response.status_code == status.HTTP_200_OK
+
+        workbook = Workbook()
+        sheet = workbook.active
+        sheet.append(["姓名", "手机号", "证件类型", "证件号码", "是否拉黑", "拉黑原因"])
+        sheet.append(["导入黑名单", "13900139777", "大陆身份证", "110101199001019777", "是", "批量导入"])
+        buffer = io.BytesIO()
+        workbook.save(buffer)
+        file_content = base64.b64encode(buffer.getvalue()).decode()
+
+        response = client.post(
+            "/api/v1/users/import-excel",
+            headers=auth_headers(super_admin_token),
+            json={"file_content": file_content},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["success"] == 1
+        imported_user = db_session.query(User).filter(
+            User.tenant_id == default_tenant.id,
+            User.phone == "13900139777",
+        ).first()
+        assert imported_user is not None
+        assert imported_user.identity_type == "mainland"
+        assert imported_user.isblock == 1
+        assert imported_user.block_reason == "批量导入"
 
     def test_get_all_users_tolerates_legacy_invalid_timestamps(self, client, super_admin_token, monkeypatch):
         """测试历史用户脏数据不会导致管理员列表 500"""
@@ -531,6 +625,39 @@ class TestUserManagement:
         db_session.refresh(sample_user)
         assert sample_user.isblock == 1
         assert sample_user.block_reason == "违规操作"
+
+    def test_block_user_endpoint_tolerates_imported_identity_type_label(
+        self,
+        client,
+        super_admin_token,
+        db_session,
+        default_tenant,
+    ):
+        """测试导入的中文证件类型不会导致拉黑接口响应 500。"""
+        from app.schemas import User
+
+        imported_user = User(
+            tenant_id=default_tenant.id,
+            name="导入用户",
+            phone="13900139666",
+            identity_type="大陆身份证",
+            identity_number="110101199001019666",
+            isblock=0,
+        )
+        db_session.add(imported_user)
+        db_session.commit()
+        db_session.refresh(imported_user)
+
+        response = client.post(
+            f"/api/v1/users/{imported_user.id}/block",
+            headers=auth_headers(super_admin_token),
+            json={"reason": "Excel 导入测试"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["isblock"] == 1
+        assert data["block_reason"] == "Excel 导入测试"
 
     def test_unblock_user_as_admin(self, client, super_admin_token, blocked_user, db_session):
         """测试管理员解除拉黑 - 直接操作数据库"""

@@ -70,18 +70,18 @@ function createPageInstance(config, initialData = {}) {
 
 test('普通用户进入我的页面时会先清空管理员残留视图', async () => {
   let resolveProfile;
-  let resolveActivities;
+  let participantActivitiesCalls = 0;
   const profilePromise = new Promise((resolve) => {
     resolveProfile = resolve;
-  });
-  const activitiesPromise = new Promise((resolve) => {
-    resolveActivities = resolve;
   });
 
   const pageConfig = loadMinePage({
     api: {
       getUserProfile: () => profilePromise,
-      getMyParticipantActivities: () => activitiesPromise,
+      getMyParticipantActivities: () => {
+        participantActivitiesCalls += 1;
+        return Promise.resolve({ items: [] });
+      },
     },
     auth: {
       isAdmin: () => false,
@@ -115,9 +115,10 @@ test('普通用户进入我的页面时会先清空管理员残留视图', async
   assert.deepEqual(page.data.myActivities, []);
 
   resolveProfile({ avatar_url: 'avatar-source' });
-  resolveActivities({ items: [] });
   await Promise.resolve();
   await Promise.resolve();
+
+  assert.equal(participantActivitiesCalls, 0);
 });
 
 test('退出登录时会立即清空我的页面数据', () => {

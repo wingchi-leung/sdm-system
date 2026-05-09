@@ -478,7 +478,42 @@ USER_FIELD_LABELS = {
     "occupation": "职业",
     "industry": "行业",
     "age": "年龄",
+    "isblock": "是否拉黑",
+    "block_reason": "拉黑原因",
 }
+
+
+def _normalize_import_identity_type(value: str | None) -> str | None:
+    if not value:
+        return None
+    text = value.strip()
+    mapping = {
+        "mainland": "mainland",
+        "大陆身份证": "mainland",
+        "大陆": "mainland",
+        "身份证": "mainland",
+        "中国大陆身份证": "mainland",
+        "hongkong": "hongkong",
+        "香港证件": "hongkong",
+        "香港": "hongkong",
+        "taiwan": "taiwan",
+        "台湾证件": "taiwan",
+        "台湾": "taiwan",
+        "foreign": "foreign",
+        "其他证件": "foreign",
+        "其他": "foreign",
+        "护照": "foreign",
+    }
+    return mapping.get(text, text)
+
+
+def _normalize_import_block_value(value: str | None) -> int:
+    if not value:
+        return 0
+    text = value.strip().lower()
+    if text in {"1", "true", "yes", "y", "是", "拉黑", "黑名单", "已拉黑"}:
+        return 1
+    return 0
 
 
 def import_users_from_excel(db: Session, tenant_id: int, file_content_b64: str) -> ImportResult:
@@ -516,6 +551,8 @@ def import_users_from_excel(db: Session, tenant_id: int, file_content_b64: str) 
                 # 性别转换
                 if field_name == "sex" and cell_value:
                     cell_value = sex_map.get(cell_value, cell_value)
+                if field_name == "identity_type":
+                    cell_value = _normalize_import_identity_type(cell_value)
 
                 if cell_value:
                     user_data[field_name] = cell_value
@@ -538,7 +575,8 @@ def import_users_from_excel(db: Session, tenant_id: int, file_content_b64: str) 
                 industry=user_data.get("industry"),
                 identity_type=user_data.get("identity_type"),
                 identity_number=user_data.get("identity_number"),
-                isblock=0,
+                isblock=_normalize_import_block_value(user_data.get("isblock")),
+                block_reason=user_data.get("block_reason"),
             )
             db.add(db_user)
             db.commit()

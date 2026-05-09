@@ -107,7 +107,21 @@ function hasAdminPermission(permissionCode) {
 
 function isLoggedIn() {
   const t = getToken();
-  return t != null && t !== '';
+  return t != null && t !== '' && !hasPendingBindInfo();
+}
+
+function hasPendingBindInfo() {
+  return wx.getStorageSync(KEY_REQUIRE_BIND_INFO) === true;
+}
+
+function markRequireBindInfo(phone) {
+  wx.setStorageSync(KEY_REQUIRE_BIND_INFO, true);
+  if (phone) wx.setStorageSync(KEY_WECHAT_PHONE, phone);
+}
+
+function clearRequireBindInfo() {
+  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
+  wx.removeStorageSync(KEY_WECHAT_PHONE);
 }
 
 function isAdmin() {
@@ -203,8 +217,7 @@ function saveAdminToken(accessToken, meta = null) {
   wx.setStorageSync(KEY_ROLE, 'admin');
   wx.removeStorageSync(KEY_USER_ID);
   wx.removeStorageSync(KEY_USER_NAME);
-  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
-  wx.removeStorageSync(KEY_WECHAT_PHONE);
+  clearRequireBindInfo();
   const parsed = parseAdminMeta(meta || {});
   wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
@@ -217,8 +230,7 @@ function saveUserToken({ accessToken, userId, userName }) {
   wx.setStorageSync(KEY_ROLE, 'user');
   wx.setStorageSync(KEY_USER_ID, userId);
   wx.setStorageSync(KEY_USER_NAME, userName || '');
-  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
-  wx.removeStorageSync(KEY_WECHAT_PHONE);
+  clearRequireBindInfo();
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
   wx.removeStorageSync(KEY_ADMIN_PERMISSIONS);
@@ -232,8 +244,7 @@ function logout() {
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
   wx.removeStorageSync(KEY_ADMIN_PERMISSIONS);
-  wx.removeStorageSync(KEY_REQUIRE_BIND_INFO);
-  wx.removeStorageSync(KEY_WECHAT_PHONE);
+  clearRequireBindInfo();
 }
 
 module.exports = {
@@ -248,6 +259,7 @@ module.exports = {
   getAdminPermissions,
   setAdminActivityTypes,
   isLoggedIn,
+  hasPendingBindInfo,
   isAdmin,
   isUser,
   isSuperAdmin,
@@ -256,5 +268,7 @@ module.exports = {
   hasAdminPermission,
   saveAdminToken,
   saveUserToken,
+  markRequireBindInfo,
+  clearRequireBindInfo,
   logout,
 };
