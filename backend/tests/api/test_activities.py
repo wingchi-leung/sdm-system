@@ -4,6 +4,7 @@
 import pytest
 from datetime import datetime, timedelta
 from fastapi import status
+from app.schemas import Activity, ActivityParticipant, PaymentOrder, Tenant
 from tests.conftest import auth_headers
 
 
@@ -318,6 +319,126 @@ class TestActivityStatus:
 @pytest.mark.api
 class TestActivityDeletion:
     """活动删除测试"""
+
+
+@pytest.mark.api
+class TestActivityExport:
+    """活动导出测试"""
+
+    def test_export_activities_as_super_admin(self, client, super_admin_token, db_session, default_tenant, sample_activity_type):
+        """测试超级管理员可导出多个活动的报名数据"""
+        activity_one = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="导出活动一",
+            activity_type_id=sample_activity_type.id,
+            start_time=datetime(2026, 6, 1, 10, 0, 0),
+            status=1,
+            tag="A组",
+            suggested_fee=9900,
+            require_payment=1,
+            location="上海",
+            max_participants=50,
+        )
+        activity_two = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="导出活动二",
+            activity_type_id=sample_activity_type.id,
+            start_time=datetime(2026, 6, 2, 10, 0, 0),
+            status=2,
+            tag="B组",
+            suggested_fee=0,
+            require_payment=0,
+            location="杭州",
+            max_participants=30,
+        )
+        db_session.add_all([activity_one, activity_two])
+        db_session.commit()
+        db_session.refresh(activity_one)
+        db_session.refresh(activity_two)
+
+        participant = ActivityParticipant(
+            tenant_id=default_tenant.id,
+            activity_id=activity_one.id,
+            user_id=123,
+            participant_name="报名用户",
+            phone="13900000001",
+            identity_type="mainland",
+            identity_number="110101199001011234",
+            sex="F",
+            age=28,
+            occupation="产品经理",
+            industry="互联网",
+            email="demo@example.com",
+            enroll_status=1,
+            payment_status=2,
+            paid_amount=9900,
+            why_join="想系统学习",
+            channel="朋友圈",
+            expectation="结识同频伙伴",
+            activity_understanding="已了解主要议程",
+            has_questions="暂无",
+        )
+        db_session.add(participant)
+        db_session.commit()
+        db_session.refresh(participant)
+
+        order = PaymentOrder(
+            tenant_id=default_tenant.id,
+            order_no="PO20260509001",
+            activity_id=activity_one.id,
+            user_id=participant.user_id,
+            participant_id=participant.id,
+            participant_name=participant.participant_name,
+            phone=participant.phone,
+            suggested_fee=9900,
+            actual_fee=9900,
+            status=1,
+            openid="openid-demo",
+            prepay_id="prepay-demo",
+            paid_at=datetime(2026, 5, 9, 12, 0, 0),
+            expire_at=datetime(2026, 5, 9, 13, 0, 0),
+        )
+        db_session.add(order)
+        db_session.commit()
+        db_session.refresh(order)
+
+        participant.payment_order_id = order.id
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/activities/export",
+            headers=auth_headers(super_admin_token),
+            json={"activity_ids": [activity_one.id, activity_two.id]},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert len(data["activities"]) == 2
+        assert [item["activity_id"] for item in data["activities"]] == [activity_one.id, activity_two.id]
+        first_activity = data["activities"][0]
+        assert first_activity["tenant_code"] == default_tenant.code
+        assert first_activity["activity_type_name"] == sample_activity_type.type_name
+        assert len(first_activity["participants"]) == 1
+        first_participant = first_activity["participants"][0]
+        assert first_participant["participant_name"] == "报名用户"
+        assert first_participant["payment_order_no"] == "PO20260509001"
+        assert first_participant["paid_amount"] == 9900
+        assert data["activities"][1]["participants"] == []
+
+    def test_export_activities_forbidden_for_non_super_admin(
+        self,
+        client,
+        activity_admin_token,
+        sample_activity,
+    ):
+        """测试非超级管理员不能导出活动数据"""
+        response = client.post(
+            "/api/v1/activities/export",
+            headers=auth_headers(activity_admin_token),
+            json={"activity_ids": [sample_activity.id]},
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_delete_activity_as_super_admin(self, client, super_admin_token, db_session):
         """测试超级管理员删除活动"""

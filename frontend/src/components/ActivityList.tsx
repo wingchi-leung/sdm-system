@@ -1,10 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarDays, Edit, Eye, Plus, RefreshCw, Trash2, Users } from 'lucide-react';
+import { CalendarDays, Download, Edit, Eye, Plus, RefreshCw, Trash2, Users } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
 import { formatCurrency, formatDateTime, getActivityStatusLabel } from '../lib/admin';
+import { getIsSuperAdmin, isPlatformAdmin } from '../lib/auth';
+import { ActivityExportResponse, exportActivitiesWorkbook } from '../lib/activity-export';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Checkbox } from './ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -49,7 +52,10 @@ const ActivityList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedActivityId, setSelectedActivityId] = useState<number | null>(null);
+  const [selectedActivities, setSelectedActivities] = useState<Record<number, ActivityItem>>({});
+  const [exporting, setExporting] = useState(false);
   const navigate = useNavigate();
+  const exportEnabled = useMemo(() => getIsSuperAdmin() || isPlatformAdmin(), []);
 
   const fetchActivities = useCallback(async () => {
     setLoading(true);
@@ -93,6 +99,38 @@ const ActivityList = () => {
   }, [activities, keyword]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const selectedActivityIds = useMemo(
+    () => Object.keys(selectedActivities).map((value) => Number(value)),
+    [selectedActivities],
+  );
+  const allVisibleSelected = filteredActivities.length > 0
+    && filteredActivities.every((item) => selectedActivities[item.id]);
+
+  const toggleActivitySelection = (activity: ActivityItem, checked: boolean) => {
+    setSelectedActivities((previous) => {
+      const next = { ...previous };
+      if (checked) {
+        next[activity.id] = activity;
+      } else {
+        delete next[activity.id];
+      }
+      return next;
+    });
+  };
+
+  const handleToggleVisibleActivities = (checked: boolean) => {
+    setSelectedActivities((previous) => {
+      const next = { ...previous };
+      filteredActivities.forEach((activity) => {
+        if (checked) {
+          next[activity.id] = activity;
+        } else {
+          delete next[activity.id];
+        }
+      });
+      return next;
+    });
+  };
 
   const handleDeleteConfirm = async () => {
     if (!selectedActivityId) {
@@ -132,6 +170,37 @@ const ActivityList = () => {
     }
   };
 
+  const handleExport = async () => {
+    if (selectedActivityIds.length === 0) {
+      setError('请先选择至少一个活动后再导出');
+      return;
+    }
+
+    setExporting(true);
+    setError(null);
+
+    try {
+      const response = await apiRequest<ActivityExportResponse>(API_PATHS.activities.export, {
+        method: 'POST',
+        body: JSON.stringify({ activity_ids: selectedActivityIds }),
+      });
+
+      if (response.error) {
+        throw new Error(response.error);
+      }
+
+      if (!response.data) {
+        throw new Error('导出数据为空，请稍后重试');
+      }
+
+      await exportActivitiesWorkbook(response.data);
+    } catch (exportError) {
+      setError(exportError instanceof Error ? exportError.message : '导出失败，请稍后重试');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -146,6 +215,12 @@ const ActivityList = () => {
             <RefreshCw className="h-4 w-4" />
             刷新
           </Button>
+          {exportEnabled ? (
+            <Button variant="outline" onClick={handleExport} disabled={exporting || selectedActivityIds.length === 0}>
+              <Download className="h-4 w-4" />
+              {exporting ? '导出中...' : `导出 Excel${selectedActivityIds.length > 0 ? `（${selectedActivityIds.length}）` : ''}`}
+            </Button>
+          ) : null}
           <Button asChild>
             <Link to="/activities/create">
               <Plus className="h-4 w-4" />
@@ -159,7 +234,10 @@ const ActivityList = () => {
         <CardHeader className="gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <CardTitle className="text-xl">活动列表</CardTitle>
-            <p className="mt-1 text-sm text-slate-500">支持按状态筛选、分页查看和快捷进入详情。</p>
+            <p className="mt-1 text-sm text-slate-500">
+              支持按状态筛选、分页查看和快捷进入详情。
+              {exportEnabled ? ` 已选 ${selectedActivityIds.length} 个活动，可一键导出多 Sheet Excel。` : ''}
+            </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -190,10 +268,36 @@ const ActivityList = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {error ? <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
+          {exportEnabled && selectedActivityIds.length > 0 ? (
+            <div className="flex flex-col gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                已选择 {selectedActivityIds.length} 个活动。
+                {selectedActivityIds.length <= 3
+                  ? ` ${selectedActivityIds.map((id) => selectedActivities[id]?.activity_name).filter(Boolean).join('、')}`
+                  : ' 导出后每个活动会生成一个独立 Sheet。'}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedActivities({})}
+              >
+                清空选择
+              </Button>
+            </div>
+          ) : null}
 
           <Table>
             <TableHeader>
               <TableRow>
+                {exportEnabled ? (
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allVisibleSelected}
+                      onCheckedChange={(checked) => handleToggleVisibleActivities(checked === true)}
+                      aria-label="选择当前页全部活动"
+                    />
+                  </TableHead>
+                ) : null}
                 <TableHead>活动名称</TableHead>
                 <TableHead>类型</TableHead>
                 <TableHead>时间</TableHead>
@@ -206,19 +310,28 @@ const ActivityList = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center text-slate-500">
+                  <TableCell colSpan={exportEnabled ? 8 : 7} className="py-12 text-center text-slate-500">
                     活动加载中...
                   </TableCell>
                 </TableRow>
               ) : filteredActivities.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-12 text-center text-slate-500">
+                  <TableCell colSpan={exportEnabled ? 8 : 7} className="py-12 text-center text-slate-500">
                     当前条件下暂无活动
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredActivities.map((activity) => (
                   <TableRow key={activity.id}>
+                    {exportEnabled ? (
+                      <TableCell>
+                        <Checkbox
+                          checked={Boolean(selectedActivities[activity.id])}
+                          onCheckedChange={(checked) => toggleActivitySelection(activity, checked === true)}
+                          aria-label={`选择活动 ${activity.activity_name}`}
+                        />
+                      </TableCell>
+                    ) : null}
                     <TableCell>
                       <div>
                         <button

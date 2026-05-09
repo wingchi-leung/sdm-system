@@ -59,3 +59,57 @@ class ActivityResponse(ActivityBase):
 class ActivityListResponse(BaseModel):
     items: List[ActivityResponse]
     total: int
+
+
+class ActivityExportRequest(BaseModel):
+    activity_ids: List[int] = Field(..., min_length=1, max_length=50, description="待导出的活动 ID 列表")
+
+
+class ActivityExportParticipantRow(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    participant_name: str
+    phone: str
+    identity_type: Optional[str] = None
+    identity_number: Optional[str] = None
+    sex: Optional[str] = None
+    age: Optional[int] = None
+    occupation: Optional[str] = None
+    industry: Optional[str] = None
+    email: Optional[str] = None
+    enroll_status: int
+    payment_status: int
+    payment_order_id: Optional[int] = None
+    paid_amount: int
+    why_join: Optional[str] = None
+    channel: Optional[str] = None
+    expectation: Optional[str] = None
+    activity_understanding: Optional[str] = None
+    has_questions: Optional[str] = None
+    payment_order_no: Optional[str] = None
+    payment_paid_at: Optional[datetime] = None
+    create_time: datetime
+    update_time: datetime
+
+
+class ActivityExportItem(BaseModel):
+    tenant_id: int
+    tenant_name: Optional[str] = None
+    tenant_code: Optional[str] = None
+    activity_id: int
+    activity_name: str
+    activity_type_name: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    status: int
+    tag: Optional[str] = None
+    suggested_fee: int
+    require_payment: int
+    location: Optional[str] = None
+    max_participants: Optional[int] = None
+    participants: List[ActivityExportParticipantRow]
+
+
+class ActivityExportResponse(BaseModel):
+    exported_at: datetime
+    activities: List[ActivityExportItem]

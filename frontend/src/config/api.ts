@@ -59,6 +59,7 @@ export const API_PATHS = {
   activities: {
     create: `${BASE_URL}/activities/`,
     list: `${BASE_URL}/activities/`,
+    export: `${BASE_URL}/activities/export`,
     unstart: `${BASE_URL}/activities/unstarted/`,
     detail: (id: number) => `${BASE_URL}/activities/${id}`,
     update: (id: number) => `${BASE_URL}/activities/${id}`,
