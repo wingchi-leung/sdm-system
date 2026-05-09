@@ -15,7 +15,8 @@ const CreateActivity = () => {
     participants: [] as Participant[],
     activityName: '',
     startTime: '',
-    tags: ''
+    tags: '',
+    isPublic: 0
   });
   const [isLoading, setIsLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -110,6 +111,7 @@ const CreateActivity = () => {
       activity_name: formData.activityName,
       start_time: formData.startTime,
       tag: formData.tags, // 新增标签字段
+      is_public: formData.isPublic,
       participants: formData.participants.map(p => ({
         participant_name: p.participant_name,
         phone: p.phone || '',
@@ -255,6 +257,17 @@ const CreateActivity = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
                   required
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_public"
+                  checked={formData.isPublic === 1}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isPublic: e.target.checked ? 1 : 0 }))}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="is_public" className="text-sm font-medium">设为公开活动（所有用户可见）</label>
               </div>
 
               <Button

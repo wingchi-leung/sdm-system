@@ -813,6 +813,40 @@ function unblockUser(userId) {
   });
 }
 
+/** 微信支付实名认证：用 auth_code 换取 access_token */
+function exchangeRealnameToken(payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/realname-auth/exchange-token`,
+      method: 'POST',
+      header: getHeader(),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 微信支付实名认证：验证姓名与证件号 */
+function verifyRealname(payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/realname-auth/verify`,
+      method: 'POST',
+      header: getHeader(),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 module.exports = {
   baseUrl,
   staticBaseUrl,
@@ -857,5 +891,7 @@ module.exports = {
   uploadAvatar,
   blockUser,
   unblockUser,
+  exchangeRealnameToken,
+  verifyRealname,
   ApiError,
 };

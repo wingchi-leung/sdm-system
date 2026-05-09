@@ -397,3 +397,23 @@ CREATE TABLE IF NOT EXISTS `community_comment` (
   KEY `idx_community_comment_user_id` (`user_id`),
   KEY `idx_community_comment_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
+
+-- 添加公开活动字段
+ALTER TABLE activity ADD COLUMN is_public INT DEFAULT 0 COMMENT '是否公开：0-否 1-是（所有用户可见）' AFTER max_participants;
+
+--
+-- 用户-活动类型关联表
+--
+CREATE TABLE IF NOT EXISTS `user_activity_type` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `activity_type_id` int NOT NULL COMMENT '活动类型ID',
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_activity_type` (`user_id`, `activity_type_id`, `tenant_id`),
+  KEY `idx_user_activity_type_user_id` (`user_id`),
+  KEY `idx_user_activity_type_activity_type_id` (`activity_type_id`),
+  KEY `idx_user_activity_type_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户-活动类型关联表';

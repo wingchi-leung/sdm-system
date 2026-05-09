@@ -58,3 +58,74 @@
   padding: 32rpx;
   font-size: 32rpx;
 }
+
+/* 实名认证区域 */
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 32rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid var(--form-border);
+}
+
+.realname-section {
+  margin-bottom: 48rpx;
+}
+
+.realname-btn-wrap {
+  margin-top: 32rpx;
+  margin-bottom: 16rpx;
+}
+
+.realname-btn {
+  width: 100%;
+  padding: 24rpx;
+  font-size: 28rpx;
+  background: var(--theme-color, #07C160);
+  color: #FFFFFF;
+  border-radius: 20rpx;
+  border: none;
+}
+
+.realname-btn[disabled] {
+  background: #C8C8C8;
+  color: #FFFFFF;
+}
+
+.realname-hint {
+  font-size: 22rpx;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-bottom: 24rpx;
+}
+
+/* 已实名认证状态 */
+.realname-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  background: #E8F8F0;
+  border-radius: 20rpx;
+}
+
+.success-icon {
+  width: 48rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  background: #07C160;
+  color: #FFFFFF;
+  border-radius: 50%;
+  font-size: 28rpx;
+  font-weight: bold;
+  margin-right: 16rpx;
+}
+
+.success-text {
+  font-size: 28rpx;
+  color: #07C160;
+  font-weight: 500;
+}

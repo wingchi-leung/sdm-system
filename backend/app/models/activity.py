@@ -17,6 +17,7 @@ class ActivityBase(BaseModel):
     poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
     location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
+    is_public: int = Field(0, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
 
 
 class ActivityCreate(BaseModel):
@@ -31,6 +32,7 @@ class ActivityCreate(BaseModel):
     poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
     location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
+    is_public: int = Field(0, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
 
 
 class ActivityUpdate(BaseModel):
@@ -45,6 +47,7 @@ class ActivityUpdate(BaseModel):
     poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
     location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
+    is_public: Optional[int] = Field(None, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
 
 
 class ActivityResponse(ActivityBase):

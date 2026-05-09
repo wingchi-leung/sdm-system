@@ -34,4 +34,7 @@ ALTER TABLE user ADD COLUMN avatar_url VARCHAR(500) NULL COMMENT '头像地址' 
 
 ALTER TABLE role_permission ADD COLUMN update_time  datetime NULL COMMENT '更新时间'  ;
 
+-- 添加公开活动字段
+ALTER TABLE activity ADD COLUMN is_public INT DEFAULT 0 COMMENT '是否公开：0-否 1-是（所有用户可见）' AFTER max_participants;
+
   

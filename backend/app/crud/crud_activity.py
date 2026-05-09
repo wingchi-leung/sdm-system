@@ -85,6 +85,8 @@ def get_activities(
     status: Optional[int] = None,
     allowed_activity_type_ids: Optional[List[int]] = None,
     allowed_activity_ids: Optional[List[int]] = None,
+    user_id: Optional[int] = None,
+    user_activity_type_ids: Optional[List[int]] = None,
 ) -> tuple:
     """获取活动列表（租户隔离）"""
     try:
@@ -98,9 +100,24 @@ def get_activities(
         if allowed_activity_ids is not None:
             if allowed_activity_ids:
                 scope_filters.append(Activity.id.in_(allowed_activity_ids))
-        if allowed_activity_type_ids is not None or allowed_activity_ids is not None:
-            if not scope_filters:
-                return [], 0
+
+        # 用户活动分层过滤：公开活动 OR 用户关联类型的活动
+        if user_id is not None and user_activity_type_ids is not None:
+            if user_activity_type_ids:
+                scope_filters.append(
+                    or_(
+                        Activity.is_public == 1,
+                        Activity.activity_type_id.in_(user_activity_type_ids)
+                    )
+                )
+            else:
+                # 用户没有任何关联类型，只能看公开活动
+                scope_filters.append(Activity.is_public == 1)
+        elif allowed_activity_type_ids is None and allowed_activity_ids is None:
+            # 未登录且没有权限限制，默认只看公开活动
+            scope_filters.append(Activity.is_public == 1)
+
+        if scope_filters:
             query = query.filter(or_(*scope_filters))
         total = query.count()
         activities = query.order_by(desc(Activity.start_time)).offset(skip).limit(limit).all()

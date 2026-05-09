@@ -298,6 +298,58 @@
 
 ## 2026-05-09 Web 端活动导出补充
 
-- Web 管理端活动列表新增“导出 Excel”能力，仅对超级管理员可见；支持勾选多个活动后一次导出，导出的工作簿会按“一个活动一个 Sheet”组织数据。
+- Web 管理端活动列表新增”导出 Excel”能力，仅对超级管理员可见；支持勾选多个活动后一次导出，导出的工作簿会按”一个活动一个 Sheet”组织数据。
 - 导出数据覆盖活动基础信息、租户信息、报名记录基础信息、报名问卷字段、支付状态、支付订单号、支付时间、实付金额等关键信息，便于运营、财务和教务复核。
 - 后端新增仅超级管理员可访问的活动导出接口，避免普通活动管理员通过前端隐藏按钮之外的方式绕过权限直接拉取完整报名数据。
+
+## 2026-05-09 小程序注册实名认证补充
+
+### 需求背景
+
+注册环节需支持微信支付实名认证，确保用户姓名与证件号经微信实名库验证，防止虚假报名。
+
+### 实现方案
+
+微信支付实名认证分为三大步：
+
+1. **获取授权码**：小程序引导用户跳转到微信支付实名授权页，用户同意后拿到 `auth_code`（有时效性）
+2. **兑换访问令牌**：后端拿 `auth_code` 调微信支付接口，换取 `access_token` 和 `refresh_token`
+3. **实名验证**：后端拿 `access_token` + 用户填写的姓名 + 证件号，请求验证接口；姓名和证件号以加密形式传输，返回结果也加密需本地解密
+
+### 后端接口
+
+| 接口 | 方法 | 说明 |
+|------|------|------|
+| `/api/v1/realname-auth/exchange-token` | POST | 用 `auth_code` 换取 `access_token` + `refresh_token` |
+| `/api/v1/realname-auth/verify` | POST | 用 `access_token` + 姓名 + 证件号验证，返回状态码 |
+
+### 返回状态码说明
+
+| 状态码 | 说明 |
+|--------|------|
+| `verify_result` | 综合验证结果 TRUE/FALSE |
+| `V_OP_NM_MA` | 操作员姓名是否匹配微信实名 Y/N |
+| `V_NM_ID_MA` | 姓名与证件号是否匹配 Y/N/U（U=未知/未实名） |
+| `U_OP_NM_MA` | 操作员是否已实名 Y/N/U |
+| `U_NM_ID_MA` | 用户姓名与证件号匹配 Y/N/U |
+
+### 注意事项
+
+- 调用实名验证接口需要商户号开通白名单权限（`NO_API_AUTH` 报错需联系微信支付运营人员）
+- `auth_code` 有效期很短，需尽快完成兑换
+- 姓名和证件号使用 RSA 公钥加密传输，保证安全性
+
+### 前端流程
+
+1. 用户填写姓名、证件号后，点击”微信支付实名认证”按钮
+2. 小程序通过 `navigateToMiniProgram` 跳转微信支付实名授权页（固定 appid: `wxb369391ce8a1a1c8`）
+3. 用户在微信侧授权后，通过 redirect 回调携带 `auth_code` 返回小程序
+4. 小程序调用后端 `exchange-token` 换取 access_token，再调用 `verify` 验证姓名+证件号
+5. 验证通过后解锁注册按钮，用户可完成注册
+
+### 实现文件
+
+- 后端：`backend/app/api/v1/endpoints/realname_auth.py`
+- 后端路由注册：`backend/app/api/v1/router.py`
+- 小程序页面：`miniprogram/pages/user-register/`（wxml + js + wxss）
+- 小程序 API：`miniprogram/utils/api.js`（新增 `exchangeRealnameToken` + `verifyRealname`）

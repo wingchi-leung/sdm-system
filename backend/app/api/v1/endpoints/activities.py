@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import List
 
-from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac
+from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac, crud_user_activity_type
 from app.models import activity, checkin
 from app.api import deps
 from app.schemas import Activity, ActivityParticipant, ActivityType, PaymentOrder, Tenant
@@ -225,14 +225,23 @@ def list_activities(
     """活动列表"""
     tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
     admin_id = ctx.user_id if ctx and ctx.role == "admin" else None
-    
+
     allowed_types, allowed_activities = (
         _allowed_scopes_for_list(db, admin_id, tenant_id) if admin_id else (None, None)
     )
+
+    # 用户活动分层过滤：获取用户关联的活动类型
+    user_id = ctx.user_id if ctx else None
+    user_activity_type_ids = None
+    if user_id:
+        user_activity_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
+
     activities, total = crud_activity.get_activities(
         db, tenant_id=tenant_id, skip=skip, limit=limit, status=status,
         allowed_activity_type_ids=allowed_types,
         allowed_activity_ids=allowed_activities,
+        user_id=user_id,
+        user_activity_type_ids=user_activity_type_ids,
     )
     return {"items": activities, "total": total}
 
@@ -246,16 +255,25 @@ def get_unstarted_activities(
     """未开始活动列表"""
     tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
     admin_id = ctx.user_id if ctx and ctx.role == "admin" else None
-    
+
     allowed_types, allowed_activities = (
         _allowed_scopes_for_list(db, admin_id, tenant_id) if admin_id else (None, None)
     )
+
+    # 用户活动分层过滤：获取用户关联的活动类型
+    user_id = ctx.user_id if ctx else None
+    user_activity_type_ids = None
+    if user_id:
+        user_activity_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
+
     activities, total = crud_activity.get_activities(
         db,
         tenant_id=tenant_id,
         status=1,
         allowed_activity_type_ids=allowed_types,
         allowed_activity_ids=allowed_activities,
+        user_id=user_id,
+        user_activity_type_ids=user_activity_type_ids,
     )
     return {"items": activities, "total": total}
 
@@ -272,6 +290,17 @@ def get_activity(
     act = crud_activity.get_activity(db, activity_id, tenant_id)
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")
+
+    # 用户活动分层检查：非公开活动需要用户有关联类型
+    if act.is_public != 1:
+        user_id = ctx.user_id if ctx else None
+        if user_id:
+            user_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
+            if act.activity_type_id not in user_type_ids:
+                raise HTTPException(status_code=404, detail="Activity not found")
+        else:
+            raise HTTPException(status_code=404, detail="Activity not found")
+
     return act
 
 

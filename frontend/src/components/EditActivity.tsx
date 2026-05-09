@@ -16,6 +16,7 @@ interface Activity {
   tag?: string;
   activity_type_id?: number;
   activity_type_name?: string;
+  is_public?: number;
 }
 
 const EditActivity = () => {
@@ -25,7 +26,8 @@ const EditActivity = () => {
     startTime: '',
     endTime: '',
     tags: '',
-    activityTypeName: ''
+    activityTypeName: '',
+    isPublic: 0
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
@@ -43,7 +45,8 @@ const EditActivity = () => {
           startTime: activity.start_time.slice(0, 16),
           endTime: activity.end_time ? activity.end_time.slice(0, 16) : '',
           tags: activity.tag || '',
-          activityTypeName: activity.activity_type_name || ''
+          activityTypeName: activity.activity_type_name || '',
+          isPublic: activity.is_public || 0
         });
       } else {
         throw new Error(response.error);
@@ -73,6 +76,7 @@ const EditActivity = () => {
       activity_name: formData.activityName,
       start_time: formData.startTime,
       tag: formData.tags || null,
+      is_public: formData.isPublic,
     };
 
     if (formData.endTime) {
@@ -186,6 +190,17 @@ const EditActivity = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                   placeholder="请输入标签，多个标签用逗号分隔"
                 />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="is_public"
+                  checked={formData.isPublic === 1}
+                  onChange={(e) => setFormData(prev => ({ ...prev, isPublic: e.target.checked ? 1 : 0 }))}
+                  className="w-4 h-4"
+                />
+                <label htmlFor="is_public" className="text-sm font-medium">设为公开活动（所有用户可见）</label>
               </div>
 
               <Button

@@ -82,6 +82,7 @@ class Activity(BaseModel):
     poster_url = Column(String(500), nullable=True)  # 活动海报图片URL
     location = Column(String(255), nullable=True)    # 活动地点（为空则表示线上活动）
     max_participants = Column(Integer, nullable=True)  # 最大参与人数，NULL 表示无限制
+    is_public = Column(Integer, default=0)           # 是否公开：0-否 1-是（所有用户可见）
 
 
 # ============================================================
@@ -264,3 +265,16 @@ class UserTenant(BaseModel):
     tenant_id = Column(Integer, nullable=False, index=True)
     status = Column(SmallInteger, default=1, nullable=False)
     joined_at = Column(DateTime, default=func.now())
+
+
+# ============================================================
+# 用户-活动类型关联表
+# ============================================================
+class UserActivityType(BaseModel):
+    __tablename__ = "user_activity_type"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'activity_type_id', 'tenant_id', name='uk_user_activity_type'),
+    )
+    user_id = Column(Integer, nullable=False, index=True)
+    activity_type_id = Column(Integer, nullable=False, index=True)
+    tenant_id = Column(Integer, nullable=False, index=True)
