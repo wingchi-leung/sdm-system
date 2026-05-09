@@ -3,7 +3,6 @@ import { Settings, Trash2, Plus } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
 import {
   Dialog,
   DialogContent,
@@ -32,9 +31,11 @@ const AVAILABLE_FIELDS = [
   { name: 'occupation', label: '职业', required: false },
   { name: 'industry', label: '行业', required: false },
   { name: 'age', label: '年龄', required: false },
+  { name: 'isblock', label: '是否拉黑', required: false },
+  { name: 'block_reason', label: '拉黑原因', required: false },
 ];
 
-const COLUMN_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+const COLUMN_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
 
 interface ImportTemplateConfigProps {
   onConfigSaved?: () => void;
@@ -269,7 +270,7 @@ export const ImportTemplateConfig: React.FC<ImportTemplateConfigProps> = ({ onCo
               {/* 字段说明 */}
               <div className="rounded-lg bg-blue-50 p-3">
                 <p className="text-xs text-blue-600">
-                  <strong>说明：</strong>性别字段请填写"男"或"女"；年龄字段请填写数字。
+                  <strong>说明：</strong>性别字段请填写"男"或"女"；证件类型可填写"大陆身份证/香港证件/台湾证件/其他证件"；是否拉黑可填写"是/否"。
                 </p>
               </div>
             </div>

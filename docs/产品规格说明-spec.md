@@ -9,6 +9,7 @@
 - 后端 Docker 容器启动 Uvicorn 时启用 `--proxy-headers --forwarded-allow-ips *`，确保 Cloudflare Tunnel 传入的 HTTPS 反代头被正确识别；当 FastAPI 自动补尾斜杠重定向时，`Location` 必须保持 `https://api.chronono.org/...`，避免 Web 前端跨域请求被浏览器按混合内容拦截。
 - 后端启动生命周期会执行轻量数据库结构自检，自动补齐旧 Docker 数据卷缺失的兼容字段（例如 `user.avatar_url`），避免已有数据卷因 `table.sql` 不会重复初始化而导致用户列表、工作台、报表、权限等页面 500。
 - 权限管理页使用的租户用户列表接口会兼容历史账号数据（例如登录名误写入 `phone` 字段），避免响应模型按手机号格式二次校验导致 500；用户导入模板接口需优先于 `/users/{user_id}` 动态详情路由注册，确保模板保存后可被导入弹窗正确读取。
+- Web 用户导入模板支持配置 `是否拉黑` 与 `拉黑原因` 字段；Excel 导入时支持中文证件类型（大陆身份证、香港证件、台湾证件、其他证件）自动归一化，`是否拉黑` 可填写“是/否”等常见值并写入黑名单状态。
 - Web 前端集合接口需与 FastAPI 根路由保持一致，活动、用户、签到等列表/创建接口使用尾斜杠路径（如 `/activities/`、`/users/`、`/checkins/`），减少跨域预检和自动重定向。
 - 迁移时如果旧电脑仍运行同一个 tunnel 凭据，公网流量可能被分到旧电脑；正式切换前需停掉旧电脑 tunnel 或在 Cloudflare Dashboard 移除旧 connector。
 

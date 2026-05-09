@@ -27,7 +27,7 @@ interface ImportResult {
   errors: string[];
 }
 
-const COLUMN_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+const COLUMN_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
 
 interface ImportUsersProps {
   onImportSuccess?: () => void;
@@ -156,6 +156,8 @@ export const ImportUsers: React.FC<ImportUsersProps> = ({ onImportSuccess }) => 
         occupation: '职业',
         industry: '行业',
         age: '年龄',
+        isblock: '是否拉黑',
+        block_reason: '拉黑原因',
       };
       return { letter, label: fieldLabels[field] || field };
     });

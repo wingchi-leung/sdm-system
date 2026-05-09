@@ -199,7 +199,7 @@ def get_users(
     ]
 
 
-@router.post("/{user_id}/block", response_model=user.UserResponse)
+@router.post("/{user_id}/block", response_model=user.UserListItemForAdmin)
 def block_user(
     user_id: int,
     body: user.BlockUserRequest = None,
@@ -213,10 +213,12 @@ def block_user(
         raise HTTPException(status_code=403, detail="仅超级管理员可操作")
 
     reason = body.reason if body else None
-    return crud_user.block_user(db, user_id, ctx.tenant_id, reason)
+    return _serialize_admin_user_list_item(
+        crud_user.block_user(db, user_id, ctx.tenant_id, reason)
+    )
 
 
-@router.post("/{user_id}/unblock", response_model=user.UserResponse)
+@router.post("/{user_id}/unblock", response_model=user.UserListItemForAdmin)
 def unblock_user(
     user_id: int,
     db: Session = Depends(deps.get_db),
@@ -228,7 +230,9 @@ def unblock_user(
     if not is_super:
         raise HTTPException(status_code=403, detail="仅超级管理员可操作")
 
-    return crud_user.unblock_user(db, user_id, ctx.tenant_id)
+    return _serialize_admin_user_list_item(
+        crud_user.unblock_user(db, user_id, ctx.tenant_id)
+    )
 
 
 # ============================================================
