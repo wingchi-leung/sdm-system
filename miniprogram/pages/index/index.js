@@ -29,6 +29,8 @@ Page({
     headerAvatarText: '用',
   },
 
+  _redirectingToLogin: false,
+
   resetPageState(overrides = {}) {
     this.setData({
       loading: true,
@@ -37,6 +39,35 @@ Page({
       headerAvatarUrl: '',
       ...overrides,
     });
+  },
+
+  ensureLoggedIn() {
+    if (auth.isLoggedIn()) {
+      this._redirectingToLogin = false;
+      return true;
+    }
+
+    this.resetPageState({
+      loading: false,
+      isAdmin: false,
+      isUser: false,
+      canCreateActivity: false,
+      headerAvatarText: '用',
+    });
+
+    if (this._redirectingToLogin) {
+      return false;
+    }
+
+    this._redirectingToLogin = true;
+    const redirectUrl = tenant.appendTenantToUrl('/pages/index/index');
+    wx.showToast({ title: '请先登录', icon: 'none' });
+    setTimeout(() => {
+      wx.navigateTo({
+        url: tenant.appendTenantToUrl('/pages/login/login', { redirect: redirectUrl }),
+      });
+    }, 300);
+    return false;
   },
 
   resolveAdminState() {
@@ -54,11 +85,13 @@ Page({
 
   onLoad(options) {
     tenant.applyPageOptions(options);
+    if (!this.ensureLoggedIn()) return;
     this.resolveAdminState();
     this.load();
   },
 
   onShow() {
+    if (!this.ensureLoggedIn()) return;
     this.resolveAdminState();
     this.load();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {

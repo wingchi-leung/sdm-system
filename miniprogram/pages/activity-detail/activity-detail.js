@@ -28,6 +28,45 @@ Page({
   },
 
   isFirstLoad: true,
+  _redirectingToLogin: false,
+
+  ensureLoggedIn(activityId) {
+    if (auth.isLoggedIn()) {
+      this._redirectingToLogin = false;
+      return true;
+    }
+
+    this.setData({
+      loading: false,
+      error: '请先登录后查看活动',
+      activity: null,
+      canEnroll: false,
+      hasRegistered: false,
+      registrationStatusText: '',
+      actionTipText: '',
+      showAdminPanel: false,
+      showCommunitySection: false,
+      communityPosts: [],
+      communityLoading: false,
+      communityError: null,
+    });
+
+    if (this._redirectingToLogin) {
+      return false;
+    }
+
+    this._redirectingToLogin = true;
+    const redirectUrl = tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', {
+      id: activityId,
+    });
+    wx.showToast({ title: '请先登录后查看活动', icon: 'none' });
+    setTimeout(() => {
+      wx.navigateTo({
+        url: tenant.appendTenantToUrl('/pages/login/login', { redirect: redirectUrl }),
+      });
+    }, 300);
+    return false;
+  },
 
   onLoad(options) {
     tenant.applyPageOptions(options);
@@ -41,8 +80,9 @@ Page({
 
     this.setData({
       activityId: activityId,
-      isAdmin: auth.isAdmin(),
     });
+    if (!this.ensureLoggedIn(activityId)) return;
+    this.setData({ isAdmin: auth.isAdmin() });
     this.loadActivity(activityId);
   },
 
@@ -53,6 +93,8 @@ Page({
       return;
     }
     if (this.data.activityId) {
+      if (!this.ensureLoggedIn(this.data.activityId)) return;
+      this.setData({ isAdmin: auth.isAdmin() });
       this.loadActivity(this.data.activityId);
     }
   },
