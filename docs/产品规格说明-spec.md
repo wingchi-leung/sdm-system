@@ -279,3 +279,11 @@
 - 小程序选择自定义头像后会优先调用微信本地压缩能力再上传；压缩失败时回退原图，避免兼容性问题影响用户保存头像。
 - 后端 `/api/v1/uploads/avatar` 会将头像压缩到适合展示的尺寸并保存为较小的 JPG，降低后续“我的”页头像加载体积。
 - 本地存储模式下 `/uploads/*` 静态资源返回长期缓存头，减少同一头像重复访问时的网络耗时。
+
+## 2026-05-09 配置治理与备份补充
+
+- 正式环境配置入口收敛为根目录 `.env`，用于 `docker-compose.yml`、Docker 内后端容器和前端容器；`backend/.env` 仅保留给本地直接运行后端时使用。
+- 根目录 `.env.example` 已补齐 `STATIC_BASE_URL`、`REQUIRE_HTTPS_FOR_LOGIN`、登录限流和本地上传目录等关键项，并明确当前 Cloudflare Tunnel compose 方案不消费 `TUNNEL_TOKEN`。
+- `docker-compose.yml` 已显式透传 `DB_ECHO`、`REQUIRE_HTTPS_FOR_LOGIN`、登录限流和本地上传目录相关环境变量，避免正式环境依赖代码默认值。
+- 新增 `docs/配置与备份梳理.md` 统一说明根目录 `.env`、`backend/.env`、`miniprogram/config/index.js`、`tunnel/config.yml` 和 `secrets/wechat_pay/` 的职责边界。
+- 新增 `docs/备份与恢复演练手册.md` 与 `scripts/backup-production.ps1`，约定正式环境至少备份数据库、上传目录、支付证书、根目录 `.env` 和 Tunnel 配置，并要求通过恢复演练验证备份有效性。
