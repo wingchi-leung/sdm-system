@@ -31,6 +31,7 @@ const menuGroups: { label: string; items: MenuItem[] }[] = [
       { href: '/activities', title: '活动管理', icon: CalendarRange },
       { href: '/enrollments', title: '报名与签到', icon: CreditCard },
       { href: '/users', title: '用户管理', icon: Users, requiredSuperAdmin: true },
+      { href: '/user-activity-types', title: '活动类型分配', icon: Users, requiredSuperAdmin: true },
     ],
   },
   {

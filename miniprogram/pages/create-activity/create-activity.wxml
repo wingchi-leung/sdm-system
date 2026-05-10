@@ -38,6 +38,15 @@
       />
     </view>
 
+    <!-- 公开设置 -->
+    <view class="field">
+      <view class="switch-row">
+        <text class="switch-label">设为公开活动</text>
+        <switch checked="{{isPublic}}" bindchange="onIsPublicChange" color="var(--primary)" />
+      </view>
+      <text class="field-hint">公开活动所有用户可见，非公开活动仅关联用户可见</text>
+    </view>
+
     <!-- 报名限额 -->
     <view class="field">
       <text class="field-label">报名限额</text>

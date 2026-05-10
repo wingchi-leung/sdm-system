@@ -17,6 +17,7 @@ import SignInPage from './components/SignInPage';
 import Statistics from './components/Statistics';
 import TenantManagementPage from './components/TenantManagementPage';
 import UserManagement from './components/UserManagement';
+import UserActivityTypeManagement from './components/UserActivityTypeManagement';
 
 const App = () => {
   return (
@@ -95,6 +96,14 @@ const App = () => {
             element={(
               <ProtectedRoute>
                 <UserManagement />
+              </ProtectedRoute>
+            )}
+          />
+          <Route
+            path="/user-activity-types"
+            element={(
+              <ProtectedRoute>
+                <UserActivityTypeManagement />
               </ProtectedRoute>
             )}
           />

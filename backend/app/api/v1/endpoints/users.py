@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import json
@@ -82,13 +82,16 @@ def create_user(
 @router.put("/bind-info")
 def bind_user_info(
     bind_info: user.UserBindInfoRequest,
+    request: Request,
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """绑定用户完整信息"""
     try:
+        # 是否跳过微信实名验证（header 传 X-Skip-Realname-Verify: true）
+        skip_realname = request.headers.get("X-Skip-Realname-Verify", "").lower() == "true"
         crud_user.update_user_bind_info(
-            db, ctx.user_id, ctx.tenant_id, bind_info
+            db, ctx.user_id, ctx.tenant_id, bind_info, skip_realname_verify=skip_realname
         )
         return {"success": True, "message": "信息绑定成功"}
     except HTTPException:

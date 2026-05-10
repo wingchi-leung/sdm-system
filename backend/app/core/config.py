@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     WECHAT_PAY_PUBLIC_KEY_PATH: Optional[str] = None   # 微信支付公钥文件路径
     WECHAT_PAY_PUBLIC_KEY_ID: Optional[str] = None     # 微信支付公钥ID（PUB_KEY_ID_...）
 
+    # 微信支付实名认证开关（true=启用，false=跳过静默校验，仅做格式校验）
+    WECHAT_REALNAME_VERIFY_ENABLED: bool = False
+
     # 数据库配置
     DB_ECHO: bool = False  # 是否打印 SQL 日志，生产环境应设为 False
 

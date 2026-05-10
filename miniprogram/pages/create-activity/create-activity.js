@@ -34,6 +34,8 @@ Page({
     uploading: false,
     // 报名限额
     maxParticipants: '',
+    // 公开设置
+    isPublic: false,
   },
 
   resetFormState() {
@@ -58,6 +60,7 @@ Page({
       location: '',
       uploading: false,
       maxParticipants: '',
+      isPublic: false,
     });
   },
 
@@ -238,6 +241,11 @@ Page({
     this.setData({ location: e.detail.value, error: null });
   },
 
+  // 公开设置
+  onIsPublicChange(e) {
+    this.setData({ isPublic: e.detail.value, error: null });
+  },
+
   // 构造本地时间字符串，避免 toISOString() 转 UTC 导致时间少 8 小时。
   toLocalDateTimeString(dateStr, timeStr) {
     return `${dateStr}T${timeStr}:00`;
@@ -385,6 +393,7 @@ Page({
           poster_url: posterUrl || null,
           location: (location || '').trim() || null,
           max_participants: maxParticipantsNum,
+          is_public: this.data.isPublic ? 1 : 0,
         });
         wx.showToast({ title: '发布成功', icon: 'success' });
         setTimeout(() => wx.navigateBack(), 1000);

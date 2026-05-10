@@ -103,9 +103,7 @@ MYSQL_DB=sdm_db
 # JWT
 JWT_SECRET=请使用强随机字符串（至少32位）
 
-# Cloudflare Tunnel（从 Cloudflare Dashboard 获取）
-TUNNEL_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-
+ 
 # API 访问地址
 API_BASE_URL=https://api.你的域名.com
 CORS_ORIGINS=https://web.你的域名.com,https://api.你的域名.com

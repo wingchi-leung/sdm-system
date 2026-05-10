@@ -20,6 +20,8 @@ Page({
     posterLocalPath: '',
     location: '',
     uploading: false,
+    // 公开设置
+    isPublic: false,
   },
 
   resetSensitiveData() {
@@ -36,6 +38,7 @@ Page({
       location: '',
       submitting: false,
       uploading: false,
+      isPublic: false,
     });
   },
 
@@ -91,6 +94,7 @@ Page({
         activityTypeName: activity.activity_type_name || '',
         posterUrl: api.getImageUrl(activity.poster_url) || '',
         location: activity.location || '',
+        isPublic: activity.is_public === 1,
       });
       this.tagTouched = !!(activity.tag || '').trim();
     } catch (err) {
@@ -163,6 +167,11 @@ Page({
   // 地点输入
   onLocationInput(e) {
     this.setData({ location: e.detail.value });
+  },
+
+  // 公开设置
+  onIsPublicChange(e) {
+    this.setData({ isPublic: e.detail.value });
   },
 
   // 选择海报
@@ -281,6 +290,8 @@ Page({
       if (activityTypeName.trim()) {
         updateData.activity_type_name = activityTypeName.trim();
       }
+
+      updateData.is_public = this.data.isPublic ? 1 : 0;
 
       await api.updateActivity(id, updateData);
       const latestActivity = await api.getActivity(id);

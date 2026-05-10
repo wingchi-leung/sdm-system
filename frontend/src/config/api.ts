@@ -56,6 +56,13 @@ export const API_PATHS = {
   activityTypes: {
     list: `${BASE_URL}/activity-types`,
   },
+  userActivityTypes: {
+    bind: `${BASE_URL}/user-activity-types`,
+    listByUser: (userId: number) => `${BASE_URL}/user-activity-types/by-user/${userId}`,
+    listByType: (activityTypeId: number) => `${BASE_URL}/user-activity-types/by-type/${activityTypeId}`,
+    unbind: (userId: number, activityTypeId: number) => `${BASE_URL}/user-activity-types/by-user/${userId}/${activityTypeId}`,
+    unbindBatch: `${BASE_URL}/user-activity-types/batch`,
+  },
   activities: {
     create: `${BASE_URL}/activities/`,
     list: `${BASE_URL}/activities/`,

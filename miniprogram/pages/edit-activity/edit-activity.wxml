@@ -10,6 +10,15 @@
       <input class="input" value="{{activityTypeName}}" bindinput="onTypeNameInput" placeholder="请输入活动类型" placeholder-class="input-placeholder" />
     </view>
 
+    <!-- 公开设置 -->
+    <view class="field">
+      <view class="switch-row">
+        <text class="switch-label">设为公开活动</text>
+        <switch checked="{{isPublic}}" bindchange="onIsPublicChange" color="var(--primary)" />
+      </view>
+      <text class="field-hint">公开活动所有用户可见，非公开活动仅关联用户可见</text>
+    </view>
+
     <!-- 活动海报 -->
     <view class="field">
       <text class="field-label">活动海报</text>
