@@ -12,18 +12,6 @@
       />
     </view>
 
-    <!-- 活动标签 -->
-    <view class="field">
-      <text class="field-label">活动标签</text>
-      <input
-        class="input"
-        placeholder="默认跟活动类型一致，可手动修改"
-        placeholder-class="input-placeholder"
-        value="{{tag}}"
-        bindinput="onTagInput"
-      />
-    </view>
-
     <!-- 活动类型 -->
     <view class="field">
       <text class="field-label">活动类型</text>
