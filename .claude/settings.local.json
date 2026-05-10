@@ -5,7 +5,9 @@
       "Bash(python -c \"from passlib.context import CryptContext; pwd_ctx = CryptContext\\(schemes=['bcrypt'], deprecated='auto'\\); print\\(pwd_ctx.hash\\('12345'\\)\\)\")",
       "Bash(pip show *)",
       "Bash(python -c \"import ast; ast.parse\\(open\\('app/api/deps.py', encoding='utf-8'\\).read\\(\\)\\); print\\('deps.py: OK'\\)\")",
-      "Bash(python -m json.tool)"
+      "Bash(python -m json.tool)",
+      "WebFetch(domain:pay.wechatpay.cn)",
+      "Bash(git add *)"
     ]
   }
 }
