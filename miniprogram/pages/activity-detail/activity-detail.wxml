@@ -14,46 +14,65 @@
 
   <!-- 活动详情 -->
   <view wx:elif="{{activity}}" class="content">
-    <!-- 活动海报 -->
     <view class="poster-section">
-      <image wx:if="{{activity.poster_url && !posterLoadFailed}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFill" bindload="onPosterLoad" binderror="onPosterError" />
-      <view wx:else class="poster-fallback">暂无海报</view>
+      <view class="poster-shell">
+        <view class="poster-copy">
+          <text class="eyebrow-en">Activity</text>
+          <text class="eyebrow-cn">活动详情</text>
+        </view>
+        <view class="poster-frame">
+          <image wx:if="{{activity.poster_url && !posterLoadFailed}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFit" bindload="onPosterLoad" binderror="onPosterError" />
+          <view wx:else class="poster-fallback">暂无海报</view>
+        </view>
+      </view>
     </view>
 
-    <!-- 活动标题区域 -->
-    <view class="header-section">
-      <view class="status-badge {{activity.status === 1 ? 'not-started' : (activity.status === 2 ? 'ongoing' : 'ended')}}">
-        {{activity.status_text}}
-      </view>
-      <view wx:if="{{hasRegistered}}" class="status-badge ongoing">
-        {{registrationStatusText}}
+    <view class="hero-card">
+      <view class="hero-status-row">
+        <view class="status-badge {{activity.status === 1 ? 'not-started' : (activity.status === 2 ? 'ongoing' : 'ended')}}">
+          {{activity.status_text}}
+        </view>
+        <view wx:if="{{hasRegistered}}" class="status-badge registered">
+          {{registrationStatusText}}
+        </view>
       </view>
       <text class="activity-title">{{activity.activity_name}}</text>
+      <text wx:if="{{activity.activity_type_name || activity.tag}}" class="activity-subtitle">
+        {{activity.activity_type_name || ''}}{{activity.activity_type_name && activity.tag ? ' · ' : ''}}{{activity.tag || ''}}
+      </text>
     </view>
 
-    <!-- 活动信息卡片 -->
     <view class="info-card">
-      <view class="info-item" wx:if="{{activity.start_display}}">
-        <text class="info-label">开始时间</text>
-        <text class="info-value">{{activity.start_display}}</text>
+      <view class="section-headline">
+        <text class="section-kicker">Overview</text>
+        <text class="section-title">活动信息</text>
       </view>
-      <view class="info-item" wx:if="{{activity.end_display}}">
-        <text class="info-label">结束时间</text>
-        <text class="info-value">{{activity.end_display}}</text>
-      </view>
-      <view class="info-item">
-        <text class="info-label">活动地点</text>
-        <text class="info-value">{{activity.location || '线上活动'}}</text>
-      </view>
-      <view class="info-item" wx:if="{{activity.activity_type_name}}">
-        <text class="info-label">活动类型</text>
-        <text class="info-value">{{activity.activity_type_name}}</text>
+      <view class="info-list">
+        <view class="info-item" wx:if="{{activity.start_display}}">
+          <text class="info-label">开始时间</text>
+          <text class="info-value">{{activity.start_display}}</text>
+        </view>
+        <view class="info-item" wx:if="{{activity.end_display}}">
+          <text class="info-label">结束时间</text>
+          <text class="info-value">{{activity.end_display}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">活动地点</text>
+          <text class="info-value">{{activity.location || '线上活动'}}</text>
+        </view>
+        <view class="info-item" wx:if="{{activity.activity_type_name}}">
+          <text class="info-label">活动类型</text>
+          <text class="info-value">{{activity.activity_type_name}}</text>
+        </view>
       </view>
     </view>
 
     <view wx:if="{{showCommunitySection}}" class="community-section">
-      <view class="section-head">
-        <text class="section-title">活动动态</text>
+      <view class="section-headline">
+        <view>
+          <text class="section-kicker">Field Notes</text>
+          <text class="section-title">活动动态</text>
+        </view>
         <view class="section-actions">
           <text wx:if="{{communityPosts.length > 0}}" class="section-link" bindtap="onViewCommunityList">查看更多</text>
           <text wx:if="{{showAdminPanel}}" class="section-link primary" bindtap="onCreateCommunityPost">发布动态</text>
@@ -87,7 +106,10 @@
 
     <!-- 管理员面板 -->
     <view wx:if="{{showAdminPanel}}" class="admin-section">
-      <text class="section-title">管理功能</text>
+      <view class="section-headline">
+        <text class="section-kicker">Manage</text>
+        <text class="section-title">管理功能</text>
+      </view>
       <view class="admin-grid">
         <view class="admin-action" bindtap="onViewParticipants">
           <view class="action-icon-wrap">
@@ -134,11 +156,16 @@
       </view>
     </view>
 
-    <!-- 报名按钮（所有人可见，已结束则禁用） -->
     <view class="action-section">
       <view wx:if="{{canEnroll}}" class="btn-wrap">
         <button class="btn-enroll" bindtap="goRegister">
-          <text class="btn-text">立即报名</text>
+          <view class="btn-content">
+            <view class="btn-copy">
+              <text class="btn-caption">Application</text>
+              <text class="btn-text">进入报名</text>
+            </view>
+            <text class="btn-arrow">→</text>
+          </view>
         </button>
       </view>
       <view wx:else class="disabled-tip">

@@ -5,6 +5,7 @@ const path = require('node:path');
 function loadRegisterPage({
   api = {},
   auth = {},
+  image = {},
   tenant = {},
   paymentOrder = {},
   wxMock = {},
@@ -27,6 +28,7 @@ function loadRegisterPage({
   const moduleMap = [
     ['../../utils/api.js', api],
     ['../../utils/auth.js', auth],
+    ['../../utils/image.js', image],
     ['../../utils/tenant.js', tenant],
     ['../../utils/payment-order.js', paymentOrder],
   ];
@@ -127,4 +129,38 @@ test('管理员停留在报名页时不能继续提交支付报名', () => {
   assert.equal(calls.createPaymentOrder, 0);
   assert.equal(calls.showToast, 1);
   assert.equal(page.data.submitting, false);
+});
+
+test('报名页加载活动时会解析海报展示地址', async () => {
+  const pageConfig = loadRegisterPage({
+    api: {
+      getActivity() {
+        return Promise.resolve({
+          id: 12,
+          activity_name: '测试活动',
+          poster_url: '/uploads/posters/demo.jpg',
+          require_payment: 1,
+          suggested_fee: 9900,
+        });
+      },
+      getEnrollmentInfo() {
+        return Promise.resolve({
+          is_full: false,
+          remaining_quota: 6,
+        });
+      },
+    },
+    image: {
+      resolveDisplayUrl(url) {
+        return Promise.resolve(`wxfile://${url}`);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+
+  await page.loadActivity(12);
+
+  assert.equal(page.data.activity.poster_url, 'wxfile:///uploads/posters/demo.jpg');
+  assert.equal(page.data.requirePayment, true);
+  assert.equal(page.data.suggestedFeeYuan, '99.00');
 });

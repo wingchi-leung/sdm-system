@@ -1,5 +1,6 @@
 const api = require("../../utils/api");
 const auth = require("../../utils/auth");
+const image = require('../../utils/image');
 const tenant = require("../../utils/tenant");
 const {
   buildPendingOrderStorageKey,
@@ -144,6 +145,7 @@ Page({
   // 加载活动详情
   async loadActivity(activityId) {
     const activity = await api.getActivity(activityId);
+    const posterUrl = await image.resolveDisplayUrl(activity.poster_url);
 
     // 检查是否需要支付
     const requirePayment = activity.require_payment === 1;
@@ -151,7 +153,10 @@ Page({
     const suggestedFeeYuan = (suggestedFee / 100).toFixed(2);
 
     this.setData({
-      activity,
+      activity: {
+        ...activity,
+        poster_url: posterUrl,
+      },
       requirePayment,
       suggestedFee,
       suggestedFeeYuan,
