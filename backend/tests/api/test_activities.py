@@ -197,6 +197,35 @@ class TestActivityRetrieval:
         data = response.json()
         assert data["total"] >= 4
 
+    def test_super_admin_can_view_private_activities_in_list(
+        self,
+        client,
+        super_admin_token,
+        sample_activity_type,
+        default_tenant,
+        db_session,
+    ):
+        """测试超级管理员在列表中可以看到非公开活动"""
+        private_activity = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="超级管理员可见私有活动",
+            activity_type_id=sample_activity_type.id,
+            start_time=datetime(2026, 6, 1, 10, 0, 0),
+            status=1,
+            is_public=0,
+        )
+        db_session.add(private_activity)
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert any(item["id"] == private_activity.id for item in data["items"])
+
 
 @pytest.mark.api
 class TestActivityUpdate:
@@ -560,6 +589,25 @@ class TestActivityPermissions:
         data = response.json()
         assert data["total"] == 0
         assert data["items"] == []
+
+    def test_super_admin_can_view_private_activity_detail(
+        self,
+        client,
+        super_admin_token,
+        sample_activity,
+        db_session,
+    ):
+        """测试超级管理员可以查看非公开活动详情"""
+        sample_activity.is_public = 0
+        db_session.commit()
+
+        response = client.get(
+            f"/api/v1/activities/{sample_activity.id}",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["id"] == sample_activity.id
 
     def test_single_activity_scope_can_manage_assigned_activity(
         self,

@@ -87,6 +87,7 @@ def get_activities(
     allowed_activity_ids: Optional[List[int]] = None,
     user_id: Optional[int] = None,
     user_activity_type_ids: Optional[List[int]] = None,
+    apply_public_filter_when_unscoped: bool = True,
 ) -> tuple:
     """获取活动列表（租户隔离）"""
     try:
@@ -113,7 +114,7 @@ def get_activities(
             else:
                 # 用户没有任何关联类型，只能看公开活动
                 scope_filters.append(Activity.is_public == 1)
-        elif allowed_activity_type_ids is None and allowed_activity_ids is None:
+        elif apply_public_filter_when_unscoped and allowed_activity_type_ids is None and allowed_activity_ids is None:
             # 未登录且没有权限限制，默认只看公开活动
             scope_filters.append(Activity.is_public == 1)
 
