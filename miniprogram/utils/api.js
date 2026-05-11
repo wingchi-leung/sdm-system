@@ -259,6 +259,7 @@ function createActivity({
   poster_url,
   location,
   max_participants,
+  is_public,
 }) {
   const data = {
     activity_name,
@@ -267,6 +268,7 @@ function createActivity({
     participants: participants || [],
     suggested_fee: suggested_fee || 0,
     require_payment: require_payment || 0,
+    is_public: is_public === 1 ? 1 : 0,
   };
   if (end_time) {
     data.end_time = typeof end_time === 'string' ? end_time : (end_time && end_time.toISOString ? end_time.toISOString() : end_time);

@@ -96,6 +96,50 @@ test('发布活动提交本地时间字符串，不转成 UTC 时间', async () 
   assert.equal(createdPayload.end_time, '2026-05-10T00:30:00');
 });
 
+test('发布活动会把公开活动字段传给后端', async () => {
+  let createdPayload = null;
+  const pageConfig = loadPage('../pages/create-activity/create-activity.js', [
+    ['../../utils/api.js', {
+      createActivity: async (payload) => {
+        createdPayload = payload;
+      },
+      getAvailableActivityTypes: async () => [],
+    }],
+    ['../../utils/auth.js', {
+      isAdmin: () => true,
+      isSuperAdmin: () => true,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [{ id: 1, name: '测试活动', code: 'test' }],
+      normalizeActivityType: (item) => item,
+      setAdminActivityTypes() {},
+      canManageActivityType: () => true,
+    }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+    }],
+  ]);
+  const page = createPageInstance(pageConfig, {
+    activityName: '公开活动',
+    activityTypeName: '测试活动',
+    activityTypeIndex: 0,
+    activityTypeOptions: [{ id: 1, name: '测试活动', code: 'test' }],
+    tag: '测试活动',
+    startDate: '2026-05-09',
+    startTime: '23:59',
+    endDate: '2026-05-10',
+    endTime: '00:30',
+    requirePayment: false,
+    suggestedFee: 0,
+    isPublic: true,
+  });
+
+  page.submit();
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(createdPayload.is_public, 1);
+});
+
 test('编辑活动按后端本地时间字符串回填开始和结束时间', async () => {
   const pageConfig = loadPage('../pages/edit-activity/edit-activity.js', [
     ['../../utils/api.js', {
