@@ -363,3 +363,10 @@
 - 小程序绑定页面：`miniprogram/pages/bind-user-info/`（js 入口 + wxml/wxss）
 - 小程序注册页（简洁版）：`miniprogram/pages/user-register/`（无实名认证流程）
 - 小程序 API：`miniprogram/utils/api.js`（新增 `exchangeRealnameToken` + `verifyRealname` + `bindUserInfoWithRealname`）
+
+## 2026-05-11 小程序活动列表页视觉重构补充
+
+- 小程序活动列表页改为编辑感首页布局：顶部双行英文标题 `Explore Together.`，下方增加横向日期导航，默认优先选中当天活动，没有当天时回退到最早日期。
+- 首页主视觉用色先切换为深蓝 `#1D344F`，用于标题、日期选中态、发布按钮、卡片标题和状态强调；本轮仅落地活动列表页，不全局替换其他页面品牌色。
+- 活动卡片改为参考 Luma 的横向信息卡：左侧海报缩略图，右侧展示活动编号、标题、简短说明、日期、时间、地点与报名人数。
+- 活动列表逻辑新增 `visibleActivities` 与 `dateTabs` 前端态；不改接口，通过活动开始时间在前端构建日期导航并做当日筛选。

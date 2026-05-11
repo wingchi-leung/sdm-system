@@ -20,6 +20,9 @@ function formatLoadError(err) {
 Page({
   data: {
     activities: [],
+    visibleActivities: [],
+    dateTabs: [],
+    selectedDateKey: '',
     loading: true,
     error: null,
     isAdmin: false,
@@ -36,6 +39,9 @@ Page({
       loading: true,
       error: null,
       activities: [],
+      visibleActivities: [],
+      dateTabs: [],
+      selectedDateKey: '',
       headerAvatarUrl: '',
       ...overrides,
     });
@@ -119,36 +125,86 @@ Page({
         });
         let items = (res.items || []).map((a) => {
           const dateDisplay = this.formatDateForDisplay(a.start_time);
+          const timeRangeDisplay = this.formatTimeRange(a.start_time, a.end_time);
           const registration = registrationMap[a.id];
           return {
             ...a,
             start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
+            time_range_display: timeRangeDisplay,
             status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
             date_day: dateDisplay.day,
             date_month: dateDisplay.month,
+            date_key: dateDisplay.key,
+            weekday_label: dateDisplay.weekdayLabel,
+            date_label: dateDisplay.dateLabel,
+            is_today: dateDisplay.isToday,
             has_registered: !!registration,
             registration_status_text: registration
               ? (registration.enroll_status === 2 ? '候补中' : '已报名')
               : '',
+            location_display: this.formatLocation(a.location),
+            participant_display: this.formatParticipantText(a),
+            card_code: `EXPLORATION ${(a.id || 0) < 10 ? `0${a.id}` : a.id}`,
+            summary_text: this.buildActivitySummary(a),
           };
         });
         items = await image.resolveActivityPosters(items);
         if (auth.isActivityTypeAdmin()) {
           items = items.filter((a) => auth.canManageActivityType(a));
         }
+        items.sort((a, b) => {
+          const aTime = a.start_time ? new Date(a.start_time).getTime() : 0;
+          const bTime = b.start_time ? new Date(b.start_time).getTime() : 0;
+          return aTime - bTime;
+        });
+
+        const dateTabs = this.buildDateTabs(items);
+        const selectedDateKey = this.resolveSelectedDateKey(dateTabs);
+        const visibleActivities = this.filterActivitiesByDate(items, selectedDateKey);
         const headerAvatarUrl = auth.isUser()
           ? await resolveAvatarDisplayUrl(profile && profile.avatar_url)
           : '';
-        this.setData({ activities: items, loading: false, headerAvatarUrl });
+        this.setData({
+          activities: items,
+          visibleActivities,
+          dateTabs,
+          selectedDateKey,
+          loading: false,
+          headerAvatarUrl,
+        });
       })
       .catch((err) => {
         const msg = formatLoadError(err);
-        this.setData({ error: msg, loading: false, activities: [], headerAvatarUrl: '' });
+        this.setData({
+          error: msg,
+          loading: false,
+          activities: [],
+          visibleActivities: [],
+          dateTabs: [],
+          selectedDateKey: '',
+          headerAvatarUrl: '',
+        });
       });
   },
 
   onRefresh() {
     this.load();
+  },
+
+  onShowAllActivities() {
+    this.setData({
+      selectedDateKey: '',
+      visibleActivities: this.data.activities,
+    });
+  },
+
+  onSelectDate(e) {
+    const { dateKey } = e.currentTarget.dataset;
+    if (!dateKey || dateKey === this.data.selectedDateKey) return;
+    this.setData({
+      selectedDateKey: dateKey,
+      visibleActivities: this.filterActivitiesByDate(this.data.activities, dateKey),
+    });
   },
 
   goDetail(e) {
@@ -183,14 +239,104 @@ Page({
     return `${m}月${day}日 ${h}:${min}`;
   },
 
+  formatTimeRange(startIso, endIso) {
+    if (!startIso) return '';
+    const start = new Date(startIso);
+    const startHour = String(start.getHours()).padStart(2, '0');
+    const startMinute = String(start.getMinutes()).padStart(2, '0');
+    const startText = `${startHour}:${startMinute}`;
+    if (!endIso) return startText;
+    const end = new Date(endIso);
+    const endHour = String(end.getHours()).padStart(2, '0');
+    const endMinute = String(end.getMinutes()).padStart(2, '0');
+    return `${startText}-${endHour}:${endMinute}`;
+  },
+
+  formatLocation(location) {
+    const value = location ? String(location).trim() : '';
+    return value || '地点待定';
+  },
+
+  formatParticipantText(activity) {
+    const count = Number(activity.current_participants || activity.participant_count || activity.registered_count || 0);
+    if (count > 0) {
+      return `${count} 人参加`;
+    }
+    return '开放报名中';
+  },
+
+  buildActivitySummary(activity) {
+    const candidate = [
+      activity.summary,
+      activity.description,
+      activity.content,
+      activity.intro,
+    ].find((value) => value && String(value).trim());
+    if (candidate) {
+      return String(candidate).trim().replace(/\s+/g, ' ').slice(0, 30);
+    }
+    const locationText = this.formatLocation(activity.location);
+    return locationText === '地点待定'
+      ? '预留你的时间，一起探索更大的世界'
+      : `在 ${locationText} 一起相聚交流`;
+  },
+
   // 格式化日期为大号数字显示
   formatDateForDisplay(iso) {
-    if (!iso) return { day: '--', month: '未知' };
+    if (!iso) {
+      return {
+        day: '--',
+        month: '未知',
+        key: '',
+        weekdayLabel: '',
+        dateLabel: '--.--',
+        isToday: false,
+      };
+    }
     const d = new Date(iso);
     const day = d.getDate();
     const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     const month = months[d.getMonth()];
-    return { day, month };
+    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const today = new Date();
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return {
+      day,
+      month,
+      key,
+      weekdayLabel: weekdays[d.getDay()],
+      dateLabel: `${String(d.getMonth() + 1).padStart(2, '0')}.${String(day).padStart(2, '0')}`,
+      isToday: key === todayKey,
+    };
+  },
+
+  buildDateTabs(items) {
+    const tabMap = new Map();
+    items.forEach((item) => {
+      if (!item.date_key || tabMap.has(item.date_key)) return;
+      tabMap.set(item.date_key, {
+        key: item.date_key,
+        dateLabel: item.date_label,
+        weekdayLabel: item.weekday_label,
+        markerLabel: item.is_today ? 'TODAY' : '',
+      });
+    });
+    return Array.from(tabMap.values());
+  },
+
+  resolveSelectedDateKey(dateTabs) {
+    if (!dateTabs.length) return '';
+    if (this.data.selectedDateKey && dateTabs.some((tab) => tab.key === this.data.selectedDateKey)) {
+      return this.data.selectedDateKey;
+    }
+    const todayTab = dateTabs.find((tab) => tab.markerLabel === 'TODAY');
+    return todayTab ? todayTab.key : dateTabs[0].key;
+  },
+
+  filterActivitiesByDate(items, dateKey) {
+    if (!dateKey) return items;
+    return items.filter((item) => item.date_key === dateKey);
   },
 
   onShareAppMessage() {

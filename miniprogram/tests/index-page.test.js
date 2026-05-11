@@ -189,3 +189,62 @@ test('首页未登录时会跳转登录页且不会继续加载活动', () => {
     global.setTimeout = oldSetTimeout;
   }
 });
+
+test('首页会生成日期导航并默认展示当天活动', async () => {
+  const today = new Date();
+  const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+  const formatDate = (date, hour) => {
+    const d = new Date(date);
+    d.setHours(hour, 0, 0, 0);
+    return d.toISOString();
+  };
+
+  const pageConfig = loadIndexPage({
+    api: {
+      getEnrollableActivities: () => Promise.resolve({
+        items: [
+          {
+            id: 2,
+            activity_name: '明天的活动',
+            start_time: formatDate(tomorrow, 19),
+            end_time: formatDate(tomorrow, 21),
+            location: '上海',
+            current_participants: 12,
+          },
+          {
+            id: 1,
+            activity_name: '今天的活动',
+            start_time: formatDate(today, 10),
+            end_time: formatDate(today, 12),
+            location: '北京',
+            current_participants: 8,
+          },
+        ],
+      }),
+    },
+    auth: {
+      isAdmin: () => false,
+      isUser: () => false,
+      isSuperAdmin: () => false,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [],
+      getUserName: () => '',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => '',
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+  await page.load();
+
+  assert.equal(page.data.dateTabs.length, 2);
+  assert.equal(page.data.dateTabs[0].markerLabel, 'TODAY');
+  assert.equal(page.data.visibleActivities.length, 1);
+  assert.equal(page.data.visibleActivities[0].activity_name, '今天的活动');
+  assert.equal(page.data.visibleActivities[0].location_display, '北京');
+  assert.equal(page.data.visibleActivities[0].participant_display, '8 人参加');
+});
