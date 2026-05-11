@@ -3,8 +3,7 @@
     <view class="hero-top">
       <view class="hero-copy">
         <text class="hero-title">Explore</text>
-        <text class="hero-title">Together.</text>
-        <text class="hero-subtitle">一起探索更大的世界</text>
+        <text class="hero-subtitle">探索更大的世界</text>
       </view>
       <view class="hero-side">
         <view class="header-avatar" wx:if="{{isUser}}" bindtap="goMine">
@@ -68,51 +67,52 @@
       <text class="day-empty-text">换个日期看看，或稍后刷新获取新活动。</text>
     </view>
 
-    <view
-      wx:else
-      class="activity-item"
-      wx:for="{{visibleActivities}}"
-      wx:key="id"
-      data-activity="{{item}}"
-      bindtap="goDetail"
-    >
-      <view class="poster-wrap">
-        <image
-          wx:if="{{item.poster_url}}"
-          class="poster-img"
-          src="{{item.poster_url}}"
-          mode="aspectFill"
-          lazy-load
-        />
-        <view wx:else class="no-poster">
-          <text class="no-poster-mark">SDM</text>
+    <block wx:else>
+      <view
+        class="activity-item"
+        wx:for="{{visibleActivities}}"
+        wx:key="id"
+        data-activity="{{item}}"
+        bindtap="goDetail"
+      >
+        <view class="poster-wrap">
+          <image
+            wx:if="{{item.poster_url}}"
+            class="poster-img"
+            src="{{item.poster_url}}"
+            mode="aspectFill"
+            lazy-load
+          />
+          <view wx:else class="no-poster">
+            <text class="no-poster-mark">SDM</text>
+          </view>
         </view>
-      </view>
 
-      <view class="item-content">
-        <text class="item-code">{{item.card_code}}</text>
-        <text class="item-name">{{item.activity_name}}</text>
-        <text class="item-summary">{{item.summary_text}}</text>
-        <view class="item-info">
-          <view class="info-row">
-            <text class="info-text info-text-strong">{{item.date_label}} ({{item.weekday_label}})</text>
-            <text class="info-text">{{item.time_range_display}}</text>
+        <view class="item-content">
+          <text class="item-code">{{item.card_code}}</text>
+          <text class="item-name">{{item.activity_name}}</text>
+          <text class="item-summary">{{item.summary_text}}</text>
+          <view class="item-info">
+            <view class="info-row">
+              <text class="info-text info-text-strong">{{item.date_label}} ({{item.weekday_label}})</text>
+              <text class="info-text">{{item.time_range_display}}</text>
+            </view>
+            <view class="info-row">
+              <text class="meta-icon">⌖</text>
+              <text class="info-text">{{item.location_display}}</text>
+            </view>
+            <view class="info-row">
+              <text class="meta-icon">◌</text>
+              <text class="info-text">{{item.participant_display}}</text>
+            </view>
           </view>
-          <view class="info-row">
-            <text class="meta-icon">⌖</text>
-            <text class="info-text">{{item.location_display}}</text>
+          <view class="status-row">
+            <text class="status-chip status-chip-{{item.status}}">{{item.status_text}}</text>
+            <text wx:if="{{item.has_registered}}" class="status-chip status-chip-registered">{{item.registration_status_text}}</text>
           </view>
-          <view class="info-row">
-            <text class="meta-icon">◌</text>
-            <text class="info-text">{{item.participant_display}}</text>
-          </view>
-        </view>
-        <view class="status-row">
-          <text class="status-chip status-chip-{{item.status}}">{{item.status_text}}</text>
-          <text wx:if="{{item.has_registered}}" class="status-chip status-chip-registered">{{item.registration_status_text}}</text>
         </view>
       </view>
-    </view>
+    </block>
   </view>
 
   <view class="footer-space"></view>
