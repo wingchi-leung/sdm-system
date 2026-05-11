@@ -58,35 +58,79 @@
   </block>
 
   <block wx:else>
-    <image class="login-bg-image" src="/assets/login_mountain_sharp.jpg" mode="aspectFill" />
-    <view class="login-sky-mask"></view>
+    <view class="poster-page safe-area-bottom">
+      <view class="poster-paper"></view>
+      <view class="poster-noise"></view>
+      <view class="poster-wash poster-wash-left"></view>
+      <view class="poster-wash poster-wash-right"></view>
+      <image class="poster-mountain poster-mountain-side" src="/assets/login_background.webp" mode="aspectFill" />
+      <image class="poster-mountain poster-mountain-main" src="/assets/login_mountain_sharp.jpg" mode="aspectFill" />
 
-    <view class="hero-copy" bindtap="onGateIconTap">
-      <text class="hero-title">Welcome</text>
-      <text class="hero-subtitle">探索知识，遇见更好的自己</text>
-      <view class="hero-line"></view>
-    </view>
-
-    <view class="login-panel safe-area-bottom">
-      <view class="panel-wave panel-wave-back"></view>
-      <view class="panel-wave panel-wave-front"></view>
-      <view class="message-wrap">
-        <view class="unsafe-tip" wx:if="{{unsafeTip}}">
-          <view class="tip-icon">
-            <text>!</text>
+      <view class="poster-top">
+        <view class="poster-altitude" bindtap="onGateIconTap">
+          <view class="poster-altitude-mark"></view>
+          <view class="poster-altitude-copy">
+            <text class="poster-meta-number">8848M</text>
+            <text class="poster-meta-label">ALTITUDE</text>
           </view>
-          <text class="tip-text">当前使用非加密连接，请仅在可信网络下使用。</text>
         </view>
 
-        <view class="error-box" wx:if="{{error}}">
-          <text class="error-text">{{error}}</text>
+        <view class="poster-coordinates">
+          <text class="poster-meta-number">27.9881° N</text>
+          <text class="poster-meta-number">86.9250° E</text>
         </view>
       </view>
 
-      <button class="btn-wechat" disabled="{{submitting}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
-        <text class="wechat-text">{{submitting ? '登录中...' : '微信一键登录'}}</text>
+      <view class="poster-plus">
+        <view class="poster-plus-h"></view>
+        <view class="poster-plus-v"></view>
+      </view>
+
+      <view class="poster-copy" bindtap="onGateIconTap">
+        <text class="poster-title poster-title-main">Explore</text>
+        <text class="poster-title poster-title-secondary">the</text>
+        <text class="poster-title poster-title-italic">Unexplored.</text>
+      </view>
+
+      <view class="poster-caption">
+        <view class="poster-caption-line"></view>
+        <view class="poster-caption-copy">
+          <text class="poster-caption-text">探索未知，</text>
+          <text class="poster-caption-text">超越所见。</text>
+        </view>
+      </view>
+
+      <view class="poster-route route-a"></view>
+      <view class="poster-route route-b"></view>
+      <view class="poster-route route-c"></view>
+
+      <view class="poster-footprint">
+        <view class="footprint-line footprint-line-a"></view>
+        <view class="footprint-line footprint-line-b"></view>
+        <view class="footprint-line footprint-line-c"></view>
+        <view class="footprint-line footprint-line-d"></view>
+      </view>
+
+      <view class="poster-message-stack" wx:if="{{unsafeTip || error}}">
+        <view class="poster-message poster-warning" wx:if="{{unsafeTip}}">
+          <text class="poster-message-text">当前使用非加密连接，请仅在可信网络下使用。</text>
+        </view>
+        <view class="poster-message poster-error" wx:if="{{error}}">
+          <text class="poster-message-text">{{error}}</text>
+        </view>
+      </view>
+
+      <button class="poster-login-trigger" disabled="{{submitting}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
+        <view class="login-axis-vertical"></view>
+        <view class="login-axis-dot"></view>
+        <view class="login-axis-horizontal"></view>
+        <text class="login-axis-label">{{submitting ? 'LOADING' : 'LOGIN'}}</text>
+        <view class="login-axis-arrow">
+          <view class="login-axis-arrow-line"></view>
+          <view class="login-axis-arrow-head login-axis-arrow-head-top"></view>
+          <view class="login-axis-arrow-head login-axis-arrow-head-bottom"></view>
+        </view>
       </button>
-      <text class="login-hint">授权后快速进入活动系统</text>
     </view>
   </block>
 </view>
