@@ -38,6 +38,7 @@
       <view class="upload-card">
         <view class="upload-copy">
           <text class="upload-title">{{customAvatarUrl ? '已选择自定义头像' : '上传你自己的头像'}}</text>
+          <text class="upload-text">请上传真实清晰的本人图片作为头像，便于活动现场核验</text>
         </view>
         <button class="upload-btn" bindtap="onChooseAvatar" loading="{{uploading}}" disabled="{{uploading || saving}}">
           <text class="upload-btn-label">{{uploading ? '上传中' : (customAvatarUrl ? '重新上传' : '上传头像')}}</text>

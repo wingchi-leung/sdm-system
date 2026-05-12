@@ -41,7 +41,7 @@ Page({
     // 证件类型选项
     identityTypeOptions: [
       { value: 'mainland', label: '中国大陆身份证' },
-      { value: 'hongkong', label: '香港身份证' },
+      { value: 'hongkong', label: '港澳台通行证' },
       { value: 'taiwan', label: '台湾身份证' },
       { value: 'foreign', label: '其他证件' },
     ],

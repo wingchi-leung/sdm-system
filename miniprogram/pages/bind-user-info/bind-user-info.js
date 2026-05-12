@@ -17,7 +17,7 @@ function validateIdentityNumber(identityType, identityNumber) {
       }
       break;
     case 'hongkong':
-      if (!/^[A-Z]\d{6}\(\d\)$/.test(num)) return '香港身份证号格式不正确，正确格式如：A123456(7)';
+      if (num.length < 5 || num.length > 50) return '港澳台通行证号码长度应在5-50位之间';
       break;
     case 'taiwan':
       if (!/^[A-Z]\d{9}$/.test(num)) return '台湾身份证号格式不正确，应为10位（1位字母+9位数字）';
@@ -48,7 +48,7 @@ Page({
     sexIndex: 0,
     identityTypeOptions: [
       { value: 'mainland', label: '大陆身份证' },
-      { value: 'hongkong', label: '香港身份证' },
+      { value: 'hongkong', label: '港澳台通行证' },
       { value: 'taiwan', label: '台湾身份证' },
       { value: 'foreign', label: '其他证件' },
     ],

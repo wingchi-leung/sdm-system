@@ -164,3 +164,10 @@ test('报名页加载活动时会解析海报展示地址', async () => {
   assert.equal(page.data.requirePayment, true);
   assert.equal(page.data.suggestedFeeYuan, '99.00');
 });
+
+test('报名页证件类型展示港澳台通行证', () => {
+  const pageConfig = loadRegisterPage();
+  const page = createPageInstance(pageConfig);
+
+  assert.equal(page.getIdentityTypeLabel('hongkong'), '港澳台通行证');
+});
