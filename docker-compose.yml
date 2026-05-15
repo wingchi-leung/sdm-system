@@ -37,9 +37,7 @@ services:
 
   # 后端 FastAPI
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ${BACKEND_IMAGE}
     container_name: sdm-backend
     restart: unless-stopped
     environment:
@@ -77,9 +75,7 @@ services:
 
   # 前端 React (craco)
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    image: ${FRONTEND_IMAGE}
     container_name: sdm-frontend
     restart: unless-stopped
     environment:
