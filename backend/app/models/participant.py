@@ -1,7 +1,9 @@
 import re
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_serializer, field_validator
 from datetime import datetime
 from typing import Optional, List
+
+from app.core.pii import mask_email, mask_identity_number, mask_name, mask_phone
 
 
 class ParticipantBase(BaseModel):
@@ -10,7 +12,7 @@ class ParticipantBase(BaseModel):
     participant_name: str = Field(..., max_length=255)
     phone: str = Field(..., min_length=11, max_length=11)
     identity_number: Optional[str] = Field(None, max_length=255)
-    identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|foreign)$')
     enroll_status: Optional[int] = Field(None, ge=1, le=2, description="报名状态：1-已报名 2-候补")
     # 用户信息字段（从用户资料获取）
     sex: Optional[str] = Field(None, max_length=2)
@@ -48,17 +50,13 @@ class ParticipantBase(BaseModel):
             if not re.match(r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$', identity_number):
                 raise ValueError('身份证号格式不正确，请输入有效的18位中国大陆身份证号')
         elif identity_type == 'hongkong':
-            # 香港身份证：格式如 A123456(7)
-            if not re.match(r'^[A-Z]\d{6}\(\d\)$', identity_number):
-                raise ValueError('香港身份证号格式不正确，正确格式如：A123456(7)')
-        elif identity_type == 'taiwan':
-            # 台湾身份证：10位，首位字母+9位数字
-            if not re.match(r'^[A-Z]\d{9}$', identity_number):
-                raise ValueError('台湾身份证号格式不正确，应为10位（1位字母+9位数字）')
-        # foreign 类型不做严格格式限制，只做基本验证
+            # 港澳台通行证：只做基本长度验证
+            if len(identity_number) < 5 or len(identity_number) > 50:
+                raise ValueError('港澳台通行证号码长度应在5-50位之间')
+        # foreign 类型为护照，只做基本长度验证
         elif identity_type == 'foreign':
             if len(identity_number) < 5 or len(identity_number) > 50:
-                raise ValueError('证件号码长度应在5-50位之间')
+                raise ValueError('护照号码长度应在5-50位之间')
         else:
             # 未指定类型时，做基本长度验证
             if len(identity_number) < 5 or len(identity_number) > 50:
@@ -78,6 +76,22 @@ class ParticipantResponse(ParticipantBase):
     paid_amount: Optional[int] = Field(None, description="实际支付金额（分）")
     create_time: datetime
     update_time: datetime
+
+    @field_serializer('participant_name')
+    def serialize_participant_name(self, value: str) -> str | None:
+        return mask_name(value)
+
+    @field_serializer('phone')
+    def serialize_phone(self, value: str) -> str | None:
+        return mask_phone(value)
+
+    @field_serializer('identity_number')
+    def serialize_identity_number(self, value: str | None) -> str | None:
+        return mask_identity_number(value)
+
+    @field_serializer('email')
+    def serialize_email(self, value: str | None) -> str | None:
+        return mask_email(value)
 
     class Config:
         from_attributes = True

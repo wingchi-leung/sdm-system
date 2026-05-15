@@ -10,6 +10,7 @@ import io
 from openpyxl import load_workbook
 
 from app.crud import crud_credential
+from app.core.pii import blind_index, normalize_optional_text
 
 
 def _is_valid_avatar_url(value: str) -> bool:
@@ -45,8 +46,11 @@ def get_user(db: Session, user_id: int, tenant_id: int) -> User | None:
 
 def get_user_by_phone(db: Session, phone: str, tenant_id: int) -> User | None:
     """根据手机号获取用户（租户隔离）"""
+    phone_hash = blind_index(phone, purpose="phone")
+    if not phone_hash:
+        return None
     return db.query(User).filter(
-        User.phone == phone,
+        User.phone_hash == phone_hash,
         User.tenant_id == tenant_id
     ).first()
 
@@ -98,6 +102,12 @@ def get_or_create_user_wechat(db: Session, openid: str, tenant_id: int, nickname
         db.add(db_user)
         db.flush()
         _ensure_user_tenant_membership(db, db_user.id, tenant_id)
+        crud_credential.bind_wechat_credential(
+            db,
+            user_id=db_user.id,
+            tenant_id=tenant_id,
+            openid=openid,
+        )
         db.commit()
         db.refresh(db_user)
         return db_user
@@ -118,7 +128,7 @@ def create_user(db: Session, user: UserCreate, tenant_id: int) -> User:
     try:
         if user.identity_number:
             existing = db.query(User).filter(
-                User.identity_number == user.identity_number,
+                User.identity_number_hash == blind_index(user.identity_number, purpose="identity_number"),
                 User.tenant_id == tenant_id
             ).first()
             if existing:
@@ -151,7 +161,7 @@ def create_user(db: Session, user: UserCreate, tenant_id: int) -> User:
                 raise HTTPException(status_code=400, detail="该手机号已存在")
         if user.email:
             existing = db.query(User).filter(
-                User.email == user.email,
+                User.email_hash == blind_index(user.email, purpose="email"),
                 User.tenant_id == tenant_id
             ).first()
             if existing:
@@ -171,7 +181,7 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
 
         if body.email:
             existing_email = db.query(User).filter(
-                User.email == body.email,
+                User.email_hash == blind_index(body.email, purpose="email"),
                 User.tenant_id == tenant_id
             ).first()
             if existing_email:
@@ -211,7 +221,7 @@ def register_user(db: Session, body: RegisterRequest, tenant_id: int) -> User:
             raise HTTPException(status_code=400, detail="该手机号已注册")
         if body.email:
             existing_email = db.query(User).filter(
-                User.email == body.email,
+                User.email_hash == blind_index(body.email, purpose="email"),
                 User.tenant_id == tenant_id
             ).first()
             if existing_email:
@@ -284,7 +294,7 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
             )
     # 检查手机号是否被其他用户占用
     existing = db.query(User).filter(
-        User.phone == bind_phone,
+        User.phone_hash == blind_index(bind_phone, purpose="phone"),
         User.id != user_id,
         User.tenant_id == tenant_id
     ).first()
@@ -292,7 +302,7 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
         raise HTTPException(status_code=400, detail="该手机号已被使用")
 
     existing_identity = db.query(User).filter(
-        User.identity_number == bind_info.identity_number,
+        User.identity_number_hash == blind_index(bind_info.identity_number, purpose="identity_number"),
         User.id != user_id,
         User.tenant_id == tenant_id,
     ).first()
@@ -380,26 +390,27 @@ def get_all_users_for_super_admin(
     超级管理员查看指定租户的用户（支持分页和搜索）
     返回 (用户列表, 总数)
     """
-    query = db.query(User).filter(User.tenant_id == tenant_id)
+    users = db.query(User).filter(User.tenant_id == tenant_id).order_by(User.id.desc()).all()
 
-    # 关键字搜索（姓名、手机号）
-    # 过滤特殊字符 % 和 _ 防止 SQL LIKE 通配符注入
     if keyword:
-        # 转义 LIKE 特殊字符
-        safe_keyword = keyword.replace("%", "\\%").replace("_", "\\_")
-        keyword_pattern = f"%{safe_keyword}%"
-        query = query.filter(
-            (User.name.ilike(keyword_pattern)) |
-            (User.phone.ilike(keyword_pattern))
-        )
+        normalized_keyword = normalize_optional_text(keyword)
+        phone_hash = blind_index(normalized_keyword, purpose="phone")
+        keyword_lower = (normalized_keyword or "").lower()
 
-    # 获取总数
-    total = query.count()
+        def _matches(item: User) -> bool:
+            name = (item.name or "").lower()
+            phone = item.phone or ""
+            return (
+                (keyword_lower and keyword_lower in name)
+                or (phone_hash is not None and item.phone_hash == phone_hash)
+                or (keyword_lower and keyword_lower in phone)
+            )
 
-    # 分页
-    users = query.order_by(User.id.desc()).offset(skip).limit(limit).all()
+        users = [item for item in users if _matches(item)]
 
-    return users, total
+    total = len(users)
+    paged_users = users[skip: skip + limit]
+    return paged_users, total
 
 
 def block_user(db: Session, user_id: int, tenant_id: int, reason: str | None = None) -> User:
@@ -494,14 +505,11 @@ def _normalize_import_identity_type(value: str | None) -> str | None:
         "身份证": "mainland",
         "中国大陆身份证": "mainland",
         "hongkong": "hongkong",
+        "港澳台通行证": "hongkong",
+        "港澳台证件": "hongkong",
         "香港证件": "hongkong",
         "香港": "hongkong",
-        "taiwan": "taiwan",
-        "台湾证件": "taiwan",
-        "台湾": "taiwan",
         "foreign": "foreign",
-        "其他证件": "foreign",
-        "其他": "foreign",
         "护照": "foreign",
     }
     return mapping.get(text, text)

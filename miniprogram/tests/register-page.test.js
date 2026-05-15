@@ -89,7 +89,7 @@ test('报名提交 payload 不包含前端可篡改的 user_id', () => {
   assert.equal(payload.user_id, undefined);
 });
 
-test('管理员停留在报名页时不能继续提交支付报名', () => {
+test('超级管理员停留在报名页时不能继续提交支付报名', () => {
   const calls = {
     createPaymentOrder: 0,
     showToast: 0,
@@ -103,7 +103,7 @@ test('管理员停留在报名页时不能继续提交支付报名', () => {
     },
     auth: {
       isLoggedIn: () => true,
-      isUser: () => false,
+      isSuperAdmin: () => true,
     },
     wxMock: {
       showToast() {
@@ -129,6 +129,70 @@ test('管理员停留在报名页时不能继续提交支付报名', () => {
   assert.equal(calls.createPaymentOrder, 0);
   assert.equal(calls.showToast, 1);
   assert.equal(page.data.submitting, false);
+});
+
+test('活动管理员可继续提交支付报名', () => {
+  const calls = {
+    createPaymentOrder: 0,
+  };
+  const pageConfig = loadRegisterPage({
+    api: {
+      createPaymentOrder() {
+        calls.createPaymentOrder += 1;
+        return Promise.resolve({
+          order_no: 'ORDER-1',
+          payment_params: {
+            timeStamp: '1',
+            nonceStr: 'n',
+            package: 'p',
+            signType: 'MD5',
+            paySign: 's',
+          },
+        });
+      },
+      queryPaymentOrder() {
+        return Promise.resolve({ status: 1, order_no: 'ORDER-1' });
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isSuperAdmin: () => false,
+      getUserId: () => 101,
+    },
+    tenant: {
+      getTenantCode: () => 'demo',
+    },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'k1',
+      buildOrderHistoryStorageKey: () => 'k2',
+      upsertOrderRecord: (current, record) => [...current, record],
+    },
+    wxMock: {
+      getStorageSync: () => [],
+      setStorageSync() {},
+      removeStorageSync() {},
+      requestPayment({ success }) { success(); },
+      showToast() {},
+      navigateBack() {},
+    },
+  });
+  const page = createPageInstance(pageConfig, {
+    loading: false,
+    activityId: 12,
+    activity: { id: 12, activity_name: '测试活动' },
+    name: '报名用户',
+    phone: '13800000000',
+    whyJoin: '想参加',
+    channel: '朋友推荐',
+    expectation: '学习交流',
+    requirePayment: true,
+    actualFee: 100,
+    suggestedFee: 100,
+  });
+
+  page.submit();
+
+  assert.equal(calls.createPaymentOrder, 1);
 });
 
 test('报名页加载活动时会解析海报展示地址', async () => {
@@ -170,4 +234,12 @@ test('报名页证件类型展示港澳台通行证', () => {
   const page = createPageInstance(pageConfig);
 
   assert.equal(page.getIdentityTypeLabel('hongkong'), '港澳台通行证');
+});
+
+test('报名页证件类型展示护照且不再支持台湾身份证标签', () => {
+  const pageConfig = loadRegisterPage();
+  const page = createPageInstance(pageConfig);
+
+  assert.equal(page.getIdentityTypeLabel('foreign'), '护照');
+  assert.equal(page.getIdentityTypeLabel('taiwan'), '');
 });

@@ -42,8 +42,7 @@ Page({
     identityTypeOptions: [
       { value: 'mainland', label: '中国大陆身份证' },
       { value: 'hongkong', label: '港澳台通行证' },
-      { value: 'taiwan', label: '台湾身份证' },
-      { value: 'foreign', label: '其他证件' },
+      { value: 'foreign', label: '护照' },
     ],
     identityTypeLabel: '',
     // 报名情况
@@ -83,8 +82,8 @@ Page({
       return;
     }
 
-    if (auth.isAdmin()) {
-      wx.showToast({ title: '管理员账号不能直接报名，请使用用户身份登录', icon: 'none' });
+    if (auth.isSuperAdmin()) {
+      wx.showToast({ title: '超级管理员账号不能直接报名', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1200);
       return;
     }
@@ -176,8 +175,10 @@ Page({
         isFull: info.is_full,
         remainingQuota: info.remaining_quota,
       });
-    } catch (err) {
-      console.log('获取报名情况失败:', err);
+    } catch (_) {
+      this.setData({
+        enrollmentInfo: null,
+      });
     }
   },
 
@@ -582,8 +583,8 @@ Page({
       wx.showToast({ title: '请先登录后再报名', icon: 'none' });
       return;
     }
-    if (!auth.isUser()) {
-      wx.showToast({ title: '请使用普通用户账号报名', icon: 'none' });
+    if (auth.isSuperAdmin()) {
+      wx.showToast({ title: '超级管理员账号不能直接报名', icon: 'none' });
       return;
     }
 

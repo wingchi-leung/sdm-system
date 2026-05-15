@@ -180,6 +180,24 @@ class TestUserProfile:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_update_profile_rejects_legacy_taiwan_identity_type(self, client, user_token, sample_user):
+        """测试绑定资料不再接受台湾身份证类型。"""
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(user_token),
+            json={
+                "name": "测试用户",
+                "sex": "male",
+                "age": 25,
+                "occupation": "工程师",
+                "phone": sample_user.phone,
+                "industry": "IT",
+                "identity_type": "taiwan",
+                "identity_number": "A123456789",
+            }
+        )
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
     def test_update_profile_rejects_duplicate_identity(
         self,
         client,

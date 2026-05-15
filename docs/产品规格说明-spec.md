@@ -1,5 +1,19 @@
 # SDM 系统 – 产品规格说明（Spec）
 
+## 2026-05-15 小程序与后端证件类型收敛补充
+
+- 小程序绑定信息页与报名页证件类型统一为三类：`大陆身份证`、`港澳台通行证`、`护照`。
+- 业务上不再提供 `台湾身份证` 作为独立证件类型选项。
+- 后端 `bind-info` 与报名相关模型的 `identity_type` 校验同步收敛为 `mainland/hongkong/foreign` 三类。
+- 后端证件号校验规则调整为：大陆身份证走 18 位严格校验；港澳台通行证与护照走 5-50 位长度校验。
+- Excel 导入证件类型映射同步调整为优先支持 `大陆身份证`、`港澳台通行证`、`护照` 三类中文标签。
+
+## 2026-05-15 本机联调默认策略补充
+
+- 小程序开发者工具默认接口策略调整为 `local`，默认直连 `http://127.0.0.1:8000`，用于本机开发测试联调。
+- 小程序 `release` 正式版仍固定使用生产 HTTPS 配置，不受开发者工具默认策略影响。
+- 如需在开发者工具切回远端联调，可在 `miniprogram/config/index.js` 将 `DEVTOOLS_API_MODE` 临时改为 `remote`。
+
 ## 2026-05-15 镜像部署补充（单私有仓库）
 
 - Docker Compose 的 `backend` 与 `frontend` 服务已从本机构建切换为镜像拉取模式，镜像地址分别由根目录 `.env` 的 `BACKEND_IMAGE`、`FRONTEND_IMAGE` 注入。
@@ -450,3 +464,10 @@
 - Web 端退出登录新增调用 `/api/v1/auth/logout`，后端删除会话 Cookie，前端仅清理租户与权限等非敏感 UI 上下文。
 - 管理端登录态、报名列表、签到列表、用户管理列表和活动导出响应统一做姓名、手机号、证件号、邮箱脱敏；接口不再直接返回完整身份证号、完整手机号等敏感字段给后台页面。
 - 活动导出字段标注为“手机号脱敏”“证件号脱敏”，导出内容复用后端脱敏结果，保留运营核对所需的最小信息，不导出支付报名时的用户快照类明文字段。
+
+## 2026-05-15 Web/Backend 环境配置与跨平台兼容补充
+
+- Web 前端启动脚本改为 `cross-env` 方案，开发机为 Windows、部署机为 Linux 时均使用同一条 `npm start` 脚本，避免 `HOST=...` 语法在 Windows 报错。
+- Web 前端新增分环境配置文件：`frontend/.env.development`、`frontend/.env.production`、`frontend/.env.example`，统一通过 `REACT_APP_API_URL` 与 `REACT_APP_STATIC_URL` 注入 API 与静态资源地址，不在代码中硬编码生产域名。
+- Web 前端网络异常提示增强：当浏览器出现 `Failed to fetch` 时，登录链路会返回包含 `REACT_APP_API_URL` 与 CORS 排障信息的中文提示，并提示先排查浏览器插件拦截。
+- Backend 配置样例 `backend/.env.example` 补充分环境 CORS 示例：本地开发允许 `localhost/127.0.0.1`，生产环境示例改为真实 HTTPS 域名，避免把本地白名单误带到生产。

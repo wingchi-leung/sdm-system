@@ -2,10 +2,11 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
-// 微信支付实名认证小程序 appid（固定）
-const WECHAT_REALNAME_APPID = 'wxb369391ce8a1a1c8';
+// 微信城市服务小程序 appid（用于实名信息校验，固定值）
+const WECHAT_CITY_SERVICE_APPID = 'wx308bd2aeb83d3345';
+const WECHAT_CITY_SERVICE_PATH = 'subPages/city/wxpay-auth/main';
 // 调试模式：true=跳过微信实名验证，直接绑定（仅开发测试用）
-const DEBUG_SKIP_REALNAME = true;
+const DEBUG_SKIP_REALNAME = false;
 
 function validateIdentityNumber(identityType, identityNumber) {
   if (!identityNumber || !identityNumber.trim()) return '请输入证件号码';
@@ -19,11 +20,8 @@ function validateIdentityNumber(identityType, identityNumber) {
     case 'hongkong':
       if (num.length < 5 || num.length > 50) return '港澳台通行证号码长度应在5-50位之间';
       break;
-    case 'taiwan':
-      if (!/^[A-Z]\d{9}$/.test(num)) return '台湾身份证号格式不正确，应为10位（1位字母+9位数字）';
-      break;
     case 'foreign':
-      if (num.length < 5 || num.length > 50) return '证件号码长度应在5-50位之间';
+      if (num.length < 5 || num.length > 50) return '护照号码长度应在5-50位之间';
       break;
     default:
       return '请选择证件类型';
@@ -49,8 +47,7 @@ Page({
     identityTypeOptions: [
       { value: 'mainland', label: '大陆身份证' },
       { value: 'hongkong', label: '港澳台通行证' },
-      { value: 'taiwan', label: '台湾身份证' },
-      { value: 'foreign', label: '其他证件' },
+      { value: 'foreign', label: '护照' },
     ],
     identityTypeIndex: -1,
     submitting: false,
@@ -70,16 +67,25 @@ Page({
   },
 
   onShow() {
-    // 监听微信授权回调，带 auth_code 则进入静默验证流程
-    if (DEBUG_SKIP_REALNAME) return; // 调试模式跳过
+    // 监听从微信城市服务小程序返回时携带的授权 code
+    if (DEBUG_SKIP_REALNAME) return;
 
-    const pages = getCurrentPages();
-    const currentPage = pages[pages.length - 1];
-    if (!currentPage) return;
-    const options = currentPage.options || {};
-    const authCode = options.auth_code;
-    if (!authCode) return;
-    this.exchangeTokenAndVerify(authCode);
+    const launchOptions = wx.getLaunchOptionsSync ? wx.getLaunchOptionsSync() : {};
+    const enterOptions = wx.getEnterOptionsSync ? wx.getEnterOptionsSync() : {};
+    // 优先用 enterOptions（本次进入）而不是 launchOptions（首次启动）
+    const referrerInfo = (enterOptions && enterOptions.referrerInfo)
+      || (launchOptions && launchOptions.referrerInfo)
+      || {};
+    const fromAppId = referrerInfo.appId || '';
+    const extraData = referrerInfo.extraData || {};
+
+    // 只处理从微信城市服务小程序返回的情况
+    if (fromAppId !== WECHAT_CITY_SERVICE_APPID) return;
+
+    const code = extraData.code || extraData.auth_code || '';
+    if (!code) return;
+
+    this.verifyWithCode(code);
   },
 
   onNameInput(e) { this.setData({ 'formData.name': e.detail.value, error: null }); },
@@ -146,23 +152,28 @@ Page({
       return;
     }
 
-    // 正式流程：跳转微信授权获取 auth_code
+    // 正式流程：跳转微信城市服务小程序获取授权 code
     wx.setStorageSync('pending_bind_form', formData);
     this.setData({ verifyingRealname: true, error: null });
 
+    const that = this;
     wx.navigateToMiniProgram({
-      appId: WECHAT_REALNAME_APPID,
-      path: 'pages/auth/index',
-      extraData: { auth_type: 'realname' },
-      success: () => { console.log('跳转微信授权页成功'); },
+      appId: WECHAT_CITY_SERVICE_APPID,
+      path: WECHAT_CITY_SERVICE_PATH,
+      extraData: {},
+      success: () => {},
       fail: (err) => {
-        console.error('跳转失败', err);
-        this.setData({ verifyingRealname: false, error: '无法打开微信授权，请确认微信版本支持此功能' });
+        wx.showModal({
+          title: '无法打开微信授权',
+          content: '请使用真机调试，或在小程序后台"跳转小程序白名单"中添加 ' + WECHAT_CITY_SERVICE_APPID + '。错误：' + (err.errMsg || JSON.stringify(err)),
+          showCancel: false,
+        });
+        that.setData({ verifyingRealname: false, error: '跳转失败，请使用真机调试' });
       },
     });
   },
 
-  exchangeTokenAndVerify(authCode) {
+  verifyWithCode(code) {
     const formData = wx.getStorageSync('pending_bind_form') || {};
     const { name, identity_number } = formData;
     if (!name || !identity_number) {
@@ -173,20 +184,15 @@ Page({
     this.setData({ verifyingRealname: true, error: null });
     const that = this;
 
-    // 步骤1：auth_code 换 access_token
-    api.exchangeRealnameToken({ auth_code: authCode })
-      .then((res) => {
-        // 步骤2：实名验证（姓名+证件号加密传输）
-        return api.verifyRealname({
-          access_token: res.access_token,
-          name: name.trim(),
-          id_number: identity_number.trim(),
-        });
-      })
+    // 调用后端 /realname-auth/verify：一步完成实名校验
+    api.verifyRealname({
+      code: code,
+      real_name: name.trim(),
+      cred_id: identity_number.trim(),
+    })
       .then((verifyRes) => {
         wx.removeStorageSync('pending_bind_form');
         if (verifyRes.verify_result) {
-          // 实名验证通过，正式绑定信息
           that.doBind(formData);
         } else {
           const msg = verifyRes.message || '姓名与证件号不匹配，请核对后重新输入';
@@ -196,7 +202,7 @@ Page({
       .catch((err) => {
         wx.removeStorageSync('pending_bind_form');
         const msg = err && err.message ? err.message : String(err);
-        that.setData({ verifyingRealname: false, error: '实名验证失败：' + msg });
+        that.setData({ verifyingRealname: false, error: '实名校验失败：' + msg });
       });
   },
 

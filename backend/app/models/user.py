@@ -7,7 +7,7 @@ from typing import Optional
 class UserBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     identity_number: Optional[str] = Field(None, max_length=255)
-    identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    identity_type: Optional[str] = Field(None, pattern=r'^(mainland|hongkong|foreign)$')
     phone: Optional[str] = Field(None, max_length=11)
     email: Optional[str] = Field(None, max_length=255)
     sex: Optional[str] = Field(None, max_length=2, pattern=r'^[MF]$')
@@ -38,17 +38,13 @@ class UserBase(BaseModel):
             if not re.match(r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$', identity_number):
                 raise ValueError('身份证号格式不正确，请输入有效的18位中国大陆身份证号')
         elif identity_type == 'hongkong':
-            # 香港身份证：格式如 A123456(7)
-            if not re.match(r'^[A-Z]\d{6}\(\d\)$', identity_number):
-                raise ValueError('香港身份证号格式不正确，正确格式如：A123456(7)')
-        elif identity_type == 'taiwan':
-            # 台湾身份证：10位，首位字母+9位数字
-            if not re.match(r'^[A-Z]\d{9}$', identity_number):
-                raise ValueError('台湾身份证号格式不正确，应为10位（1位字母+9位数字）')
-        # foreign 类型不做严格格式限制，只做基本验证
+            # 港澳台通行证：只做基本长度验证
+            if len(identity_number) < 5 or len(identity_number) > 50:
+                raise ValueError('港澳台通行证号码长度应在5-50位之间')
+        # foreign 类型为护照，只做基本长度验证
         elif identity_type == 'foreign':
             if len(identity_number) < 5 or len(identity_number) > 50:
-                raise ValueError('证件号码长度应在5-50位之间')
+                raise ValueError('护照号码长度应在5-50位之间')
         else:
             # 未指定类型时，做基本长度验证
             if len(identity_number) < 5 or len(identity_number) > 50:
@@ -156,7 +152,7 @@ class UserBindInfoRequest(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     email: Optional[str] = Field(None, max_length=255)
     industry: str = Field(..., min_length=1, max_length=100)
-    identity_type: str = Field(..., pattern=r'^(mainland|hongkong|taiwan|foreign)$')
+    identity_type: str = Field(..., pattern=r'^(mainland|hongkong|foreign)$')
     identity_number: str = Field(..., min_length=1, max_length=255)
 
     @field_validator('email')
@@ -191,17 +187,13 @@ class UserBindInfoRequest(BaseModel):
             if not re.match(r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$', identity_number):
                 raise ValueError('身份证号格式不正确，请输入有效的18位中国大陆身份证号')
         elif identity_type == 'hongkong':
-            # 香港身份证：格式如 A123456(7)
-            if not re.match(r'^[A-Z]\d{6}\(\d\)$', identity_number):
-                raise ValueError('香港身份证号格式不正确，正确格式如：A123456(7)')
-        elif identity_type == 'taiwan':
-            # 台湾身份证：10位，首位字母+9位数字
-            if not re.match(r'^[A-Z]\d{9}$', identity_number):
-                raise ValueError('台湾身份证号格式不正确，应为10位（1位字母+9位数字）')
-        elif identity_type == 'foreign':
-            # 其他证件：只做基本长度验证
+            # 港澳台通行证：只做基本长度验证
             if len(identity_number) < 5 or len(identity_number) > 50:
-                raise ValueError('证件号码长度应在5-50位之间')
+                raise ValueError('港澳台通行证号码长度应在5-50位之间')
+        elif identity_type == 'foreign':
+            # 护照：只做基本长度验证
+            if len(identity_number) < 5 or len(identity_number) > 50:
+                raise ValueError('护照号码长度应在5-50位之间')
         else:
             # 未知类型
             raise ValueError('请选择有效的证件类型')
