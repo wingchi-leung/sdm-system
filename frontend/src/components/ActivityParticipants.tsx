@@ -18,9 +18,9 @@ import {
 interface Participant {
   id: number;
   participant_name: string;
-  phone: string;
-  identity_number?: string;
   user_id?: number;
+  enroll_status: number;
+  payment_status: number;
   create_time: string;
   update_time: string;
 }
@@ -121,8 +121,9 @@ const ActivityParticipants = () => {
                     <TableRow>
                       <TableHead>序号</TableHead>
                       <TableHead>姓名</TableHead>
-                      <TableHead>电话号码</TableHead>
-                      <TableHead>身份证号</TableHead>
+                      <TableHead>用户ID</TableHead>
+                      <TableHead>报名状态</TableHead>
+                      <TableHead>支付状态</TableHead>
                       <TableHead>报名时间</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -131,8 +132,9 @@ const ActivityParticipants = () => {
                       <TableRow key={participant.id}>
                         <TableCell>{currentPage * pageSize + index + 1}</TableCell>
                         <TableCell className="font-medium">{participant.participant_name}</TableCell>
-                        <TableCell>{participant.phone || '-'}</TableCell>
-                        <TableCell>{participant.identity_number || '-'}</TableCell>
+                        <TableCell>{participant.user_id || '-'}</TableCell>
+                        <TableCell>{participant.enroll_status === 1 ? '已报名' : '候补'}</TableCell>
+                        <TableCell>{participant.payment_status === 0 ? '无需支付' : participant.payment_status === 1 ? '待支付' : '已支付'}</TableCell>
                         <TableCell>{formatDate(participant.create_time)}</TableCell>
                       </TableRow>
                     ))}

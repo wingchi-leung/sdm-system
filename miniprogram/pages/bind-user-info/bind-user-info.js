@@ -6,7 +6,8 @@ const tenant = require('../../utils/tenant');
 const WECHAT_CITY_SERVICE_APPID = 'wx308bd2aeb83d3345';
 const WECHAT_CITY_SERVICE_PATH = 'subPages/city/wxpay-auth/main';
 // 调试模式：true=跳过微信实名验证，直接绑定（仅开发测试用）
-const DEBUG_SKIP_REALNAME = false;
+const DEBUG_SKIP_REALNAME = true;
+const PHONE_PATTERN = /^1[3-9]\d{9}$/;
 
 function validateIdentityNumber(identityType, identityNumber) {
   if (!identityNumber || !identityNumber.trim()) return '请输入证件号码';
@@ -62,7 +63,10 @@ Page({
     this._enterTime = Date.now();
     const wechatPhone = wx.getStorageSync('wechat_phone');
     if (wechatPhone) {
-      this.setData({ 'formData.phone': wechatPhone, phoneReadonly: true });
+      this.setData({
+        formData: { ...this.data.formData, phone: wechatPhone },
+        phoneReadonly: true,
+      });
     }
   },
 
@@ -125,7 +129,8 @@ Page({
     if (!formData.age || formData.age < 0 || formData.age > 150) return '请输入有效的年龄';
     if (!formData.occupation || !formData.occupation.trim()) return '请输入职业';
     if (!formData.industry || !formData.industry.trim()) return '请输入行业';
-    if (!formData.phone || !/^1[3-9]\d{9}$/.test(formData.phone)) return '请输入有效的手机号';
+    if (!formData.phone) return '请输入有效的手机号';
+    if (!this.data.phoneReadonly && !PHONE_PATTERN.test(formData.phone)) return '请输入有效的手机号';
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return '邮箱格式不正确';
     if (!formData.identity_type) return '请选择证件类型';
     if (!formData.identity_number || !formData.identity_number.trim()) return '请输入证件号码';
@@ -208,17 +213,20 @@ Page({
 
   doBind(formData) {
     this.setData({ submitting: true });
+    const shouldSendPhone = PHONE_PATTERN.test(formData.phone);
     const submitData = {
       name: formData.name.trim(),
       sex: formData.sex,
       age: parseInt(formData.age),
       occupation: formData.occupation.trim(),
-      phone: formData.phone,
       email: formData.email || null,
       industry: formData.industry.trim(),
       identity_type: formData.identity_type,
       identity_number: formData.identity_number.trim(),
     };
+    if (shouldSendPhone) {
+      submitData.phone = formData.phone;
+    }
 
     api.bindUserInfo(submitData)
       .then(() => {

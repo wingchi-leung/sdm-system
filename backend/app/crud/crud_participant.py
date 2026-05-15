@@ -120,10 +120,6 @@ def create_participant(
             existing_participant = get_participant_by_user(
                 db, participant.activity_id, participant.user_id, tenant_id
             ) is not None
-        if not existing_participant:
-            existing_participant = check_participant_exists(
-                db, participant.activity_id, participant.identity_number, tenant_id
-            )
         if existing_participant:
             raise HTTPException(status_code=400, detail="Already registered")
 
@@ -199,19 +195,6 @@ def get_activity_statistics(db: Session, activity_id: int, tenant_id: int) -> di
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-def check_participant_exists(db: Session, activity_id: int, identity_number: str, tenant_id: int) -> bool:
-    """检查参与人是否存在（租户隔离）"""
-    if not identity_number:
-        return False
-    existing_participant = db.query(ActivityParticipant).filter(
-        ActivityParticipant.activity_id == activity_id,
-        ActivityParticipant.identity_number == identity_number,
-        ActivityParticipant.tenant_id == tenant_id
-    ).first()
-        
-    return existing_participant is not None
 
 
 def get_participant_by_user(

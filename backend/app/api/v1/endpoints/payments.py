@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from pydantic import ValidationError
 
 from app.api import deps
 from app.core.config import settings
@@ -23,6 +24,11 @@ from app.services.wechat_pay import get_wechat_pay_service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def _decrypt_payment_payload(payload: dict) -> dict:
+    # 支付创建不再需要敏感字段解密，简化处理
+    return payload
 
 
 def _get_activity_or_404(db: Session, activity_id: int, tenant_id: int) -> Activity:
@@ -70,13 +76,6 @@ def _ensure_activity_enrollable(activity: Activity) -> None:
         raise HTTPException(status_code=400, detail="活动已结束，无法报名")
 
 
-def _build_participant_snapshot(order_in: PaymentOrderCreate, user_id: int) -> dict[str, Any]:
-    """构建报名快照，供支付成功回调复原参与记录"""
-    snapshot = order_in.model_dump(exclude={"actual_fee"})
-    snapshot["user_id"] = user_id
-    return snapshot
-
-
 def _merge_profile_fields(
     order_in: PaymentOrderCreate,
     current_user: User,
@@ -86,14 +85,6 @@ def _merge_profile_fields(
         update={
             "user_id": current_user.id,
             "participant_name": current_user.name or order_in.participant_name,
-            "phone": current_user.phone or order_in.phone,
-            "identity_number": current_user.identity_number or order_in.identity_number,
-            "identity_type": current_user.identity_type or order_in.identity_type,
-            "sex": current_user.sex or order_in.sex,
-            "age": current_user.age if current_user.age is not None else order_in.age,
-            "occupation": current_user.occupation or order_in.occupation,
-            "email": current_user.email or order_in.email,
-            "industry": current_user.industry or order_in.industry,
         }
     )
 
@@ -109,6 +100,15 @@ def _close_remote_order_safely(pay_service: Any, order_no: str) -> None:
             order_no,
             close_error,
         )
+
+
+def _unwrap_wechat_result(result: Any) -> tuple[int | None, dict[str, Any]]:
+    """兼容真实支付服务与测试桩的返回格式。"""
+    if isinstance(result, tuple) and len(result) == 2:
+        return result[0], result[1] or {}
+    if isinstance(result, dict):
+        return 200, result
+    raise ValueError("微信支付服务返回格式不正确")
 
 
 def _validate_notify_resource(order: PaymentOrder, resource: dict[str, Any]) -> None:
@@ -132,64 +132,50 @@ def _is_remote_payment_success(remote_order: dict[str, Any]) -> bool:
     return (remote_order or {}).get("trade_state") == "SUCCESS"
 
 
-def _snapshot_with_latest_profile(
+def _prepare_pending_participant(
     db: Session,
-    order: PaymentOrder,
-    snapshot: dict[str, Any],
-) -> dict[str, Any]:
-    """用当前用户资料覆盖支付快照中的用户字段。"""
-    snapshot.setdefault("user_id", order.user_id)
-    if not order.user_id:
-        return snapshot
+    *,
+    order_in: PaymentOrderCreate,
+    tenant_id: int,
+    user_id: int,
+) -> ActivityParticipant:
+    participant_in = ParticipantCreate.model_validate(
+        order_in.model_dump(exclude={"actual_fee"})
+    )
+    participant_in.user_id = user_id
 
-    fresh_user = db.query(User).filter(
-        User.id == order.user_id,
-        User.tenant_id == order.tenant_id,
-    ).first()
-    if not fresh_user:
-        return snapshot
+    existing_participant = crud_participant.get_participant_by_user(
+        db, participant_in.activity_id, user_id, tenant_id
+    )
+    if existing_participant is None:
+        # 只按 user_id 检查是否已报名
+        pass
 
-    fields = {
-        "participant_name": fresh_user.name,
-        "phone": fresh_user.phone,
-        "identity_number": fresh_user.identity_number,
-        "identity_type": fresh_user.identity_type,
-        "sex": fresh_user.sex,
-        "age": fresh_user.age,
-        "occupation": fresh_user.occupation,
-        "email": fresh_user.email,
-        "industry": fresh_user.industry,
-    }
-    for key, value in fields.items():
-        if value is not None and value != "":
-            snapshot[key] = value
-    return snapshot
+    if existing_participant:
+        if existing_participant.payment_status == 2:
+            raise HTTPException(status_code=400, detail="已报名，无需重复报名")
+        existing_participant.participant_name = participant_in.participant_name
+        existing_participant.why_join = participant_in.why_join
+        existing_participant.channel = participant_in.channel
+        existing_participant.expectation = participant_in.expectation
+        existing_participant.activity_understanding = participant_in.activity_understanding
+        existing_participant.has_questions = participant_in.has_questions
+        existing_participant.payment_status = 1
+        existing_participant.paid_amount = 0
+        db.commit()
+        db.refresh(existing_participant)
+        return existing_participant
 
-
-def _find_existing_participant_for_paid_order(
-    db: Session,
-    order: PaymentOrder,
-    snapshot: dict[str, Any],
-) -> ActivityParticipant | None:
-    """支付回调重试时，复用同一用户/同一证件的已有参与记录。"""
-    if order.user_id:
-        participant = crud_participant.get_participant_by_user(
-            db,
-            order.activity_id,
-            order.user_id,
-            order.tenant_id,
-        )
-        if participant:
-            return participant
-
-    identity_number = snapshot.get("identity_number")
-    if not identity_number:
-        return None
-    return db.query(ActivityParticipant).filter(
-        ActivityParticipant.activity_id == order.activity_id,
-        ActivityParticipant.identity_number == identity_number,
-        ActivityParticipant.tenant_id == order.tenant_id,
-    ).first()
+    participant = crud_participant.create_participant(
+        db=db,
+        participant=participant_in,
+        tenant_id=tenant_id,
+    )
+    participant.payment_status = 1
+    participant.paid_amount = 0
+    db.commit()
+    db.refresh(participant)
+    return participant
 
 
 def _complete_successful_payment(
@@ -199,26 +185,21 @@ def _complete_successful_payment(
 ) -> ActivityParticipant:
     """把微信侧已支付成功的订单补偿落库为参与记录。"""
     _validate_notify_resource(order, resource)
-    snapshot = crud_payment.parse_participant_snapshot(order)
-    snapshot = _snapshot_with_latest_profile(db, order, snapshot)
-
-    existing_participant = _find_existing_participant_for_paid_order(db, order, snapshot)
-    if existing_participant:
-        if (
-            existing_participant.user_id
-            and order.user_id
-            and existing_participant.user_id != order.user_id
-        ):
-            raise HTTPException(status_code=409, detail="证件号已被其他用户报名")
-        participant = existing_participant
-    else:
-        participant_in = ParticipantCreate.model_validate(snapshot)
-        participant = crud_participant.create_participant(
-            db=db,
-            participant=participant_in,
-            tenant_id=order.tenant_id,
-            commit=False,
+    participant = None
+    if order.participant_id:
+        participant = db.query(ActivityParticipant).filter(
+            ActivityParticipant.id == order.participant_id,
+            ActivityParticipant.tenant_id == order.tenant_id,
+        ).first()
+    if participant is None and order.user_id:
+        participant = crud_participant.get_participant_by_user(
+            db,
+            order.activity_id,
+            order.user_id,
+            order.tenant_id,
         )
+    if participant is None:
+        raise HTTPException(status_code=409, detail="订单缺少待支付报名记录")
 
     participant.payment_status = 2
     participant.payment_order_id = order.id
@@ -279,8 +260,8 @@ def _build_order_response_from_existing_pending(
 
 
 @router.post("/create", response_model=PaymentOrderResponse)
-def create_payment_order(
-    order_in: PaymentOrderCreate,
+async def create_payment_order(
+    request: Request,
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
@@ -299,6 +280,14 @@ def create_payment_order(
 
     if ctx.role == "admin":
         raise HTTPException(status_code=403, detail="管理员账号不能直接报名或发起支付")
+    try:
+        payload = dict(await request.json() or {})
+        payload = _decrypt_payment_payload(payload)
+        order_in = PaymentOrderCreate.model_validate(payload)
+    except SensitiveFieldCryptoError:
+        raise HTTPException(status_code=400, detail="敏感字段解密失败")
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
 
     # 1. 验证活动
     activity = _get_activity_or_404(db, order_in.activity_id, tenant_id)
@@ -328,13 +317,12 @@ def create_payment_order(
     current_user = _lock_user_for_payment(db, user_id, tenant_id)
     _ensure_user_can_pay(current_user)
     normalized_order = _merge_profile_fields(order_in, current_user)
-    existing_participant = crud_participant.get_participant_by_user(
-        db, normalized_order.activity_id, user_id, tenant_id
+    participant = _prepare_pending_participant(
+        db,
+        order_in=normalized_order,
+        tenant_id=tenant_id,
+        user_id=user_id,
     )
-    if existing_participant or crud_participant.check_participant_exists(
-        db, normalized_order.activity_id, normalized_order.identity_number, tenant_id
-    ):
-        raise HTTPException(status_code=400, detail="已报名，无需重复报名")
 
     pending_order = crud_payment.get_pending_payment_order_for_user_activity(
         db, normalized_order.activity_id, user_id, tenant_id
@@ -351,7 +339,6 @@ def create_payment_order(
 
     # 4. 获取用户 openid
     openid = _get_user_openid(db, user_id, tenant_id)
-    participant_snapshot = _build_participant_snapshot(normalized_order, user_id)
 
     # 5. 创建微信支付订单
     try:
@@ -369,20 +356,20 @@ def create_payment_order(
             actual_fee=normalized_order.actual_fee,
             prepay_id=None,
             tenant_id=tenant_id,
-            participant_name=normalized_order.participant_name,
-            phone=normalized_order.phone,
-            participant_snapshot=participant_snapshot,
+            participant_id=participant.id,
             status=crud_payment.PAYMENT_STATUS_CREATING,
         )
+        participant.payment_order_id = local_order.id
+        db.commit()
 
         # 调用微信统一下单
         try:
-            code, response = pay_service.create_jsapi_order(
+            code, response = _unwrap_wechat_result(pay_service.create_jsapi_order(
                 order_no=order_no,
                 amount=normalized_order.actual_fee,
                 description=description,
                 openid=openid,
-            )
+            ))
             if code != 200:
                 logger.error(f"微信下单失败: HTTP {code}, {response}")
                 crud_payment.mark_payment_order_failed(db, local_order)
@@ -481,7 +468,7 @@ async def payment_notify(
 
         if order.status == crud_payment.PAYMENT_STATUS_CLOSED:
             try:
-                _, remote_order = pay_service.query_order(order_no)
+                _, remote_order = _unwrap_wechat_result(pay_service.query_order(order_no))
             except Exception as query_error:
                 logger.warning("关闭订单 %s 后查询微信状态失败: %s", order_no, query_error)
                 return {"code": "FAIL", "message": "订单已关闭"}
@@ -514,7 +501,7 @@ async def payment_notify(
 
     except Exception as e:
         logger.exception(f"处理支付回调异常: {e}")
-        return {"code": "FAIL", "message": str(e)}
+        return {"code": "FAIL", "message": "处理失败"}
 
 
 @router.get("/order/{order_no}", response_model=PaymentOrderDetail)
@@ -541,7 +528,7 @@ def query_payment_order(
     ):
         try:
             pay_service = get_wechat_pay_service()
-            _, remote_order = pay_service.query_order(order_no)
+            _, remote_order = _unwrap_wechat_result(pay_service.query_order(order_no))
         except Exception as query_error:
             logger.warning("查询微信订单状态失败: %s, error=%s", order_no, query_error)
         else:
@@ -566,13 +553,11 @@ def query_payment_order(
 
     participant_enroll_status = None
     if order.participant_id:
-        participant = crud_participant.get_participant_by_user(
-            db,
-            activity_id=order.activity_id,
-            user_id=order.user_id,
-            tenant_id=ctx.tenant_id,
-        )
-        if participant and participant.id == order.participant_id:
+        participant = db.query(ActivityParticipant).filter(
+            ActivityParticipant.id == order.participant_id,
+            ActivityParticipant.tenant_id == ctx.tenant_id,
+        ).first()
+        if participant:
             participant_enroll_status = participant.enroll_status
 
     return _build_order_detail(order, participant_enroll_status)

@@ -37,4 +37,20 @@ ALTER TABLE role_permission ADD COLUMN update_time  datetime NULL COMMENT '更�
 -- 添加公开活动字段
 ALTER TABLE activity ADD COLUMN is_public INT DEFAULT 0 COMMENT '是否公开：0-否 1-是（所有用户可见）' AFTER max_participants;
 
+-- 删除 activity_participants 表冗余的 PII 字段（从用户表关联获取，不再冗余存储）
+ALTER TABLE activity_participants DROP COLUMN phone;
+ALTER TABLE activity_participants DROP COLUMN identity_number;
+ALTER TABLE activity_participants DROP COLUMN sex;
+ALTER TABLE activity_participants DROP COLUMN age;
+ALTER TABLE activity_participants DROP COLUMN occupation;
+ALTER TABLE activity_participants DROP COLUMN email;
+ALTER TABLE activity_participants DROP COLUMN industry;
+ALTER TABLE activity_participants DROP COLUMN identity_type;
+-- 删除 participant_snapshot 字段（不应存储用户信息）
+ALTER TABLE payment_order DROP COLUMN participant_snapshot;
+-- 删除 phone 字段
+ALTER TABLE payment_order DROP COLUMN phone;
+-- 删除报名人姓名字段（从 participant 表通过 participant_id 关联获取）
+ALTER TABLE payment_order DROP COLUMN participant_name;
+
   

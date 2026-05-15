@@ -1,6 +1,16 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, SmallInteger, func, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import object_session
 from datetime import datetime
+
+from app.core.pii import (
+    blind_index,
+    decrypt_pii,
+    encrypt_pii,
+    identity_last4,
+    mask_phone,
+    normalize_optional_text,
+)
 
 Base = declarative_base()
 
@@ -13,6 +23,38 @@ class TimestampModel:
 class BaseModel(Base, TimestampModel):
     __abstract__ = True
     id = Column(Integer, primary_key=True, autoincrement=True)
+
+
+class EncryptedContactMixin:
+    phone_hash = Column(String(64), nullable=True, index=True)
+    phone_masked = Column(String(32), nullable=True)
+
+    @property
+    def phone(self):
+        return decrypt_pii(getattr(self, "_phone_ciphertext", None))
+
+    @phone.setter
+    def phone(self, value):
+        normalized = normalize_optional_text(value)
+        self._phone_ciphertext = encrypt_pii(normalized)
+        self.phone_hash = blind_index(normalized, purpose="phone")
+        self.phone_masked = mask_phone(normalized)
+
+
+class EncryptedIdentityMixin:
+    identity_number_hash = Column(String(64), nullable=True, index=True)
+    identity_last4 = Column(String(8), nullable=True)
+
+    @property
+    def identity_number(self):
+        return decrypt_pii(getattr(self, "_identity_number_ciphertext", None))
+
+    @identity_number.setter
+    def identity_number(self, value):
+        normalized = normalize_optional_text(value)
+        self._identity_number_ciphertext = encrypt_pii(normalized)
+        self.identity_number_hash = blind_index(normalized, purpose="identity_number")
+        self.identity_last4 = identity_last4(normalized)
 
 
 # ============================================================
@@ -44,18 +86,19 @@ class ActivityType(BaseModel):
 # ============================================================
 # 用户表
 # ============================================================
-class User(BaseModel):
+class User(BaseModel, EncryptedContactMixin, EncryptedIdentityMixin):
     __tablename__ = "user"
     __table_args__ = (
-        UniqueConstraint('phone', 'tenant_id', name='uk_user_phone'),
-        UniqueConstraint('email', 'tenant_id', name='uk_user_email'),
+        UniqueConstraint('phone_hash', 'tenant_id', name='uk_user_phone'),
+        UniqueConstraint('email_hash', 'tenant_id', name='uk_user_email'),
     )
     tenant_id = Column(Integer, nullable=False, index=True)
-    name = Column(String(255))
-    identity_number = Column(String(255), nullable=True)
+    _name_ciphertext = Column("name", String(1024))
+    _identity_number_ciphertext = Column("identity_number", String(1024), nullable=True)
     identity_type = Column(String(20), nullable=True)
-    phone = Column(String(255), index=True)
-    email = Column(String(255), nullable=True)
+    _phone_ciphertext = Column("phone", String(1024), nullable=True)
+    _email_ciphertext = Column("email", String(1024), nullable=True)
+    email_hash = Column(String(64), nullable=True, index=True)
     sex = Column(String(2))
     age = Column(Integer, nullable=True)
     occupation = Column(String(100), nullable=True)
@@ -63,6 +106,107 @@ class User(BaseModel):
     avatar_url = Column(String(500), nullable=True)
     isblock = Column(Integer, default=0)
     block_reason = Column(String(255), nullable=True)
+
+    @property
+    def name(self):
+        return decrypt_pii(self._name_ciphertext)
+
+    @name.setter
+    def name(self, value):
+        self._name_ciphertext = encrypt_pii(value)
+
+    @property
+    def email(self):
+        return decrypt_pii(self._email_ciphertext)
+
+    @email.setter
+    def email(self, value):
+        normalized = normalize_optional_text(value)
+        self._email_ciphertext = encrypt_pii(normalized)
+        self.email_hash = blind_index(normalized, purpose="email")
+
+    @property
+    def wx_openid(self):
+        session = object_session(self)
+        if session is None or self.id is None:
+            return getattr(self, "_pending_wx_openid", None)
+        credential = session.query(UserCredential).filter(
+            UserCredential.user_id == self.id,
+            UserCredential.tenant_id == self.tenant_id,
+            UserCredential.credential_type == "wechat",
+            UserCredential.status == 1,
+        ).first()
+        return credential.identifier if credential else getattr(self, "_pending_wx_openid", None)
+
+    @wx_openid.setter
+    def wx_openid(self, value):
+        self._pending_wx_openid = value
+        session = object_session(self)
+        if session is None or self.id is None:
+            return
+        credential = session.query(UserCredential).filter(
+            UserCredential.user_id == self.id,
+            UserCredential.tenant_id == self.tenant_id,
+            UserCredential.credential_type == "wechat",
+        ).first()
+        if value:
+            if credential is None:
+                credential = UserCredential(
+                    user_id=self.id,
+                    tenant_id=self.tenant_id,
+                    credential_type="wechat",
+                    identifier=value,
+                    status=1,
+                )
+                session.add(credential)
+            else:
+                credential.identifier = value
+                credential.status = 1
+        elif credential is not None:
+            session.delete(credential)
+
+    @property
+    def password_hash(self):
+        session = object_session(self)
+        if session is None or self.id is None:
+            return getattr(self, "_pending_password_hash", None)
+        credential = session.query(UserCredential).filter(
+            UserCredential.user_id == self.id,
+            UserCredential.tenant_id == self.tenant_id,
+            UserCredential.credential_type == "password",
+            UserCredential.status == 1,
+        ).first()
+        return credential.credential_hash if credential else getattr(self, "_pending_password_hash", None)
+
+    @password_hash.setter
+    def password_hash(self, value):
+        self._pending_password_hash = value
+        session = object_session(self)
+        if session is None or self.id is None:
+            return
+        credential = session.query(UserCredential).filter(
+            UserCredential.user_id == self.id,
+            UserCredential.tenant_id == self.tenant_id,
+            UserCredential.credential_type == "password",
+        ).first()
+        if value:
+            if credential is None:
+                credential = UserCredential(
+                    user_id=self.id,
+                    tenant_id=self.tenant_id,
+                    credential_type="password",
+                    identifier=self.phone or f"user:{self.id}",
+                    credential_hash=value,
+                    must_reset_password=0,
+                    status=1,
+                )
+                session.add(credential)
+            else:
+                credential.identifier = self.phone or credential.identifier
+                credential.credential_hash = value
+                credential.status = 1
+        elif credential is not None:
+            session.delete(credential)
 
 
 # ============================================================
@@ -91,26 +235,16 @@ class Activity(BaseModel):
 class ActivityParticipant(BaseModel):
     __tablename__ = "activity_participants"
     __table_args__ = (
-        UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_participant_unique'),
         UniqueConstraint('activity_id', 'user_id', 'tenant_id', name='uk_participant_user_unique'),
     )
     tenant_id = Column(Integer, nullable=False, index=True)
     activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
-    participant_name = Column(String(255))
-    identity_number = Column(String(255), index=True)
-    phone = Column(String(255))
+    _participant_name_ciphertext = Column("participant_name", String(1024))
     enroll_status = Column(Integer, default=1)      # 报名状态：1-已报名 2-候补
     payment_status = Column(Integer, default=0)     # 0-无需支付 1-待支付 2-已支付
     payment_order_id = Column(Integer, nullable=True)
     paid_amount = Column(Integer, default=0)        # 实际支付金额（分）
-    # 用户信息字段（从用户资料获取）
-    sex = Column(String(2), nullable=True)
-    age = Column(Integer, nullable=True)
-    occupation = Column(String(100), nullable=True)
-    email = Column(String(255), nullable=True)
-    industry = Column(String(100), nullable=True)
-    identity_type = Column(String(20), nullable=True)
     # 问卷字段
     why_join = Column(String(500), nullable=True)           # 为什么要参与
     channel = Column(String(255), nullable=True)            # 了解此活动的渠道/推荐人
@@ -118,24 +252,40 @@ class ActivityParticipant(BaseModel):
     activity_understanding = Column(String(255), nullable=True)  # 是否了解活动（一句话描述）
     has_questions = Column(String(500), nullable=True)      # 是否有问题
 
+    @property
+    def participant_name(self):
+        return decrypt_pii(self._participant_name_ciphertext)
+
+    @participant_name.setter
+    def participant_name(self, value):
+        self._participant_name_ciphertext = encrypt_pii(value)
+
 
 # ============================================================
 # 签到记录表
 # ============================================================
-class CheckInRecord(BaseModel):
+class CheckInRecord(BaseModel, EncryptedContactMixin, EncryptedIdentityMixin):
     __tablename__ = "checkin_records"
     __table_args__ = (
-        UniqueConstraint('activity_id', 'identity_number', 'tenant_id', name='uk_checkin_unique'),
+        UniqueConstraint('activity_id', 'identity_number_hash', 'tenant_id', name='uk_checkin_unique'),
     )
     tenant_id = Column(Integer, nullable=False, index=True)
     activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
-    name = Column(String(100))
-    identity_number = Column(String(255), index=True)
-    phone = Column(String(255))
+    _name_ciphertext = Column("name", String(1024))
+    _identity_number_ciphertext = Column("identity_number", String(1024), nullable=True)
+    _phone_ciphertext = Column("phone", String(1024), nullable=True)
     checkin_time = Column(DateTime, default=datetime.now)
     has_attend = Column(Integer, default=0)
     note = Column(String(255))
+
+    @property
+    def name(self):
+        return decrypt_pii(self._name_ciphertext)
+
+    @name.setter
+    def name(self, value):
+        self._name_ciphertext = encrypt_pii(value)
 
 
 # ============================================================
@@ -149,9 +299,6 @@ class PaymentOrder(BaseModel):
     activity_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=True, index=True)
     participant_id = Column(Integer, nullable=True, index=True)
-    participant_name = Column(String(255), nullable=True)   # 报名人姓名
-    phone = Column(String(255), nullable=True)              # 报名人手机号
-    participant_snapshot = Column(Text, nullable=True)      # 报名信息快照(JSON)
     suggested_fee = Column(Integer, nullable=False)      # 建议费用（分）
     actual_fee = Column(Integer, nullable=False)         # 实际支付金额（分）
     status = Column(Integer, default=0, index=True)      # 0-待支付 1-成功 2-失败 3-关闭

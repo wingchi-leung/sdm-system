@@ -15,14 +15,6 @@ Page({
     // 用户信息（从用户资料获取，不可编辑）
     userInfo: null,
     name: '',
-    phone: '',
-    sex: '',
-    age: '',
-    occupation: '',
-    email: '',
-    industry: '',
-    identityType: '',
-    identityNumber: '',
     // 问卷字段（用户填写）
     whyJoin: '',
     channel: '',
@@ -38,13 +30,6 @@ Page({
     suggestedFeeYuan: '0.00',
     actualFee: '',
     actualFeeYuan: '',
-    // 证件类型选项
-    identityTypeOptions: [
-      { value: 'mainland', label: '中国大陆身份证' },
-      { value: 'hongkong', label: '港澳台通行证' },
-      { value: 'foreign', label: '护照' },
-    ],
-    identityTypeLabel: '',
     // 报名情况
     enrollmentInfo: null,
     isFull: false,
@@ -185,20 +170,10 @@ Page({
   // 加载用户资料
   async loadUserProfile() {
     const profile = await api.getUserProfile();
-    const identityTypeLabel = this.getIdentityTypeLabel(profile.identity_type);
 
     this.setData({
       userInfo: profile,
       name: profile.name || '',
-      phone: profile.phone || '',
-      sex: profile.sex === 'M' ? '男' : profile.sex === 'F' ? '女' : '',
-      age: profile.age ? String(profile.age) : '',
-      occupation: profile.occupation || '',
-      email: profile.email || '',
-      industry: profile.industry || '',
-      identityType: profile.identity_type || '',
-      identityNumber: profile.identity_number || '',
-      identityTypeLabel,
     });
   },
 
@@ -220,13 +195,6 @@ Page({
 
     this.setData({ requireBindInfo: false });
     await this.loadUserProfile();
-  },
-
-  // 获取证件类型显示文本
-  getIdentityTypeLabel(type) {
-    const options = this.data.identityTypeOptions;
-    const found = options.find(o => o.value === type);
-    return found ? found.label : '';
   },
 
   // 问卷输入处理
@@ -277,7 +245,6 @@ Page({
   validateForm() {
     const {
       name,
-      phone,
       whyJoin,
       channel,
       expectation,
@@ -299,10 +266,6 @@ Page({
     }
     if (!name || !name.trim()) {
       this.setData({ error: '用户信息未完善，请先完善个人资料' });
-      return false;
-    }
-    if (!phone || !phone.trim()) {
-      this.setData({ error: '请输入手机号' });
       return false;
     }
     // 问卷字段验证
@@ -333,28 +296,13 @@ Page({
   // 构建报名数据
   buildParticipantData() {
     const {
-      activity, name, phone, identityNumber, identityType,
-      sex, age, occupation, email, industry,
+      activity, name,
       whyJoin, channel, expectation, activityUnderstanding, hasQuestions
     } = this.data;
-
-    // 转换性别格式（显示为男/女，提交为 M/F）
-    let sexCode = '';
-    if (sex === '男') sexCode = 'M';
-    else if (sex === '女') sexCode = 'F';
 
     return {
       activity_id: activity.id,
       participant_name: name.trim(),
-      phone: phone.trim(),
-      identity_number: identityNumber || undefined,
-      identity_type: identityType || undefined,
-      // 用户信息
-      sex: sexCode || undefined,
-      age: age ? parseInt(age) : undefined,
-      occupation: occupation || undefined,
-      email: email || undefined,
-      industry: industry || undefined,
       // 问卷
       why_join: whyJoin.trim(),
       channel: channel.trim(),

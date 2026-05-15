@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from datetime import datetime
+from pydantic import ValidationError
 
 from app.crud import crud_participant, crud_user
 from app.models import participant
@@ -19,14 +20,6 @@ def _merge_profile_fields(
         update={
             "user_id": current_user.id,
             "participant_name": current_user.name or participant_in.participant_name,
-            "phone": current_user.phone or participant_in.phone,
-            "identity_number": current_user.identity_number or participant_in.identity_number,
-            "identity_type": current_user.identity_type or participant_in.identity_type,
-            "sex": current_user.sex or participant_in.sex,
-            "age": current_user.age if current_user.age is not None else participant_in.age,
-            "occupation": current_user.occupation or participant_in.occupation,
-            "email": current_user.email or participant_in.email,
-            "industry": current_user.industry or participant_in.industry,
         }
     )
 
@@ -39,9 +32,22 @@ def _ensure_activity_enrollable(activity: Activity) -> None:
         raise HTTPException(status_code=400, detail="活动已结束，无法报名")
 
 
+def _decrypt_participant_payload(payload: dict) -> dict:
+    encrypted_phone = payload.get("phone_encrypted")
+    encrypted_identity = payload.get("identity_number_encrypted")
+    kid = payload.get("encryption_kid")
+    if not encrypted_phone:
+        raise SensitiveFieldCryptoError("敏感字段必须使用加密传输")
+    payload["phone"] = decrypt_sensitive_field(encrypted_phone, kid)
+    payload["identity_number"] = (
+        decrypt_sensitive_field(encrypted_identity, kid) if encrypted_identity else None
+    )
+    return payload
+
+
 @router.post("/", response_model=participant.ParticipantResponse)
-def create_participant(
-    participant_in: participant.ParticipantCreate,
+async def create_participant(
+    request: Request,
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
@@ -53,6 +59,11 @@ def create_participant(
 
     if ctx.role == "admin":
         raise HTTPException(status_code=403, detail="管理员账号不能直接报名")
+    try:
+        payload = dict(await request.json() or {})
+        participant_in = participant.ParticipantCreate.model_validate(payload)
+    except ValidationError as e:
+        raise HTTPException(status_code=422, detail=e.errors())
 
     activity = db.query(Activity).filter(
         Activity.id == participant_in.activity_id,
@@ -90,12 +101,6 @@ def create_participant(
         db, normalized_participant.activity_id, current_user.id, tenant_id
     ):
         raise HTTPException(status_code=400, detail="已报名，无需重复报名")
-
-    # 按证件号去重（防止同一证件多账号报名）
-    if crud_participant.check_participant_exists(
-        db, normalized_participant.activity_id, normalized_participant.identity_number, tenant_id
-    ):
-        raise HTTPException(status_code=400, detail="该证件号已报名")
 
     return crud_participant.create_participant(
         db=db,

@@ -125,8 +125,8 @@ Page({
         let actionTipText = '';
         if (hasRegistered) {
           actionTipText = registration.enroll_status === 2 ? '您已在候补中' : '您已报名该活动';
-        } else if (auth.isAdmin()) {
-          actionTipText = '管理员账号不可直接报名';
+        } else if (auth.isSuperAdmin()) {
+          actionTipText = '超级管理员账号不可直接报名';
         } else if (!canEnroll) {
           actionTipText = '活动已结束，无法报名';
         }
@@ -141,7 +141,7 @@ Page({
             start_display: startDisplay,
             end_display: endDisplay,
           },
-          canEnroll: canEnroll && !hasRegistered && !auth.isAdmin(),
+          canEnroll: canEnroll && !hasRegistered && !auth.isSuperAdmin(),
           hasRegistered,
           registrationStatusText: hasRegistered
             ? (registration.enroll_status === 2 ? '候补中' : '已报名')
@@ -177,13 +177,6 @@ Page({
   },
 
   onPosterError(e) {
-    const posterUrl = this.data.activity && this.data.activity.poster_url
-      ? this.data.activity.poster_url
-      : '';
-    console.error('活动海报加载失败', {
-      posterUrl,
-      detail: e && e.detail ? e.detail : null,
-    });
     this.setData({ posterLoadFailed: true });
     wx.showToast({
       title: '海报加载失败，请检查图片域名配置',
