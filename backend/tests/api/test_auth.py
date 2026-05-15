@@ -20,6 +20,10 @@ class TestAuthEndpoints:
         data = response.json()
         assert "access_token" in data
         assert data["token_type"] == "bearer"
+        assert "sdm_admin_session" in response.cookies
+
+        me_response = client.get("/api/v1/auth/me")
+        assert me_response.status_code == status.HTTP_200_OK
 
     def test_admin_login_wrong_password(self, client, super_admin):
         """测试错误密码登录"""

@@ -141,7 +141,8 @@ const CreateActivity = () => {
         participants: [],
         activityName: '',
         startTime: '',
-        tags: ''
+        tags: '',
+        isPublic: 0
       });
     } catch (error) {
       toast({

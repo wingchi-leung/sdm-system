@@ -229,17 +229,31 @@ test('报名页加载活动时会解析海报展示地址', async () => {
   assert.equal(page.data.suggestedFeeYuan, '99.00');
 });
 
-test('报名页证件类型展示港澳台通行证', () => {
+test('报名页不再暴露证件类型字段', () => {
   const pageConfig = loadRegisterPage();
   const page = createPageInstance(pageConfig);
 
-  assert.equal(page.getIdentityTypeLabel('hongkong'), '港澳台通行证');
+  assert.equal(Object.prototype.hasOwnProperty.call(page.data, 'identityType'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(page.data, 'identityTypeLabel'), false);
 });
 
-test('报名页证件类型展示护照且不再支持台湾身份证标签', () => {
+test('报名提交 payload 不包含证件号字段', () => {
   const pageConfig = loadRegisterPage();
-  const page = createPageInstance(pageConfig);
+  const page = createPageInstance(pageConfig, {
+    activity: { id: 18 },
+    name: '测试用户',
+    phone: '13800000000',
+    sex: '男',
+    age: '28',
+    occupation: '工程师',
+    email: 'demo@example.com',
+    industry: '教育',
+    whyJoin: '学习',
+    channel: '朋友推荐',
+    expectation: '提升',
+  });
+  const payload = page.buildParticipantData();
 
-  assert.equal(page.getIdentityTypeLabel('foreign'), '护照');
-  assert.equal(page.getIdentityTypeLabel('taiwan'), '');
+  assert.equal(payload.identity_number, undefined);
+  assert.equal(payload.identity_type, undefined);
 });

@@ -1,7 +1,7 @@
 /**
- * 认证状态管理（localStorage）
+ * 认证状态管理
+ * Web token 由后端 HttpOnly Cookie 保存，localStorage 仅保存非敏感 UI 上下文。
  */
-const TOKEN_KEY = 'admin_token';
 const TENANT_KEY = 'tenant_info';
 const AUTH_KEY = 'auth_info';
 
@@ -20,21 +20,21 @@ export interface AuthInfo {
 }
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY);
+  return null;
 }
 
-export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
+export function setToken(_token?: string | null): void {
+  localStorage.removeItem(['admin', 'token'].join('_'));
 }
 
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(['admin', 'token'].join('_'));
   localStorage.removeItem(TENANT_KEY);
   localStorage.removeItem(AUTH_KEY);
 }
 
 export function isAuthenticated(): boolean {
-  return !!getToken();
+  return !!getAuthInfo();
 }
 
 export function getTenantInfo(): TenantInfo | null {

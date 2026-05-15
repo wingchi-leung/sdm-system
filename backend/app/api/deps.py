@@ -1,7 +1,8 @@
 from typing import Generator, Optional
-from fastapi import Depends, HTTPException, Query
+from fastapi import Depends, HTTPException, Query, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.database import SessionLocal
+from app.core.config import settings
 from app.core.security import decode_access_token
 from sqlalchemy.orm import Session
 from app.crud import crud_activity, crud_rbac, crud_tenant
@@ -20,10 +21,16 @@ def get_db() -> Generator[Session, None, None]:
         db.close()
 
 
-def _parse_token(credentials: HTTPAuthorizationCredentials | None) -> dict | None:
-    if not credentials or credentials.scheme != "Bearer":
-        return None
-    return decode_access_token(credentials.credentials)
+def _parse_token(
+    credentials: HTTPAuthorizationCredentials | None,
+    request: Request,
+) -> dict | None:
+    if credentials and credentials.scheme == "Bearer":
+        return decode_access_token(credentials.credentials)
+    cookie_token = request.cookies.get(settings.AUTH_COOKIE_NAME)
+    if cookie_token:
+        return decode_access_token(cookie_token)
+    return None
 
 
 def _extract_identity(payload: dict) -> tuple[int, int]:
@@ -117,11 +124,12 @@ def get_public_tenant_context(
 
 
 def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ) -> AuthContext:
     """任意已登录用户可访问（不检查角色）"""
-    payload = _parse_token(credentials)
+    payload = _parse_token(credentials, request)
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     user_id, tenant_id = _extract_identity(payload)
@@ -138,10 +146,11 @@ def get_current_user(
 
 
 def get_current_user_optional(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ) -> AuthContext | None:
-    payload = _parse_token(credentials)
+    payload = _parse_token(credentials, request)
     if not payload:
         return None
     try:
@@ -164,11 +173,12 @@ def get_current_user_optional(
 
 
 def get_current_admin(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ) -> AuthContext:
     """要求当前用户在该租户下有至少一个角色"""
-    payload = _parse_token(credentials)
+    payload = _parse_token(credentials, request)
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     user_id, tenant_id = _extract_identity(payload)
@@ -186,10 +196,11 @@ def get_current_admin(
 
 
 def get_current_admin_optional(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ) -> AuthContext | None:
-    payload = _parse_token(credentials)
+    payload = _parse_token(credentials, request)
     if not payload:
         return None
     try:
@@ -210,11 +221,12 @@ def get_current_admin_optional(
 
 
 def get_current_platform_admin(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ) -> AuthContext:
     """要求当前用户有平台管理员角色"""
-    payload = _parse_token(credentials)
+    payload = _parse_token(credentials, request)
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     user_id, tenant_id = _extract_identity(payload)
@@ -230,11 +242,12 @@ def get_current_platform_admin(
 
 
 def get_current_admin_or_platform(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db),
 ) -> AuthContext:
     """租户管理员或平台管理员均可访问"""
-    payload = _parse_token(credentials)
+    payload = _parse_token(credentials, request)
     if not payload:
         raise HTTPException(status_code=401, detail="未登录或登录已过期")
     user_id, tenant_id = _extract_identity(payload)

@@ -132,3 +132,38 @@ test('活动详情页未登录时会跳转登录页且不会继续拉取活动',
     global.setTimeout = oldSetTimeout;
   }
 });
+
+test('活动管理员在可报名活动中可以看到报名入口', async () => {
+  const pageConfig = loadActivityDetailPage({
+    api: {
+      getActivity() {
+        return Promise.resolve({
+          id: 12,
+          status: 1,
+          activity_type_id: 3,
+          activity_type_name: '沙龙',
+          activity_type_code: 'SALON',
+        });
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isAdmin: () => true,
+      isUser: () => false,
+      isSuperAdmin: () => false,
+      canManageActivityType: () => true,
+    },
+    image: {
+      resolveDisplayUrl(url) {
+        return Promise.resolve(url);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig, { activityId: 12 });
+
+  page.loadActivity(12);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(page.data.canEnroll, true);
+  assert.equal(page.data.actionTipText, '');
+});

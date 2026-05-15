@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import Optional
 
 
@@ -52,6 +52,13 @@ class LoginRequest(BaseModel):
     identifier: str
     password: str
     tenant_code: str = "default"
+
+    @model_validator(mode="before")
+    @classmethod
+    def accept_legacy_username(cls, data):
+        if isinstance(data, dict) and "identifier" not in data and "username" in data:
+            return {**data, "identifier": data.get("username")}
+        return data
 
 
 class WechatAuthRequest(BaseModel):

@@ -170,6 +170,7 @@ def export_activities(
                 enroll_status=participant.enroll_status,
                 payment_status=participant.payment_status,
                 payment_order_id=participant.payment_order_id,
+                payment_suggested_fee=payment_order.suggested_fee if payment_order else activity_by_id[participant.activity_id].suggested_fee,
                 paid_amount=participant.paid_amount,
                 why_join=participant.why_join,
                 channel=participant.channel,

@@ -29,7 +29,7 @@
         >
           <text class="date-number">{{item.dateLabel}}</text>
           <text class="date-week">{{item.weekdayLabel}}</text>
-          <text class="date-marker">{{item.markerLabel || '\u00A0'}}</text>
+          <text wx:if="{{item.markerLabel}}" class="date-marker">{{item.markerLabel}}</text>
           <view class="date-dot"></view>
         </view>
       </view>

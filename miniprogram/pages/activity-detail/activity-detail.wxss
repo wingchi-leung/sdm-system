@@ -427,15 +427,17 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24rpx;
+  justify-content: center;
+  position: relative;
 }
 
 .btn-copy {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   gap: 8rpx;
+  text-align: center;
 }
 
 .btn-caption {
@@ -453,6 +455,10 @@
 .btn-arrow {
   color: #ffffff;
   font-size: 34rpx;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .disabled-tip {

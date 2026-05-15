@@ -22,6 +22,15 @@ _stop_event = Optional[threading.Event]
 _scheduler_thread: Optional[threading.Thread] = None
 
 
+def _unwrap_wechat_result(result):
+    """兼容真实支付服务与测试桩的返回格式。"""
+    if isinstance(result, tuple) and len(result) == 2:
+        return result[0], result[1] or {}
+    if isinstance(result, dict):
+        return 200, result
+    raise ValueError("微信支付服务返回格式不正确")
+
+
 def _should_mark_closed_from_remote_query(remote_order: dict | None) -> bool:
     """根据微信查单结果判断是否可安全关闭本地订单"""
     trade_state = (remote_order or {}).get("trade_state")
@@ -88,7 +97,7 @@ def close_expired_payment_orders():
                 logger.info(f"关闭过期订单: {locked_order.order_no}")
             except Exception as e:
                 try:
-                    _, remote_order = pay_service.query_order(order.order_no)
+                    _, remote_order = _unwrap_wechat_result(pay_service.query_order(order.order_no))
                 except Exception as query_error:
                     failed_count += 1
                     logger.warning(

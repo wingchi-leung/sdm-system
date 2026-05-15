@@ -1,4 +1,4 @@
-import { API_PATHS, formatApiError, loginApi } from './api';
+import { API_PATHS, formatApiError, formatNetworkError, loginApi } from './api';
 
 describe('api error formatting', () => {
   test('formatApiError 将 FastAPI 校验错误数组转换为可展示文本', () => {
@@ -40,6 +40,11 @@ describe('api error formatting', () => {
     await expect(loginApi('admin', '123456', '')).resolves.toEqual({
       error: 'body.tenant_code: String should have at least 1 character',
     });
+  });
+
+  test('formatNetworkError 在 Failed to fetch 时提供排障提示', () => {
+    expect(formatNetworkError(new Error('Failed to fetch'))).toContain('网络连接失败（Failed to fetch）');
+    expect(formatNetworkError(new Error('Failed to fetch'))).toContain('REACT_APP_API_URL');
   });
 });
 

@@ -5,8 +5,10 @@
 const config = require('../config/index');
 const tenant = require('./tenant');
 const { normalizeApiErrorMessage } = require('./request-error');
+const { encryptWithPublicKey } = require('./rsa');
 const baseUrl = config.baseUrl;
 const staticBaseUrl = config.staticBaseUrl;
+let cachedSensitiveBundle = null;
 
 function getTenantCode() {
   return tenant.getTenantCode();
@@ -73,6 +75,31 @@ function requestWithBody({ url, method, useAuth = false, data }) {
 function withTenant(url) {
   const joiner = url.includes('?') ? '&' : '?';
   return `${url}${joiner}tenant_code=${encodeURIComponent(getTenantCode())}`;
+}
+
+function getSensitiveRsaPublicKey() {
+  if (cachedSensitiveBundle && cachedSensitiveBundle.public_key && cachedSensitiveBundle.kid) {
+    return Promise.resolve(cachedSensitiveBundle);
+  }
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/security/rsa-public-key`,
+      method: 'GET',
+      header: getHeader(),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300 && res.data && res.data.public_key) {
+          cachedSensitiveBundle = {
+            kid: String(res.data.kid || 'v1'),
+            public_key: res.data.public_key,
+          };
+          resolve(cachedSensitiveBundle);
+          return;
+        }
+        reject(new ApiError(res.statusCode, res.data?.detail || '获取加密公钥失败'));
+      },
+      fail: (err) => reject(err),
+    });
+  });
 }
 
 /** 是否非加密连接（用于登录页安全提示） */
@@ -230,17 +257,29 @@ function registerParticipant(data) {
       filteredData[key] = data[key];
     }
   }
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${baseUrl}/participants/`,
-      method: 'POST',
-      header: getHeader(true),
-      data: filteredData,
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-      },
-      fail: (err) => reject(err),
+  return getSensitiveRsaPublicKey().then((bundle) => {
+    const payload = { ...filteredData };
+    if (payload.phone) {
+      payload.phone_encrypted = encryptWithPublicKey(payload.phone, bundle.public_key);
+      delete payload.phone;
+    }
+    if (payload.identity_number) {
+      payload.identity_number_encrypted = encryptWithPublicKey(payload.identity_number, bundle.public_key);
+      delete payload.identity_number;
+    }
+    payload.encryption_kid = bundle.kid;
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: `${baseUrl}/participants/`,
+        method: 'POST',
+        header: getHeader(true),
+        data: payload,
+        success: (res) => {
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+          else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+        },
+        fail: (err) => reject(err),
+      });
     });
   });
 }
@@ -595,19 +634,35 @@ function getUserDetail(userId) {
 
 /** 绑定用户信息 */
 function bindUserInfo(bindInfo) {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${baseUrl}/users/bind-info`,
-      method: 'PUT',
-      header: getHeader(true),
-      data: bindInfo,
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-      },
-      fail: (err) => reject(err),
+  return getSensitiveRsaPublicKey()
+    .then((bundle) => {
+      const payload = { ...bindInfo };
+      if (payload.phone) {
+        payload.phone_encrypted = encryptWithPublicKey(payload.phone, bundle.public_key);
+        delete payload.phone;
+      }
+      if (payload.identity_number) {
+        payload.identity_number_encrypted = encryptWithPublicKey(payload.identity_number, bundle.public_key);
+        delete payload.identity_number;
+      }
+      payload.encryption_kid = bundle.kid;
+      return new Promise((resolve, reject) => {
+        wx.request({
+          url: `${baseUrl}/users/bind-info`,
+          method: 'PUT',
+          header: getHeader(true),
+          data: payload,
+          success: (res) => {
+            if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+            else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+          },
+          fail: (err) => reject(err),
+        });
+      });
+    })
+    .catch((err) => {
+      return Promise.reject(err);
     });
-  });
 }
 
 /** 绑定用户信息（静默实名认证：后端同时验证姓名+证件号是否匹配微信实名） */
@@ -690,17 +745,29 @@ function createPaymentOrder(payload) {
       data[key] = payload[key];
     }
   });
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${baseUrl}/payments/create`,
-      method: 'POST',
-      header: getHeader(true),
-      data,
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-      },
-      fail: (err) => reject(err),
+  return getSensitiveRsaPublicKey().then((bundle) => {
+    const requestPayload = { ...data };
+    if (requestPayload.phone) {
+      requestPayload.phone_encrypted = encryptWithPublicKey(requestPayload.phone, bundle.public_key);
+      delete requestPayload.phone;
+    }
+    if (requestPayload.identity_number) {
+      requestPayload.identity_number_encrypted = encryptWithPublicKey(requestPayload.identity_number, bundle.public_key);
+      delete requestPayload.identity_number;
+    }
+    requestPayload.encryption_kid = bundle.kid;
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: `${baseUrl}/payments/create`,
+        method: 'POST',
+        header: getHeader(true),
+        data: requestPayload,
+        success: (res) => {
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+          else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+        },
+        fail: (err) => reject(err),
+      });
     });
   });
 }
@@ -833,36 +900,27 @@ function unblockUser(userId) {
   });
 }
 
-/** 微信支付实名认证：用 auth_code 换取 access_token */
-function exchangeRealnameToken(payload) {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${baseUrl}/realname-auth/exchange-token`,
-      method: 'POST',
-      header: getHeader(),
-      data: payload,
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-      },
-      fail: (err) => reject(err),
-    });
-  });
-}
-
-/** 微信支付实名认证：验证姓名与证件号 */
+/** 微信实名校验：传入授权 code + 姓名 + 证件号，后端调用官方接口核验 */
 function verifyRealname(payload) {
-  return new Promise((resolve, reject) => {
-    wx.request({
-      url: `${baseUrl}/realname-auth/verify`,
-      method: 'POST',
-      header: getHeader(),
-      data: payload,
-      success: (res) => {
-        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-      },
-      fail: (err) => reject(err),
+  return getSensitiveRsaPublicKey().then((bundle) => {
+    const requestPayload = { ...payload };
+    if (requestPayload.cred_id) {
+      requestPayload.cred_id_encrypted = encryptWithPublicKey(requestPayload.cred_id, bundle.public_key);
+      delete requestPayload.cred_id;
+    }
+    requestPayload.encryption_kid = bundle.kid;
+    return new Promise((resolve, reject) => {
+      wx.request({
+        url: `${baseUrl}/realname-auth/verify`,
+        method: 'POST',
+        header: getHeader(true),
+        data: requestPayload,
+        success: (res) => {
+          if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+          else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+        },
+        fail: (err) => reject(err),
+      });
     });
   });
 }
@@ -912,7 +970,6 @@ module.exports = {
   uploadAvatar,
   blockUser,
   unblockUser,
-  exchangeRealnameToken,
   verifyRealname,
   ApiError,
 };

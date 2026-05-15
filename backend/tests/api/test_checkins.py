@@ -3,6 +3,7 @@
 """
 import pytest
 from fastapi import status
+from app.core.pii import mask_name
 from tests.conftest import auth_headers
 
 
@@ -125,10 +126,11 @@ class TestCheckIn:
 
         saved = db_session.query(CheckInRecord).filter(
             CheckInRecord.activity_id == activity.id,
-            CheckInRecord.identity_number == "110101199001019988",
+            CheckInRecord.tenant_id == other_tenant.id,
         ).first()
         assert saved is not None
         assert saved.tenant_id == other_tenant.id
+        assert saved.identity_number == "110101199001019988"
 
     def test_checkin_missing_fields(self, client, user_token, active_activity):
         """测试缺少必填字段"""
@@ -480,8 +482,8 @@ class TestCheckInPermissions:
 
         assert response.status_code == status.HTTP_200_OK
         names = {item["name"] for item in response.json()}
-        assert "可见签到" in names
-        assert "不可见签到" not in names
+        assert mask_name("可见签到") in names
+        assert mask_name("不可见签到") not in names
 
     def test_user_can_checkin(self, client, user_token, active_activity, db_session):
         """测试用户可以签到 - 需要先报名"""

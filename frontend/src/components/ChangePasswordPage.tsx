@@ -6,7 +6,6 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { apiRequest, API_PATHS } from '../config/api';
-import { setToken } from '../lib/auth';
 
 const ChangePasswordPage = () => {
   const [password, setPassword] = useState('');

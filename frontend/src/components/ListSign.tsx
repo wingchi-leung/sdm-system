@@ -60,7 +60,6 @@ const ListSignIn = ({ peopleList, activityId, activityName }: ListSignInProps) =
       });
 
     } catch (error: any) {
-    console.error('Sign in failed:', error);
     toast({
       title: "签到失败",
       description: error || "请稍后重试。",

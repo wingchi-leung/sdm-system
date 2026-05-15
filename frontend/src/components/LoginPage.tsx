@@ -5,14 +5,14 @@ import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { isUnsafeApiUrl, loginApi } from '../config/api';
+import { authMeApi, isUnsafeApiUrl, loginApi } from '../config/api';
 import {
+  clearToken,
   clearTenantContext,
   isAuthenticated,
   isPlatformAdmin,
   setAuthInfo,
   setTenantInfo,
-  setToken,
 } from '../lib/auth';
 
 const LoginPage = () => {
@@ -27,9 +27,25 @@ const LoginPage = () => {
   const redirectTo = searchParams.get('redirect') || '/dashboard';
 
   useEffect(() => {
-    if (isAuthenticated()) {
+    let mounted = true;
+    const checkSession = async () => {
+      if (!isAuthenticated()) {
+        return;
+      }
+      const result = await authMeApi();
+      if (!mounted) {
+        return;
+      }
+      if (result.error || !result.data?.auth) {
+        clearToken();
+        return;
+      }
       navigate(isPlatformAdmin() ? '/tenants' : redirectTo, { replace: true });
-    }
+    };
+    void checkSession();
+    return () => {
+      mounted = false;
+    };
   }, [navigate, redirectTo]);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -47,12 +63,12 @@ const LoginPage = () => {
     setLoading(false);
 
     if (result.error) {
+      clearToken();
       setError(result.error);
       return;
     }
 
     const data = result.data!;
-    setToken(data.access_token);
     setTenantInfo(data.tenant);
     setAuthInfo({
       is_admin: data.auth.is_admin,

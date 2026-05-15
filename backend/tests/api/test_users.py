@@ -2,8 +2,11 @@
 用户管理 API 测试
 """
 import pytest
+import base64
 from fastapi import status
 from types import SimpleNamespace
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from tests.conftest import auth_headers
 
 
@@ -142,6 +145,113 @@ class TestUserProfile:
                 "identity_number": sample_user.identity_number,
             }
         )
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_update_my_profile_accepts_encrypted_phone_and_identity_number(
+        self,
+        client,
+        user_token,
+        sample_user,
+        monkeypatch,
+    ):
+        """测试 bind-info 支持接口层 RSA 密文字段。"""
+        from app.core.config import settings
+        from app.core import sensitive_field_crypto
+
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        public_key = private_key.public_key()
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("utf-8")
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        ).decode("utf-8")
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PRIVATE_KEY", private_pem, raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PUBLIC_KEY", public_pem, raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_KEY_ID", "v1", raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PRIVATE_KEYS_JSON", None, raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PUBLIC_KEYS_JSON", None, raising=False)
+        sensitive_field_crypto._load_private_key_map.cache_clear()
+        sensitive_field_crypto._load_private_key_by_kid.cache_clear()
+
+        phone_cipher = base64.b64encode(public_key.encrypt(
+            sample_user.phone.encode("utf-8"),
+            padding.PKCS1v15(),
+        )).decode("utf-8")
+        identity_cipher = base64.b64encode(public_key.encrypt(
+            sample_user.identity_number.encode("utf-8"),
+            padding.PKCS1v15(),
+        )).decode("utf-8")
+
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(user_token),
+            json={
+                "name": "加密资料用户",
+                "sex": "male",
+                "age": 25,
+                "occupation": "工程师",
+                "phone_encrypted": phone_cipher,
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number_encrypted": identity_cipher,
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_update_my_profile_accepts_encrypted_identity_without_phone_cipher_when_phone_already_bound(
+        self,
+        client,
+        user_token,
+        sample_user,
+        monkeypatch,
+    ):
+        """测试 bind-info 在手机号只读场景下可仅传加密证件号。"""
+        from app.core.config import settings
+        from app.core import sensitive_field_crypto
+
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        public_key = private_key.public_key()
+        private_pem = private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("utf-8")
+        public_pem = public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        ).decode("utf-8")
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PRIVATE_KEY", private_pem, raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PUBLIC_KEY", public_pem, raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_KEY_ID", "v1", raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PRIVATE_KEYS_JSON", None, raising=False)
+        monkeypatch.setattr(settings, "SENSITIVE_RSA_PUBLIC_KEYS_JSON", None, raising=False)
+        sensitive_field_crypto._load_private_key_map.cache_clear()
+        sensitive_field_crypto._load_private_key_by_kid.cache_clear()
+
+        identity_cipher = base64.b64encode(public_key.encrypt(
+            sample_user.identity_number.encode("utf-8"),
+            padding.PKCS1v15(),
+        )).decode("utf-8")
+
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(user_token),
+            json={
+                "name": "只读手机号用户",
+                "sex": "male",
+                "age": 25,
+                "occupation": "工程师",
+                "industry": "IT",
+                "identity_type": "mainland",
+                "identity_number_encrypted": identity_cipher,
+            },
+        )
+
         assert response.status_code == status.HTTP_200_OK
 
     def test_update_profile_phone_not_allowed(self, client, user_token, sample_user):

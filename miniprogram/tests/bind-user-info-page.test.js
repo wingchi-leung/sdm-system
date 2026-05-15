@@ -93,3 +93,23 @@ test('绑定资料页港澳台通行证使用通用证件号长度校验', () =>
 
   assert.equal(page.validateForm(), null);
 });
+
+test('绑定资料页遇到脱敏手机号时应锁定手机号输入框并展示脱敏值', () => {
+  const pageConfig = loadBindUserInfoPage({
+    tenant: {
+      applyPageOptions() {},
+    },
+    wxMock: {
+      getStorageSync(key) {
+        if (key === 'wechat_phone') return '138****8000';
+        return '';
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+
+  page.onLoad({});
+
+  assert.equal(page.data.phoneReadonly, true);
+  assert.equal(page.data.formData.phone, '138****8000');
+});

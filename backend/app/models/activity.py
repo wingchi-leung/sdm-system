@@ -1,7 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from datetime import datetime
 from typing import Optional, List
 from .participant import ParticipantBase
+from app.core.pii import mask_email, mask_identity_number, mask_name, mask_phone
 
 
 class ActivityBase(BaseModel):
@@ -83,6 +84,7 @@ class ActivityExportParticipantRow(BaseModel):
     enroll_status: int
     payment_status: int
     payment_order_id: Optional[int] = None
+    payment_suggested_fee: Optional[int] = None
     paid_amount: int
     why_join: Optional[str] = None
     channel: Optional[str] = None
@@ -93,6 +95,22 @@ class ActivityExportParticipantRow(BaseModel):
     payment_paid_at: Optional[datetime] = None
     create_time: datetime
     update_time: datetime
+
+    @field_serializer('participant_name')
+    def serialize_participant_name(self, value: str) -> str | None:
+        return mask_name(value)
+
+    @field_serializer('phone')
+    def serialize_phone(self, value: str) -> str | None:
+        return mask_phone(value)
+
+    @field_serializer('identity_number')
+    def serialize_identity_number(self, value: str | None) -> str | None:
+        return mask_identity_number(value)
+
+    @field_serializer('email')
+    def serialize_email(self, value: str | None) -> str | None:
+        return mask_email(value)
 
 
 class ActivityExportItem(BaseModel):

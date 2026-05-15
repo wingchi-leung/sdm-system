@@ -295,9 +295,7 @@ const PermissionsPage = () => {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-slate-900">权限与管理员</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            先把管理员视图、角色分配和 scope 可视化做成正式后台页，继续向完整 RBAC 管理演进。
-          </p>
+         
         </div>
         <Button onClick={() => handleAssignDialogChange(true)}>
           <Plus className="h-4 w-4" />
@@ -323,7 +321,7 @@ const PermissionsPage = () => {
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <div>
               <CardTitle className="text-xl">管理员列表</CardTitle>
-              <p className="mt-1 text-sm text-slate-500">只展示已经分配角色的后台管理员，避免与普通用户列表混用。</p>
+              <p className="mt-1 text-sm text-slate-500">只展示已经分配角色的后台管理员</p>
             </div>
             <div className="w-full max-w-xs">
               <Input

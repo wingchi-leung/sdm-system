@@ -62,14 +62,6 @@
           <text class="field-label">行业</text>
           <view class="readonly-value">{{industry || '未设置'}}</view>
         </view>
-        <view class="field field-readonly">
-          <text class="field-label">证件类型</text>
-          <view class="readonly-value">{{identityTypeLabel || '未设置'}}</view>
-        </view>
-        <view class="field field-readonly">
-          <text class="field-label">证件号码</text>
-          <view class="readonly-value">{{identityNumber || '未设置'}}</view>
-        </view>
       </view>
     </view>
 

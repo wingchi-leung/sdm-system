@@ -1,20 +1,52 @@
 """
 支付 API 测试
 """
-import json
 from datetime import datetime, timedelta
+import base64
 
 import pytest
 from fastapi import status
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 
-from app.crud import crud_payment
+from app.crud import crud_credential, crud_payment
+from app.core.config import settings
+from app.core import sensitive_field_crypto
 from app.schemas import ActivityParticipant, PaymentOrder
 from app.tasks import scheduler
 from tests.conftest import auth_headers
 
+_TEST_RSA_PUBLIC_KEY = None
+
+
+@pytest.fixture(autouse=True)
+def setup_sensitive_rsa_keys(monkeypatch):
+    global _TEST_RSA_PUBLIC_KEY
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_key = private_key.public_key()
+    private_pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode("utf-8")
+    public_pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    ).decode("utf-8")
+    monkeypatch.setattr(settings, "SENSITIVE_RSA_KEY_ID", "v1", raising=False)
+    monkeypatch.setattr(settings, "SENSITIVE_RSA_PRIVATE_KEY", private_pem, raising=False)
+    monkeypatch.setattr(settings, "SENSITIVE_RSA_PUBLIC_KEY", public_pem, raising=False)
+    monkeypatch.setattr(settings, "SENSITIVE_RSA_PRIVATE_KEYS_JSON", None, raising=False)
+    monkeypatch.setattr(settings, "SENSITIVE_RSA_PUBLIC_KEYS_JSON", None, raising=False)
+    sensitive_field_crypto._load_private_key_map.cache_clear()
+    sensitive_field_crypto._load_private_key_by_kid.cache_clear()
+    sensitive_field_crypto._load_public_key_map.cache_clear()
+    _TEST_RSA_PUBLIC_KEY = public_key
+    yield
+
 
 def _payment_request_payload(activity_id: int) -> dict:
-    return {
+    payload = {
         "activity_id": activity_id,
         "participant_name": "支付报名用户",
         "phone": "13900139111",
@@ -32,11 +64,62 @@ def _payment_request_payload(activity_id: int) -> dict:
         "has_questions": "暂无",
         "actual_fee": 1000,
     }
+    phone_plain = payload.get("phone")
+    if phone_plain:
+        payload["phone_encrypted"] = base64.b64encode(
+            _TEST_RSA_PUBLIC_KEY.encrypt(phone_plain.encode("utf-8"), padding.PKCS1v15())
+        ).decode("utf-8")
+        payload["encryption_kid"] = "v1"
+    identity_plain = payload.get("identity_number")
+    if identity_plain:
+        payload["identity_number_encrypted"] = base64.b64encode(
+            _TEST_RSA_PUBLIC_KEY.encrypt(identity_plain.encode("utf-8"), padding.PKCS1v15())
+        ).decode("utf-8")
+    return payload
+
+
+def _bind_wechat_openid(db_session, user, openid: str) -> None:
+    crud_credential.bind_wechat_credential(
+        db_session,
+        user_id=user.id,
+        tenant_id=user.tenant_id,
+        openid=openid,
+    )
+    db_session.commit()
+
+
+def _create_pending_participant(db_session, activity, user, payload: dict) -> ActivityParticipant:
+    participant = ActivityParticipant(
+        tenant_id=user.tenant_id,
+        activity_id=activity.id,
+        user_id=user.id,
+        participant_name=payload["participant_name"],
+        phone=payload["phone"],
+        identity_number=payload["identity_number"],
+        identity_type=payload["identity_type"],
+        sex=payload["sex"],
+        age=payload["age"],
+        occupation=payload["occupation"],
+        email=payload["email"],
+        industry=payload["industry"],
+        why_join=payload["why_join"],
+        channel=payload["channel"],
+        expectation=payload["expectation"],
+        activity_understanding=payload["activity_understanding"],
+        has_questions=payload["has_questions"],
+        enroll_status=1,
+        payment_status=1,
+        paid_amount=0,
+    )
+    db_session.add(participant)
+    db_session.commit()
+    db_session.refresh(participant)
+    return participant
 
 
 @pytest.mark.api
 class TestPaymentEndpoints:
-    def test_create_payment_order_saves_participant_snapshot(
+    def test_create_payment_order_stores_encrypted_participant_only(
         self,
         client,
         db_session,
@@ -47,7 +130,7 @@ class TestPaymentEndpoints:
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_payment_create"
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_payment_create")
         sample_user.name = "资料库用户"
         sample_user.phone = "13800138000"
         sample_user.identity_number = "110101199001011234"
@@ -64,7 +147,7 @@ class TestPaymentEndpoints:
                 return "SDMTESTORDER001"
 
             def create_jsapi_order(self, **kwargs):
-                return {"prepay_id": "prepay_test_001"}
+                return 200, {"prepay_id": "prepay_test_001"}
 
             def get_mini_program_payment_params(self, prepay_id):
                 return {
@@ -107,21 +190,21 @@ class TestPaymentEndpoints:
             PaymentOrder.order_no == "SDMTESTORDER001"
         ).first()
         assert order is not None
-        assert order.participant_name == "资料库用户"
-        assert order.phone == "13800138000"
-        snapshot = json.loads(order.participant_snapshot)
-        assert snapshot["participant_name"] == "资料库用户"
-        assert snapshot["phone"] == "13800138000"
-        assert snapshot["identity_number"] == "110101199001011234"
-        assert snapshot["sex"] == "F"
-        assert snapshot["age"] == 28
-        assert snapshot["occupation"] == "产品经理"
-        assert snapshot["email"] == "profile@example.com"
-        assert snapshot["industry"] == "教育"
-        assert snapshot["why_join"] == "想系统学习"
-        assert snapshot["channel"] == "朋友推荐"
-        assert snapshot["expectation"] == "提升能力"
-        assert snapshot["user_id"] == sample_user.id
+        assert order.participant_id is not None
+
+        participant = db_session.get(ActivityParticipant, order.participant_id)
+        assert participant is not None
+        assert participant.participant_name == "资料库用户"
+        assert participant.phone == "13800138000"
+        assert participant.identity_number is None
+        assert participant.identity_type is None
+        assert participant.payment_status == 1
+        assert participant.why_join == "想系统学习"
+        assert participant.channel == "朋友推荐"
+        assert participant.expectation == "提升能力"
+        assert participant._participant_name_ciphertext != "资料库用户"
+        assert participant._phone_ciphertext != "13800138000"
+        assert participant._identity_number_ciphertext != "110101199001011234"
 
     def test_admin_cannot_create_payment_order(
         self,
@@ -149,12 +232,10 @@ class TestPaymentEndpoints:
         sample_user,
         user_token,
     ):
-        """测试已结束付费活动不能继续下单"""
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
         sample_activity.status = 3
-        sample_user.wx_openid = "wx_openid_ended_payment"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_ended_payment")
 
         response = client.post(
             "/api/v1/payments/create",
@@ -171,14 +252,12 @@ class TestPaymentEndpoints:
         db_session,
         sample_activity,
         blocked_user,
-        monkeypatch,
     ):
         from app.core.security import create_access_token
 
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        blocked_user.wx_openid = "wx_openid_blocked_payment"
-        db_session.commit()
+        _bind_wechat_openid(db_session, blocked_user, "wx_openid_blocked_payment")
 
         blocked_token = create_access_token(
             sub=str(blocked_user.id),
@@ -195,7 +274,7 @@ class TestPaymentEndpoints:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert "无法报名" in response.json()["detail"]
 
-    def test_create_payment_order_rejects_pending_order(
+    def test_create_payment_order_reuses_pending_order(
         self,
         client,
         db_session,
@@ -206,8 +285,7 @@ class TestPaymentEndpoints:
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_pending"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_pending")
 
         class FakePayService:
             def get_mini_program_payment_params(self, prepay_id):
@@ -224,19 +302,19 @@ class TestPaymentEndpoints:
             lambda: FakePayService(),
         )
 
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
         crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMPENDING001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_pending",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id="prepay_pending",
             tenant_id=sample_user.tenant_id,
-            participant_name="待支付用户",
-            phone="13900139112",
-            participant_snapshot=_payment_request_payload(sample_activity.id),
         )
 
         response = client.post(
@@ -259,27 +337,25 @@ class TestPaymentEndpoints:
         user_token,
         monkeypatch,
     ):
-        """测试查询订单时能从微信侧成功状态补偿落库"""
         from app.api.v1.endpoints import payments as payments_endpoint
 
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_query_recover"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_query_recover")
 
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
         order = crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMQUERYRECOVER001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_query_recover",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id="prepay_query_recover",
             tenant_id=sample_user.tenant_id,
-            participant_name=sample_user.name,
-            phone=sample_user.phone,
-            participant_snapshot=_payment_request_payload(sample_activity.id),
         )
 
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_APPID", "wx-test-app")
@@ -287,14 +363,14 @@ class TestPaymentEndpoints:
 
         class FakePayService:
             def query_order(self, order_no):
-                return {
+                return 200, {
                     "out_trade_no": order_no,
                     "transaction_id": "wx_txn_query_recover",
                     "trade_state": "SUCCESS",
                     "appid": "wx-test-app",
                     "mchid": "mch-test",
                     "amount": {"total": 1000},
-                    "payer": {"openid": sample_user.wx_openid},
+                    "payer": {"openid": "wx_openid_query_recover"},
                 }
 
         monkeypatch.setattr(
@@ -310,40 +386,60 @@ class TestPaymentEndpoints:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["status"] == crud_payment.PAYMENT_STATUS_SUCCESS
-        assert data["participant_id"] is not None
+        assert data["participant_id"] == participant.id
 
-        participant = db_session.query(ActivityParticipant).filter(
-            ActivityParticipant.payment_order_id == order.id,
-        ).one()
+        db_session.refresh(participant)
         assert participant.payment_status == 2
+        assert participant.payment_order_id == order.id
 
-    def test_create_payment_order_rejects_creating_order(
+    def test_create_payment_order_retries_stuck_creating_order(
         self,
         client,
         db_session,
         sample_activity,
         sample_user,
         user_token,
+        monkeypatch,
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_creating"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_creating")
 
-        crud_payment.create_payment_order(
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
+        stale_order = crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMCREATING001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_creating",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id=None,
             tenant_id=sample_user.tenant_id,
-            participant_name="创建中用户",
-            phone="13900139114",
-            participant_snapshot=_payment_request_payload(sample_activity.id),
             status=crud_payment.PAYMENT_STATUS_CREATING,
+        )
+
+        class FakePayService:
+            def generate_order_no(self):
+                return "SDMCREATING002"
+
+            def create_jsapi_order(self, **kwargs):
+                return 200, {"prepay_id": "prepay_creating_002"}
+
+            def get_mini_program_payment_params(self, prepay_id):
+                return {
+                    "timeStamp": "1710000004",
+                    "nonceStr": "nonce_creating",
+                    "package": f"prepay_id={prepay_id}",
+                    "signType": "RSA",
+                    "paySign": "signature_creating",
+                }
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.get_wechat_pay_service",
+            lambda: FakePayService(),
         )
 
         response = client.post(
@@ -352,8 +448,11 @@ class TestPaymentEndpoints:
             json=_payment_request_payload(sample_activity.id),
         )
 
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "订单创建中" in response.json()["detail"]
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["order_no"] == "SDMCREATING002"
+
+        db_session.refresh(stale_order)
+        assert stale_order.status == crud_payment.PAYMENT_STATUS_FAILED
 
     def test_create_payment_order_closes_remote_order_when_db_save_fails(
         self,
@@ -366,8 +465,7 @@ class TestPaymentEndpoints:
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_db_fail"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_db_fail")
 
         closed_orders: list[str] = []
 
@@ -376,11 +474,11 @@ class TestPaymentEndpoints:
                 return "SDMDBFAIL001"
 
             def create_jsapi_order(self, **kwargs):
-                return {"prepay_id": "prepay_db_fail"}
+                return 200, {"prepay_id": "prepay_db_fail"}
 
             def close_order(self, order_no):
                 closed_orders.append(order_no)
-                return {"status": "closed"}
+                return 200, {"status": "closed"}
 
             def get_mini_program_payment_params(self, prepay_id):
                 return {
@@ -419,7 +517,7 @@ class TestPaymentEndpoints:
         ).first()
         assert order is None or order.status == crud_payment.PAYMENT_STATUS_FAILED
 
-    def test_payment_notify_creates_waitlist_participant_with_snapshot_fields(
+    def test_payment_notify_updates_waitlist_participant(
         self,
         client,
         db_session,
@@ -428,10 +526,12 @@ class TestPaymentEndpoints:
         user_token,
         monkeypatch,
     ):
+        from app.api.v1.endpoints import payments as payments_endpoint
+
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
         sample_activity.max_participants = 1
-        sample_user.wx_openid = "wx_openid_notify"
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_notify")
         db_session.add(
             ActivityParticipant(
                 tenant_id=sample_user.tenant_id,
@@ -445,23 +545,23 @@ class TestPaymentEndpoints:
         )
         db_session.commit()
 
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
+        participant.enroll_status = 2
+        db_session.commit()
+
         order = crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMNOTIFY001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_notify",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id="prepay_notify",
             tenant_id=sample_user.tenant_id,
-            participant_name="支付报名用户",
-            phone="13900139111",
-            participant_snapshot=_payment_request_payload(sample_activity.id),
         )
-        order_id = order.id
-
-        from app.api.v1.endpoints import payments as payments_endpoint
 
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_APPID", "wx-test-app")
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_PAY_MCH_ID", "mch-test")
@@ -476,7 +576,7 @@ class TestPaymentEndpoints:
                         "appid": "wx-test-app",
                         "mchid": "mch-test",
                         "amount": {"total": 1000},
-                        "payer": {"openid": sample_user.wx_openid},
+                        "payer": {"openid": "wx_openid_notify"},
                     }
                 }
 
@@ -495,11 +595,8 @@ class TestPaymentEndpoints:
         assert notify_response.json()["code"] == "SUCCESS"
 
         db_session.refresh(order)
-        assert order.status == 1
-        assert order.participant_id is not None
-
-        participant = db_session.get(ActivityParticipant, order.participant_id)
-        assert participant is not None
+        db_session.refresh(participant)
+        assert order.status == crud_payment.PAYMENT_STATUS_SUCCESS
         assert participant.enroll_status == 2
         assert participant.payment_status == 2
         assert participant.paid_amount == 1000
@@ -524,28 +621,28 @@ class TestPaymentEndpoints:
         sample_user,
         monkeypatch,
     ):
+        from app.api.v1.endpoints import payments as payments_endpoint
+
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_mismatch"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_mismatch")
 
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
         order = crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMMISMATCH001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_mismatch",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id="prepay_mismatch",
             tenant_id=sample_user.tenant_id,
-            participant_name="支付报名用户",
-            phone="13900139111",
-            participant_snapshot=_payment_request_payload(sample_activity.id),
         )
         order_id = order.id
-
-        from app.api.v1.endpoints import payments as payments_endpoint
+        participant_id = participant.id
 
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_APPID", "wx-test-app")
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_PAY_MCH_ID", "mch-test")
@@ -560,7 +657,7 @@ class TestPaymentEndpoints:
                         "appid": "wx-test-app",
                         "mchid": "mch-test",
                         "amount": {"total": 1},
-                        "payer": {"openid": sample_user.wx_openid},
+                        "payer": {"openid": "wx_openid_mismatch"},
                     }
                 }
 
@@ -578,10 +675,6 @@ class TestPaymentEndpoints:
         assert notify_response.status_code == status.HTTP_200_OK
         assert notify_response.json()["code"] == "FAIL"
 
-        participant = db_session.query(ActivityParticipant).filter(
-            ActivityParticipant.payment_order_id == order_id
-        ).first()
-        assert participant is None
 
     def test_payment_notify_without_identity_number_uses_user_uniqueness(
         self,
@@ -592,15 +685,18 @@ class TestPaymentEndpoints:
         user_token,
         monkeypatch,
     ):
+        from app.api.v1.endpoints import payments as payments_endpoint
+
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
-        sample_user.wx_openid = "wx_openid_no_identity"
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_no_identity")
         sample_user.identity_number = None
         db_session.commit()
 
         payload = _payment_request_payload(sample_activity.id)
         payload["identity_number"] = None
         payload["identity_type"] = None
+        payload["identity_number_encrypted"] = None
 
         class FakePayService:
             def __init__(self):
@@ -610,7 +706,7 @@ class TestPaymentEndpoints:
                 return self.order_no
 
             def create_jsapi_order(self, **kwargs):
-                return {"prepay_id": "prepay_no_identity"}
+                return 200, {"prepay_id": "prepay_no_identity"}
 
             def get_mini_program_payment_params(self, prepay_id):
                 return {
@@ -630,13 +726,11 @@ class TestPaymentEndpoints:
                         "appid": "wx-test-app",
                         "mchid": "mch-test",
                         "amount": {"total": 1000},
-                        "payer": {"openid": sample_user.wx_openid},
+                        "payer": {"openid": "wx_openid_no_identity"},
                     }
                 }
 
         fake_pay_service = FakePayService()
-
-        from app.api.v1.endpoints import payments as payments_endpoint
 
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_APPID", "wx-test-app")
         monkeypatch.setattr(payments_endpoint.settings, "WECHAT_PAY_MCH_ID", "mch-test")
@@ -686,22 +780,21 @@ class TestPaymentScheduler:
         monkeypatch,
     ):
         sample_activity.require_payment = 1
-        sample_user.wx_openid = "wx_openid_scheduler_success"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_scheduler_success")
 
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
         order = crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMSCHEDSUCCESS001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_scheduler_success",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id="prepay_scheduler_success",
             tenant_id=sample_user.tenant_id,
-            participant_name="调度测试用户",
-            phone="13900139115",
-            participant_snapshot=_payment_request_payload(sample_activity.id),
         )
         order.expire_at = datetime.now() - timedelta(minutes=1)
         db_session.commit()
@@ -711,7 +804,7 @@ class TestPaymentScheduler:
                 raise RuntimeError("close failed")
 
             def query_order(self, order_no):
-                return {"trade_state": "SUCCESS"}
+                return 200, {"trade_state": "SUCCESS"}
 
         monkeypatch.setattr(scheduler, "SessionLocal", lambda: db_session)
         monkeypatch.setattr(db_session, "close", lambda: None)
@@ -735,22 +828,21 @@ class TestPaymentScheduler:
         monkeypatch,
     ):
         sample_activity.require_payment = 1
-        sample_user.wx_openid = "wx_openid_scheduler_notpay"
-        db_session.commit()
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_scheduler_notpay")
 
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
         order = crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMSCHEDNOTPAY001",
             activity_id=sample_activity.id,
             user_id=sample_user.id,
-            openid=sample_user.wx_openid,
+            participant_id=participant.id,
+            openid="wx_openid_scheduler_notpay",
             suggested_fee=1000,
             actual_fee=1000,
             prepay_id="prepay_scheduler_notpay",
             tenant_id=sample_user.tenant_id,
-            participant_name="调度测试用户",
-            phone="13900139116",
-            participant_snapshot=_payment_request_payload(sample_activity.id),
         )
         order.expire_at = datetime.now() - timedelta(minutes=1)
         db_session.commit()
@@ -760,7 +852,7 @@ class TestPaymentScheduler:
                 raise RuntimeError("close failed")
 
             def query_order(self, order_no):
-                return {"trade_state": "NOTPAY"}
+                return 200, {"trade_state": "NOTPAY"}
 
         monkeypatch.setattr(scheduler, "SessionLocal", lambda: db_session)
         monkeypatch.setattr(db_session, "close", lambda: None)

@@ -39,6 +39,7 @@ describe('activity-export helpers', () => {
           enroll_status: 1,
           payment_status: 2,
           payment_order_id: 99,
+          payment_suggested_fee: 19900,
           paid_amount: 19900,
           why_join: '提升自己',
           channel: '朋友推荐',
@@ -60,8 +61,9 @@ describe('activity-export helpers', () => {
       报名状态: '已报名',
       支付状态: '已支付',
       支付订单号: 'PO001',
+      报名费: '¥199.00',
       姓名: '李四',
-      手机号: '13800138000',
+      手机号脱敏: '13800138000',
       证件类型: '中国大陆身份证',
     });
   });

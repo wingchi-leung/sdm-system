@@ -1,7 +1,12 @@
-import { getToken } from '../lib/auth';
+const DEFAULT_API_BASE_URL = 'http://localhost:8000/api/v1';
+const DEFAULT_STATIC_BASE_URL = 'http://localhost:8000';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
-const STATIC_BASE_URL = process.env.REACT_APP_STATIC_URL || 'http://localhost:8000';
+const BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_BASE_URL;
+const STATIC_BASE_URL = process.env.REACT_APP_STATIC_URL || DEFAULT_STATIC_BASE_URL;
+
+function getConfigHint(): string {
+  return `请检查前端环境变量 REACT_APP_API_URL（当前: ${BASE_URL}）以及后端服务/CORS是否可用`;
+}
 
 export function getImageUrl(url: string | null | undefined): string {
   if (!url) {
@@ -32,6 +37,7 @@ export function isUnsafeApiUrl(): boolean {
 export const API_PATHS = {
   auth: {
     login: `${BASE_URL}/auth/login`,
+    logout: `${BASE_URL}/auth/logout`,
     setPassword: `${BASE_URL}/auth/set-password`,
     setAdminPassword: `${BASE_URL}/auth/set-admin-password`,
     me: `${BASE_URL}/auth/me`,
@@ -156,6 +162,18 @@ export function formatApiError(errorPayload: unknown, fallback: string): string 
   return fallback;
 }
 
+export function formatNetworkError(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return `网络请求异常，${getConfigHint()}`;
+  }
+
+  if (error.message === 'Failed to fetch') {
+    return `网络连接失败（Failed to fetch），${getConfigHint()}。若使用浏览器插件，请先用无痕模式验证是否为插件拦截。`;
+  }
+
+  return error.message;
+}
+
 export const apiRequest = async <T>(
   url: string,
   options: RequestInit = {},
@@ -165,15 +183,11 @@ export const apiRequest = async <T>(
     ...(options.headers as Record<string, string>),
   };
 
-  const token = getToken();
-  if (token) {
-    (headers as Record<string, string>).Authorization = `Bearer ${token}`;
-  }
-
   try {
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include',
     });
 
     const text = await response.text();
@@ -186,13 +200,13 @@ export const apiRequest = async <T>(
     return { data: payload as T };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : '网络请求异常',
+      error: formatNetworkError(error),
     };
   }
 };
 
 export interface LoginResponseData {
-  access_token: string;
+  access_token?: string;
   user: { id: number; name: string | null; phone: string | null };
   tenant: { id: number; name: string; code: string } | null;
   auth: {
@@ -205,6 +219,10 @@ export interface LoginResponseData {
   };
 }
 
+export const authMeApi = async (): Promise<ApiResponse<LoginResponseData>> => {
+  return apiRequest<LoginResponseData>(API_PATHS.auth.me, { method: 'GET' });
+};
+
 export const loginApi = async (
   identifier: string,
   password: string,
@@ -214,6 +232,7 @@ export const loginApi = async (
     const response = await fetch(API_PATHS.auth.login, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ identifier, password, tenant_code: tenantCode }),
     });
     const data = await response.json();
@@ -224,6 +243,10 @@ export const loginApi = async (
 
     return { data };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : '网络错误' };
+    return { error: formatNetworkError(error) };
   }
+};
+
+export const logoutApi = async (): Promise<ApiResponse<{ status: string; message: string }>> => {
+  return apiRequest(API_PATHS.auth.logout, { method: 'POST' });
 };

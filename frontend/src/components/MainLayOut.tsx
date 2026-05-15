@@ -12,6 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 import { Button } from './ui/button';
+import { logoutApi } from '../config/api';
 import { clearToken, getIsSuperAdmin, getPermissions, getTenantName, isAuthenticated, isPlatformAdmin } from '../lib/auth';
 import { cn } from '../lib/utils';
 
@@ -64,9 +65,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     return <div className="min-h-screen bg-slate-100">{children}</div>;
   }
 
-  const handleLogout = () => {
-    clearToken();
-    navigate('/login', { replace: true });
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } finally {
+      clearToken();
+      navigate('/login', { replace: true });
+    }
   };
 
   return (

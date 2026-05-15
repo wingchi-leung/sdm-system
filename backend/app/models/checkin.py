@@ -1,6 +1,8 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from datetime import datetime
 from typing import Optional
+
+from app.core.pii import mask_identity_number, mask_name, mask_phone
 
 class CheckInBase(BaseModel):
     activity_id: int = Field(..., gt=0)
@@ -19,6 +21,18 @@ class CheckInResponse(CheckInBase):
     checkin_time: datetime
     create_time: datetime
     update_time: datetime
+
+    @field_serializer('name')
+    def serialize_name(self, value: str) -> str | None:
+        return mask_name(value)
+
+    @field_serializer('identity_number')
+    def serialize_identity_number(self, value: str | None) -> str | None:
+        return mask_identity_number(value)
+
+    @field_serializer('phone')
+    def serialize_phone(self, value: str | None) -> str | None:
+        return mask_phone(value)
 
     class Config:
         from_attributes = True

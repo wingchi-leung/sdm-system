@@ -57,8 +57,7 @@ export const ImportTemplateConfig: React.FC<ImportTemplateConfigProps> = ({ onCo
         const maxIndex = Math.max(...Object.keys(response.data.column_mapping).map(Number), -1);
         setNextColumn(maxIndex + 1);
       }
-    } catch (error) {
-      console.error('获取模板失败', error);
+    } catch (_) {
     } finally {
       setLoading(false);
     }
@@ -132,8 +131,8 @@ export const ImportTemplateConfig: React.FC<ImportTemplateConfigProps> = ({ onCo
         setOpen(false);
         onConfigSaved?.();
       }
-    } catch (error) {
-      console.error('保存模板失败', error);
+    } catch (_) {
+      alert('保存模板失败，请稍后重试');
     } finally {
       setSaving(false);
     }
@@ -149,8 +148,8 @@ export const ImportTemplateConfig: React.FC<ImportTemplateConfigProps> = ({ onCo
       setMappings({});
       setNextColumn(0);
       onConfigSaved?.();
-    } catch (error) {
-      console.error('删除模板失败', error);
+    } catch (_) {
+      alert('删除模板失败，请稍后重试');
     }
   };
 

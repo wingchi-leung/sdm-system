@@ -47,8 +47,7 @@ export const ImportUsers: React.FC<ImportUsersProps> = ({ onImportSuccess }) => 
     try {
       const response = await apiRequest<TemplateResponse>(API_PATHS.users.importTemplate);
       setTemplate(response.data || null);
-    } catch (error) {
-      console.error('获取模板失败', error);
+    } catch (_) {
     } finally {
       setLoading(false);
     }
@@ -127,8 +126,8 @@ export const ImportUsers: React.FC<ImportUsersProps> = ({ onImportSuccess }) => 
           onImportSuccess?.();
         }
       }
-    } catch (error) {
-      console.error('导入失败', error);
+    } catch (_) {
+      alert('导入失败，请稍后重试');
     } finally {
       setImporting(false);
     }

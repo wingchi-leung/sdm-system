@@ -3,6 +3,7 @@
 """
 import pytest
 from fastapi import status
+from app.core.pii import mask_identity_number, mask_name, mask_phone
 from tests.conftest import auth_headers
 
 
@@ -25,8 +26,8 @@ class TestParticipantRegistration:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["activity_id"] == sample_activity.id
-        assert data["participant_name"] == sample_user.name
-        assert data["phone"] == sample_user.phone
+        assert data["participant_name"] == mask_name(sample_user.name)
+        assert data["phone"] == mask_phone(sample_user.phone)
 
     def test_register_ignores_client_supplied_user_id(
         self,
@@ -64,9 +65,9 @@ class TestParticipantRegistration:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["user_id"] == sample_user.id
-        assert data["participant_name"] == sample_user.name
-        assert data["phone"] == sample_user.phone
-        assert data["identity_number"] == sample_user.identity_number
+        assert data["participant_name"] == mask_name(sample_user.name)
+        assert data["phone"] == mask_phone(sample_user.phone)
+        assert data["identity_number"] == mask_identity_number(sample_user.identity_number)
 
     def test_register_duplicate_participation(self, client, user_token, sample_participant, sample_user, db_session):
         """测试同一登录用户重复报名"""

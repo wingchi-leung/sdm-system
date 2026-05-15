@@ -105,6 +105,7 @@ def _create_role_with_permissions(
         "activity.delete": ("activity", "delete"),
         "participant.view": ("participant", "view"),
         "user.view": ("user", "view"),
+        "checkin.manage": ("checkin", "manage"),
         "admin.manage": ("admin", "manage"),
         "role.manage": ("role", "manage"),
     }
@@ -347,6 +348,7 @@ def super_admin(db_session: Session, default_tenant: Tenant) -> User:
             "activity.edit",
             "activity.delete",
             "participant.view",
+            "checkin.manage",
             "user.view",
             "admin.manage",
             "role.manage",
@@ -370,6 +372,7 @@ def activity_admin(db_session: Session, sample_activity_type: ActivityType, defa
             "activity.edit",
             "activity.delete",
             "participant.view",
+            "checkin.manage",
         ],
         scope_type="activity_type",
         scope_id=sample_activity_type.id,

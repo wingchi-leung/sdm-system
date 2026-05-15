@@ -122,7 +122,7 @@ class UserFactory(SQLAlchemyModelFactory):
                 status=1,
             ))
 
-        openid = kwargs.get("wx_openid")
+        openid = kwargs.get("wx_openid") or getattr(obj, "_pending_wx_openid", None)
         if openid and not session.query(UserCredential).filter_by(
             tenant_id=obj.tenant_id,
             credential_type="wechat",

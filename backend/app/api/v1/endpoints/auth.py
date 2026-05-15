@@ -5,11 +5,12 @@ from urllib.request import urlopen, Request as UrllibRequest
 from urllib.error import HTTPError, URLError
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.core.config import settings
+from app.core.pii import mask_name, mask_phone
 from app.crud import crud_credential, crud_user, crud_tenant, crud_rbac
 from app.core.security import create_access_token, BCRYPT_MAX_BYTES
 from app.models.auth import (
@@ -41,6 +42,42 @@ def _is_https(request: Request) -> bool:
     if proto == "https":
         return True
     return request.url.scheme == "https"
+
+
+def _auth_cookie_secure(request: Request) -> bool:
+    return settings.AUTH_COOKIE_SECURE or _is_https(request)
+
+
+def _set_auth_cookie(response: Response, request: Request, token: str) -> None:
+    response.set_cookie(
+        key=settings.AUTH_COOKIE_NAME,
+        value=token,
+        max_age=settings.JWT_EXPIRE_MINUTES * 60,
+        httponly=True,
+        secure=_auth_cookie_secure(request),
+        samesite=settings.AUTH_COOKIE_SAMESITE,
+        domain=settings.AUTH_COOKIE_DOMAIN,
+        path="/",
+    )
+
+
+def _clear_auth_cookie(response: Response, request: Request) -> None:
+    response.delete_cookie(
+        key=settings.AUTH_COOKIE_NAME,
+        httponly=True,
+        secure=_auth_cookie_secure(request),
+        samesite=settings.AUTH_COOKIE_SAMESITE,
+        domain=settings.AUTH_COOKIE_DOMAIN,
+        path="/",
+    )
+
+
+def _masked_user_info(db_user: User) -> UserInfo:
+    return UserInfo(
+        id=db_user.id,
+        name=mask_name(db_user.name),
+        phone=mask_phone(db_user.phone),
+    )
 
 
 def _check_login_rate_limit(ip: str) -> None:
@@ -111,7 +148,12 @@ def _token_role_from_auth(auth_info: AuthInfo) -> str:
 # ============================================================
 
 @router.post("/login", response_model=LoginResponse)
-def login(request: Request, body: LoginRequest, db: Session = Depends(deps.get_db)):
+def login(
+    request: Request,
+    response: Response,
+    body: LoginRequest,
+    db: Session = Depends(deps.get_db),
+):
     _enforce_https_and_rate_limit(request)
     _check_password_length(body.password)
 
@@ -141,13 +183,20 @@ def login(request: Request, body: LoginRequest, db: Session = Depends(deps.get_d
 
     auth_info = _build_auth_info(db, user.id, tenant_id)
     token = create_access_token(user.id, tenant_id, role=_token_role_from_auth(auth_info))
+    _set_auth_cookie(response, request, token)
 
     return LoginResponse(
         access_token=token,
-        user=UserInfo(id=user.id, name=user.name, phone=user.phone),
+        user=_masked_user_info(user),
         tenant=tenant_info,
         auth=auth_info,
     )
+
+
+@router.post("/logout")
+def logout(request: Request, response: Response):
+    _clear_auth_cookie(response, request)
+    return {"status": "success", "message": "已退出登录"}
 
 
 # ============================================================
@@ -300,12 +349,12 @@ def wechat_auth(request: Request, body: WechatAuthRequest, db: Session = Depends
 
     return WechatAuthResponse(
         access_token=token,
-        user=UserInfo(id=user.id, name=user.name, phone=user.phone),
+        user=_masked_user_info(user),
         tenant=TenantInfo(id=tenant.id, name=tenant.name, code=tenant.code),
         auth=auth_info,
         is_first_login=is_first_login,
         require_bind_info=is_first_login,
-        phone=phone,
+        phone=mask_phone(phone),
         wechat_payment_ready=wechat_payment_ready,
         wechat_payment_hint=wechat_payment_hint,
     )
@@ -361,7 +410,7 @@ def get_me(db: Session = Depends(deps.get_db), ctx: deps.AuthContext = Depends(d
     auth_info = _build_auth_info(db, user.id, ctx.tenant_id)
     return LoginResponse(
         access_token="",
-        user=UserInfo(id=user.id, name=user.name, phone=user.phone),
+        user=_masked_user_info(user),
         tenant=tenant_info,
         auth=auth_info,
     )

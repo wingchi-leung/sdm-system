@@ -451,6 +451,7 @@ class TestActivityExport:
         first_participant = first_activity["participants"][0]
         assert first_participant["participant_name"] == "报名用户"
         assert first_participant["payment_order_no"] == "PO20260509001"
+        assert first_participant["payment_suggested_fee"] == 9900
         assert first_participant["paid_amount"] == 9900
         assert data["activities"][1]["participants"] == []
 

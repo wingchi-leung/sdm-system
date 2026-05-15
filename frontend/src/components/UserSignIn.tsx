@@ -47,7 +47,6 @@ const handleSubmit = async (e: React.FormEvent) => {
     setName('');
     
   } catch (error) {
-    console.error('Sign in failed:', error);
     toast({
       title: "签到失败",
       description: "请稍后重试。",

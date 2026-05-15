@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+    # Web 管理端会话 Cookie：token 仅由后端写入/读取，前端 JS 不可访问。
+    AUTH_COOKIE_NAME: str = "sdm_admin_session"
+    AUTH_COOKIE_SECURE: bool = False
+    AUTH_COOKIE_SAMESITE: str = "lax"
+    AUTH_COOKIE_DOMAIN: Optional[str] = None
     # 生产环境建议设为 True：仅允许通过 HTTPS 发起的登录请求，避免密码明文传输
     REQUIRE_HTTPS_FOR_LOGIN: bool = False
     # 登录限流：每个 IP 在此时间窗内最多允许的登录尝试次数
@@ -44,9 +49,6 @@ class Settings(BaseSettings):
     WECHAT_PAY_PUBLIC_KEY_PATH: Optional[str] = None   # 微信支付公钥文件路径
     WECHAT_PAY_PUBLIC_KEY_ID: Optional[str] = None     # 微信支付公钥ID（PUB_KEY_ID_...）
 
-    # 微信支付实名认证开关（true=启用，false=跳过静默校验，仅做格式校验）
-    WECHAT_REALNAME_VERIFY_ENABLED: bool = False
-
     # 数据库配置
     DB_ECHO: bool = False  # 是否打印 SQL 日志，生产环境应设为 False
 
@@ -62,6 +64,20 @@ class Settings(BaseSettings):
 
     # 密码哈希配置：bcrypt 工作因子（12 是推荐值，平衡安全性和性能）
     BCRYPT_ROUNDS: int = 12
+    # 敏感信息保护密钥：建议生产环境单独配置；未配置时回退到 JWT_SECRET 派生
+    PII_ENCRYPTION_KEY: Optional[str] = None
+    # 接口层敏感字段 RSA 解密密钥（PEM 文本）
+    SENSITIVE_RSA_PRIVATE_KEY: Optional[str] = None
+    # 接口层敏感字段 RSA 公钥（PEM 文本，下发给小程序用于加密）
+    SENSITIVE_RSA_PUBLIC_KEY: Optional[str] = None
+    # 当前生效的敏感字段加密密钥版本（kid）
+    SENSITIVE_RSA_KEY_ID: str = "v1"
+    # 多版本私钥映射（JSON 字符串）：{"v1":"-----BEGIN PRIVATE KEY-----...","v2":"..."}
+    SENSITIVE_RSA_PRIVATE_KEYS_JSON: Optional[str] = None
+    # 多版本公钥映射（JSON 字符串）：{"v1":"-----BEGIN PUBLIC KEY-----...","v2":"..."}
+    SENSITIVE_RSA_PUBLIC_KEYS_JSON: Optional[str] = None
+    # 是否强制敏感字段必须走接口层密文（生产建议 true）
+    REQUIRE_ENCRYPTED_SENSITIVE_FIELDS: bool = False
 
     # 文件上传配置
     MAX_POSTER_SIZE: int = 5 * 1024 * 1024  # 海报最大尺寸 5MB

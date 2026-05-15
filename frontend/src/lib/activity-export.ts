@@ -15,6 +15,7 @@ export interface ActivityExportParticipantRow {
   enroll_status: number;
   payment_status: number;
   payment_order_id?: number | null;
+  payment_suggested_fee?: number | null;
   paid_amount: number;
   why_join?: string | null;
   channel?: string | null;
@@ -71,13 +72,14 @@ export interface ActivityExportSheetRow {
   支付状态: string;
   支付订单ID: number | string;
   支付订单号: string;
+  报名费: string;
   支付时间: string;
   实付金额: string;
   用户ID: number | string;
   姓名: string;
-  手机号: string;
+  手机号脱敏: string;
   证件类型: string;
-  证件号: string;
+  证件号脱敏: string;
   性别: string;
   年龄: number | string;
   职业: string;
@@ -161,13 +163,14 @@ export function buildActivityExportSheetRows(activity: ActivityExportItem): Acti
       支付状态: '',
       支付订单ID: '',
       支付订单号: '',
+      报名费: '',
       支付时间: '',
       实付金额: '',
       用户ID: '',
       姓名: '',
-      手机号: '',
+      手机号脱敏: '',
       证件类型: '',
-      证件号: '',
+      证件号脱敏: '',
       性别: '',
       年龄: '',
       职业: '',
@@ -190,13 +193,14 @@ export function buildActivityExportSheetRows(activity: ActivityExportItem): Acti
     支付状态: formatPaymentStatus(participant.payment_status),
     支付订单ID: participant.payment_order_id ?? '',
     支付订单号: sanitizeStringValue(participant.payment_order_no),
+    报名费: activity.require_payment === 1 ? formatCurrency(participant.payment_suggested_fee ?? activity.suggested_fee) : '免费',
     支付时间: participant.payment_paid_at ? formatDateTime(participant.payment_paid_at) : '',
     实付金额: participant.payment_status === 2 ? formatCurrency(participant.paid_amount) : '',
     用户ID: participant.user_id ?? '',
     姓名: participant.participant_name,
-    手机号: participant.phone,
+    手机号脱敏: participant.phone,
     证件类型: formatIdentityType(participant.identity_type),
-    证件号: sanitizeStringValue(participant.identity_number),
+    证件号脱敏: sanitizeStringValue(participant.identity_number),
     性别: sanitizeStringValue(participant.sex),
     年龄: participant.age ?? '',
     职业: sanitizeStringValue(participant.occupation),

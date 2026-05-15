@@ -1,11 +1,9 @@
 """
 支付订单数据库操作
 """
-import json
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Optional
 
-from fastapi import HTTPException
 from sqlalchemy import and_
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
@@ -24,14 +22,12 @@ def create_payment_order(
     order_no: str,
     activity_id: int,
     user_id: Optional[int],
+    participant_id: Optional[int],
     openid: str,
     suggested_fee: int,
     actual_fee: int,
     prepay_id: str,
     tenant_id: int,
-    participant_name: Optional[str] = None,
-    phone: Optional[str] = None,
-    participant_snapshot: Optional[dict[str, Any]] = None,
     expire_minutes: int = 30,
     status: int = PAYMENT_STATUS_PENDING,
 ) -> PaymentOrder:
@@ -48,8 +44,6 @@ def create_payment_order(
         actual_fee: 实际支付金额（分）
         prepay_id: 预支付ID
         tenant_id: 租户ID
-        participant_name: 报名人姓名
-        phone: 报名人手机号
         expire_minutes: 过期时间（分钟）
 
     Returns:
@@ -60,12 +54,7 @@ def create_payment_order(
         order_no=order_no,
         activity_id=activity_id,
         user_id=user_id,
-        participant_name=participant_name,
-        phone=phone,
-        participant_snapshot=(
-            json.dumps(participant_snapshot, ensure_ascii=False)
-            if participant_snapshot is not None else None
-        ),
+        participant_id=participant_id,
         suggested_fee=suggested_fee,
         actual_fee=actual_fee,
         status=status,
@@ -164,21 +153,6 @@ def mark_payment_order_failed(
     else:
         db.flush()
     return persistent_order
-
-
-def parse_participant_snapshot(order: PaymentOrder) -> dict[str, Any]:
-    """解析报名快照"""
-    if not order.participant_snapshot:
-        raise HTTPException(status_code=500, detail="支付订单缺少报名快照")
-    try:
-        snapshot = json.loads(order.participant_snapshot)
-    except json.JSONDecodeError as exc:
-        raise HTTPException(status_code=500, detail="支付订单报名快照损坏") from exc
-    if not isinstance(snapshot, dict):
-        raise HTTPException(status_code=500, detail="支付订单报名快照格式错误")
-    return snapshot
-
-
 def close_expired_orders(db: Session, tenant_id: Optional[int] = None) -> int:
     """
     关闭过期订单

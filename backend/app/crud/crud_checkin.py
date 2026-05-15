@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from typing import List, Optional
 
 from app.schemas import CheckInRecord, Activity
+from app.core.pii import blind_index, mask_identity_number, mask_name, mask_phone
 
 
 def get_recent_checkins(
@@ -41,9 +42,9 @@ def get_recent_checkins(
             "id": r.id,
             "activity_id": r.activity_id,
             "user_id": r.user_id,
-            "name": r.name,
-            "identity_number": r.identity_number,
-            "phone": r.phone,
+            "name": mask_name(r.name),
+            "identity_number": mask_identity_number(r.identity_number),
+            "phone": mask_phone(r.phone),
             "checkin_time": r.checkin_time,
             "has_attend": r.has_attend,
             "note": r.note,
@@ -113,7 +114,7 @@ def check_already_checkin(db: Session, activity_id: int, identity_number: str, t
     """检查是否已签到（租户隔离）"""
     existing_checkin = db.query(CheckInRecord).filter(
         CheckInRecord.activity_id == activity_id,
-        CheckInRecord.identity_number == identity_number,
+        CheckInRecord.identity_number_hash == blind_index(identity_number, purpose="identity_number"),
         CheckInRecord.tenant_id == tenant_id
     ).first()
     

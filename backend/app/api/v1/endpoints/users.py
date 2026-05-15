@@ -6,6 +6,12 @@ from datetime import datetime
 
 from app.crud import crud_user, crud_tenant, crud_rbac
 from app.api import deps
+from app.core.pii import mask_email, mask_name, mask_phone
+from app.core.sensitive_field_crypto import (
+    SensitiveFieldCryptoError,
+    decrypt_sensitive_field,
+    get_sensitive_public_key_bundle,
+)
 from app.models import user
 from app.models.user import ImportTemplateRequest, ImportTemplateResponse, ImportExcelRequest, ImportResult
 from app.schemas import User
@@ -32,9 +38,9 @@ def _serialize_admin_user_list_item(db_user: User) -> user.UserListItemForAdmin:
     return user.UserListItemForAdmin(
         id=db_user.id,
         tenant_id=db_user.tenant_id,
-        name=db_user.name,
-        phone=db_user.phone,
-        email=db_user.email,
+        name=mask_name(db_user.name),
+        phone=mask_phone(db_user.phone),
+        email=mask_email(db_user.email),
         sex=db_user.sex,
         age=db_user.age,
         occupation=db_user.occupation,
@@ -80,24 +86,51 @@ def create_user(
 
 
 @router.put("/bind-info")
-def bind_user_info(
-    bind_info: user.UserBindInfoRequest,
+async def bind_user_info(
     request: Request,
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """绑定用户完整信息"""
     try:
-        # 是否跳过微信实名验证（header 传 X-Skip-Realname-Verify: true）
-        skip_realname = request.headers.get("X-Skip-Realname-Verify", "").lower() == "true"
+        body = await request.json()
+        payload = dict(body or {})
+        kid = payload.get("encryption_kid")
+
+        encrypted_phone = payload.get("phone_encrypted")
+        encrypted_identity = payload.get("identity_number_encrypted")
+        if not encrypted_identity:
+            raise HTTPException(status_code=400, detail="敏感字段必须使用加密传输")
+        if encrypted_phone:
+            payload["phone"] = decrypt_sensitive_field(encrypted_phone, kid)
+        else:
+            db_user = crud_user.get_user(db, user_id=ctx.user_id, tenant_id=ctx.tenant_id)
+            if db_user is None or not db_user.phone:
+                raise HTTPException(status_code=400, detail="缺少可用手机号，请重新登录授权手机号后再绑定")
+            payload["phone"] = db_user.phone
+        if encrypted_identity:
+            payload["identity_number"] = decrypt_sensitive_field(encrypted_identity, kid)
+
+        bind_info = user.UserBindInfoRequest.model_validate(payload)
         crud_user.update_user_bind_info(
-            db, ctx.user_id, ctx.tenant_id, bind_info, skip_realname_verify=skip_realname
+            db, ctx.user_id, ctx.tenant_id, bind_info
         )
         return {"success": True, "message": "信息绑定成功"}
+    except SensitiveFieldCryptoError:
+        raise HTTPException(status_code=400, detail="敏感字段解密失败")
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"绑定失败: {str(e)}")
+
+
+@router.get("/security/rsa-public-key")
+def get_rsa_public_key():
+    """返回小程序敏感字段加密公钥。"""
+    try:
+        return get_sensitive_public_key_bundle()
+    except SensitiveFieldCryptoError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
 
 @router.put("/avatar", response_model=user.UserResponse)
