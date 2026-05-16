@@ -88,7 +88,7 @@ const UserManagement = () => {
       const skip = (currentPage - 1) * pageSize;
       const keywordQuery = keyword.trim() ? `&keyword=${encodeURIComponent(keyword.trim())}` : '';
       const response = await apiRequest<UserAdminListResponse>(
-        `${API_PATHS.users.adminAll}?skip=${skip}&limit=${pageSize}${keywordQuery}`,
+        `${API_PATHS.users.adminAllWeb}?skip=${skip}&limit=${pageSize}${keywordQuery}`,
       );
 
       if (response.error) {

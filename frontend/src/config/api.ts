@@ -47,6 +47,7 @@ export const API_PATHS = {
     create: `${BASE_URL}/users/create`,
     detail: (id: number) => `${BASE_URL}/users/${id}`,
     adminAll: `${BASE_URL}/users/admin/all`,
+    adminAllWeb: `${BASE_URL}/users/admin/all-web`,
     block: (id: number) => `${BASE_URL}/users/${id}/block`,
     unblock: (id: number) => `${BASE_URL}/users/${id}/unblock`,
     importTemplate: `${BASE_URL}/users/import-template`,

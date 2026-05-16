@@ -64,7 +64,7 @@ const DashboardPage = () => {
       try {
         const [activityRes, userRes] = await Promise.all([
           apiRequest<ActivityListResponse>(`${API_PATHS.activities.list}?skip=0&limit=100`),
-          apiRequest<AdminUserListResponse>(`${API_PATHS.users.adminAll}?skip=0&limit=100`),
+          apiRequest<AdminUserListResponse>(`${API_PATHS.users.adminAllWeb}?skip=0&limit=100`),
         ]);
 
         if (activityRes.error) {

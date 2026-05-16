@@ -48,7 +48,7 @@ async function fetchActivitiesForReports(): Promise<ActivityItem[]> {
 
 async function fetchUsersForReports(): Promise<UserItem[]> {
   return fetchAllPaginatedItems<UserItem>(
-    (skip, limit) => `${API_PATHS.users.adminAll}?skip=${skip}&limit=${limit}`,
+    (skip, limit) => `${API_PATHS.users.adminAllWeb}?skip=${skip}&limit=${limit}`,
     100,
   );
 }
