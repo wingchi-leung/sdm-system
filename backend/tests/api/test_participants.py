@@ -369,17 +369,20 @@ class TestParticipantRetrieval:
         assert data["items"][0]["id"] == active_activity.id
         assert data["items"][0]["enroll_status"] == 2
 
-    def test_admin_cannot_get_my_participant_activities(
+    def test_super_admin_get_my_participant_activities_empty(
         self,
         client,
         super_admin_token,
     ):
-        """测试管理员不能查看自己的报名活动列表"""
+        """测试超级管理员查看报名活动列表返回空（超级管理员不报名活动）"""
         response = client.get(
             "/api/v1/participants/me/activities",
             headers=auth_headers(super_admin_token),
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["total"] == 0
+        assert data["items"] == []
 
 
 @pytest.mark.api

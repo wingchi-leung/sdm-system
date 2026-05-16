@@ -57,8 +57,7 @@ async def create_participant(
     """
     tenant_id = ctx.tenant_id
 
-    if ctx.role == "admin":
-        raise HTTPException(status_code=403, detail="管理员账号不能直接报名")
+    # 活动管理员和普通用户一样可以报名
     try:
         payload = dict(await request.json() or {})
         participant_in = participant.ParticipantCreate.model_validate(payload)
@@ -137,8 +136,7 @@ def get_my_participant_activities(
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """获取当前登录用户报名过的活动列表。"""
-    if ctx.role == "admin":
-        raise HTTPException(status_code=403, detail="管理员账号没有报名活动")
+    # 超级管理员无需报名活动，普通用户和管理员都可以查看已报名的活动
 
     items, total = crud_participant.get_user_participant_activities(
         db,

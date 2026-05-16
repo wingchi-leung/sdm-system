@@ -83,6 +83,11 @@ class AuthContext:
     def is_platform_admin(self) -> bool:
         return self.tenant_id is not None and self.tenant_id == 0
 
+    def has_super_admin_role(self, db: Session) -> bool:
+        """判断是否拥有全局（无范围限制）管理员权限"""
+        roles = self._load_roles(db)
+        return any(r.scope_type is None for r in roles)
+
     @property
     def role(self) -> str:
         """向后兼容：旧代码读 ctx.role"""
