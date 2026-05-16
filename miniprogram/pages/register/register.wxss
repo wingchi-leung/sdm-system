@@ -210,6 +210,7 @@
   line-height: 1.35;
   margin-bottom: 12rpx;
   font-family: "Songti SC", "STSong", "SimSun", serif;
+  font-weight: 500;
 }
 
 .field-label.required::after {
@@ -234,7 +235,7 @@
 
 .control-wrap.active::after {
   height: 1rpx;
-  background: #111111;
+  background: #e9e9e9;
 }
 
 .input,
@@ -242,7 +243,7 @@
 .readonly-value {
   width: 100%;
   color: #111111;
-  font-size: 28rpx;
+  font-size: 26rpx;
   line-height: 1.45;
   padding: 0;
   margin: 0;
@@ -262,7 +263,7 @@
 
 .input-placeholder {
   color: #a9a9a9;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
@@ -293,11 +294,15 @@
   flex: 1;
 }
 
+.fee-control::after {
+  display: none;
+}
+
 .fee-hint {
   display: block;
   margin-top: 14rpx;
   color: #909090;
-  font-size: 28rpx;
+  font-size: 26rpx;
   line-height: 1.4;
   font-family: "Songti SC", "STSong", "SimSun", serif;
 }
