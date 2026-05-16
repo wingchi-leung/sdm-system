@@ -35,11 +35,16 @@ def _ensure_can_read_activity_community(
     ctx: deps.AuthContext,
     activity_id: int,
 ) -> None:
-    _ensure_activity_exists(db, activity_id=activity_id, tenant_id=ctx.tenant_id)
+    activity = _ensure_activity_exists(db, activity_id=activity_id, tenant_id=ctx.tenant_id)
 
-    if ctx.role == "admin":
+    # 管理能力（活动级 / 活动类型级 / 全局）可直接查看
+    if deps.has_activity_permission(db, ctx, activity_id, "participant.view"):
         return
 
+    if deps.has_activity_permission(db, ctx, activity_id, "activity.edit"):
+        return
+
+    # 用户能力：已报名同样可查看（兼容“用户+管理员”混合身份）
     if not crud_participant.has_user_joined_activity(
         db,
         activity_id=activity_id,
@@ -141,9 +146,6 @@ def create_comment(
     ctx: deps.AuthContext = Depends(deps.get_current_user),
 ):
     """发表评论，仅限已报名学员。"""
-    if ctx.role == "admin":
-        raise HTTPException(status_code=403, detail="管理员账号不能发表评论")
-
     post = _ensure_post_exists(db, post_id=post_id, tenant_id=ctx.tenant_id)
     _ensure_can_read_activity_community(db, ctx=ctx, activity_id=post["activity_id"])
     comment = crud_community_comment.create_comment(

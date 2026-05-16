@@ -51,6 +51,24 @@ def _serialize_admin_user_list_item(db_user: User) -> user.UserListItemForAdmin:
         update_time=_normalize_admin_user_list_time(getattr(db_user, "update_time", None)),
     )
 
+def _serialize_admin_user_list_item_raw(db_user: User) -> user.UserListItemForAdmin:
+    """Web 管理端专用：返回未脱敏字段。"""
+    return user.UserListItemForAdmin(
+        id=db_user.id,
+        tenant_id=db_user.tenant_id,
+        name=db_user.name,
+        phone=db_user.phone,
+        email=db_user.email,
+        sex=db_user.sex,
+        age=db_user.age,
+        occupation=db_user.occupation,
+        industry=db_user.industry,
+        isblock=db_user.isblock or 0,
+        block_reason=db_user.block_reason,
+        create_time=_normalize_admin_user_list_time(getattr(db_user, "create_time", None)),
+        update_time=_normalize_admin_user_list_time(getattr(db_user, "update_time", None)),
+    )
+
 
 @router.post("/register", response_model=user.UserResponse)
 def register(body: user.RegisterRequest, db: Session = Depends(deps.get_db)):
@@ -217,6 +235,48 @@ def get_all_users_for_super_admin(
 
     return user.UserListForAdminResponse(
         items=[_serialize_admin_user_list_item(u) for u in users],
+        total=total,
+        skip=skip,
+        limit=limit,
+    )
+
+@router.get("/admin/all-web", response_model=user.UserListForAdminResponse)
+def get_all_users_for_super_admin_web(
+    tenant_code: str = Query("default", description="租户编码，默认default"),
+    skip: int = Query(0, ge=0, description="跳过记录数"),
+    limit: int = Query(20, ge=1, le=100, description="每页记录数"),
+    keyword: Optional[str] = Query(None, description="搜索关键字（姓名、手机号）"),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin_or_platform),
+):
+    """
+    Web 管理端专用用户列表（按租户筛选，未脱敏）。
+    平台管理员可跨租户筛选；租户管理员只能查询当前租户。
+    """
+    tenant = crud_tenant.get_tenant_by_code(db, tenant_code)
+    if not tenant:
+        raise HTTPException(status_code=400, detail="租户不存在")
+
+    if ctx.is_platform_admin:
+        if not crud_tenant.check_tenant_active(db, tenant.id):
+            raise HTTPException(status_code=400, detail="租户不存在或已禁用")
+    else:
+        is_super = crud_rbac.has_permission(db, ctx.user_id, "user.view", ctx.tenant_id)
+        if not is_super:
+            raise HTTPException(status_code=403, detail="仅超级管理员可访问")
+        if tenant.id != ctx.tenant_id:
+            raise HTTPException(status_code=403, detail="不能跨租户查看用户")
+
+    users, total = crud_user.get_all_users_for_super_admin(
+        db,
+        tenant_id=tenant.id,
+        skip=skip,
+        limit=limit,
+        keyword=keyword,
+    )
+
+    return user.UserListForAdminResponse(
+        items=[_serialize_admin_user_list_item_raw(u) for u in users],
         total=total,
         skip=skip,
         limit=limit,

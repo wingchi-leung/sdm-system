@@ -278,8 +278,8 @@ async def create_payment_order(
     tenant_id = ctx.tenant_id
     user_id = ctx.user_id
 
-    if ctx.role == "admin":
-        raise HTTPException(status_code=403, detail="管理员账号不能直接报名或发起支付")
+    if ctx.user_id is None or not ctx.tenant_id or ctx.tenant_id <= 0:
+        raise HTTPException(status_code=403, detail="当前登录身份不可发起支付")
     try:
         payload = dict(await request.json() or {})
         payload = _decrypt_payment_payload(payload)

@@ -206,14 +206,39 @@ class TestPaymentEndpoints:
         assert participant._phone_ciphertext != "13800138000"
         assert participant._identity_number_ciphertext != "110101199001011234"
 
-    def test_admin_cannot_create_payment_order(
+    def test_admin_can_create_payment_order_when_has_user_identity(
         self,
         client,
+        db_session,
         sample_activity,
         super_admin_token,
+        super_admin,
+        monkeypatch,
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
+        _bind_wechat_openid(db_session, super_admin, "wx_openid_admin_pay")
+
+        class FakePayService:
+            def generate_order_no(self):
+                return "SDMADMINPAY001"
+
+            def create_jsapi_order(self, **kwargs):
+                return 200, {"prepay_id": "prepay_admin_pay_001"}
+
+            def get_mini_program_payment_params(self, prepay_id):
+                return {
+                    "timeStamp": "1710000010",
+                    "nonceStr": "nonce_admin_pay",
+                    "package": f"prepay_id={prepay_id}",
+                    "signType": "RSA",
+                    "paySign": "signature_admin_pay",
+                }
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.get_wechat_pay_service",
+            lambda: FakePayService(),
+        )
 
         response = client.post(
             "/api/v1/payments/create",
@@ -221,8 +246,8 @@ class TestPaymentEndpoints:
             json=_payment_request_payload(sample_activity.id),
         )
 
-        assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert "管理员账号不能直接报名或发起支付" in response.json()["detail"]
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["order_no"] == "SDMADMINPAY001"
 
     def test_ended_activity_rejects_payment_order(
         self,

@@ -21,28 +21,6 @@ install_sensitive_data_filter()
 async def lifespan(app: FastAPI):
     """应用生命周期管理"""
     db = None
-    # 启动诊断：明确打印当前服务目标数据库配置与实际连接库，便于排查“看着有列但运行报缺列”的问题。
-    logger.warning(
-        "数据库配置: host=%s port=%s db=%s user=%s",
-        settings.MYSQL_HOST,
-        settings.MYSQL_PORT,
-        settings.MYSQL_DB,
-        settings.MYSQL_USER,
-    )
-    try:
-        with engine.connect() as conn:
-            current_db = conn.execute(text("SELECT DATABASE()")).scalar()
-            current_host = conn.execute(text("SELECT @@hostname")).scalar()
-            current_port = conn.execute(text("SELECT @@port")).scalar()
-            logger.warning(
-                "数据库连接诊断: current_db=%s mysql_host=%s mysql_port=%s",
-                current_db,
-                current_host,
-                current_port,
-            )
-    except Exception as e:
-        logger.error(f"数据库连接诊断失败: {e}")
-
     try:
         ensure_runtime_schema(engine, Base.metadata)
     except Exception as e:

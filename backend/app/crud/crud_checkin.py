@@ -6,7 +6,6 @@ from fastapi import HTTPException
 from typing import List, Optional
 
 from app.schemas import CheckInRecord, Activity
-from app.core.pii import blind_index, mask_identity_number, mask_name, mask_phone
 
 
 def get_recent_checkins(
@@ -42,9 +41,6 @@ def get_recent_checkins(
             "id": r.id,
             "activity_id": r.activity_id,
             "user_id": r.user_id,
-            "name": mask_name(r.name),
-            "identity_number": mask_identity_number(r.identity_number),
-            "phone": mask_phone(r.phone),
             "checkin_time": r.checkin_time,
             "has_attend": r.has_attend,
             "note": r.note,
@@ -89,7 +85,7 @@ def create_checkin(db: Session, checkin: CheckInCreate, tenant_id: int) -> Check
         if activity.status != 2:
             raise HTTPException(status_code=400, detail="活动不在有效期内！")
 
-        existing_checkin = check_already_checkin(db, checkin.activity_id, checkin.identity_number, tenant_id)
+        existing_checkin = check_already_checkin(db, checkin.activity_id, checkin.user_id, tenant_id)
         if existing_checkin:
             raise HTTPException(status_code=400, detail="Already checked in")
 
@@ -110,11 +106,11 @@ def create_checkin(db: Session, checkin: CheckInCreate, tenant_id: int) -> Check
         raise HTTPException(status_code=400, detail=str(e))
 
 
-def check_already_checkin(db: Session, activity_id: int, identity_number: str, tenant_id: int) -> bool:
+def check_already_checkin(db: Session, activity_id: int, user_id: int, tenant_id: int) -> bool:
     """检查是否已签到（租户隔离）"""
     existing_checkin = db.query(CheckInRecord).filter(
         CheckInRecord.activity_id == activity_id,
-        CheckInRecord.identity_number_hash == blind_index(identity_number, purpose="identity_number"),
+        CheckInRecord.user_id == user_id,
         CheckInRecord.tenant_id == tenant_id
     ).first()
     

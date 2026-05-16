@@ -688,6 +688,49 @@ class TestUserManagement:
         assert data["total"] == 1
         assert data["items"][0]["tenant_id"] == other_tenant.id
 
+    def test_admin_all_web_returns_raw_pii(
+        self,
+        client,
+        db_session,
+        super_admin_token,
+        default_tenant,
+    ):
+        """测试 /admin/all-web 返回未脱敏字段（仅 Web 管理端专用）。"""
+        from app.schemas import User
+
+        raw_user = User(
+            tenant_id=default_tenant.id,
+            name="明文姓名",
+            phone="13800138123",
+            email="raw@example.com",
+            isblock=0,
+        )
+        db_session.add(raw_user)
+        db_session.commit()
+
+        masked_res = client.get(
+            "/api/v1/users/admin/all",
+            headers=auth_headers(super_admin_token),
+        )
+        assert masked_res.status_code == status.HTTP_200_OK
+        masked_items = masked_res.json()["items"]
+        masked_target = next((item for item in masked_items if item["id"] == raw_user.id), None)
+        assert masked_target is not None
+        assert masked_target["name"] != "明文姓名"
+        assert masked_target["phone"] != "13800138123"
+
+        raw_res = client.get(
+            "/api/v1/users/admin/all-web",
+            headers=auth_headers(super_admin_token),
+        )
+        assert raw_res.status_code == status.HTTP_200_OK
+        raw_items = raw_res.json()["items"]
+        raw_target = next((item for item in raw_items if item["id"] == raw_user.id), None)
+        assert raw_target is not None
+        assert raw_target["name"] == "明文姓名"
+        assert raw_target["phone"] == "13800138123"
+        assert raw_target["email"] == "raw@example.com"
+
     def test_get_users_list_as_normal_user_forbidden(self, client, user_token):
         """测试普通用户获取用户列表被禁止"""
         response = client.get(

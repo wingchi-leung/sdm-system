@@ -95,12 +95,18 @@ def get_activities(
         if status is not None:
             query = query.filter(Activity.status == status)
         scope_filters = []
-        if allowed_activity_type_ids is not None:
+        has_scope_constraints = allowed_activity_type_ids is not None or allowed_activity_ids is not None
+        if has_scope_constraints:
+            scoped_filters = []
             if allowed_activity_type_ids:
-                scope_filters.append(Activity.activity_type_id.in_(allowed_activity_type_ids))
-        if allowed_activity_ids is not None:
+                scoped_filters.append(Activity.activity_type_id.in_(allowed_activity_type_ids))
             if allowed_activity_ids:
-                scope_filters.append(Activity.id.in_(allowed_activity_ids))
+                scoped_filters.append(Activity.id.in_(allowed_activity_ids))
+            # 管理员分配视角：可管理范围 + 公开活动
+            if not apply_public_filter_when_unscoped:
+                scoped_filters.append(Activity.is_public == 1)
+            if scoped_filters:
+                scope_filters.append(or_(*scoped_filters))
 
         # 用户活动分层过滤：公开活动 OR 用户关联类型的活动
         if user_id is not None and user_activity_type_ids is not None:
@@ -202,6 +208,13 @@ def delete_activity(db: Session, activity_id: int, tenant_id: int) -> bool:
         db_activity = get_activity(db, activity_id, tenant_id)
         if not db_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
+
+        participant_exists = db.query(ActivityParticipant.id).filter(
+            ActivityParticipant.activity_id == activity_id,
+            ActivityParticipant.tenant_id == tenant_id,
+        ).first()
+        if participant_exists is not None:
+            raise HTTPException(status_code=400, detail="该活动已有用户报名，不能删除")
         
         db.query(ActivityParticipant).filter(
             ActivityParticipant.activity_id == activity_id,

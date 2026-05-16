@@ -3,11 +3,16 @@ from typing import Optional
 from functools import lru_cache
 import sys
 from pathlib import Path
+import logging
 
+logger = logging.getLogger(__name__)
+
+
+BACKEND_BASE_DIR = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(BACKEND_BASE_DIR / ".env"),
         extra="ignore",
     )
 
@@ -129,11 +134,11 @@ def get_settings() -> Settings:
         settings_instance = Settings()
         # 检查 JWT_SECRET 是否为不安全的默认值
         if settings_instance.JWT_SECRET == _DEFAULT_JWT_SECRET:
-            print("[ERROR] JWT_SECRET 不能使用默认值，请配置环境变量 JWT_SECRET")
+            logger.error("JWT_SECRET 不能使用默认值，请配置环境变量 JWT_SECRET")
             sys.exit(1)
         return settings_instance
     except Exception as e:
-        print(f"[ERROR] 配置加载失败: {e}")
+        logger.error(f"配置加载失败: {e}")
         sys.exit(1)
 
 

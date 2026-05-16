@@ -44,6 +44,22 @@ def _is_super_admin(ctx: deps.TenantContext, db: Session) -> bool:
     return any(user_role.scope_type is None for user_role in user_roles)
 
 
+def _can_user_view_activity(
+    *,
+    db: Session,
+    act: Activity,
+    tenant_id: int,
+    user_id: int | None,
+) -> bool:
+    """用户视角活动可见性：公开活动或用户关联类型。"""
+    if act.is_public == 1:
+        return True
+    if user_id is None:
+        return False
+    user_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
+    return bool(act.activity_type_id and act.activity_type_id in user_type_ids)
+
+
 @router.post("/", response_model=activity.ActivityResponse)
 def create_activity(
     body: activity.ActivityCreate,
@@ -220,14 +236,15 @@ def list_activities(
     limit: int = 100,
     status: int = None,
     tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
+    as_user_view: bool = Query(False, description="按用户视角过滤活动（即使当前账号是管理员）"),
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """活动列表"""
     tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
-    is_admin = bool(ctx and ctx.role == "admin" and ctx.has_any_role(db))
+    is_admin = bool(ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view)
     admin_id = ctx.user_id if is_admin else None
-    user_id = ctx.user_id if ctx and ctx.role == "user" else None
+    user_id = ctx.user_id if ctx else None
 
     allowed_types, allowed_activities = (
         _allowed_scopes_for_list(db, admin_id, tenant_id) if admin_id else (None, None)
@@ -252,14 +269,15 @@ def list_activities(
 @router.get("/unstarted/", response_model=activity.ActivityListResponse)
 def get_unstarted_activities(
     tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
+    as_user_view: bool = Query(False, description="按用户视角过滤活动（即使当前账号是管理员）"),
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
     """未开始活动列表"""
     tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
-    is_admin = bool(ctx and ctx.role == "admin" and ctx.has_any_role(db))
+    is_admin = bool(ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view)
     admin_id = ctx.user_id if is_admin else None
-    user_id = ctx.user_id if ctx and ctx.role == "user" else None
+    user_id = ctx.user_id if ctx else None
 
     allowed_types, allowed_activities = (
         _allowed_scopes_for_list(db, admin_id, tenant_id) if admin_id else (None, None)
@@ -287,6 +305,7 @@ def get_unstarted_activities(
 def get_activity(
     activity_id: int,
     tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
+    as_user_view: bool = Query(False, description="按用户视角访问活动（即使当前账号是管理员）"),
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
 ):
@@ -296,24 +315,98 @@ def get_activity(
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    if ctx and ctx.role == "admin" and ctx.has_any_role(db):
+    if ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view:
         if deps.has_activity_permission(db, ctx, activity_id, "activity.edit") or deps.has_activity_permission(
             db, ctx, activity_id, "participant.view"
+        ):
+            return act
+        # 管理员同时具备用户视角：无管理权限时回退到用户可见性判断
+        if _can_user_view_activity(
+            db=db,
+            act=act,
+            tenant_id=tenant_id,
+            user_id=ctx.user_id,
         ):
             return act
         raise HTTPException(status_code=404, detail="Activity not found")
 
     # 用户活动分层检查：非公开活动需要用户有关联类型
-    if act.is_public != 1:
-        user_id = ctx.user_id if ctx and ctx.role == "user" else None
-        if user_id:
-            user_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
-            if act.activity_type_id not in user_type_ids:
-                raise HTTPException(status_code=404, detail="Activity not found")
-        else:
-            raise HTTPException(status_code=404, detail="Activity not found")
+    if not _can_user_view_activity(
+        db=db,
+        act=act,
+        tenant_id=tenant_id,
+        user_id=ctx.user_id if ctx else None,
+    ):
+        raise HTTPException(status_code=404, detail="Activity not found")
 
     return act
+
+
+@router.get("/{activity_id}/my-permissions", response_model=activity.ActivityPermissionResponse)
+def get_my_activity_permissions(
+    activity_id: int,
+    tenant_code: str = Query("default", description="未登录访问时使用的租户编码"),
+    as_user_view: bool = Query(False, description="按用户视角访问活动（即使当前账号是管理员）"),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
+):
+    """获取当前登录用户对活动的可见与管理权限。"""
+    tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
+    act = crud_activity.get_activity(db, activity_id, tenant_id)
+    if act is None:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    if ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view:
+        can_edit = deps.has_activity_permission(db, ctx, activity_id, "activity.edit")
+        can_delete = deps.has_activity_permission(db, ctx, activity_id, "activity.delete")
+        can_view_participants = deps.has_activity_permission(db, ctx, activity_id, "participant.view")
+        can_manage_checkins = deps.has_activity_permission(db, ctx, activity_id, "checkin.manage")
+        can_view_statistics = can_view_participants
+        can_manage = any([can_edit, can_delete, can_view_participants, can_manage_checkins, can_view_statistics])
+        if not can_manage:
+            if not _can_user_view_activity(
+                db=db,
+                act=act,
+                tenant_id=tenant_id,
+                user_id=ctx.user_id,
+            ):
+                raise HTTPException(status_code=404, detail="Activity not found")
+            return activity.ActivityPermissionResponse(
+                can_view=True,
+                can_manage=False,
+                can_edit=False,
+                can_delete=False,
+                can_view_participants=False,
+                can_manage_checkins=False,
+                can_view_statistics=False,
+            )
+        return activity.ActivityPermissionResponse(
+            can_view=True,
+            can_manage=can_manage,
+            can_edit=can_edit,
+            can_delete=can_delete,
+            can_view_participants=can_view_participants,
+            can_manage_checkins=can_manage_checkins,
+            can_view_statistics=can_view_statistics,
+        )
+
+    if not _can_user_view_activity(
+        db=db,
+        act=act,
+        tenant_id=tenant_id,
+        user_id=ctx.user_id if ctx else None,
+    ):
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    return activity.ActivityPermissionResponse(
+        can_view=True,
+        can_manage=False,
+        can_edit=False,
+        can_delete=False,
+        can_view_participants=False,
+        can_manage_checkins=False,
+        can_view_statistics=False,
+    )
 
 
 @router.get("/{activity_id}/enrollment-info")

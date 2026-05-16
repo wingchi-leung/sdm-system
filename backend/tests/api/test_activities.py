@@ -4,7 +4,7 @@
 import pytest
 from datetime import datetime, timedelta
 from fastapi import status
-from app.schemas import Activity, ActivityParticipant, PaymentOrder, Tenant
+from app.schemas import Activity, ActivityParticipant, PaymentOrder, Tenant, UserActivityType
 from tests.conftest import auth_headers
 
 
@@ -93,6 +93,37 @@ class TestActivityCreation:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["activity_name"] == "全天活动"
+
+    def test_create_activity_with_intro(self, client, super_admin_token, sample_activity_type):
+        """测试创建活动支持活动介绍"""
+        intro = "这是一个用于测试的活动介绍。"
+        response = client.post(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_name": "带介绍活动",
+                "activity_type_id": sample_activity_type.id,
+                "start_time": "2026-06-01T09:00:00",
+                "activity_intro": intro,
+            }
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["activity_intro"] == intro
+
+    def test_create_activity_intro_too_long(self, client, super_admin_token, sample_activity_type):
+        """测试活动介绍超过1000字时报错"""
+        response = client.post(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_name": "超长介绍活动",
+                "activity_type_id": sample_activity_type.id,
+                "start_time": "2026-06-01T09:00:00",
+                "activity_intro": "a" * 1001,
+            }
+        )
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.api
@@ -349,6 +380,36 @@ class TestActivityStatus:
 class TestActivityDeletion:
     """活动删除测试"""
 
+    def test_delete_activity_with_participants_forbidden(
+        self,
+        client,
+        super_admin_token,
+        sample_activity,
+        sample_user,
+        db_session,
+    ):
+        """测试已有报名记录的活动不允许删除。"""
+        participant = ActivityParticipant(
+            tenant_id=sample_activity.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name=sample_user.name,
+            enroll_status=1,
+            payment_status=0,
+            paid_amount=0,
+        )
+        participant.phone = sample_user.phone
+        participant.identity_number = sample_user.identity_number
+        db_session.add(participant)
+        db_session.commit()
+
+        response = client.delete(
+            f"/api/v1/activities/{sample_activity.id}",
+            headers=auth_headers(super_admin_token),
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "不能删除" in response.json()["detail"]
+
 
 @pytest.mark.api
 class TestActivityExport:
@@ -574,6 +635,53 @@ class TestActivityPermissions:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+    def test_activity_admin_list_includes_public_and_assigned_activities(
+        self,
+        client,
+        activity_admin_token,
+        sample_activity_type,
+        sample_activity_type_2,
+        default_tenant,
+        db_session,
+    ):
+        """测试活动管理员可见：已授权活动类型 + 公开活动。"""
+        assigned_private = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="授权类型私有活动",
+            activity_type_id=sample_activity_type.id,
+            start_time=datetime(2026, 6, 3, 10, 0, 0),
+            status=1,
+            is_public=0,
+        )
+        public_other_type = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="其他类型公开活动",
+            activity_type_id=sample_activity_type_2.id,
+            start_time=datetime(2026, 6, 4, 10, 0, 0),
+            status=1,
+            is_public=1,
+        )
+        private_other_type = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="其他类型私有活动",
+            activity_type_id=sample_activity_type_2.id,
+            start_time=datetime(2026, 6, 5, 10, 0, 0),
+            status=1,
+            is_public=0,
+        )
+        db_session.add_all([assigned_private, public_other_type, private_other_type])
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(activity_admin_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        ids = {item["id"] for item in response.json()["items"]}
+        assert assigned_private.id in ids
+        assert public_other_type.id in ids
+        assert private_other_type.id not in ids
+
     def test_admin_without_scope_does_not_see_all_activities(
         self,
         client,
@@ -590,6 +698,86 @@ class TestActivityPermissions:
         data = response.json()
         assert data["total"] == 0
         assert data["items"] == []
+
+    def test_admin_can_use_user_view_to_see_assigned_activity_type(
+        self,
+        client,
+        db_session,
+        activity_admin_no_permission,
+        activity_admin_no_permission_token,
+        sample_activity_type_2,
+        default_tenant,
+    ):
+        """测试管理员账号按用户视角可见自己被分配的活动类型。"""
+        private_activity = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="用户视角私有活动",
+            activity_type_id=sample_activity_type_2.id,
+            start_time=datetime(2026, 6, 1, 10, 0, 0),
+            status=1,
+            is_public=0,
+        )
+        db_session.add(private_activity)
+        db_session.flush()
+
+        db_session.add(
+            UserActivityType(
+                user_id=activity_admin_no_permission.id,
+                activity_type_id=sample_activity_type_2.id,
+                tenant_id=default_tenant.id,
+            )
+        )
+        db_session.commit()
+
+        normal_res = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(activity_admin_no_permission_token),
+        )
+        assert normal_res.status_code == status.HTTP_200_OK
+        assert any(item["id"] == private_activity.id for item in normal_res.json()["items"])
+
+        user_view_res = client.get(
+            "/api/v1/activities/?as_user_view=1",
+            headers=auth_headers(activity_admin_no_permission_token),
+        )
+        assert user_view_res.status_code == status.HTTP_200_OK
+        assert any(item["id"] == private_activity.id for item in user_view_res.json()["items"])
+
+    def test_admin_default_view_includes_user_assigned_activity_type(
+        self,
+        client,
+        db_session,
+        activity_admin_no_permission,
+        activity_admin_no_permission_token,
+        sample_activity_type_2,
+        default_tenant,
+    ):
+        """测试管理员默认视角也叠加用户活动类型可见范围。"""
+        private_activity = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="管理员用户并集可见活动",
+            activity_type_id=sample_activity_type_2.id,
+            start_time=datetime(2026, 6, 2, 10, 0, 0),
+            status=1,
+            is_public=0,
+        )
+        db_session.add(private_activity)
+        db_session.flush()
+        db_session.add(
+            UserActivityType(
+                user_id=activity_admin_no_permission.id,
+                activity_type_id=sample_activity_type_2.id,
+                tenant_id=default_tenant.id,
+            )
+        )
+        db_session.commit()
+
+        response = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(activity_admin_no_permission_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert any(item["id"] == private_activity.id for item in response.json()["items"])
 
     def test_super_admin_can_view_private_activity_detail(
         self,
@@ -666,3 +854,48 @@ class TestActivityPermissions:
             headers=auth_headers(activity_admin_no_permission_token),
         )
         assert stats_response.status_code == status.HTTP_200_OK
+
+    def test_get_my_permissions_for_super_admin(
+        self,
+        client,
+        super_admin_token,
+        sample_activity,
+    ):
+        """测试超级管理员拥有完整活动管理权限。"""
+        response = client.get(
+            f"/api/v1/activities/{sample_activity.id}/my-permissions",
+            headers=auth_headers(super_admin_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["can_view"] is True
+        assert data["can_manage"] is True
+        assert data["can_edit"] is True
+        assert data["can_delete"] is True
+        assert data["can_view_participants"] is True
+        assert data["can_manage_checkins"] is True
+        assert data["can_view_statistics"] is True
+
+    def test_get_my_permissions_for_normal_user(
+        self,
+        client,
+        user_token,
+        sample_activity,
+        db_session,
+    ):
+        """测试普通用户仅有可见权限，无管理权限。"""
+        sample_activity.is_public = 1
+        db_session.commit()
+        response = client.get(
+            f"/api/v1/activities/{sample_activity.id}/my-permissions",
+            headers=auth_headers(user_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["can_view"] is True
+        assert data["can_manage"] is False
+        assert data["can_edit"] is False
+        assert data["can_delete"] is False
+        assert data["can_view_participants"] is False
+        assert data["can_manage_checkins"] is False
+        assert data["can_view_statistics"] is False

@@ -195,7 +195,6 @@ class CheckInFactory(SQLAlchemyModelFactory):
     user_id = None
     name = factory.LazyAttribute(lambda _: fake.name())
     phone = factory.Sequence(lambda n: f"137{n:08d}")
-    identity_number = factory.LazyAttribute(lambda _: fake.ssn()[:18])
     has_attend = 1
     note = factory.LazyAttribute(lambda _: fake.sentence(nb_words=3))
 

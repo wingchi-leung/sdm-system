@@ -172,7 +172,7 @@ class TestCommunityComments:
         assert data["post_id"] == post.id
         assert data["user_name"] == sample_user.name
 
-    def test_admin_cannot_comment(
+    def test_admin_can_comment_when_joined(
         self,
         client,
         db_session,
@@ -180,12 +180,21 @@ class TestCommunityComments:
         sample_activity,
         super_admin,
     ):
+        db_session.add(
+            ActivityParticipant(
+                tenant_id=sample_activity.tenant_id,
+                activity_id=sample_activity.id,
+                user_id=super_admin.id,
+                participant_name=super_admin.name,
+                enroll_status=1,
+            )
+        )
         post = CommunityPost(
             tenant_id=sample_activity.tenant_id,
             activity_id=sample_activity.id,
             author_user_id=super_admin.id,
             title="通知",
-            content="管理员不允许评论",
+            content="管理员可按用户身份评论",
             status=1,
         )
         db_session.add(post)
@@ -196,6 +205,32 @@ class TestCommunityComments:
             f"/api/v1/community/posts/{post.id}/comments",
             headers=auth_headers(super_admin_token),
             json={"content": "我是管理员"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_admin_without_permission_and_without_registration_cannot_list_posts(
+        self,
+        client,
+        db_session,
+        activity_admin_no_permission_token,
+        sample_activity,
+        super_admin,
+    ):
+        post = CommunityPost(
+            tenant_id=sample_activity.tenant_id,
+            activity_id=sample_activity.id,
+            author_user_id=super_admin.id,
+            title="权限隔离文章",
+            content="未报名且无活动权限不可读",
+            status=1,
+        )
+        db_session.add(post)
+        db_session.commit()
+
+        response = client.get(
+            f"/api/v1/community/posts?activity_id={sample_activity.id}",
+            headers=auth_headers(activity_admin_no_permission_token),
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN

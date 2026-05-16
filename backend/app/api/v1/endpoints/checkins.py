@@ -65,17 +65,26 @@ def list_checkin_records(
 def create_checkin(
     checkin_in: checkin.CheckInCreate,
     db: Session = Depends(deps.get_db),
-    ctx: deps.TenantContext | None = Depends(deps.get_current_user_optional),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """签到"""
-    tenant_id = ctx.tenant_id if ctx else _tenant_id_from_activity(db, checkin_in.activity_id)
-    
-    if not crud_participant.check_participant_exists(
-        db, checkin_in.activity_id, checkin_in.identity_number, tenant_id
+    tenant_id = ctx.tenant_id
+
+    if not crud_participant.has_user_joined_activity(
+        db,
+        activity_id=checkin_in.activity_id,
+        user_id=ctx.user_id,
+        tenant_id=tenant_id,
     ):
         raise HTTPException(status_code=404, detail="未报名活动！")
-    
-    if check_already_checkin(db, checkin_in.activity_id, checkin_in.identity_number, tenant_id):
+
+    if check_already_checkin(db, checkin_in.activity_id, ctx.user_id, tenant_id):
         raise HTTPException(status_code=400, detail="已经签到过，不用签到啦")
-    
-    return crud_checkin.create_checkin(db=db, checkin=checkin_in, tenant_id=tenant_id)
+
+    checkin_payload = checkin.CheckInCreate(
+        activity_id=checkin_in.activity_id,
+        user_id=ctx.user_id,
+        has_attend=checkin_in.has_attend,
+        note=checkin_in.note,
+    )
+    return crud_checkin.create_checkin(db=db, checkin=checkin_payload, tenant_id=tenant_id)

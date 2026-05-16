@@ -35,7 +35,7 @@ def get_comment_detail(
 ) -> dict | None:
     row = db.query(
         CommunityComment,
-        User.name.label("user_name"),
+        User,
     ).join(
         User,
         (User.id == CommunityComment.user_id) & (User.tenant_id == CommunityComment.tenant_id),
@@ -48,13 +48,13 @@ def get_comment_detail(
     if not row:
         return None
 
-    comment, user_name = row
+    comment, user = row
     return {
         "id": comment.id,
         "activity_id": comment.activity_id,
         "post_id": comment.post_id,
         "user_id": comment.user_id,
-        "user_name": user_name or "学员",
+        "user_name": user.name or "学员",
         "content": comment.content,
         "status": comment.status,
         "create_time": comment.create_time,
@@ -78,7 +78,7 @@ def get_comments_by_post(
 
     query = db.query(
         CommunityComment,
-        User.name.label("user_name"),
+        User,
     ).join(
         User,
         (User.id == CommunityComment.user_id) & (User.tenant_id == CommunityComment.tenant_id),
@@ -90,13 +90,13 @@ def get_comments_by_post(
 
     rows = query.order_by(CommunityComment.create_time.asc()).offset(skip).limit(limit).all()
     items = []
-    for comment, user_name in rows:
+    for comment, user in rows:
         items.append({
             "id": comment.id,
             "activity_id": comment.activity_id,
             "post_id": comment.post_id,
             "user_id": comment.user_id,
-            "user_name": user_name or "学员",
+            "user_name": user.name or "学员",
             "content": comment.content,
             "status": comment.status,
             "create_time": comment.create_time,

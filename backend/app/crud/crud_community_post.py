@@ -52,7 +52,7 @@ def get_posts_by_activity(
 
     query = db.query(
         CommunityPost,
-        User.name.label("author_name"),
+        User,
         comment_count_expr.label("comment_count"),
     ).join(
         User,
@@ -68,17 +68,18 @@ def get_posts_by_activity(
         CommunityPost.status == 1,
     ).group_by(
         CommunityPost.id,
-        User.name,
+        User.id,
+        User._name_ciphertext,
     )
 
     rows = query.order_by(CommunityPost.create_time.desc()).offset(skip).limit(limit).all()
     items = []
-    for post, author_name, comment_count in rows:
+    for post, author_user, comment_count in rows:
         items.append({
             "id": post.id,
             "activity_id": post.activity_id,
             "author_user_id": post.author_user_id,
-            "author_name": author_name or "管理员",
+            "author_name": author_user.name or "管理员",
             "title": post.title,
             "content": post.content,
             "cover_url": post.cover_url,
@@ -94,7 +95,7 @@ def get_post_detail(db: Session, *, post_id: int, tenant_id: int) -> dict | None
     comment_count_expr = func.count(CommunityComment.id)
     row = db.query(
         CommunityPost,
-        User.name.label("author_name"),
+        User,
         comment_count_expr.label("comment_count"),
     ).join(
         User,
@@ -110,18 +111,19 @@ def get_post_detail(db: Session, *, post_id: int, tenant_id: int) -> dict | None
         CommunityPost.status == 1,
     ).group_by(
         CommunityPost.id,
-        User.name,
+        User.id,
+        User._name_ciphertext,
     ).first()
 
     if not row:
         return None
 
-    post, author_name, comment_count = row
+    post, author_user, comment_count = row
     return {
         "id": post.id,
         "activity_id": post.activity_id,
         "author_user_id": post.author_user_id,
-        "author_name": author_name or "管理员",
+        "author_name": author_user.name or "管理员",
         "title": post.title,
         "content": post.content,
         "cover_url": post.cover_url,

@@ -15,7 +15,7 @@ from app.crud import crud_credential, crud_user, crud_tenant, crud_rbac
 from app.core.security import create_access_token, BCRYPT_MAX_BYTES
 from app.models.auth import (
     LoginRequest, LoginResponse, WechatAuthRequest, WechatAuthResponse,
-    SetPasswordRequest, UserInfo, TenantInfo, AuthInfo, ActivityTypeInfo,
+    SetPasswordRequest, UserInfo, TenantInfo, AuthInfo, ActivityTypeInfo, AuthSnapshotResponse,
 )
 from app.schemas import ActivityType, User
 
@@ -141,6 +141,30 @@ def _build_auth_info(db: Session, user_id: int, tenant_id: int) -> AuthInfo:
 
 def _token_role_from_auth(auth_info: AuthInfo) -> str:
     return "admin" if auth_info.is_admin or auth_info.is_platform_admin else "user"
+
+
+@router.get("/me", response_model=AuthSnapshotResponse)
+def get_auth_snapshot(
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """获取当前登录用户实时权限快照。"""
+    user = db.query(User).filter(User.id == ctx.user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="用户不存在")
+
+    tenant_info: TenantInfo | None = None
+    if ctx.tenant_id and ctx.tenant_id > 0:
+        tenant = crud_tenant.get_tenant(db, ctx.tenant_id)
+        if tenant:
+            tenant_info = TenantInfo(id=tenant.id, name=tenant.name, code=tenant.code)
+
+    auth_info = _build_auth_info(db, user.id, ctx.tenant_id)
+    return AuthSnapshotResponse(
+        user=_masked_user_info(user),
+        tenant=tenant_info,
+        auth=auth_info,
+    )
 
 
 # ============================================================

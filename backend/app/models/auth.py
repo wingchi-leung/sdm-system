@@ -48,6 +48,12 @@ class WechatAuthResponse(LoginResponse):
     wechat_payment_hint: str | None = None
 
 
+class AuthSnapshotResponse(BaseModel):
+    user: UserInfo
+    tenant: TenantInfo | None = None
+    auth: AuthInfo
+
+
 class LoginRequest(BaseModel):
     identifier: str
     password: str
