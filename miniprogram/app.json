@@ -37,10 +37,14 @@
     "list": [
       {
         "pagePath": "pages/index/index",
+        "iconPath": "miniprogram/assets/icons/activity-default.png",
+        "selectedIconPath": "miniprogram/assets/icons/activity-active.png",
         "text": ""
       },
       {
         "pagePath": "pages/mine/mine",
+        "iconPath": "miniprogram/assets/icons/mine-default.png",
+        "selectedIconPath": "miniprogram/assets/icons/mine-active.png",
         "text": ""
       }
     ]
