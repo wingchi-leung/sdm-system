@@ -52,3 +52,12 @@ SDM System是一个包含后端，web前端，flutter，小程序的一个管理
 ## 任务执行
 - 任务执行过程不必确认，每完成一阶段任务自动 commit 并继续下一个任务
 - 完成重大调整和改动后，写到`产品规格说明-spec`文档，保证此文档的说明和工程的真实实现符合
+
+## 权限模块强制规则（必须遵守）
+
+- 只要改动以下任一范围，**必须先阅读**：
+  - `docs/权限系统架构文档.md`（先读，As-Is 现状）
+  - `docs/权限系统设计原则.md`（再读，红线与回归清单）
+- 涉及文件示例：`backend/app/api/deps.py`、`backend/app/crud/crud_rbac.py`、`backend/app/api/v1/endpoints/activities.py`、`community.py`、`payments.py`、`users.py`、`frontend/src/components/PermissionsPage.tsx`、`miniprogram/utils/auth.js` 等。
+- **未阅读上述两个文档，不得开始写权限相关代码。**
+- 权限改动提交前，必须对照 `docs/权限系统设计原则.md` 的“强制检查清单”逐条自检。

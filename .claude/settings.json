@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "WebFetch(domain:www.cnblogs.com)"
+      "WebFetch(domain:www.cnblogs.com)",
+      "Bash(ls -la \"D:/side project/CodePilot\")",
+      "Read(//d/side project/CodePilot/**)"
     ]
   }
 }
