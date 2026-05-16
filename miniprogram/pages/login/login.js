@@ -143,6 +143,10 @@ Page({
           return;
         }
         auth.saveAdminToken(res.access_token, res);
+        console.log('[Login] saveAdminToken called with:', {
+          access_token: res.access_token ? '(set)' : '(empty)',
+          auth: res.auth,
+        });
         wx.showToast({ title: '登录成功', icon: 'success' });
         setTimeout(() => {
           this.navigateAfterLogin('admin');
