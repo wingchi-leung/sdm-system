@@ -206,9 +206,9 @@
 .field-label {
   display: block;
   color: #111111;
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 1.35;
-  margin-bottom: 14rpx;
+  margin-bottom: 12rpx;
   font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
@@ -233,7 +233,7 @@
 }
 
 .control-wrap.active::after {
-  height: 2rpx;
+  height: 1rpx;
   background: #111111;
 }
 
