@@ -20,8 +20,6 @@
     </view>
   </view>
 
-  <view class="section-divider"></view>
-
   <view class="profile-summary" bindtap="toggleBasicInfo">
     <view class="profile-summary-left">
       <text class="profile-icon">◌</text>
@@ -63,8 +61,6 @@
       <view class="readonly-value">{{industry || '未设置'}}</view>
     </view>
   </view>
-
-  <view class="section-divider"></view>
 
   <view class="form-card">
     <view class="section-title-row">

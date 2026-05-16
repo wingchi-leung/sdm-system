@@ -91,7 +91,6 @@
   justify-content: space-between;
   align-items: center;
   padding: 34rpx 64rpx;
-  border-bottom: 1rpx solid #f1f1f1;
 }
 
 .profile-summary-left,
