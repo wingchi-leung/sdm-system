@@ -59,6 +59,19 @@ def ensure_runtime_schema(engine: Engine, metadata: MetaData | None = None) -> N
             connection.execute(text(statement))
         logger.info("已补齐 activity_participants.email_hash 数据库字段")
 
+    if not _has_column(engine, "activity", "activity_intro"):
+        statement = "ALTER TABLE activity ADD COLUMN activity_intro VARCHAR(1000) NULL"
+        if engine.dialect.name == "mysql":
+            statement = (
+                "ALTER TABLE activity "
+                "ADD COLUMN activity_intro VARCHAR(1000) NULL COMMENT '活动介绍（最多1000字）' "
+                "AFTER location"
+            )
+
+        with engine.begin() as connection:
+            connection.execute(text(statement))
+        logger.info("已补齐 activity.activity_intro 数据库字段")
+
     if not _has_column(engine, "user", "phone_hash"):
         statement = "ALTER TABLE user ADD COLUMN phone_hash VARCHAR(64) NULL"
         if engine.dialect.name == "mysql":

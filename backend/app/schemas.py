@@ -225,6 +225,7 @@ class Activity(BaseModel):
     require_payment = Column(Integer, default=0)    # 是否需要支付：0-否 1-是
     poster_url = Column(String(500), nullable=True)  # 活动海报图片URL
     location = Column(String(255), nullable=True)    # 活动地点（为空则表示线上活动）
+    activity_intro = Column(String(1000), nullable=True)  # 活动介绍（最多1000字）
     max_participants = Column(Integer, nullable=True)  # 最大参与人数，NULL 表示无限制
     is_public = Column(Integer, default=0)           # 是否公开：0-否 1-是（所有用户可见）
 
@@ -264,28 +265,19 @@ class ActivityParticipant(BaseModel):
 # ============================================================
 # 签到记录表
 # ============================================================
-class CheckInRecord(BaseModel, EncryptedContactMixin, EncryptedIdentityMixin):
+class CheckInRecord(BaseModel):
     __tablename__ = "checkin_records"
     __table_args__ = (
-        UniqueConstraint('activity_id', 'identity_number_hash', 'tenant_id', name='uk_checkin_unique'),
+        UniqueConstraint('activity_id', 'user_id', 'tenant_id', name='uk_checkin_unique'),
     )
     tenant_id = Column(Integer, nullable=False, index=True)
     activity_id = Column(Integer, index=True)
     user_id = Column(Integer, nullable=True)
-    _name_ciphertext = Column("name", String(1024))
-    _identity_number_ciphertext = Column("identity_number", String(1024), nullable=True)
-    _phone_ciphertext = Column("phone", String(1024), nullable=True)
+    name = Column(String(100), nullable=True)
+    phone = Column(String(255), nullable=True)
     checkin_time = Column(DateTime, default=datetime.now)
     has_attend = Column(Integer, default=0)
     note = Column(String(255))
-
-    @property
-    def name(self):
-        return decrypt_pii(self._name_ciphertext)
-
-    @name.setter
-    def name(self, value):
-        self._name_ciphertext = encrypt_pii(value)
 
 
 # ============================================================

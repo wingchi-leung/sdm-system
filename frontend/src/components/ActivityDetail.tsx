@@ -18,6 +18,7 @@ interface ActivityDetailItem {
   require_payment: number;
   poster_url?: string | null;
   location?: string | null;
+  activity_intro?: string | null;
   max_participants?: number | null;
   create_time: string;
   update_time: string;
@@ -179,6 +180,12 @@ const ActivityDetail = () => {
             <div className="rounded-2xl bg-slate-50 p-4">
               <p className="text-sm text-slate-500">更新时间</p>
               <div className="mt-2 text-slate-900">{formatDateTime(activity.update_time)}</div>
+            </div>
+            <div className="rounded-2xl bg-slate-50 p-4 md:col-span-2">
+              <p className="text-sm text-slate-500">活动介绍</p>
+              <div className="mt-2 whitespace-pre-wrap break-words text-slate-900">
+                {activity.activity_intro || '暂无活动介绍'}
+              </div>
             </div>
           </CardContent>
         </Card>

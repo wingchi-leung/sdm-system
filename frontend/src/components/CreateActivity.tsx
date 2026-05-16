@@ -16,6 +16,7 @@ const CreateActivity = () => {
     activityName: '',
     startTime: '',
     tags: '',
+    activityIntro: '',
     isPublic: 0
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -111,6 +112,7 @@ const CreateActivity = () => {
       activity_name: formData.activityName,
       start_time: formData.startTime,
       tag: formData.tags, // 新增标签字段
+      activity_intro: formData.activityIntro.trim() || null,
       is_public: formData.isPublic,
       participants: formData.participants.map(p => ({
         participant_name: p.participant_name,
@@ -142,6 +144,7 @@ const CreateActivity = () => {
         activityName: '',
         startTime: '',
         tags: '',
+        activityIntro: '',
         isPublic: 0
       });
     } catch (error) {
@@ -249,6 +252,18 @@ const CreateActivity = () => {
                   onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
                   placeholder="请输入标签，多个标签用逗号分隔"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">活动介绍</label>
+                <textarea
+                  value={formData.activityIntro}
+                  onChange={(e) => setFormData(prev => ({ ...prev, activityIntro: e.target.value }))}
+                  placeholder="请输入活动介绍（最多1000字）"
+                  maxLength={1000}
+                  rows={6}
+                  className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <p className="mt-1 text-xs text-slate-500">{formData.activityIntro.length}/1000</p>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">开始时间</label>

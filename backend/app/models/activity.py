@@ -17,6 +17,7 @@ class ActivityBase(BaseModel):
     require_payment: int = Field(0, ge=0, le=1, description="是否需要支付：0-否 1-是")
     poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
     location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
+    activity_intro: Optional[str] = Field(None, max_length=1000, description="活动介绍，最多1000字")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
     is_public: int = Field(0, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
 
@@ -32,6 +33,7 @@ class ActivityCreate(BaseModel):
     require_payment: int = Field(0, ge=0, le=1, description="是否需要支付：0-否 1-是")
     poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
     location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
+    activity_intro: Optional[str] = Field(None, max_length=1000, description="活动介绍，最多1000字")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
     is_public: int = Field(0, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
 
@@ -47,6 +49,7 @@ class ActivityUpdate(BaseModel):
     require_payment: Optional[int] = Field(None, ge=0, le=1, description="是否需要支付：0-否 1-是")
     poster_url: Optional[str] = Field(None, max_length=500, description="活动海报图片URL")
     location: Optional[str] = Field(None, max_length=255, description="活动地点，为空表示线上活动")
+    activity_intro: Optional[str] = Field(None, max_length=1000, description="活动介绍，最多1000字")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
     is_public: Optional[int] = Field(None, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
 
@@ -63,6 +66,16 @@ class ActivityResponse(ActivityBase):
 class ActivityListResponse(BaseModel):
     items: List[ActivityResponse]
     total: int
+
+
+class ActivityPermissionResponse(BaseModel):
+    can_view: bool
+    can_manage: bool
+    can_edit: bool
+    can_delete: bool
+    can_view_participants: bool
+    can_manage_checkins: bool
+    can_view_statistics: bool
 
 
 class ActivityExportRequest(BaseModel):
