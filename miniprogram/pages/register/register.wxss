@@ -220,7 +220,7 @@
 
 .control-wrap {
   position: relative;
-  padding-bottom: 18rpx;
+  padding-bottom: 16rpx;
 }
 
 .control-wrap::after {
@@ -244,7 +244,8 @@
   width: 100%;
   color: #111111;
   font-size: 24rpx;
-  line-height: 1.45;
+  line-height: 40rpx;
+  min-height: 40rpx;
   padding: 0;
   margin: 0;
   border: 0;
@@ -258,7 +259,8 @@
 }
 
 .textarea {
-  min-height: 44rpx;
+  height: 40rpx;
+  min-height: 40rpx;
 }
 
 .input-placeholder {
