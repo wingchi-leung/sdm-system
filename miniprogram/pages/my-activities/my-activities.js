@@ -22,20 +22,22 @@ Page({
   },
 
   ensureUserAccess() {
-    if (auth.isUser()) return true;
+    // 允许普通用户和活动管理员访问（活动管理员也可以报名自己的活动）
+    if (auth.isUser() || auth.isActivityTypeAdmin()) return true;
     this.setData({
       loading: false,
       activities: [],
       summaryText: '共 0 条报名记录',
       error: null,
     });
-    wx.showToast({ title: '请使用普通用户账号查看', icon: 'none' });
+    wx.showToast({ title: '请登录后查看', icon: 'none' });
     setTimeout(() => wx.navigateBack(), 1200);
     return false;
   },
 
   async loadActivities() {
-    if (!auth.isUser()) {
+    // 允许普通用户和活动管理员访问
+    if (!auth.isUser() && !auth.isActivityTypeAdmin()) {
       this.ensureUserAccess();
       return;
     }
