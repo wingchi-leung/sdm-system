@@ -158,6 +158,18 @@ Page({
   },
 
   handleUserLoginSuccess(data) {
+    // 检查是否具有管理员身份（活动管理员或超级管理员通过微信登录）
+    const authInfo = data.auth || {};
+    if (authInfo.is_admin || authInfo.is_platform_admin) {
+      // 管理员微信登录
+      auth.saveAdminToken(data.access_token, data);
+      const levelText = authInfo.is_super_admin ? '超级管理员' : '活动管理员';
+      wx.showToast({ title: `登录成功（${levelText}）`, icon: 'success' });
+      setTimeout(() => this.navigateAfterLogin('admin'), 800);
+      return;
+    }
+
+    // 普通用户微信登录
     auth.saveUserToken({
       accessToken: data.access_token,
       userId: data.user?.id || data.user_id,
