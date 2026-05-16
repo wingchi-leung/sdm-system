@@ -102,11 +102,12 @@ def get_activities(
                 scoped_filters.append(Activity.activity_type_id.in_(allowed_activity_type_ids))
             if allowed_activity_ids:
                 scoped_filters.append(Activity.id.in_(allowed_activity_ids))
-            # 管理员分配视角：可管理范围 + 公开活动
-            if not apply_public_filter_when_unscoped:
-                scoped_filters.append(Activity.is_public == 1)
+            # 管理员管理视角只返回授权范围，避免把公开活动混入“可管理活动”
             if scoped_filters:
                 scope_filters.append(or_(*scoped_filters))
+            else:
+                # 存在范围约束但没有任何有效 scope 时，禁止返回全量活动
+                query = query.filter(Activity.id == -1)
 
         # 用户活动分层过滤：公开活动 OR 用户关联类型的活动
         if user_id is not None and user_activity_type_ids is not None:

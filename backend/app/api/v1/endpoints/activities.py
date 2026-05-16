@@ -242,7 +242,7 @@ def list_activities(
 ):
     """活动列表"""
     tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
-    is_admin = bool(ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view)
+    is_admin = bool(ctx and ctx.has_any_role(db) and not as_user_view)
     admin_id = ctx.user_id if is_admin else None
     user_id = ctx.user_id if ctx else None
 
@@ -252,7 +252,8 @@ def list_activities(
 
     # 用户活动分层过滤：获取用户关联的活动类型
     user_activity_type_ids = None
-    if user_id:
+    # 管理员默认是“管理视角”，不叠加用户活动类型可见范围，避免越权展示
+    if user_id and not is_admin:
         user_activity_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
 
     activities, total = crud_activity.get_activities(
@@ -275,7 +276,7 @@ def get_unstarted_activities(
 ):
     """未开始活动列表"""
     tenant_id = ctx.tenant_id if ctx else deps.get_public_tenant_context(tenant_code, db).tenant_id
-    is_admin = bool(ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view)
+    is_admin = bool(ctx and ctx.has_any_role(db) and not as_user_view)
     admin_id = ctx.user_id if is_admin else None
     user_id = ctx.user_id if ctx else None
 
@@ -285,7 +286,8 @@ def get_unstarted_activities(
 
     # 用户活动分层过滤：获取用户关联的活动类型
     user_activity_type_ids = None
-    if user_id:
+    # 管理员默认是“管理视角”，不叠加用户活动类型可见范围，避免越权展示
+    if user_id and not is_admin:
         user_activity_type_ids = crud_user_activity_type.get_user_activity_type_ids(db, user_id, tenant_id)
 
     activities, total = crud_activity.get_activities(
@@ -315,7 +317,7 @@ def get_activity(
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    if ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view:
+    if ctx and ctx.has_any_role(db) and not as_user_view:
         if deps.has_activity_permission(db, ctx, activity_id, "activity.edit") or deps.has_activity_permission(
             db, ctx, activity_id, "participant.view"
         ):
@@ -356,7 +358,7 @@ def get_my_activity_permissions(
     if act is None:
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    if ctx and ctx.role == "admin" and ctx.has_any_role(db) and not as_user_view:
+    if ctx and ctx.has_any_role(db) and not as_user_view:
         can_edit = deps.has_activity_permission(db, ctx, activity_id, "activity.edit")
         can_delete = deps.has_activity_permission(db, ctx, activity_id, "activity.delete")
         can_view_participants = deps.has_activity_permission(db, ctx, activity_id, "participant.view")

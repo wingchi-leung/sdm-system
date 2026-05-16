@@ -157,6 +157,47 @@ class TestActivityCRUD:
         activities2, _ = get_activities(db_session, tenant_id=1, skip=10, limit=10)
         assert len(activities2) == 5
 
+    def test_get_activities_scoped_admin_only_returns_scoped(self, db_session: Session):
+        """测试管理员作用域过滤：仅返回授权活动/活动类型，不混入公开活动"""
+        type_a = ActivityTypeFactory()
+        type_b = ActivityTypeFactory()
+        db_session.commit()
+
+        scoped_by_type = ActivityFactory(activity_type_id=type_a.id, is_public=0)
+        scoped_by_id = ActivityFactory(activity_type_id=type_b.id, is_public=0)
+        public_out_of_scope = ActivityFactory(activity_type_id=type_b.id, is_public=1)
+        db_session.add_all([scoped_by_type, scoped_by_id, public_out_of_scope])
+        db_session.commit()
+
+        activities, total = get_activities(
+            db_session,
+            tenant_id=1,
+            allowed_activity_type_ids=[type_a.id],
+            allowed_activity_ids=[scoped_by_id.id],
+            apply_public_filter_when_unscoped=False,
+        )
+
+        ids = {item.id for item in activities}
+        assert ids == {scoped_by_type.id, scoped_by_id.id}
+        assert total == 2
+
+    def test_get_activities_scoped_admin_with_empty_scope_returns_empty(self, db_session: Session):
+        """测试管理员存在范围约束但作用域为空时，不应返回全量活动"""
+        for _ in range(3):
+            db_session.add(ActivityFactory())
+        db_session.commit()
+
+        activities, total = get_activities(
+            db_session,
+            tenant_id=1,
+            allowed_activity_type_ids=[],
+            allowed_activity_ids=[],
+            apply_public_filter_when_unscoped=False,
+        )
+
+        assert activities == []
+        assert total == 0
+
     def test_update_activity_status_to_ongoing(self, db_session: Session):
         """测试更新活动状态为进行中"""
         activity = ActivityFactory(

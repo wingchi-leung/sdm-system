@@ -635,7 +635,7 @@ class TestActivityPermissions:
         )
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
-    def test_activity_admin_list_includes_public_and_assigned_activities(
+    def test_activity_admin_list_only_includes_assigned_activities(
         self,
         client,
         activity_admin_token,
@@ -644,7 +644,7 @@ class TestActivityPermissions:
         default_tenant,
         db_session,
     ):
-        """测试活动管理员可见：已授权活动类型 + 公开活动。"""
+        """测试活动管理员管理视角仅可见授权范围活动。"""
         assigned_private = Activity(
             tenant_id=default_tenant.id,
             activity_name="授权类型私有活动",
@@ -679,7 +679,7 @@ class TestActivityPermissions:
         assert response.status_code == status.HTTP_200_OK
         ids = {item["id"] for item in response.json()["items"]}
         assert assigned_private.id in ids
-        assert public_other_type.id in ids
+        assert public_other_type.id not in ids
         assert private_other_type.id not in ids
 
     def test_admin_without_scope_does_not_see_all_activities(
@@ -778,6 +778,49 @@ class TestActivityPermissions:
         )
         assert response.status_code == status.HTTP_200_OK
         assert any(item["id"] == private_activity.id for item in response.json()["items"])
+
+    def test_scoped_admin_default_view_does_not_include_user_assigned_activity_type(
+        self,
+        client,
+        db_session,
+        activity_admin,
+        activity_admin_token,
+        sample_activity_type_2,
+        default_tenant,
+    ):
+        """测试有管理角色的管理员默认视角不会叠加用户活动类型可见范围。"""
+        private_activity = Activity(
+            tenant_id=default_tenant.id,
+            activity_name="管理员用户可见但非管理范围活动",
+            activity_type_id=sample_activity_type_2.id,
+            start_time=datetime(2026, 6, 6, 10, 0, 0),
+            status=1,
+            is_public=0,
+        )
+        db_session.add(private_activity)
+        db_session.flush()
+        db_session.add(
+            UserActivityType(
+                user_id=activity_admin.id,
+                activity_type_id=sample_activity_type_2.id,
+                tenant_id=default_tenant.id,
+            )
+        )
+        db_session.commit()
+
+        default_view_res = client.get(
+            "/api/v1/activities/",
+            headers=auth_headers(activity_admin_token),
+        )
+        assert default_view_res.status_code == status.HTTP_200_OK
+        assert not any(item["id"] == private_activity.id for item in default_view_res.json()["items"])
+
+        user_view_res = client.get(
+            "/api/v1/activities/?as_user_view=1",
+            headers=auth_headers(activity_admin_token),
+        )
+        assert user_view_res.status_code == status.HTTP_200_OK
+        assert any(item["id"] == private_activity.id for item in user_view_res.json()["items"])
 
     def test_super_admin_can_view_private_activity_detail(
         self,
