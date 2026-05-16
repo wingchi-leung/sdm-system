@@ -166,12 +166,12 @@
       <text class="field-label">支付金额</text>
       <view class="fee-input-wrapper">
         <text class="fee-currency">¥</text>
-        <view class="control-wrap fee-control {{activeField === 'fee' ? 'active' : ''}}">
+        <view class="fee-control {{activeField === 'fee' ? 'active' : ''}}">
+          <text class="fee-value">{{actualFeeYuan || suggestedFeeYuan}}</text>
           <input
             class="input fee-input"
             type="digit"
-            placeholder="{{suggestedFeeYuan}}"
-            placeholder-class="input-placeholder"
+            placeholder=""
             value="{{actualFeeYuan}}"
             bindinput="onFeeInput"
             bindfocus="onFieldFocus"
