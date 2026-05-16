@@ -1,8 +1,9 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 32rpx 56rpx;
-  background:
-    linear-gradient(180deg, #f6f8fb 0%, #ffffff 260rpx, #ffffff 100%);
+  background: #ffffff;
+  box-sizing: border-box;
+  padding: 0 0 180rpx;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .loading-wrap {
@@ -13,48 +14,17 @@
   min-height: 60vh;
 }
 
-.loading {
-  width: 48rpx;
-  height: 48rpx;
-  border: 2rpx solid var(--border);
-  border-top-color: #17345d;
-  border-radius: 50%;
-  animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.loading-text,
-.section-kicker,
-.btn-caption,
-.hero-eyebrow-en {
-  font-family: "Canela", "Editorial New", "Iowan Old Style", Georgia, serif;
+.loading-text {
+  margin-top: 16rpx;
+  color: #888888;
   font-size: 24rpx;
-  line-height: 1.3;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #8b97a8;
-}
-
-.hero-card,
-.section-block,
-.error-box,
-.recovery-box {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1rpx solid rgba(20, 38, 61, 0.08);
-  border-radius: 32rpx;
 }
 
 .hero-card {
-  padding: 34rpx 28rpx;
   display: flex;
-  gap: 24rpx;
-  align-items: flex-start;
-  margin-bottom: 28rpx;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 96rpx 64rpx 62rpx;
 }
 
 .hero-copy {
@@ -62,59 +32,39 @@
   min-width: 0;
 }
 
-.hero-title,
-.section-title,
-.btn-text {
-  font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
-  font-weight: 600;
-  color: #14263d;
-}
-
-.hero-title {
+.hero-eyebrow-cn {
   display: block;
-  margin-top: 12rpx;
-  font-size: 48rpx;
-  line-height: 1.36;
-}
-
-.hero-subtitle {
-  display: block;
-  margin-top: 20rpx;
-  font-family: "HarmonyOS Sans SC", "Inter", "PingFang SC", sans-serif;
-  font-size: 28rpx;
-  line-height: 1.9;
-  color: #586880;
+  color: #545454;
+  font-size: 30rpx;
+  line-height: 1.3;
+  font-weight: 400;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .hero-activity {
   display: block;
-  margin-top: 24rpx;
-  font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
-  font-size: 32rpx;
-  line-height: 1.55;
-  font-weight: 600;
-  color: #17345d;
+  margin-top: 16rpx;
+  color: #111111;
+  font-size: 50rpx;
+  line-height: 1.22;
+  font-weight: 400;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
-.hero-meta {
-  display: block;
-  margin-top: 10rpx;
-  font-family: "HarmonyOS Sans SC", "Inter", "PingFang SC", sans-serif;
-  font-size: 24rpx;
-  line-height: 1.8;
-  color: #7a8797;
+.hero-code {
+  display: none;
 }
 
 .hero-poster {
-  width: 180rpx;
-  height: 180rpx;
-  flex-shrink: 0;
-  border-radius: 28rpx;
+  width: 164rpx;
+  height: 164rpx;
+  border-radius: 14rpx;
   overflow: hidden;
-  background: linear-gradient(180deg, #f8fafc, #eef3f8);
+  background: #f7f7f7;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .hero-poster-image {
@@ -122,260 +72,311 @@
   height: 100%;
 }
 
-.hero-poster-fallback {
+.hero-poster-fallback-text {
+  color: #1f1f1f;
+  font-size: 34rpx;
+  line-height: 1;
+  font-weight: 400;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.section-divider {
+  height: 1rpx;
+  margin: 0 0 0 0;
+  background: #f1f1f1;
+}
+
+.profile-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 34rpx 64rpx;
+  border-bottom: 1rpx solid #f1f1f1;
+}
+
+.profile-summary-left,
+.profile-summary-right {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
 }
 
-.hero-poster-fallback-text {
-  font-family: "Canela", "Editorial New", "Iowan Old Style", Georgia, serif;
-  font-size: 40rpx;
-  color: #9aa6b7;
-  letter-spacing: 0.12em;
+.profile-icon {
+  position: relative;
+  display: inline-block;
+  width: 30rpx;
+  height: 32rpx;
+  color: #9a9a9a;
+  margin-right: 16rpx;
+  font-size: 0;
+  line-height: 0;
 }
 
-.form-card {
-  animation: fadeIn 0.4s ease;
+.profile-icon::before {
+  content: "";
+  position: absolute;
+  top: 1rpx;
+  left: 9rpx;
+  width: 11rpx;
+  height: 11rpx;
+  border: 2rpx solid #9a9a9a;
+  border-radius: 50%;
 }
 
-.section-block {
-  padding: 32rpx 28rpx;
-  margin-bottom: 24rpx;
+.profile-icon::after {
+  content: "";
+  position: absolute;
+  left: 3rpx;
+  bottom: 1rpx;
+  width: 22rpx;
+  height: 14rpx;
+  border: 2rpx solid #9a9a9a;
+  border-bottom: 0;
+  border-radius: 18rpx 18rpx 0 0;
 }
 
-.section-block:last-child {
-  margin-bottom: 0;
+.profile-label {
+  color: #111111;
+  font-size: 28rpx;
+  line-height: 1.3;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
-.section-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16rpx;
-}
-
-.section-heading {
-  flex: 1;
-}
-
-.section-title {
-  display: block;
-  margin-top: 12rpx;
-  font-size: 40rpx;
-  line-height: 1.4;
+.profile-summary-title {
+  color: #111111;
+  font-size: 28rpx;
+  line-height: 1.2;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .section-arrow {
-  font-size: 28rpx;
-  color: #7a8797;
-  display: inline-block;
-  transition: transform 0.25s ease;
+  color: #999999;
+  font-size: 32rpx;
+  margin-left: 12rpx;
+  line-height: 1;
   transform: rotate(0deg);
-  padding-top: 10rpx;
+  transition: transform 0.2s ease;
 }
 
 .section-arrow.expanded {
-  transform: rotate(180deg);
+  transform: rotate(90deg);
 }
 
 .profile-list {
-  margin-top: 28rpx;
+  padding: 0 64rpx 12rpx;
+}
+
+.form-card,
+.section-block {
+  padding: 0 64rpx;
+}
+
+.form-card {
+  padding-top: 42rpx;
+}
+
+.section-title-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 34rpx;
+}
+
+.section-marker {
+  width: 6rpx;
+  height: 32rpx;
+  background: #d8d8d8;
+  border-radius: 6rpx;
+  margin-right: 12rpx;
+}
+
+.section-kicker {
+  color: #111111;
+  font-size: 30rpx;
+  line-height: 1.2;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.section-kicker-strong {
+  font-weight: 600;
 }
 
 .field {
-  margin-bottom: 28rpx;
-}
-
-.field:last-child {
-  margin-bottom: 0;
-}
-
-.field-label,
-.readonly-value,
-.fee-hint,
-.error-text,
-.recovery-text {
-  font-family: "HarmonyOS Sans SC", "Inter", "PingFang SC", sans-serif;
+  margin-bottom: 44rpx;
 }
 
 .field-label {
   display: block;
-  font-size: 24rpx;
-  line-height: 1.8;
-  color: #617288;
-  margin-bottom: 16rpx;
-  letter-spacing: 0.04em;
+  color: #111111;
+  font-size: 28rpx;
+  line-height: 1.35;
+  margin-bottom: 14rpx;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
-.field-label.required::before {
-  content: "* ";
-  color: var(--error);
+.field-label.required::after {
+  content: " *";
+  color: #d72f2f;
 }
 
-.readonly-value {
-  font-size: 30rpx;
-  line-height: 1.9;
-  color: #20324d;
-  padding: 20rpx 24rpx;
-  background: #f9fbfd;
-  border-radius: 24rpx;
-  border: 1rpx solid rgba(20, 38, 61, 0.06);
+.control-wrap {
+  position: relative;
+  padding-bottom: 18rpx;
+}
+
+.control-wrap::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1rpx;
+  background: #e9e9e9;
+}
+
+.control-wrap.active::after {
+  height: 2rpx;
+  background: #111111;
 }
 
 .input,
-.textarea {
+.textarea,
+.readonly-value {
   width: 100%;
-  box-sizing: border-box;
-  color: #20324d;
-  font-family: "HarmonyOS Sans SC", "Inter", "PingFang SC", sans-serif;
+  color: #111111;
   font-size: 28rpx;
-  line-height: 1.9;
-  letter-spacing: 0.02em;
-  background: #fbfcfe;
-  border: 1rpx solid rgba(20, 38, 61, 0.08);
-  border-radius: 24rpx;
+  line-height: 1.45;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  box-sizing: border-box;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
-.input {
-  height: 104rpx;
-  padding: 0 24rpx;
+.readonly-value {
+  padding-bottom: 8rpx;
 }
 
 .textarea {
-  min-height: 168rpx;
-  padding: 24rpx;
+  min-height: 44rpx;
 }
 
 .input-placeholder {
-  color: #a2adbb;
+  color: #a9a9a9;
+  font-size: 28rpx;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .payment-block {
-  padding-bottom: 30rpx;
-}
-
-.fee-field {
-  margin-top: 28rpx;
-}
-
-.fee-info {
-  margin-bottom: 14rpx;
-}
-
-.fee-hint {
-  font-size: 24rpx;
-  line-height: 1.8;
-  color: #7a8797;
+  margin-top: 36rpx;
+  padding-bottom: 38rpx;
 }
 
 .fee-input-wrapper {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  gap: 12rpx;
 }
 
 .fee-currency {
-  font-family: "Source Han Serif SC", "Noto Serif SC", "Songti SC", serif;
-  font-size: 36rpx;
-  color: #14263d;
+  color: #111111;
+  font-size: 44rpx;
+  line-height: 1;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .fee-input {
+  font-size: 44rpx;
+  line-height: 1.2;
+}
+
+.fee-control {
   flex: 1;
 }
 
-.error-box,
-.recovery-box {
-  padding: 24rpx 26rpx;
-  margin-bottom: 20rpx;
+.fee-hint {
+  display: block;
+  margin-top: 14rpx;
+  color: #909090;
+  font-size: 28rpx;
+  line-height: 1.4;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .error-box {
-  border-color: rgba(178, 65, 55, 0.12);
-  background: rgba(178, 65, 55, 0.04);
+  padding: 8rpx 64rpx 12rpx;
 }
 
 .error-text {
+  color: #d93025;
   font-size: 24rpx;
-  line-height: 1.8;
-  color: var(--error);
+  line-height: 1.4;
 }
 
-.recovery-box {
-  border-color: rgba(23, 52, 93, 0.1);
-  background: rgba(23, 52, 93, 0.04);
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  padding: 24rpx 64rpx calc(env(safe-area-inset-bottom) + 24rpx);
+  background: #ffffff;
+  border-top: 1rpx solid #ececec;
 }
 
-.recovery-text {
-  font-size: 24rpx;
-  line-height: 1.8;
-  color: #17345d;
+.bottom-left {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bottom-title {
+  display: block;
+  color: #222222;
+  font-size: 28rpx;
+  line-height: 1.45;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bottom-sub {
+  display: block;
+  margin-top: 8rpx;
+  color: #9a9a9a;
+  font-size: 28rpx;
+  line-height: 1.35;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .btn-submit {
-  width: 100%;
-  min-height: 112rpx;
-  background: #17345d;
-  border-radius: 999rpx;
-  border: none;
-  margin-top: 12rpx;
+  width: 310rpx;
+  min-height: 86rpx;
+  background: #070707;
+  border: 0;
+  border-radius: 12rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 32rpx;
 }
 
 .btn-submit::after {
-  border: none;
-}
-
-.btn-submit:active {
-  opacity: 0.9;
+  border: 0;
 }
 
 .btn-submit[disabled] {
-  opacity: 0.45;
-}
-
-.btn-submit.waitlist {
-  background: #17345d;
-}
-
-.btn-content {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.btn-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8rpx;
-  text-align: center;
-}
-
-.btn-caption {
-  color: rgba(255, 255, 255, 0.72);
+  opacity: 0.5;
 }
 
 .btn-text {
-  font-size: 36rpx;
-  line-height: 1.4;
   color: #ffffff;
-}
-
-.btn-arrow {
-  font-size: 34rpx;
-  color: #ffffff;
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  font-size: 30rpx;
+  line-height: 1.2;
+  font-weight: 500;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
