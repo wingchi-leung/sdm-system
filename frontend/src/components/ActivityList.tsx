@@ -202,26 +202,25 @@ const ActivityList = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-slate-900">活动管理</h1>
-          <p className="mt-2 text-sm text-slate-600">
-            先补齐活动列表、详情聚合和状态流转，后续继续扩展批量操作与活动类型管理。
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight font-display text-foreground">活动管理</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">管理所有活动、状态和报名信息</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" onClick={fetchActivities}>
+          <Button variant="outline" onClick={fetchActivities} className="gap-2">
             <RefreshCw className="h-4 w-4" />
             刷新
           </Button>
           {exportEnabled ? (
-            <Button variant="outline" onClick={handleExport} disabled={exporting || selectedActivityIds.length === 0}>
+            <Button variant="outline" onClick={handleExport} disabled={exporting || selectedActivityIds.length === 0} className="gap-2">
               <Download className="h-4 w-4" />
               {exporting ? '导出中...' : `导出 Excel${selectedActivityIds.length > 0 ? `（${selectedActivityIds.length}）` : ''}`}
             </Button>
           ) : null}
-          <Button asChild>
+          <Button asChild className="gap-2">
             <Link to="/activities/create">
               <Plus className="h-4 w-4" />
               创建活动
@@ -230,33 +229,35 @@ const ActivityList = () => {
         </div>
       </div>
 
-      <Card className="bg-white/90">
-        <CardHeader className="gap-4 lg:flex-row lg:items-end lg:justify-between">
+      {/* Main Card */}
+      <Card className="border-border/60 bg-white shadow-md">
+        <CardHeader className="gap-4 lg:flex-row lg:items-end lg:justify-between pb-4">
           <div>
             <CardTitle className="text-xl">活动列表</CardTitle>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-muted-foreground">
               支持按状态筛选、分页查看和快捷进入详情。
               {exportEnabled ? ` 已选 ${selectedActivityIds.length} 个活动，可一键导出多 Sheet Excel。` : ''}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-sm text-slate-600">搜索</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">搜索</label>
               <Input
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="活动名称 / 类型 / 地点"
+                className="rounded-lg"
               />
             </div>
-            <div>
-              <label className="mb-1 block text-sm text-slate-600">活动状态</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">活动状态</label>
               <select
                 value={statusFilter}
                 onChange={(event) => {
                   setCurrentPage(1);
                   setStatusFilter(event.target.value);
                 }}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="flex h-11 w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm"
               >
                 <option value="all">全部状态</option>
                 <option value="1">未开始</option>
@@ -266,26 +267,33 @@ const ActivityList = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {error ? <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
+        <CardContent className="space-y-4 pt-0">
+          {/* Error Message */}
+          {error ? (
+            <div className="rounded-xl bg-red-50 p-4 text-sm text-red-700 border border-red-200">{error}</div>
+          ) : null}
+
+          {/* Selection Banner */}
           {exportEnabled && selectedActivityIds.length > 0 ? (
-            <div className="flex flex-col gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                已选择 {selectedActivityIds.length} 个活动。
+            <div className="flex flex-col gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="text-sm text-foreground">
+                <span className="font-semibold">{selectedActivityIds.length}</span> 个活动已选择
                 {selectedActivityIds.length <= 3
-                  ? ` ${selectedActivityIds.map((id) => selectedActivities[id]?.activity_name).filter(Boolean).join('、')}`
-                  : ' 导出后每个活动会生成一个独立 Sheet。'}
+                  ? `：${selectedActivityIds.map((id) => selectedActivities[id]?.activity_name).filter(Boolean).join('、')}`
+                  : '。导出后每个活动会生成一个独立 Sheet。'}
               </div>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setSelectedActivities({})}
+                className="text-muted-foreground hover:text-foreground"
               >
                 清空选择
               </Button>
             </div>
           ) : null}
 
+          {/* Table */}
           <Table>
             <TableHeader>
               <TableRow>
@@ -310,13 +318,16 @@ const ActivityList = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={exportEnabled ? 8 : 7} className="py-12 text-center text-slate-500">
-                    活动加载中...
+                  <TableCell colSpan={exportEnabled ? 8 : 7} className="py-16 text-center text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                      活动加载中...
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : filteredActivities.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={exportEnabled ? 8 : 7} className="py-12 text-center text-slate-500">
+                  <TableCell colSpan={exportEnabled ? 8 : 7} className="py-16 text-center text-muted-foreground">
                     当前条件下暂无活动
                   </TableCell>
                 </TableRow>
@@ -336,51 +347,53 @@ const ActivityList = () => {
                       <div>
                         <button
                           type="button"
-                          className="font-medium text-slate-900 hover:text-emerald-700"
+                          className="font-semibold text-foreground hover:text-primary transition-colors"
                           onClick={() => navigate(`/activities/${activity.id}`)}
                         >
                           {activity.activity_name}
                         </button>
-                        {activity.tag ? <p className="mt-1 text-xs text-slate-500">{activity.tag}</p> : null}
+                        {activity.tag ? <p className="mt-1 text-xs text-muted-foreground">{activity.tag}</p> : null}
                       </div>
                     </TableCell>
-                    <TableCell>{activity.activity_type_name || '未分类'}</TableCell>
+                    <TableCell className="text-muted-foreground">{activity.activity_type_name || '未分类'}</TableCell>
                     <TableCell>
-                      <div className="flex items-start gap-2 text-sm text-slate-600">
-                        <CalendarDays className="mt-0.5 h-4 w-4 text-slate-400" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CalendarDays className="h-4 w-4 text-slate-400" />
                         <span>{formatDateTime(activity.start_time)}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{activity.location || '未设置'}</TableCell>
-                    <TableCell>{activity.require_payment === 1 ? formatCurrency(activity.suggested_fee) : '免费'}</TableCell>
+                    <TableCell className="text-muted-foreground">{activity.location || '未设置'}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {activity.require_payment === 1 ? formatCurrency(activity.suggested_fee) : '免费'}
+                    </TableCell>
                     <TableCell>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                         {getActivityStatusLabel(activity.status)}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/activities/${activity.id}`)}>
+                      <div className="flex justify-end gap-1.5">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/activities/${activity.id}`)} className="gap-1.5 text-muted-foreground hover:text-foreground">
                           <Eye className="h-4 w-4" />
                           详情
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/activities/${activity.id}/participants`)}>
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/activities/${activity.id}/participants`)} className="gap-1.5 text-muted-foreground hover:text-foreground">
                           <Users className="h-4 w-4" />
                           报名
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/activities/edit/${activity.id}`)}>
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/activities/edit/${activity.id}`)} className="gap-1.5 text-muted-foreground hover:text-foreground">
                           <Edit className="h-4 w-4" />
                           编辑
                         </Button>
                         {activity.status < 3 ? (
-                          <Button variant="outline" size="sm" onClick={() => handleStatusChange(activity.id, activity.status + 1)}>
-                            流转状态
+                          <Button variant="ghost" size="sm" onClick={() => handleStatusChange(activity.id, activity.status + 1)} className="gap-1.5 text-muted-foreground hover:text-foreground">
+                            流转
                           </Button>
                         ) : null}
                         <Button
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                          className="gap-1.5 text-red-500 hover:bg-red-50 hover:text-red-600"
                           onClick={() => {
                             setSelectedActivityId(activity.id);
                             setDeleteDialogOpen(true);
@@ -396,13 +409,24 @@ const ActivityList = () => {
             </TableBody>
           </Table>
 
-          <div className="flex flex-col gap-3 border-t pt-4 text-sm text-slate-500 lg:flex-row lg:items-center lg:justify-between">
+          {/* Pagination */}
+          <div className="flex flex-col gap-3 border-t border-border/50 pt-4 text-sm text-muted-foreground lg:flex-row lg:items-center lg:justify-between">
             <div>共 {total} 条记录，当前第 {currentPage} / {totalPages} 页</div>
             <div className="flex gap-2">
-              <Button variant="outline" disabled={currentPage <= 1} onClick={() => setCurrentPage((page) => page - 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((page) => page - 1)}
+              >
                 上一页
               </Button>
-              <Button variant="outline" disabled={currentPage >= totalPages} onClick={() => setCurrentPage((page) => page + 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((page) => page + 1)}
+              >
                 下一页
               </Button>
             </div>
@@ -410,8 +434,9 @@ const ActivityList = () => {
         </CardContent>
       </Card>
 
+      {/* Delete Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-xl">
           <DialogHeader>
             <DialogTitle>确认删除活动</DialogTitle>
             <DialogDescription>

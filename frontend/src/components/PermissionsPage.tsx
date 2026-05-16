@@ -70,7 +70,7 @@ const PermissionsPage = () => {
   const [permissions, setPermissions] = useState<PermissionItem[]>([]);
   const [users, setUsers] = useState<AdminUserItem[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [activityTypes, setActivityTypes] = useState<ActivityTypeItem[]>([]);
+  const [activityTypeList, setActivityTypeList] = useState<ActivityTypeItem[]>([]);
   const [userRoles, setUserRoles] = useState<Record<number, UserRoleItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +133,7 @@ const PermissionsPage = () => {
       setPermissions(permissionsRes.data ?? []);
       setUsers(fetchedUsers);
       setActivities(activitiesRes.data?.items ?? []);
-      setActivityTypes(activityTypesRes.data ?? []);
+      setActivityTypeList(activityTypesRes.data ?? []);
 
       const roleResults = await Promise.all(
         fetchedUsers.map(async (user) => {
@@ -185,7 +185,7 @@ const PermissionsPage = () => {
   const assignmentSummary = useMemo(() => summarizeAdminAssignments(userRoles), [userRoles]);
   const scopeOptions = useMemo(() => {
     if (scopeType === 'activity_type') {
-      return activityTypes.map((item) => ({
+      return activityTypeList.map((item) => ({
         value: String(item.id),
         label: item.type_name,
       }));
@@ -199,7 +199,7 @@ const PermissionsPage = () => {
     }
 
     return [];
-  }, [activities, activityTypes, scopeType]);
+  }, [activities, activityTypeList, scopeType]);
 
   const handleAssignRole = async () => {
     if (!selectedUserId || !selectedRoleId) {
@@ -380,7 +380,7 @@ const PermissionsPage = () => {
                                   <div>
                                     <p className="text-sm font-medium text-slate-900">{item.role_name}</p>
                                     <p className="mt-1 text-xs text-slate-500">
-                                      {formatScopeLabel(item.scope_type, item.scope_id)}
+                                      {formatScopeLabel(item.scope_type, item.scope_id, activityTypeList)}
                                     </p>
                                   </div>
                                   <Button

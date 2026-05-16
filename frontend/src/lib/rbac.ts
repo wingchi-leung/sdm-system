@@ -7,7 +7,16 @@ export interface UserRoleItem {
   scope_id?: number | null;
 }
 
-export function formatScopeLabel(scopeType?: string | null, scopeId?: number | null): string {
+export interface ActivityTypeItem {
+  id: number;
+  type_name: string;
+}
+
+export function formatScopeLabel(
+  scopeType?: string | null,
+  scopeId?: number | null,
+  activityTypes?: ActivityTypeItem[],
+): string {
   if (!scopeType) {
     return '全局权限';
   }
@@ -17,6 +26,12 @@ export function formatScopeLabel(scopeType?: string | null, scopeId?: number | n
   }
 
   if (scopeType === 'activity_type') {
+    if (activityTypes && activityTypes.length > 0) {
+      const found = activityTypes.find((at) => at.id === scopeId);
+      if (found) {
+        return found.type_name;
+      }
+    }
     return `活动类型 #${scopeId}`;
   }
 

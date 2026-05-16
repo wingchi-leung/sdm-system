@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, AlertTriangle, ArrowRight, CalendarDays, CreditCard, Users } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, CalendarDays, CreditCard, Plus, Users } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
 import { getTenantName } from '../lib/auth';
 import {
@@ -43,13 +43,6 @@ interface AdminUserListResponse {
   limit: number;
 }
 
-const metricCards = [
-  { key: 'activityTotal', label: '活动总数', icon: Activity },
-  { key: 'activeNow', label: '进行中活动', icon: CalendarDays },
-  { key: 'todayRegistrations', label: '今日报名人数', icon: Users },
-  { key: 'todayCheckins', label: '今日签到人数', icon: CreditCard },
-];
-
 const DashboardPage = () => {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -87,14 +80,11 @@ const DashboardPage = () => {
   }, []);
 
   const metrics = useMemo(() => {
-    const waitlistCount = 0;
-
     return {
       activityTotal: activities.length,
       activeNow: activities.filter((item) => item.status === 2).length,
       todayRegistrations: countTodayRegistrations(users),
       todayCheckins: countTodayCheckins([]),
-      waitlistCount,
       pendingPayments: activities.filter((item) => item.require_payment === 1 && item.status !== 3).length,
       blockedUsers: users.filter((item) => item.isblock === 1).length,
       todayActivities: countTodayActivities(activities),
@@ -117,70 +107,77 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-3 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-800 p-6 text-white shadow-xl lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-6 animate-fade-in">
+      {/* Page Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-200">SDM 主管理后台</p>
-          <h1 className="mt-2 text-3xl font-semibold">
-            {getTenantName() || '当前租户'}
-            <span className="ml-2 text-base font-normal text-slate-300">工作台</span>
-          </h1>
-          
+          <h1 className="text-2xl font-bold tracking-tight font-display text-foreground">{getTenantName() || '当前租户'} 工作台</h1>
+          <p className="mt-1 text-sm text-muted-foreground">欢迎回来，这里是您的活动管理概览</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <Button asChild className="bg-white text-slate-900 hover:bg-slate-100">
-            <Link to="/activities/create">创建活动</Link>
+        <div className="flex gap-3">
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/activities/create">
+              <Plus className="h-4 w-4" />
+              创建活动
+            </Link>
           </Button>
-          <Button asChild variant="outline" className="border-white/30 bg-white/10 text-white hover:bg-white/20">
-            <Link to="/users">查看用户</Link>
+          <Button asChild variant="outline" className="gap-2">
+            <Link to="/users">
+              <Users className="h-4 w-4" />
+              用户管理
+            </Link>
           </Button>
         </div>
       </div>
 
+      {/* Error Alert */}
       {error ? (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="flex items-center gap-3 p-6 text-sm text-red-700">
-            <AlertTriangle className="h-5 w-5" />
+        <Card className="border-red-200 bg-red-50/80">
+          <CardContent className="flex items-center gap-3 p-4 text-sm text-red-700">
+            <AlertTriangle className="h-5 w-5 flex-shrink-0" />
             <span>{error}</span>
           </CardContent>
         </Card>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metricCards.map(({ key, label, icon: Icon }) => (
-          <Card key={key} className="border-slate-200 bg-white/90">
-            <CardContent className="flex items-center justify-between p-6">
-              <div>
-                <p className="text-sm text-slate-500">{label}</p>
-                <p className="mt-3 text-3xl font-semibold text-slate-900">
-                  {loading ? '--' : metrics[key as keyof typeof metrics]}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-emerald-50 p-3 text-emerald-700">
-                <Icon className="h-5 w-5" />
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Quick Stats Row */}
+      <div className="flex flex-wrap gap-6 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Activity className="h-4 w-4" />
+          <span>共 {loading ? '—' : metrics.activityTotal} 个活动</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <CalendarDays className="h-4 w-4" />
+          <span>进行中 {loading ? '—' : metrics.activeNow}</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Users className="h-4 w-4" />
+          <span>今日报名 {loading ? '—' : metrics.todayRegistrations} 人</span>
+        </div>
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <CreditCard className="h-4 w-4" />
+          <span>今日签到 {loading ? '—' : metrics.todayCheckins} 人</span>
+        </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-        <Card className="bg-white/90">
-          <CardHeader className="flex flex-row items-center justify-between">
+      {/* Main Content Grid */}
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+        {/* Activities List */}
+        <Card className="border-border/60 bg-white shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
-              <CardTitle className="text-xl">近期活动</CardTitle>
-              <p className="text-sm text-slate-500">优先关注即将开始或正在进行中的活动。</p>
+              <CardTitle className="text-lg">近期活动</CardTitle>
+              <p className="mt-1 text-sm text-muted-foreground">即将开始或正在进行中的活动</p>
             </div>
-            <Button asChild variant="ghost" className="text-slate-700">
+            <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary/80">
               <Link to="/activities">
-                查看全部
-                <ArrowRight className="h-4 w-4" />
+                查看全部 <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 pt-0">
             {upcomingActivities.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
+              <div className="rounded-lg border border-dashed border-slate-200 px-4 py-8 text-center text-sm text-muted-foreground">
                 暂无近期活动
               </div>
             ) : (
@@ -188,67 +185,71 @@ const DashboardPage = () => {
                 <Link
                   key={activity.id}
                   to={`/activities/${activity.id}`}
-                  className="block rounded-2xl border border-slate-200 p-4 transition hover:border-emerald-300 hover:bg-emerald-50/40"
+                  className="flex items-center justify-between rounded-lg p-3 transition-colors hover:bg-slate-50"
                 >
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <CalendarDays className="h-5 w-5 text-primary" />
+                    </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-slate-900">{activity.activity_name}</h3>
-                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">
-                          {getActivityStatusLabel(activity.status)}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-sm text-slate-500">
+                      <p className="font-medium text-foreground">{activity.activity_name}</p>
+                      <p className="text-xs text-muted-foreground">
                         {formatDateTime(activity.start_time)}
                         {activity.location ? ` · ${activity.location}` : ''}
                       </p>
                     </div>
-                    <ArrowRight className="h-4 w-4 text-slate-400" />
                   </div>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">
+                    {getActivityStatusLabel(activity.status)}
+                  </span>
                 </Link>
               ))
             )}
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          <Card className="bg-white/90">
-            <CardHeader>
-              <CardTitle className="text-xl">待处理事项</CardTitle>
+        {/* Sidebar */}
+        <div className="space-y-5">
+          {/* Recent Users */}
+          <Card className="border-border/60 bg-white shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">最近用户</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="rounded-2xl bg-amber-50 p-4 text-amber-800">
-                今日待开始活动 {loading ? '--' : metrics.todayActivities} 场，建议优先检查签到与现场名单。
-              </div>
-              <div className="rounded-2xl bg-rose-50 p-4 text-rose-800">
-                待支付活动 {loading ? '--' : metrics.pendingPayments} 场，后续可继续接入支付订单明细。
-              </div>
-              <div className="rounded-2xl bg-slate-100 p-4 text-slate-700">
-                黑名单用户 {loading ? '--' : metrics.blockedUsers} 人，已在用户管理页支持查看与解除。
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white/90">
-            <CardHeader>
-              <CardTitle className="text-xl">最近用户</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-2">
               {recentUsers.length === 0 ? (
-                <p className="text-sm text-slate-500">暂无用户数据</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">暂无用户数据</p>
               ) : (
                 recentUsers.map((user) => (
-                  <div key={user.id} className="rounded-2xl border border-slate-200 p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="font-medium text-slate-900">{user.name || `用户 #${user.id}`}</p>
-                        <p className="mt-1 text-sm text-slate-500">{user.phone || '未绑定手机号'}</p>
-                      </div>
-                      <span className="text-xs text-slate-400">{formatDateTime(user.create_time)}</span>
+                  <div key={user.id} className="flex items-center justify-between rounded-lg p-2 hover:bg-slate-50">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{user.name || `用户 #${user.id}`}</p>
+                      <p className="text-xs text-muted-foreground">{user.phone || '未绑定手机号'}</p>
                     </div>
+                    <span className="text-xs text-muted-foreground">{formatDateTime(user.create_time)}</span>
                   </div>
                 ))
               )}
+            </CardContent>
+          </Card>
+
+          {/* Pending Tasks */}
+          <Card className="border-border/60 bg-white shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">待处理</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              <div className="flex items-center justify-between rounded-lg p-3 bg-amber-50/50">
+                <span className="text-amber-700">今日待开始活动</span>
+                <span className="font-semibold text-amber-800">{loading ? '—' : metrics.todayActivities}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg p-3 bg-rose-50/50">
+                <span className="text-rose-700">待支付活动</span>
+                <span className="font-semibold text-rose-800">{loading ? '—' : metrics.pendingPayments}</span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg p-3 bg-slate-50">
+                <span className="text-slate-600">黑名单用户</span>
+                <span className="font-semibold text-slate-700">{loading ? '—' : metrics.blockedUsers}</span>
+              </div>
             </CardContent>
           </Card>
         </div>

@@ -44,13 +44,6 @@ const menuGroups: { label: string; items: MenuItem[] }[] = [
       { href: '/settings', title: '系统设置', icon: Settings },
     ],
   },
-  {
-    label: '兼容旧页',
-    items: [
-      { href: '/signin', title: '签到工具页', icon: CreditCard },
-      { href: '/statistics', title: '旧统计页', icon: BarChart3 },
-    ],
-  },
 ];
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
@@ -62,7 +55,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const permissions = getPermissions();
 
   if (!authenticated || location.pathname === '/login') {
-    return <div className="min-h-screen bg-slate-100">{children}</div>;
+    return <div className="min-h-screen bg-background">{children}</div>;
   }
 
   const handleLogout = async () => {
@@ -75,19 +68,22 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef6f3_100%)]">
-      <aside className="fixed left-0 top-0 flex h-full w-72 flex-col border-r border-slate-200 bg-slate-950 text-white shadow-2xl">
-        <div className="border-b border-white/10 px-6 py-6">
-          <p className="text-xs uppercase tracking-[0.35em] text-emerald-300">SDM System</p>
-          <h1 className="mt-3 text-3xl font-semibold">主管理端</h1>
-          <p className="mt-2 text-sm text-slate-300">{getTenantName() || '当前租户'}</p>
+    <div className="min-h-screen bg-background">
+      {/* Sidebar */}
+      <aside className="fixed left-0 top-0 flex h-full w-64 flex-col border-r border-border/60 bg-card shadow-lg">
+        {/* Logo Area */}
+        <div className="border-b border-border/60 px-6 py-6">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">SDM System</p>
+          <h1 className="mt-3 text-xl font-bold tracking-tight font-display text-foreground">主管理端</h1>
+          <p className="mt-1.5 text-sm text-muted-foreground">{getTenantName() || '当前租户'}</p>
         </div>
 
-        <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
+        {/* Navigation */}
+        <nav className="flex-1 space-y-5 overflow-y-auto px-4 py-5">
           {menuGroups.map((group) => (
             <div key={group.label}>
-              <p className="px-3 text-xs text-slate-400">{group.label}</p>
-              <div className="mt-2 space-y-1">
+              <p className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">{group.label}</p>
+              <div className="space-y-0.5">
                 {group.items
                   .filter((item) => {
                     if (platformAdmin) return true;
@@ -105,8 +101,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                       <Button
                         variant="ghost"
                         className={cn(
-                          'w-full justify-start rounded-xl px-3 text-slate-200 hover:bg-white/10 hover:text-white',
-                          active && 'bg-emerald-500/15 text-white ring-1 ring-emerald-400/30',
+                          'w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all duration-150 hover:text-foreground hover:bg-primary/5',
+                          active && 'bg-primary/10 text-primary shadow-sm',
                         )}
                       >
                         <Icon className="h-4 w-4" />
@@ -120,10 +116,11 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           ))}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
+        {/* Logout */}
+        <div className="border-t border-border/60 p-4">
           <Button
             variant="ghost"
-            className="w-full justify-start rounded-xl text-slate-300 hover:bg-white/10 hover:text-white"
+            className="w-full justify-start gap-3 rounded-lg text-muted-foreground hover:text-foreground hover:bg-destructive/5"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />
@@ -132,8 +129,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </aside>
 
-      <div className="pl-72">
-        <main className="min-h-screen p-6 lg:p-8">{children}</main>
+      {/* Main Content */}
+      <div className="pl-64">
+        <main className="min-h-screen p-8">{children}</main>
       </div>
     </div>
   );
