@@ -34,6 +34,9 @@ Page({
     uploading: false,
     // 报名限额
     maxParticipants: '',
+    // 活动介绍
+    activityIntro: '',
+    introCount: 0,
     // 公开设置
     isPublic: false,
   },
@@ -60,6 +63,8 @@ Page({
       location: '',
       uploading: false,
       maxParticipants: '',
+      activityIntro: '',
+      introCount: 0,
       isPublic: false,
     });
   },
@@ -251,6 +256,13 @@ Page({
     this.setData({ location: e.detail.value, error: null });
   },
 
+  // 活动介绍输入
+  onActivityIntroInput(e) {
+    const value = e.detail.value || '';
+    const trimmed = value.slice(0, 1000);
+    this.setData({ activityIntro: trimmed, introCount: trimmed.length, error: null });
+  },
+
   // 公开设置
   onIsPublicChange(e) {
     this.setData({ isPublic: e.detail.value, error: null });
@@ -324,7 +336,7 @@ Page({
       this.ensureAdminAccess();
       return;
     }
-    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee, location, maxParticipants } = this.data;
+    const { activityName, startDate, startTime, endDate, endTime, requirePayment, suggestedFee, location, maxParticipants, activityIntro } = this.data;
     const tag = (this.data.tag || '').trim();
     const activityType = this.getSelectedActivityType();
     if (!activityName || !activityName.trim()) {
@@ -370,6 +382,10 @@ Page({
       this.setData({ error: '报名限额必须是大于0的整数' });
       return;
     }
+    if ((activityIntro || '').length > 1000) {
+      this.setData({ error: '活动介绍不能超过1000字' });
+      return;
+    }
 
     this.setData({ submitting: true, error: null });
 
@@ -402,6 +418,7 @@ Page({
           require_payment: requirePayment ? 1 : 0,
           poster_url: posterUrl || null,
           location: (location || '').trim() || null,
+          activity_intro: (activityIntro || '').trim() || null,
           max_participants: maxParticipantsNum,
           is_public: this.data.isPublic ? 1 : 0,
         });

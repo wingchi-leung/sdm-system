@@ -158,6 +158,13 @@
   margin-top: 24rpx;
 }
 
+.intro-card {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(180deg, #fafbfa 0%, #f5f7f5 100%);
+  border: 1rpx solid #edf0ed;
+}
+
 .section-title {
   display: block;
   color: #111111;
@@ -173,7 +180,7 @@
   color: #444444;
   font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 28rpx;
-  line-height: 1.45;
+  line-height: 1.7;
   white-space: pre-wrap;
 }
 

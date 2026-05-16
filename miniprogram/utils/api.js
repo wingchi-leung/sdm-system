@@ -142,8 +142,8 @@ function getActivities(opts = {}) {
 }
 
 /** 可报名活动：未开始(1) + 进行中(2) */
-function getEnrollableActivities() {
-  return getActivities({}).then((data) => {
+function getEnrollableActivities(opts = {}) {
+  return getActivities(opts).then((data) => {
     const items = (data.items || []).filter((a) => a.status === 1 || a.status === 2);
     return { items, total: items.length };
   });
@@ -322,6 +322,7 @@ function createActivity({
   require_payment,
   poster_url,
   location,
+  activity_intro,
   max_participants,
   is_public,
 }) {
@@ -348,6 +349,9 @@ function createActivity({
   }
   if (location !== undefined) {
     data.location = location || null;
+  }
+  if (activity_intro !== undefined) {
+    data.activity_intro = activity_intro || null;
   }
   if (max_participants != null && max_participants > 0) {
     data.max_participants = max_participants;

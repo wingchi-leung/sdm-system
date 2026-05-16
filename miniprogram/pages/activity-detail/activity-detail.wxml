@@ -62,9 +62,9 @@
 
     <view class="section-divider"></view>
 
-    <view class="intro-block">
+    <view class="intro-block intro-card">
       <text class="section-title">活动介绍</text>
-      <text class="intro-text">{{activity.description || activity.content || activity.summary || '暂无活动介绍'}}</text>
+      <text class="intro-text">{{activity.activity_intro || '暂无活动介绍'}}</text>
     </view>
 
     <view wx:if="{{showCommunitySection}}" class="community-section">

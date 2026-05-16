@@ -128,7 +128,8 @@ Page({
   load() {
     this.resetPageState();
     this.resolveAdminState();
-    const tasks = [api.getEnrollableActivities()];
+    // 首页活动列表始终按用户视角展示，管理员也能看到自己绑定类型的活动
+    const tasks = [api.getEnrollableActivities({ asUserView: true })];
     if (auth.isUser()) {
       tasks.push(api.getMyParticipantActivities());
       tasks.push(api.getUserProfile());

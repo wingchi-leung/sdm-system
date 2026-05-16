@@ -354,6 +354,18 @@
   text-transform: none;
 }
 
+.field-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-counter {
+  color: var(--text-muted);
+  font-size: 22rpx;
+  line-height: 32rpx;
+}
+
 .input,
 .picker-row,
 .datetime-row .picker-value,
@@ -362,6 +374,21 @@
   border-radius: 20rpx;
   font-size: 28rpx;
   line-height: 40rpx;
+  letter-spacing: 0.4rpx;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 220rpx;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  border: 1px solid var(--form-border);
+  border-radius: 20rpx;
+  background: var(--form-surface);
+  box-shadow: var(--form-shadow);
+  color: var(--text-primary);
+  font-size: 28rpx;
+  line-height: 1.6;
   letter-spacing: 0.4rpx;
 }
 

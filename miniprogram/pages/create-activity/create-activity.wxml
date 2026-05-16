@@ -101,6 +101,22 @@
       />
     </view>
 
+    <!-- 活动介绍 -->
+    <view class="field">
+      <view class="field-title-row">
+        <text class="field-label">活动介绍</text>
+        <text class="field-counter">{{introCount}} / 1000</text>
+      </view>
+      <textarea
+        class="textarea"
+        placeholder="请输入活动介绍（最多1000字）"
+        placeholder-class="input-placeholder"
+        maxlength="1000"
+        value="{{activityIntro}}"
+        bindinput="onActivityIntroInput"
+      />
+    </view>
+
     <!-- 开始时间 -->
     <view class="field">
       <text class="field-label">开始时间</text>

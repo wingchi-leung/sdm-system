@@ -50,7 +50,7 @@ Page({
   async refreshList() {
     this._isLoaded = true;
     try {
-      const result = await api.getActivities({ skip: 0, limit: PAGE_SIZE });
+      const result = await api.getActivities({ skip: 0, limit: PAGE_SIZE, asUserView: false });
       const activities = await this.processActivities(result.items);
       this.setData({
         activities: activities,
@@ -78,7 +78,7 @@ Page({
 
     this.setData({ loadingMore: true });
     try {
-      const result = await api.getActivities({ skip: this.data.skip, limit: PAGE_SIZE });
+      const result = await api.getActivities({ skip: this.data.skip, limit: PAGE_SIZE, asUserView: false });
       const newItems = await this.processActivities(result.items);
       this.setData({
         activities: [...this.data.activities, ...newItems],
