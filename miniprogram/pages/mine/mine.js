@@ -40,16 +40,7 @@ Page({
   },
 
   checkAuth() {
-    console.log('[Mine] checkAuth start');
-    console.log('[Mine] isAdmin:', auth.isAdmin());
-    console.log('[Mine] isSuperAdmin:', auth.isSuperAdmin());
-    console.log('[Mine] isActivityTypeAdmin:', auth.isActivityTypeAdmin());
-    console.log('[Mine] getAdminLevel:', auth.getAdminLevel());
-    console.log('[Mine] getAdminActivityTypes:', auth.getAdminActivityTypes());
-    console.log('[Mine] getRole:', auth.getRole());
-
     if (auth.isAdmin()) {
-      console.log('[Mine] showing admin view');
       this.resetPageState({
         view: 'admin',
         loading: false,

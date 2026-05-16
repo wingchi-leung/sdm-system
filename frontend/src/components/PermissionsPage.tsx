@@ -42,6 +42,10 @@ interface AdminUserItem {
   phone?: string | null;
   create_time?: string;
 }
+interface AdminUserListResponse {
+  items: AdminUserItem[];
+  total: number;
+}
 
 interface ActivityTypeItem {
   id: number;
@@ -103,7 +107,7 @@ const PermissionsPage = () => {
       const [rolesRes, permissionsRes, usersRes, activitiesRes, activityTypesRes] = await Promise.all([
         apiRequest<RoleItem[]>(API_PATHS.roles.list),
         apiRequest<PermissionItem[]>(API_PATHS.roles.permissions),
-        apiRequest<AdminUserItem[]>(API_PATHS.users.list),
+        apiRequest<AdminUserListResponse>(`${API_PATHS.users.adminAll}?skip=0&limit=100`),
         apiRequest<ActivityListResponse>(`${API_PATHS.activities.list}?skip=0&limit=100`),
         apiRequest<ActivityTypeItem[]>(API_PATHS.activityTypes.list),
       ]);
@@ -124,7 +128,7 @@ const PermissionsPage = () => {
         throw new Error(activityTypesRes.error);
       }
 
-      const fetchedUsers = usersRes.data ?? [];
+      const fetchedUsers = usersRes.data?.items ?? [];
       setRoles(rolesRes.data ?? []);
       setPermissions(permissionsRes.data ?? []);
       setUsers(fetchedUsers);

@@ -143,10 +143,6 @@ Page({
           return;
         }
         auth.saveAdminToken(res.access_token, res);
-        console.log('[Login] saveAdminToken called with:', {
-          access_token: res.access_token ? '(set)' : '(empty)',
-          auth: res.auth,
-        });
         wx.showToast({ title: '登录成功', icon: 'success' });
         setTimeout(() => {
           this.navigateAfterLogin('admin');
@@ -163,8 +159,7 @@ Page({
     if (authInfo.is_admin || authInfo.is_platform_admin) {
       // 管理员微信登录
       auth.saveAdminToken(data.access_token, data);
-      const levelText = authInfo.is_super_admin ? '超级管理员' : '活动管理员';
-      wx.showToast({ title: `登录成功（${levelText}）`, icon: 'success' });
+      wx.showToast({ title: `登录成功 `, icon: 'success' });
       setTimeout(() => this.navigateAfterLogin('admin'), 800);
       return;
     }

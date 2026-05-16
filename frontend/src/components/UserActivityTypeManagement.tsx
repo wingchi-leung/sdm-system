@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link2, Unlink, Users, RefreshCw, Search } from 'lucide-react';
+import { Link2, RefreshCw, Search } from 'lucide-react';
 import { API_PATHS, apiRequest } from '../config/api';
+import { buildTypeSyncPlan, extractUserActivityTypeIds } from '../lib/user-activity-types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
@@ -34,6 +35,11 @@ interface UserActivityTypeItem {
   create_time?: string;
 }
 
+interface UserActivityTypeListResponse {
+  items: UserActivityTypeItem[];
+  total: number;
+}
+
 const pageSize = 20;
 
 const UserActivityTypeManagement = () => {
@@ -45,7 +51,9 @@ const UserActivityTypeManagement = () => {
   const [loading, setLoading] = useState(false);
   const [bindDialogOpen, setBindDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserItem | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = useCallback(async () => {
@@ -56,11 +64,15 @@ const UserActivityTypeManagement = () => {
       const response = await apiRequest<{ items: UserItem[]; total: number }>(
         `${API_PATHS.users.adminAll}?skip=${skip}&limit=${pageSize}${keywordQuery}`,
       );
+      if (response.error) {
+        throw new Error(response.error);
+      }
       if (response.data) {
         setUsers(response.data.items);
+        setSelectedUserIds([]);
       }
-    } catch {
-      toast({ title: '获取用户列表失败', variant: 'destructive' });
+    } catch (error) {
+      toast({ title: '获取用户列表失败', description: error instanceof Error ? error.message : '未知错误', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -69,11 +81,14 @@ const UserActivityTypeManagement = () => {
   const fetchActivityTypes = useCallback(async () => {
     try {
       const response = await apiRequest<ActivityTypeItem[]>(API_PATHS.activityTypes.list);
+      if (response.error) {
+        throw new Error(response.error);
+      }
       if (response.data) {
         setActivityTypes(response.data);
       }
-    } catch {
-      toast({ title: '获取活动类型失败', variant: 'destructive' });
+    } catch (error) {
+      toast({ title: '获取活动类型失败', description: error instanceof Error ? error.message : '未知错误', variant: 'destructive' });
     }
   }, [toast]);
 
@@ -81,13 +96,13 @@ const UserActivityTypeManagement = () => {
     if (userIds.length === 0) return;
     try {
       const promises = userIds.map(userId =>
-        apiRequest<UserActivityTypeItem[]>(API_PATHS.userActivityTypes.listByUser(userId))
+        apiRequest<UserActivityTypeListResponse>(API_PATHS.userActivityTypes.listByUser(userId))
       );
       const results = await Promise.all(promises);
       const newMap = new Map<number, number[]>();
       results.forEach((res, index) => {
-        if (res.data) {
-          const typeIds = res.data.map(item => item.activity_type_id);
+        if (!res.error && res.data) {
+          const typeIds = extractUserActivityTypeIds(res.data);
           newMap.set(userIds[index], typeIds);
         }
       });
@@ -112,39 +127,62 @@ const UserActivityTypeManagement = () => {
     }
   }, [users, fetchUserActivityTypes]);
 
-  const openBindDialog = (user: UserItem) => {
+  const openBindDialog = (user: UserItem | null, userIds: number[]) => {
     setSelectedUser(user);
-    setSelectedTypes(userActivityTypes.get(user.id) || []);
+    setSelectedUserIds(userIds);
+    if (userIds.length === 1) {
+      setSelectedTypes(userActivityTypes.get(userIds[0]) || []);
+    } else {
+      setSelectedTypes([]);
+    }
     setBindDialogOpen(true);
   };
 
-  const handleBindTypes = async () => {
-    if (!selectedUser) return;
-    try {
-      await apiRequest(API_PATHS.userActivityTypes.bind, {
+  const syncUserTypes = useCallback(async (userId: number, nextTypeIds: number[]) => {
+    const currentTypeIds = userActivityTypes.get(userId) || [];
+    const { toAdd, toRemove } = buildTypeSyncPlan(currentTypeIds, nextTypeIds);
+
+    if (toAdd.length > 0) {
+      const bindRes = await apiRequest(API_PATHS.userActivityTypes.bind, {
         method: 'POST',
         body: JSON.stringify({
-          user_id: selectedUser.id,
-          activity_type_ids: selectedTypes,
+          user_id: userId,
+          activity_type_ids: toAdd,
         }),
       });
-      toast({ title: '绑定成功', className: 'bg-green-50 text-green-700' });
-      setBindDialogOpen(false);
-      fetchUserActivityTypes([selectedUser.id]);
-    } catch (err) {
-      toast({ title: '绑定失败', description: String(err), variant: 'destructive' });
+      if (bindRes.error) {
+        throw new Error(bindRes.error);
+      }
     }
-  };
 
-  const handleUnbindType = async (userId: number, typeId: number) => {
-    try {
-      await apiRequest(API_PATHS.userActivityTypes.unbind(userId, typeId), {
+    if (toRemove.length > 0) {
+      const unbindRes = await apiRequest(API_PATHS.userActivityTypes.unbindBatch, {
         method: 'DELETE',
+        body: JSON.stringify({
+          user_id: userId,
+          activity_type_ids: toRemove,
+        }),
       });
-      toast({ title: '解除绑定成功', className: 'bg-green-50 text-green-700' });
-      fetchUserActivityTypes([userId]);
-    } catch {
-      toast({ title: '解除绑定失败', variant: 'destructive' });
+      if (unbindRes.error) {
+        throw new Error(unbindRes.error);
+      }
+    }
+  }, [userActivityTypes]);
+
+  const handleBindTypes = async () => {
+    if (selectedUserIds.length === 0) return;
+    setSubmitting(true);
+    try {
+      await Promise.all(selectedUserIds.map((userId) => syncUserTypes(userId, selectedTypes)));
+      toast({ title: selectedUserIds.length > 1 ? '批量分配成功' : '分配成功', className: 'bg-green-50 text-green-700' });
+      setBindDialogOpen(false);
+      setSelectedUser(null);
+      setSelectedUserIds([]);
+      await fetchUserActivityTypes(users.map((u) => u.id));
+    } catch (err) {
+      toast({ title: '分配失败', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -159,6 +197,24 @@ const UserActivityTypeManagement = () => {
     return typeIds.map(id => activityTypes.find(t => t.id === id)?.type_name || `类型#${id}`);
   };
 
+  const allCurrentPageSelected = useMemo(() => {
+    return users.length > 0 && users.every((user) => selectedUserIds.includes(user.id));
+  }, [users, selectedUserIds]);
+
+  const toggleUserSelection = (userId: number) => {
+    setSelectedUserIds((prev) => (
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    ));
+  };
+
+  const toggleSelectAllCurrentPage = () => {
+    if (allCurrentPageSelected) {
+      setSelectedUserIds([]);
+      return;
+    }
+    setSelectedUserIds(users.map((user) => user.id));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -169,6 +225,13 @@ const UserActivityTypeManagement = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
+          <Button
+            onClick={() => openBindDialog(null, selectedUserIds)}
+            disabled={selectedUserIds.length === 0}
+          >
+            <Link2 className="h-4 w-4" />
+            批量分配（{selectedUserIds.length}）
+          </Button>
           <Button variant="outline" onClick={fetchUsers}>
             <RefreshCw className="h-4 w-4" />
             刷新
@@ -207,6 +270,9 @@ const UserActivityTypeManagement = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-16 text-center">
+                  <input type="checkbox" checked={allCurrentPageSelected} onChange={toggleSelectAllCurrentPage} />
+                </TableHead>
                 <TableHead>用户</TableHead>
                 <TableHead>手机号</TableHead>
                 <TableHead>已分配活动类型</TableHead>
@@ -216,13 +282,13 @@ const UserActivityTypeManagement = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-12 text-center text-slate-500">
+                  <TableCell colSpan={5} className="py-12 text-center text-slate-500">
                     加载中...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-12 text-center text-slate-500">
+                  <TableCell colSpan={5} className="py-12 text-center text-slate-500">
                     暂无用户
                   </TableCell>
                 </TableRow>
@@ -231,6 +297,13 @@ const UserActivityTypeManagement = () => {
                   const userTypes = getUserTypeNames(user.id);
                   return (
                     <TableRow key={user.id}>
+                      <TableCell className="text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(user.id)}
+                          onChange={() => toggleUserSelection(user.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <p className="font-medium text-slate-900">{user.name || `用户 #${user.id}`}</p>
                       </TableCell>
@@ -250,24 +323,10 @@ const UserActivityTypeManagement = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openBindDialog(user)}>
+                          <Button variant="outline" size="sm" onClick={() => openBindDialog(user, [user.id])}>
                             <Link2 className="h-4 w-4" />
                             分配类型
                           </Button>
-                          {userTypes.length > 0 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-rose-600 hover:bg-rose-50"
-                              onClick={() => {
-                                const typeId = userActivityTypes.get(user.id)?.[0];
-                                if (typeId) handleUnbindType(user.id, typeId);
-                              }}
-                            >
-                              <Unlink className="h-4 w-4" />
-                              解除
-                            </Button>
-                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -294,9 +353,11 @@ const UserActivityTypeManagement = () => {
       <Dialog open={bindDialogOpen} onOpenChange={setBindDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>分配活动类型</DialogTitle>
+            <DialogTitle>{selectedUserIds.length > 1 ? '批量分配活动类型' : '分配活动类型'}</DialogTitle>
             <DialogDescription>
-              为用户「{selectedUser?.name || selectedUser?.id}」分配活动类型
+              {selectedUserIds.length > 1
+                ? `为 ${selectedUserIds.length} 个用户批量分配活动类型`
+                : `为用户「${selectedUser?.name || selectedUser?.id}」分配活动类型`}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -320,8 +381,8 @@ const UserActivityTypeManagement = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBindDialogOpen(false)}>取消</Button>
-            <Button onClick={handleBindTypes} disabled={selectedTypes.length === 0}>
-              确认绑定
+            <Button onClick={handleBindTypes} disabled={submitting}>
+              {submitting ? '提交中...' : '确认分配'}
             </Button>
           </DialogFooter>
         </DialogContent>
