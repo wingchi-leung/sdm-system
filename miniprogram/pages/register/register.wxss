@@ -221,6 +221,7 @@
 .control-wrap {
   position: relative;
   padding-bottom: 16rpx;
+  min-height: 40rpx;
 }
 
 .control-wrap::after {
@@ -261,6 +262,18 @@
 .textarea {
   height: 40rpx;
   min-height: 40rpx;
+}
+
+.custom-placeholder {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  color: #a9a9a9;
+  font-size: 24rpx;
+  line-height: 40rpx;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+  pointer-events: none;
 }
 
 .input-placeholder {

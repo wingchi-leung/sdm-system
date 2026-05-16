@@ -75,10 +75,10 @@
     <view class="field">
       <text class="field-label required">为什么要参与？</text>
       <view class="control-wrap {{activeField === 'whyJoin' ? 'active' : ''}}">
+        <text wx:if="{{!whyJoin}}" class="custom-placeholder">请说明您参与此次活动的原因</text>
         <textarea
           class="textarea"
-          placeholder="请说明您参与此次活动的原因"
-          placeholder-class="input-placeholder"
+          placeholder=""
           value="{{whyJoin}}"
           bindinput="onWhyJoinInput"
           bindfocus="onFieldFocus"
@@ -93,10 +93,10 @@
     <view class="field">
       <text class="field-label required">您是通过什么渠道了解此活动的？</text>
       <view class="control-wrap {{activeField === 'channel' ? 'active' : ''}}">
+        <text wx:if="{{!channel}}" class="custom-placeholder">如：朋友推荐、公众号、社群等</text>
         <input
           class="input"
-          placeholder="如：朋友推荐、公众号、社群等"
-          placeholder-class="input-placeholder"
+          placeholder=""
           value="{{channel}}"
           bindinput="onChannelInput"
           bindfocus="onFieldFocus"
@@ -110,10 +110,10 @@
     <view class="field">
       <text class="field-label required">您对本次活动有什么学习期望？</text>
       <view class="control-wrap {{activeField === 'expectation' ? 'active' : ''}}">
+        <text wx:if="{{!expectation}}" class="custom-placeholder">请描述您希望在活动中获得什么</text>
         <textarea
           class="textarea"
-          placeholder="请描述您希望在活动中获得什么"
-          placeholder-class="input-placeholder"
+          placeholder=""
           value="{{expectation}}"
           bindinput="onExpectationInput"
           bindfocus="onFieldFocus"
@@ -128,10 +128,10 @@
     <view class="field">
       <text class="field-label">用一句话描述您对本活动的了解？</text>
       <view class="control-wrap {{activeField === 'understanding' ? 'active' : ''}}">
+        <text wx:if="{{!activityUnderstanding}}" class="custom-placeholder">选填</text>
         <input
           class="input"
-          placeholder="选填"
-          placeholder-class="input-placeholder"
+          placeholder=""
           value="{{activityUnderstanding}}"
           bindinput="onUnderstandingInput"
           bindfocus="onFieldFocus"
@@ -145,10 +145,10 @@
     <view class="field">
       <text class="field-label">您是否有任何问题想要了解？</text>
       <view class="control-wrap {{activeField === 'questions' ? 'active' : ''}}">
+        <text wx:if="{{!hasQuestions}}" class="custom-placeholder">选填，如有问题请在此提出</text>
         <textarea
           class="textarea"
-          placeholder="选填，如有问题请在此提出"
-          placeholder-class="input-placeholder"
+          placeholder=""
           value="{{hasQuestions}}"
           bindinput="onQuestionsInput"
           bindfocus="onFieldFocus"
@@ -166,6 +166,7 @@
       <text class="section-marker"></text>
       <text class="section-kicker section-kicker-strong">支付信息</text>
     </view>
+
     <view class="field fee-field">
       <text class="field-label">支付金额</text>
       <view class="fee-input-wrapper">
@@ -210,4 +211,3 @@
     </button>
   </view>
 </view>
-
