@@ -4,6 +4,7 @@
  */
 const config = require('../config/index');
 const tenant = require('./tenant');
+const auth = require('./auth');
 const { normalizeApiErrorMessage } = require('./request-error');
 const { encryptWithPublicKey } = require('./rsa');
 const baseUrl = config.baseUrl;
@@ -77,6 +78,12 @@ function withTenant(url) {
   return `${url}${joiner}tenant_code=${encodeURIComponent(getTenantCode())}`;
 }
 
+function resolveAsUserViewFlag(asUserView) {
+  if (asUserView === true) return 1;
+  if (asUserView === false) return 0;
+  return auth.isAdmin() ? 0 : 1;
+}
+
 function getSensitiveRsaPublicKey() {
   if (cachedSensitiveBundle && cachedSensitiveBundle.public_key && cachedSensitiveBundle.kid) {
     return Promise.resolve(cachedSensitiveBundle);
@@ -116,14 +123,15 @@ function isUnsafeBaseUrl() {
 
 /** 活动列表：可传 status 筛选，不传则全部 */
 function getActivities(opts = {}) {
-  const { skip = 0, limit = 100, status } = opts;
-  let url = withTenant(`${baseUrl}/activities?skip=${skip}&limit=${limit}`);
+  const { skip = 0, limit = 100, status, asUserView } = opts;
+  const asUserViewFlag = resolveAsUserViewFlag(asUserView);
+  let url = withTenant(`${baseUrl}/activities?skip=${skip}&limit=${limit}&as_user_view=${asUserViewFlag}`);
   if (status != null) url += `&status=${status}`;
   return new Promise((resolve, reject) => {
     wx.request({
       url,
       method: 'GET',
-      header: getHeader(),
+      header: getHeader(true),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -143,11 +151,12 @@ function getEnrollableActivities() {
 
 /** 未开始活动（接口） */
 function getUnstartedActivities() {
+  const asUserViewFlag = resolveAsUserViewFlag(undefined);
   return new Promise((resolve, reject) => {
     wx.request({
-      url: withTenant(`${baseUrl}/activities/unstarted/`),
+      url: withTenant(`${baseUrl}/activities/unstarted/?as_user_view=${asUserViewFlag}`),
       method: 'GET',
-      header: getHeader(),
+      header: getHeader(true),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -284,6 +293,22 @@ function registerParticipant(data) {
   });
 }
 
+/** 获取当前登录用户实时权限快照 */
+function getAuthSnapshot() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/auth/me`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 创建活动（需管理员 token） */
 function createActivity({
   activity_name,
@@ -369,11 +394,29 @@ ApiError.prototype.toString = function () {
 
 /** 获取活动详情 */
 function getActivity(activityId) {
+  const asUserViewFlag = resolveAsUserViewFlag(undefined);
   return new Promise((resolve, reject) => {
     wx.request({
-      url: withTenant(`${baseUrl}/activities/${activityId}`),
+      url: withTenant(`${baseUrl}/activities/${activityId}?as_user_view=${asUserViewFlag}`),
       method: 'GET',
-      header: getHeader(),
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取当前用户对活动的权限 */
+function getActivityPermissions(activityId) {
+  const asUserViewFlag = resolveAsUserViewFlag(undefined);
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: withTenant(`${baseUrl}/activities/${activityId}/my-permissions?as_user_view=${asUserViewFlag}`),
+      method: 'GET',
+      header: getHeader(true),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -385,11 +428,12 @@ function getActivity(activityId) {
 
 /** 获取活动报名情况（剩余名额等） */
 function getEnrollmentInfo(activityId) {
+  const asUserViewFlag = resolveAsUserViewFlag(undefined);
   return new Promise((resolve, reject) => {
     wx.request({
-      url: withTenant(`${baseUrl}/activities/${activityId}/enrollment-info`),
+      url: withTenant(`${baseUrl}/activities/${activityId}/enrollment-info?as_user_view=${asUserViewFlag}`),
       method: 'GET',
-      header: getHeader(),
+      header: getHeader(true),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -938,6 +982,7 @@ module.exports = {
   getUnstartedActivities,
   adminLogin,
   userLogin,
+  getAuthSnapshot,
   registerUser,
   getUserProfile,
   updateUserAvatar,
@@ -946,6 +991,7 @@ module.exports = {
   wechatLogin,
   phoneLogin,
   getActivity,
+  getActivityPermissions,
   getEnrollmentInfo,
   getMyParticipantActivities,
   getCommunityPosts,

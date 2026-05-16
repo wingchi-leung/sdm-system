@@ -1,12 +1,12 @@
 .page {
   min-height: 100vh;
-  padding: 84rpx 56rpx 150rpx;
-  background: #FFFFFF;
+  background: #ffffff;
+  padding: 34rpx 54rpx 150rpx;
   box-sizing: border-box;
 }
 
 .content {
-  animation: fadeIn 0.35s ease;
+  animation: fadeIn 0.25s ease;
 }
 
 .state-wrap {
@@ -16,45 +16,33 @@
   justify-content: center;
 }
 
-.profile-section {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding-bottom: 48rpx;
-  margin-bottom: 38rpx;
+.page-title {
+  text-align: center;
+  color: #111111;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 31rpx;
+  line-height: 1.2;
+  font-weight: 500;
+  margin-top: 18rpx;
 }
 
-.profile-section.admin {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.profile-card {
+.profile-row {
+  margin-top: 52rpx;
+  padding: 0;
   display: flex;
   align-items: center;
-  padding: 24rpx;
-  background: #FFFFFF;
-  border: 1rpx solid #ECECEC;
-  border-radius: 24rpx;
 }
 
-.avatar {
-  width: 112rpx;
-  height: 112rpx;
-  margin-right: 28rpx;
-  background: #FFFFFF;
-  border: 1rpx solid #ECECEC;
+.avatar-wrap {
+  width: 92rpx;
+  height: 92rpx;
   border-radius: 50%;
+  overflow: hidden;
+  background: #f4f4f4;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--green);
-  overflow: hidden;
-}
-
-.avatar-clickable:active {
-  opacity: 0.84;
+  flex-shrink: 0;
 }
 
 .avatar-image {
@@ -63,222 +51,120 @@
 }
 
 .avatar-fallback {
-  color: var(--green);
-  font-size: 34rpx;
-  font-weight: 500;
+  color: #777777;
+  font-size: 32rpx;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
 }
 
-.profile-info {
+.profile-copy {
   flex: 1;
   min-width: 0;
-}
-
-.profile-summary {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-  margin-top: 16rpx;
-}
-
-.summary-item {
-  padding: 22rpx 24rpx;
-  background: #F7FAF8;
-  border: 1rpx solid #E8EEEA;
-  border-radius: 20rpx;
-}
-
-.summary-value {
-  display: block;
-  color: var(--ink);
-  font-size: 34rpx;
-  line-height: 46rpx;
-  font-weight: 500;
-}
-
-.summary-label {
-  display: block;
-  margin-top: 6rpx;
-  color: #999999;
-  font-size: 22rpx;
-  line-height: 32rpx;
+  padding-left: 20rpx;
 }
 
 .profile-name {
   display: block;
-  color: var(--ink);
-  font-size: 36rpx;
-  line-height: 1.3;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-}
-
-.profile-role {
-  display: block;
-  margin-top: 8rpx;
-  color: var(--text-soft);
-  font-size: 23rpx;
-  letter-spacing: 0.05em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profile-link {
-  display: block;
-  margin-top: 10rpx;
-  color: var(--green);
-  font-size: 22rpx;
-  line-height: 32rpx;
-}
-
-.admin-badge {
-  width: 100%;
-  margin-top: 26rpx;
-  padding-top: 8rpx;
-}
-
-.admin-badge text {
-  color: var(--green);
-  font-size: 22rpx;
-  letter-spacing: 0.1em;
-}
-
-.menu-section {
-  margin-bottom: 42rpx;
-}
-
-.section-title {
-  margin-bottom: 18rpx;
-  color: var(--text-soft);
-  font-size: 22rpx;
-  letter-spacing: 0.08em;
-}
-
-.menu-card {
-  background: #FFFFFF;
-  border: 1rpx solid #ECECEC;
-  border-radius: 24rpx;
-  overflow: hidden;
-}
-
-.menu-item {
-  min-height: 96rpx;
-  padding: 24rpx;
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-}
-
-.menu-item + .menu-item {
-  border-top: 1rpx solid #F1F1F1;
-}
-
-.menu-item:active {
-  opacity: 0.72;
-}
-
-.menu-item.disabled {
-  opacity: 0.38;
-  pointer-events: none;
-}
-
-.menu-icon {
-  width: 34rpx;
-  height: 34rpx;
-  margin-right: 24rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--green);
-}
-
-.icon-symbol {
-  color: currentColor;
-  font-size: 25rpx;
-  font-weight: 300;
-}
-
-.menu-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.menu-text {
-  display: block;
-  color: var(--ink);
-  font-size: 28rpx;
-  letter-spacing: 0.04em;
-}
-
-.menu-hint {
-  display: block;
-  margin-top: 6rpx;
-  color: var(--text-soft);
-  font-size: 22rpx;
-  letter-spacing: 0.02em;
-}
-
-.menu-item.logout .menu-text {
-  color: #B42318;
-}
-
-.menu-item.logout .menu-arrow {
-  color: #B42318;
-}
-
-.menu-arrow {
-  margin-left: 20rpx;
-  color: var(--green);
-  font-size: 28rpx;
-  font-weight: 300;
-}
-
-/* Product UI refinement：不改结构，仅收敛视觉规格 */
-.page {
-  padding: 48rpx 32rpx 112rpx;
-}
-
-.profile-section {
-  padding-bottom: 24rpx;
-  margin-bottom: 24rpx;
-}
-
-.avatar {
-  width: 88rpx;
-  height: 88rpx;
-  margin-right: 16rpx;
-}
-
-.profile-name {
-  font-size: 44rpx;
-  line-height: 56rpx;
+  color: #111111;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 37rpx;
+  line-height: 1.2;
   font-weight: 500;
-  letter-spacing: 0.4rpx;
 }
 
 .profile-role,
-.admin-badge text,
-.section-title,
-.menu-hint {
-  color: #999999;
+.profile-meta {
+  display: block;
+  margin-top: 8rpx;
+  color: #8e8e93;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
   font-size: 24rpx;
-  line-height: 34rpx;
+  line-height: 1.35;
   font-weight: 400;
-  letter-spacing: 0.4rpx;
 }
 
-.menu-section {
-  margin-bottom: 24rpx;
+.row-arrow {
+  color: #8e8e93;
+  font-size: 38rpx;
+  line-height: 1;
+  margin-left: 12rpx;
+  font-weight: 300;
 }
 
-.menu-item {
-  min-height: 64rpx;
-  padding: 20rpx 24rpx;
+.group {
+  margin-top: 52rpx;
 }
 
-.menu-text {
-  font-size: 28rpx;
-  line-height: 40rpx;
+.group-title {
+  display: block;
+  color: #8e8e93;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 26rpx;
+  line-height: 1.35;
+  margin-bottom: 16rpx;
+}
+
+.item {
+  min-height: 96rpx;
+  padding: 20rpx 0;
+  display: flex;
+  align-items: center;
+  border-bottom: 1rpx solid #ebebed;
+}
+
+.item.disabled {
+  opacity: 0.38;
+}
+
+.item-icon {
+  width: 44rpx;
+  margin-right: 14rpx;
+  color: #666666;
+  font-size: 38rpx;
+  line-height: 1;
+  text-align: center;
+  font-weight: 300;
+}
+
+.item-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  display: block;
+  color: #111111;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 31rpx;
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+.item-desc {
+  display: block;
+  margin-top: 6rpx;
+  color: #8e8e93;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 22rpx;
+  line-height: 1.4;
   font-weight: 400;
-  letter-spacing: 0.4rpx;
+}
+
+.logout-row {
+  margin-top: 46rpx;
+  display: inline-flex;
+  align-items: center;
+}
+
+.logout-text {
+  color: #d93025;
+  font-family: "Source Han Sans SC", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: 31rpx;
+  line-height: 1.3;
+}
+
+.logout-arrow {
+  margin-left: 18rpx;
+  color: #d93025;
+  font-size: 36rpx;
+  line-height: 1;
 }

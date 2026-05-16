@@ -2,8 +2,9 @@
   <view class="hero">
     <view class="hero-top">
       <view class="hero-copy">
-        <text class="hero-title">Explore</text>
-        <text class="hero-subtitle">探索更大的世界</text>
+        <text class="hero-title">{{todayLabel}}</text>
+        <text class="hero-subtitle">{{todayDateCn}}</text>
+        <text class="hero-subtitle">{{weekdayLabelCn}}</text>
       </view>
       <view class="hero-side">
         <view class="header-avatar" wx:if="{{isUser}}" bindtap="goMine">
@@ -17,23 +18,6 @@
         </view>
       </view>
     </view>
-
-    <scroll-view wx:if="{{dateTabs.length}}" class="date-strip" scroll-x enable-flex show-scrollbar="{{false}}">
-      <view class="date-strip-inner">
-        <view
-          class="date-item {{selectedDateKey === item.key ? 'date-item-active' : ''}}"
-          wx:for="{{dateTabs}}"
-          wx:key="key"
-          data-date-key="{{item.key}}"
-          bindtap="onSelectDate"
-        >
-          <text class="date-number">{{item.dateLabel}}</text>
-          <text class="date-week">{{item.weekdayLabel}}</text>
-          <text wx:if="{{item.markerLabel}}" class="date-marker">{{item.markerLabel}}</text>
-          <view class="date-dot"></view>
-        </view>
-      </view>
-    </scroll-view>
   </view>
 
   <view wx:if="{{loading}}" class="state-wrap">
@@ -58,13 +42,12 @@
 
   <view wx:else class="list-shell">
     <view class="section-header">
-      <text class="section-title">{{selectedDateKey ? (visibleActivities.length ? '即将开始' : '这个日期还没有活动') : '全部活动'}}</text>
-      <text class="section-link" bindtap="onShowAllActivities">查看全部 →</text>
+      <text class="section-title">{{visibleActivities.length}} 场活动</text>
     </view>
 
     <view wx:if="{{visibleActivities.length === 0}}" class="day-empty">
-      <text class="day-empty-title">先留一点空白</text>
-      <text class="day-empty-text">换个日期看看，或稍后刷新获取新活动。</text>
+      <text class="day-empty-title">暂时没有活动</text>
+      <text class="day-empty-text">稍后刷新，看看有没有新发布的活动。</text>
     </view>
 
     <block wx:else>
@@ -89,26 +72,17 @@
         </view>
 
         <view class="item-content">
-          <text class="item-code">{{item.card_code}}</text>
           <text class="item-name">{{item.activity_name}}</text>
-          <text class="item-summary">{{item.summary_text}}</text>
           <view class="item-info">
             <view class="info-row">
-              <text class="info-text info-text-strong">{{item.date_label}} ({{item.weekday_label}})</text>
-              <text class="info-text">{{item.time_range_display}}</text>
+              <text class="meta-icon">◷</text>
+              <text class="info-text info-text-strong">{{item.time_range_display}}</text>
+              <text class="info-text">{{item.date_label}} {{item.weekday_label}}</text>
             </view>
             <view class="info-row">
               <text class="meta-icon">⌖</text>
               <text class="info-text">{{item.location_display}}</text>
             </view>
-            <view class="info-row">
-              <text class="meta-icon">◌</text>
-              <text class="info-text">{{item.participant_display}}</text>
-            </view>
-          </view>
-          <view class="status-row">
-            <text class="status-chip status-chip-{{item.status}}">{{item.status_text}}</text>
-            <text wx:if="{{item.has_registered}}" class="status-chip status-chip-registered">{{item.registration_status_text}}</text>
           </view>
         </view>
       </view>

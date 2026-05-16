@@ -25,6 +25,7 @@ Page({
     communityLoading: false,
     communityError: null,
     showCommunitySection: false,
+    permissions: null,
   },
 
   isFirstLoad: true,
@@ -101,27 +102,24 @@ Page({
 
   loadActivity(activityId) {
     this.setData({ loading: true, error: null, posterLoadFailed: false });
-    const tasks = [api.getActivity(activityId)];
+    const tasks = [api.getActivity(activityId), api.getActivityPermissions(activityId)];
     if (auth.isUser()) {
       tasks.push(api.getMyParticipantActivities(activityId));
     }
 
     Promise.all(tasks)
-      .then(async ([activity, registrationRes]) => {
+      .then(async ([activity, permissions, registrationRes]) => {
         const registration = registrationRes && registrationRes.items && registrationRes.items[0]
           ? registrationRes.items[0]
           : null;
         const hasRegistered = !!registration;
         const canEnroll = activity.status === 1 || activity.status === 2;
-        const showAdminPanel = auth.canManageActivityType({
-          id: activity.activity_type_id,
-          name: activity.activity_type_name,
-          code: activity.activity_type_code,
-        });
+        const showAdminPanel = !!(permissions && permissions.can_manage);
         const showCommunitySection = showAdminPanel || hasRegistered;
         const statusText = activity.status === 1 ? '未开始' : activity.status === 2 ? '进行中' : '已结束';
         const startDisplay = activity.start_time ? this.formatTime(activity.start_time) : '';
         const endDisplay = activity.end_time ? this.formatTime(activity.end_time) : '';
+        const joinMethodDisplay = this.resolveJoinMethod(activity);
         let actionTipText = '';
         if (hasRegistered) {
           actionTipText = registration.enroll_status === 2 ? '您已在候补中' : '您已报名该活动';
@@ -140,6 +138,7 @@ Page({
             status_text: statusText,
             start_display: startDisplay,
             end_display: endDisplay,
+            join_method_display: joinMethodDisplay,
           },
           canEnroll: canEnroll && !hasRegistered && !auth.isSuperAdmin(),
           hasRegistered,
@@ -149,6 +148,7 @@ Page({
           actionTipText,
           showCommunitySection,
           showAdminPanel,
+          permissions: permissions || null,
           loading: false,
         });
         if (showCommunitySection) {
@@ -206,12 +206,11 @@ Page({
   formatTime(iso) {
     if (!iso) return '';
     const d = new Date(iso);
-    const y = d.getFullYear();
-    const m = d.getMonth() + 1;
-    const day = d.getDate();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
     const h = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${y}年${m}月${day}日 ${h}:${min}`;
+    return `${m}.${day} ${h}:${min}`;
   },
 
   formatDate(iso) {
@@ -221,6 +220,14 @@ Page({
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}.${m}.${day}`;
+  },
+
+  resolveJoinMethod(activity) {
+    const locationText = (activity.location || '').toLowerCase();
+    if (!locationText || locationText.includes('线上') || locationText.includes('online')) {
+      return '线上参与';
+    }
+    return '线下参与';
   },
 
   goRegister() {
@@ -242,20 +249,36 @@ Page({
 
   // 管理员功能
   onViewParticipants() {
+    if (!this.data.permissions || !this.data.permissions.can_view_participants) {
+      wx.showToast({ title: '当前账号无报名查看权限', icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-participants/activity-participants', { id: this.data.activityId }) });
   },
 
   onViewCheckins() {
+    if (!this.data.permissions || !this.data.permissions.can_manage_checkins) {
+      wx.showToast({ title: '当前账号无签到管理权限', icon: 'none' });
+      return;
+    }
     const name = this.data.activity.activity_name;
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-checkins/activity-checkins', { id: this.data.activityId, name }) });
   },
 
   onViewStatistics() {
+    if (!this.data.permissions || !this.data.permissions.can_view_statistics) {
+      wx.showToast({ title: '当前账号无统计查看权限', icon: 'none' });
+      return;
+    }
     const name = this.data.activity.activity_name;
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-statistics/activity-statistics', { id: this.data.activityId, name }) });
   },
 
   onChangeStatus() {
+    if (!this.data.permissions || !this.data.permissions.can_edit) {
+      wx.showToast({ title: '当前账号无活动编辑权限', icon: 'none' });
+      return;
+    }
     const currentStatus = this.data.activity.status;
     const items = this.data.statusOptions.map(s => s.label);
 
@@ -279,6 +302,10 @@ Page({
   },
 
   onEditActivity() {
+    if (!this.data.permissions || !this.data.permissions.can_edit) {
+      wx.showToast({ title: '当前账号无活动编辑权限', icon: 'none' });
+      return;
+    }
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/edit-activity/edit-activity', { id: this.data.activityId }) });
   },
 
@@ -311,6 +338,10 @@ Page({
   },
 
   onDeleteActivity() {
+    if (!this.data.permissions || !this.data.permissions.can_delete) {
+      wx.showToast({ title: '当前账号无活动删除权限', icon: 'none' });
+      return;
+    }
     const activity = this.data.activity;
     wx.showModal({
       title: '确认删除',

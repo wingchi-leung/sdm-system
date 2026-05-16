@@ -39,6 +39,7 @@ Page({
     basicInfoExpanded: false,
     requireBindInfo: false,
     recoverPendingPayment: false,
+    activeField: '',
   },
 
   /** 切换基本信息折叠状态 */
@@ -218,6 +219,11 @@ Page({
     this.setData({ hasQuestions: e.detail.value, error: null });
   },
 
+  onFieldFocus(e) {
+    const field = e.currentTarget.dataset.field || '';
+    this.setData({ activeField: field });
+  },
+
   onFeeInput(e) {
     const value = e.detail.value;
     // 验证输入是否为有效数字
@@ -238,7 +244,12 @@ Page({
     this.setData({
       actualFeeYuan: feeYuan.toFixed(2),
       actualFee: feeFen,
+      activeField: '',
     });
+  },
+
+  onFieldBlur() {
+    this.setData({ activeField: '' });
   },
 
   // 验证表单

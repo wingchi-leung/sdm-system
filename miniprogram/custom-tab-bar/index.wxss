@@ -24,9 +24,9 @@
 }
 
 .tab-bubble {
-  min-width: 96rpx;
-  height: 72rpx;
-  padding: 0 22rpx;
+  min-width: 124rpx;
+  height: 94rpx;
+  padding: 0 26rpx;
   border-radius: 999rpx;
   display: flex;
   align-items: center;
@@ -35,8 +35,8 @@
 }
 
 .tab-icon {
-  width: 54rpx;
-  height: 54rpx;
+  width: 76rpx;
+  height: 76rpx;
   position: relative;
   display: flex;
   align-items: center;
@@ -47,14 +47,14 @@
 }
 
 .tab-activity {
-  width: 68rpx;
-  height: 68rpx;
+  width: 92rpx;
+  height: 92rpx;
   opacity: 1;
 }
 
 .tab-personnel {
-  width: 58rpx;
-  height: 58rpx;
+  width: 82rpx;
+  height: 82rpx;
   opacity: 0.84;
 }
 
@@ -74,8 +74,8 @@
 }
 
 .tab-item.active .tab-activity {
-  width: 82rpx;
-  height: 82rpx;
+  width: 102rpx;
+  height: 102rpx;
 }
 
 .tab-item.active .tab-personnel {

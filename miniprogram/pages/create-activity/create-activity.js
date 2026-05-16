@@ -76,6 +76,20 @@ Page({
     this.tagTouched = false;
     tenant.applyPageOptions(options);
     if (!this.ensureAdminAccess()) return;
+    this.syncAdminCapabilitiesAndInit();
+  },
+
+  onShow() {
+    this.ensureAdminAccess();
+  },
+
+  async syncAdminCapabilitiesAndInit() {
+    try {
+      const snapshot = await api.getAuthSnapshot();
+      auth.updateAdminMeta(snapshot || {});
+    } catch (e) {
+      // 忽略失败，沿用本地缓存
+    }
     const isSuperAdmin = auth.isSuperAdmin();
     const isTypeAdmin = auth.isActivityTypeAdmin();
     const allowedTypes = auth.getAdminActivityTypes();
@@ -91,10 +105,6 @@ Page({
       this.applyActivityTypeOptions(allowedTypes);
     }
     this.loadAvailableActivityTypes();
-  },
-
-  onShow() {
-    this.ensureAdminAccess();
   },
 
   normalizeActivityTypeOptions(list) {

@@ -41,11 +41,34 @@ Page({
 
   checkAuth() {
     if (auth.isAdmin()) {
-      this.resetPageState({
-        view: 'admin',
-        loading: false,
-        adminProfile: this.buildAdminProfile(),
-      });
+      this.resetPageState({ view: 'admin', loading: true });
+      const profileTask = api.getUserProfile();
+      const snapshotTask = api.getAuthSnapshot().catch(() => null);
+      Promise.all([profileTask, snapshotTask])
+        .then(async ([profile, snapshot]) => {
+          if (snapshot) {
+            auth.updateAdminMeta(snapshot);
+          }
+          const avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
+          this.setData({
+            view: 'admin',
+            profile,
+            userName: profile?.name || auth.getUserName() || '',
+            avatarDisplayUrl,
+            loading: false,
+            adminProfile: this.buildAdminProfile(),
+          });
+        })
+        .catch(() => {
+          this.setData({
+            view: 'admin',
+            profile: null,
+            userName: auth.getUserName() || '',
+            avatarDisplayUrl: '',
+            loading: false,
+            adminProfile: this.buildAdminProfile(),
+          });
+        });
       return;
     }
     if (auth.isUser()) {

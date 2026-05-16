@@ -15,19 +15,13 @@
   <!-- 活动详情 -->
   <view wx:elif="{{activity}}" class="content">
     <view class="poster-section">
-      <view class="poster-shell">
-        <view class="poster-copy">
-          <text class="eyebrow-en">Activity</text>
-          <text class="eyebrow-cn">活动详情</text>
-        </view>
-        <view class="poster-frame">
-          <image wx:if="{{activity.poster_url && !posterLoadFailed}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFit" bindload="onPosterLoad" binderror="onPosterError" />
-          <view wx:else class="poster-fallback">暂无海报</view>
-        </view>
+      <view class="poster-frame">
+        <image wx:if="{{activity.poster_url && !posterLoadFailed}}" class="poster-image" src="{{activity.poster_url}}" mode="aspectFill" bindload="onPosterLoad" binderror="onPosterError" />
+        <view wx:else class="poster-fallback">暂无海报</view>
       </view>
     </view>
 
-    <view class="hero-card">
+    <view class="hero-block">
       <view class="hero-status-row">
         <view class="status-badge {{activity.status === 1 ? 'not-started' : (activity.status === 2 ? 'ongoing' : 'ended')}}">
           {{activity.status_text}}
@@ -42,37 +36,40 @@
       </text>
     </view>
 
-    <view class="info-card">
-      <view class="section-headline">
-        <text class="section-kicker">Overview</text>
-        <text class="section-title">活动信息</text>
-      </view>
-      <view class="info-list">
-        <view class="info-item" wx:if="{{activity.start_display}}">
+    <view class="info-grid">
+      <view class="info-col">
+        <view class="info-label-row">
+          <text class="meta-icon">◷</text>
           <text class="info-label">开始时间</text>
-          <text class="info-value">{{activity.start_display}}</text>
         </view>
-        <view class="info-item" wx:if="{{activity.end_display}}">
-          <text class="info-label">结束时间</text>
-          <text class="info-value">{{activity.end_display}}</text>
-        </view>
-        <view class="info-item">
-          <text class="info-label">活动地点</text>
-          <text class="info-value">{{activity.location || '线上活动'}}</text>
-        </view>
-        <view class="info-item" wx:if="{{activity.activity_type_name}}">
-          <text class="info-label">活动类型</text>
-          <text class="info-value">{{activity.activity_type_name}}</text>
-        </view>
+        <text class="info-value">{{activity.start_display || '--'}}</text>
       </view>
+      <view class="info-col">
+        <view class="info-label-row">
+          <text class="meta-icon">⌖</text>
+          <text class="info-label">活动地点</text>
+        </view>
+        <text class="info-value">{{activity.location || '线上活动'}}</text>
+      </view>
+      <view class="info-col">
+        <view class="info-label-row">
+          <text class="meta-icon">◌</text>
+          <text class="info-label">参与方式</text>
+        </view>
+        <text class="info-value">{{activity.join_method_display}}</text>
+      </view>
+    </view>
+
+    <view class="section-divider"></view>
+
+    <view class="intro-block">
+      <text class="section-title">活动介绍</text>
+      <text class="intro-text">{{activity.description || activity.content || activity.summary || '暂无活动介绍'}}</text>
     </view>
 
     <view wx:if="{{showCommunitySection}}" class="community-section">
       <view class="section-headline">
-        <view>
-          <text class="section-kicker">Field Notes</text>
-          <text class="section-title">活动动态</text>
-        </view>
+        <text class="section-title">活动动态</text>
         <view class="section-actions">
           <text wx:if="{{communityPosts.length > 0}}" class="section-link" bindtap="onViewCommunityList">查看更多</text>
           <text wx:if="{{showAdminPanel}}" class="section-link primary" bindtap="onCreateCommunityPost">发布动态</text>
@@ -88,13 +85,11 @@
       </view>
 
       <view wx:elif="{{communityPosts.length > 0}}" class="community-list">
-        <view wx:for="{{communityPosts}}" wx:key="id" class="community-card" data-id="{{item.id}}" bindtap="onViewCommunityPost">
+        <view wx:for="{{communityPosts}}" wx:key="id" class="community-item" data-id="{{item.id}}" bindtap="onViewCommunityPost">
           <image wx:if="{{item.cover_url}}" class="community-cover" src="{{item.cover_url}}" mode="aspectFill" />
           <view class="community-body">
             <text class="community-title">{{item.title}}</text>
             <text class="community-meta">{{item.author_name}} · {{item.create_time_display}}</text>
-            <text class="community-summary">{{item.content}}</text>
-            <text class="community-comments">{{item.comment_count}} 条评论</text>
           </view>
         </view>
       </view>
@@ -107,7 +102,6 @@
     <!-- 管理员面板 -->
     <view wx:if="{{showAdminPanel}}" class="admin-section">
       <view class="section-headline">
-        <text class="section-kicker">Manage</text>
         <text class="section-title">管理功能</text>
       </view>
       <view class="admin-grid">
@@ -159,13 +153,7 @@
     <view class="action-section">
       <view wx:if="{{canEnroll}}" class="btn-wrap">
         <button class="btn-enroll" bindtap="goRegister">
-          <view class="btn-content">
-            <view class="btn-copy">
-              <text class="btn-caption">Application</text>
-              <text class="btn-text">进入报名</text>
-            </view>
-            <text class="btn-arrow">→</text>
-          </view>
+          <text class="btn-text">进入报名 →</text>
         </button>
       </view>
       <view wx:else class="disabled-tip">

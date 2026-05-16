@@ -129,7 +129,9 @@ function isAdmin() {
 }
 
 function isUser() {
-  return isLoggedIn() && getRole() === 'user';
+  if (!isLoggedIn()) return false;
+  if (getRole() === 'user') return true;
+  return getUserId() != null;
 }
 
 function isSuperAdmin() {
@@ -215,9 +217,23 @@ function parseAdminMeta(res) {
 function saveAdminToken(accessToken, meta = null) {
   wx.setStorageSync(KEY_TOKEN, accessToken);
   wx.setStorageSync(KEY_ROLE, 'admin');
-  wx.removeStorageSync(KEY_USER_ID);
-  wx.removeStorageSync(KEY_USER_NAME);
+  const userIdRaw = meta && meta.user && meta.user.id != null ? meta.user.id : null;
+  const userNameRaw = meta && meta.user ? meta.user.name : '';
+  const userId = userIdRaw != null && userIdRaw !== '' ? parseInt(userIdRaw, 10) : null;
+  if (userId != null && !Number.isNaN(userId)) {
+    wx.setStorageSync(KEY_USER_ID, userId);
+  } else {
+    wx.removeStorageSync(KEY_USER_ID);
+  }
+  wx.setStorageSync(KEY_USER_NAME, userNameRaw || '');
   clearRequireBindInfo();
+  const parsed = parseAdminMeta(meta || {});
+  wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
+  wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
+  wx.setStorageSync(KEY_ADMIN_PERMISSIONS, parsed.permissions);
+}
+
+function updateAdminMeta(meta = null) {
   const parsed = parseAdminMeta(meta || {});
   wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
@@ -267,6 +283,7 @@ module.exports = {
   canManageActivityType,
   hasAdminPermission,
   saveAdminToken,
+  updateAdminMeta,
   saveUserToken,
   markRequireBindInfo,
   clearRequireBindInfo,

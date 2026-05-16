@@ -21,8 +21,6 @@ Page({
   data: {
     activities: [],
     visibleActivities: [],
-    dateTabs: [],
-    selectedDateKey: '',
     loading: true,
     error: null,
     isAdmin: false,
@@ -30,6 +28,9 @@ Page({
     canCreateActivity: false,
     headerAvatarUrl: '',
     headerAvatarText: '用',
+    todayLabel: '今天',
+    weekdayLabelCn: '',
+    todayDateCn: '',
   },
 
   _redirectingToLogin: false,
@@ -40,9 +41,10 @@ Page({
       error: null,
       activities: [],
       visibleActivities: [],
-      dateTabs: [],
-      selectedDateKey: '',
       headerAvatarUrl: '',
+      todayLabel: '今天',
+      weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
+      todayDateCn: this.getTodayDateCn(new Date()),
       ...overrides,
     });
   },
@@ -89,17 +91,31 @@ Page({
     });
   },
 
+  async syncAdminCapabilities() {
+    if (!auth.isAdmin()) return;
+    try {
+      const snapshot = await api.getAuthSnapshot();
+      auth.updateAdminMeta(snapshot || {});
+    } catch (e) {
+      // 忽略同步失败，保留本地缓存作为兜底
+    }
+  },
+
   onLoad(options) {
     tenant.applyPageOptions(options);
     if (!this.ensureLoggedIn()) return;
-    this.resolveAdminState();
-    this.load();
+    this.syncAdminCapabilities().finally(() => {
+      this.resolveAdminState();
+      this.load();
+    });
   },
 
   onShow() {
     if (!this.ensureLoggedIn()) return;
-    this.resolveAdminState();
-    this.load();
+    this.syncAdminCapabilities().finally(() => {
+      this.resolveAdminState();
+      this.load();
+    });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
     }
@@ -144,33 +160,26 @@ Page({
               : '',
             location_display: this.formatLocation(a.location),
             participant_display: this.formatParticipantText(a),
-            card_code: `EXPLORATION ${(a.id || 0) < 10 ? `0${a.id}` : a.id}`,
             summary_text: this.buildActivitySummary(a),
           };
         });
         items = await image.resolveActivityPosters(items);
-        if (auth.isActivityTypeAdmin()) {
-          items = items.filter((a) => auth.canManageActivityType(a));
-        }
         items.sort((a, b) => {
           const aTime = a.start_time ? new Date(a.start_time).getTime() : 0;
           const bTime = b.start_time ? new Date(b.start_time).getTime() : 0;
           return aTime - bTime;
         });
 
-        const dateTabs = this.buildDateTabs(items);
-        const selectedDateKey = this.resolveSelectedDateKey(dateTabs);
-        const visibleActivities = this.filterActivitiesByDate(items, selectedDateKey);
         const headerAvatarUrl = auth.isUser()
           ? await resolveAvatarDisplayUrl(profile && profile.avatar_url)
           : '';
         this.setData({
           activities: items,
-          visibleActivities,
-          dateTabs,
-          selectedDateKey,
+          visibleActivities: items,
           loading: false,
           headerAvatarUrl,
+          weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
+          todayDateCn: this.getTodayDateCn(new Date()),
         });
       })
       .catch((err) => {
@@ -180,9 +189,9 @@ Page({
           loading: false,
           activities: [],
           visibleActivities: [],
-          dateTabs: [],
-          selectedDateKey: '',
           headerAvatarUrl: '',
+          weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
+          todayDateCn: this.getTodayDateCn(new Date()),
         });
       });
   },
@@ -191,21 +200,7 @@ Page({
     this.load();
   },
 
-  onShowAllActivities() {
-    this.setData({
-      selectedDateKey: '',
-      visibleActivities: this.data.activities,
-    });
-  },
-
-  onSelectDate(e) {
-    const { dateKey } = e.currentTarget.dataset;
-    if (!dateKey || dateKey === this.data.selectedDateKey) return;
-    this.setData({
-      selectedDateKey: dateKey,
-      visibleActivities: this.filterActivitiesByDate(this.data.activities, dateKey),
-    });
-  },
+  onShowAllActivities() {},
 
   goDetail(e) {
     const a = e.currentTarget.dataset.activity;
@@ -254,7 +249,7 @@ Page({
 
   formatLocation(location) {
     const value = location ? String(location).trim() : '';
-    return value || '地点待定';
+    return value || '线上活动';
   },
 
   formatParticipantText(activity) {
@@ -276,9 +271,9 @@ Page({
       return String(candidate).trim().replace(/\s+/g, ' ').slice(0, 30);
     }
     const locationText = this.formatLocation(activity.location);
-    return locationText === '地点待定'
-      ? '预留你的时间，一起探索更大的世界'
-      : `在 ${locationText} 一起相聚交流`;
+    return locationText === '线上活动'
+      ? ''
+      : `${locationText}`;
   },
 
   // 格式化日期为大号数字显示
@@ -337,6 +332,15 @@ Page({
   filterActivitiesByDate(items, dateKey) {
     if (!dateKey) return items;
     return items.filter((item) => item.date_key === dateKey);
+  },
+
+  getWeekdayLabelCn(date) {
+    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    return weekdays[date.getDay()] || '';
+  },
+
+  getTodayDateCn(date) {
+    return `${date.getMonth() + 1}月${date.getDate()}日`;
   },
 
   onShareAppMessage() {

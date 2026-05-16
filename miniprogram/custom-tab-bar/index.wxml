@@ -1,23 +1,23 @@
 <view class="tab-bar">
-  <view
-    class="tab-item {{selected === 0 ? 'active' : ''}}"
-    data-index="0"
-    bindtap="switchTab"
-  >
+  <view class="tab-item {{selected === 0 ? 'active' : ''}}" data-index="0" bindtap="switchTab">
     <view class="tab-bubble">
       <view class="tab-icon">
-        <image class="tab-activity" src="/assets/icons/tab-activity-calendar.png" mode="aspectFit" />
+        <image
+          class="tab-activity"
+          src="{{selected === 0 ? list[0].selectedIconPath : list[0].iconPath}}"
+          mode="aspectFit"
+        />
       </view>
     </view>
   </view>
-  <view
-    class="tab-item {{selected === 1 ? 'active' : ''}}"
-    data-index="1"
-    bindtap="switchTab"
-  >
+  <view class="tab-item {{selected === 1 ? 'active' : ''}}" data-index="1" bindtap="switchTab">
     <view class="tab-bubble">
       <view class="tab-icon">
-        <image class="tab-personnel" src="/assets/icons/tab-personnel.png" mode="aspectFit" />
+        <image
+          class="tab-personnel"
+          src="{{selected === 1 ? list[1].selectedIconPath : list[1].iconPath}}"
+          mode="aspectFit"
+        />
       </view>
     </view>
   </view>

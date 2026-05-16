@@ -27,20 +27,20 @@ Page({
   },
 
   ensureUserAccess() {
-    if (auth.isUser()) return true;
+    if (auth.isUser() && auth.getUserId()) return true;
     this.setData({
       loading: false,
       orders: [],
       summaryText: '暂无订单',
       error: null,
     });
-    wx.showToast({ title: '请使用普通用户账号查看', icon: 'none' });
+    wx.showToast({ title: '请登录后查看', icon: 'none' });
     setTimeout(() => wx.navigateBack(), 1200);
     return false;
   },
 
   async loadOrders() {
-    if (!auth.isUser()) {
+    if (!auth.isUser() || !auth.getUserId()) {
       this.ensureUserAccess();
       return;
     }

@@ -1,118 +1,75 @@
-<!-- 普通用户 -->
-<view class="page" wx:if="{{view === 'user'}}">
+<view class="page" wx:if="{{view === 'user' || view === 'admin'}}">
   <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>
   </view>
 
   <view wx:else class="content">
-    <!-- 用户信息卡片 -->
-    <view class="profile-section">
-      <view class="profile-card">
-        <view class="avatar avatar-clickable" bindtap="goAvatarPicker">
-          <image wx:if="{{avatarDisplayUrl}}" class="avatar-image" src="{{avatarDisplayUrl}}" mode="aspectFill" />
-          <text wx:else class="avatar-fallback">{{userName ? userName[0] : '用'}}</text>
-        </view>
-        <view class="profile-info">
-          <text class="profile-name">{{userName || '用户'}}</text>
-        </view>
+
+    <view class="profile-row" bindtap="goAvatarPicker">
+      <view class="avatar-wrap">
+        <image wx:if="{{avatarDisplayUrl}}" class="avatar-image" src="{{avatarDisplayUrl}}" mode="aspectFill" />
+        <text wx:else class="avatar-fallback">{{userName ? userName[0] : (view === 'admin' ? '管' : '用')}}</text>
       </view>
-      
+      <view class="profile-copy">
+        <text class="profile-name">{{userName || (view === 'admin' ? '管理员' : '用户')}}</text>
+        <text class="profile-role" wx:if="{{view === 'admin'}}">{{adminProfile.levelText || '活动管理员'}}</text>
+        <text class="profile-role" wx:if="{{view === 'user'}}">普通用户</text>
+        <text class="profile-meta" wx:if="{{view === 'admin' && adminProfile && adminProfile.typeNamesText}}">{{adminProfile.typeNamesText}}</text>
+      </view>
+      <text class="row-arrow">›</text>
     </view>
 
-    <!-- 菜单列表 -->
-    <view class="menu-section">
-      <view class="section-title">我的服务</view>
-      <view class="menu-card">
-        <view class="menu-item" bindtap="goMyActivities">
-          <view class="menu-content">
-            <text class="menu-text">报名活动</text>
-            <text class="menu-hint">查看已报名和候补中的活动</text>
-          </view>
-          <text class="menu-arrow">→</text>
+    <view class="group" wx:if="{{view === 'admin'}}">
+      <text class="group-title">管理功能</text>
+      <view class="item {{!(adminProfile && adminProfile.canCreateActivity) ? 'disabled' : ''}}" bindtap="goCreateActivity">
+        <text class="item-icon">＋</text>
+        <view class="item-copy">
+          <text class="item-title">发布活动</text>
+          <text class="item-desc">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
         </view>
-        <view class="menu-item" bindtap="goMyOrders">
-          <view class="menu-content">
-            <text class="menu-text">我的订单</text>
-            <text class="menu-hint">查看订单与状态</text>
-          </view>
-          <text class="menu-arrow">→</text>
+        <text class="row-arrow">›</text>
+      </view>
+      <view class="item" bindtap="goActivityManage">
+        <text class="item-icon">≡</text>
+        <view class="item-copy">
+          <text class="item-title">活动管理</text>
+          <text class="item-desc">编辑、删除活动</text>
         </view>
+        <text class="row-arrow">›</text>
       </view>
-    </view>
-
-    <view class="menu-section">
-      <view class="menu-card">
-        <view class="menu-item logout" bindtap="logout">
-          <text class="menu-text">退出登录</text>
-          <text class="menu-arrow">→</text>
+      <view class="item" wx:if="{{adminProfile && adminProfile.canViewUsers}}" bindtap="goUserList">
+        <text class="item-icon">◉</text>
+        <view class="item-copy">
+          <text class="item-title">用户管理</text>
+          <text class="item-desc">查看平台所有用户</text>
         </view>
-      </view>
-    </view>
-  </view>
-</view>
-
-<!-- 管理员 -->
-<view class="page" wx:elif="{{view === 'admin'}}">
-  <view class="content">
-    <!-- 管理员信息卡片 -->
-    <view class="profile-section admin">
-      <view class="avatar admin-avatar">
-        <text class="avatar-text">管</text>
-      </view>
-      <view class="profile-info">
-        <text class="profile-name">{{adminProfile.levelText || '管理员'}}</text>
-        <text class="profile-role" wx:if="{{adminProfile && adminProfile.typeNamesText}}">{{adminProfile.typeNamesText}}</text>
-      </view>
-      <view class="admin-badge" wx:if="{{adminProfile && adminProfile.isSuper}}">
-        <text>超级管理员</text>
+        <text class="row-arrow">›</text>
       </view>
     </view>
 
-    <!-- 管理功能 -->
-    <view class="menu-section">
-      <view class="section-title">管理功能</view>
-      <view class="menu-card">
-        <view class="menu-item {{!(adminProfile && adminProfile.canCreateActivity) ? 'disabled' : ''}}" bindtap="goCreateActivity">
-          <view class="menu-icon">
-            <text class="icon-symbol">+</text>
-          </view>
-          <view class="menu-content">
-            <text class="menu-text">发布活动</text>
-            <text class="menu-hint">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
-          </view>
-          <text class="menu-arrow">→</text>
+    <view class="group">
+      <text class="group-title">我的服务</text>
+      <view class="item" bindtap="goMyActivities">
+        <text class="item-icon">◫</text>
+        <view class="item-copy">
+          <text class="item-title">报名活动</text>
+          <text class="item-desc">查看已报名和候补中的活动</text>
         </view>
-        <view class="menu-item" bindtap="goActivityManage">
-          <view class="menu-icon">
-            <text class="icon-symbol">≡</text>
-          </view>
-          <view class="menu-content">
-            <text class="menu-text">活动管理</text>
-            <text class="menu-hint">编辑、删除活动</text>
-          </view>
-          <text class="menu-arrow">→</text>
+        <text class="row-arrow">›</text>
+      </view>
+      <view class="item" bindtap="goMyOrders">
+        <text class="item-icon">▤</text>
+        <view class="item-copy">
+          <text class="item-title">我的订单</text>
+          <text class="item-desc">查看订单与状态</text>
         </view>
-        <view wx:if="{{adminProfile && adminProfile.canViewUsers}}" class="menu-item" bindtap="goUserList">
-          <view class="menu-icon">
-            <text class="icon-symbol">◉</text>
-          </view>
-          <view class="menu-content">
-            <text class="menu-text">用户管理</text>
-            <text class="menu-hint">查看平台所有用户</text>
-          </view>
-          <text class="menu-arrow">→</text>
-        </view>
+        <text class="row-arrow">›</text>
       </view>
     </view>
 
-    <!-- 退出登录 -->
-    <view class="menu-section">
-      <view class="menu-card">
-        <view class="menu-item logout" bindtap="logout">
-          <text class="menu-text">退出登录</text>
-          <text class="menu-arrow">→</text>
-        </view>
-      </view>
+    <view class="logout-row" bindtap="logout">
+      <text class="logout-text">退出登录</text>
+      <text class="logout-arrow">→</text>
     </view>
   </view>
 </view>

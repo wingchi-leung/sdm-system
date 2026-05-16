@@ -13,16 +13,16 @@
   <view wx:else>
     <!-- 表头 -->
     <view class="table-header">
-      <text class="col-name">姓名</text>
-      <text class="col-phone">手机号</text>
+      <text class="col-name">用户ID</text>
+      <text class="col-phone">签到状态</text>
       <text class="col-time">签到时间</text>
     </view>
 
     <!-- 表格内容 -->
     <view class="table-body">
       <view wx:for="{{checkins}}" wx:key="id" class="table-row">
-        <text class="col-name">{{item.participant_name}}</text>
-        <text class="col-phone">{{item.phone}}</text>
+        <text class="col-name">{{item.user_id}}</text>
+        <text class="col-phone">{{item.has_attend === 1 ? '已到场' : '未到场'}}</text>
         <text class="col-time">{{item.checkin_time}}</text>
       </view>
     </view>
