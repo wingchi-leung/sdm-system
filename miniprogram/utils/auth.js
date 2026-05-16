@@ -219,6 +219,7 @@ function saveAdminToken(accessToken, meta = null) {
   wx.removeStorageSync(KEY_USER_NAME);
   clearRequireBindInfo();
   const parsed = parseAdminMeta(meta || {});
+  console.log('[Auth] saveAdminToken parsed:', parsed);
   wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
   wx.setStorageSync(KEY_ADMIN_ACTIVITY_TYPES, parsed.activityTypes);
   wx.setStorageSync(KEY_ADMIN_PERMISSIONS, parsed.permissions);
