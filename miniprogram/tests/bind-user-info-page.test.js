@@ -55,27 +55,15 @@ function createPageInstance(config, initialData = {}) {
   return instance;
 }
 
-test('绑定资料页将香港证件项展示为港澳台通行证', () => {
+test('绑定资料页不再包含证件字段配置', () => {
   const pageConfig = loadBindUserInfoPage();
   const page = createPageInstance(pageConfig);
 
-  assert.equal(page.data.identityTypeOptions[1].label, '港澳台通行证');
+  assert.equal(Object.prototype.hasOwnProperty.call(page.data.formData, 'identity_type'), false);
+  assert.equal(Object.prototype.hasOwnProperty.call(page.data.formData, 'identity_number'), false);
 });
 
-test('绑定资料页证件类型不再包含台湾身份证并展示护照', () => {
-  const pageConfig = loadBindUserInfoPage();
-  const page = createPageInstance(pageConfig);
-
-  assert.equal(page.data.identityTypeOptions.length, 3);
-  assert.equal(page.data.identityTypeOptions[2].value, 'foreign');
-  assert.equal(page.data.identityTypeOptions[2].label, '护照');
-  assert.equal(
-    page.data.identityTypeOptions.some((item) => item.value === 'taiwan'),
-    false
-  );
-});
-
-test('绑定资料页港澳台通行证使用通用证件号长度校验', () => {
+test('绑定资料页基础信息可通过校验（无证件信息）', () => {
   const pageConfig = loadBindUserInfoPage();
   const page = createPageInstance(pageConfig, {
     formData: {
@@ -86,8 +74,6 @@ test('绑定资料页港澳台通行证使用通用证件号长度校验', () =>
       phone: '13800138000',
       email: '',
       industry: '教育',
-      identity_type: 'hongkong',
-      identity_number: 'H123456789',
     },
   });
 

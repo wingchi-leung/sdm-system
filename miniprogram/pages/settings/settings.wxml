@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="group">
+    <view class="item" bindtap="goProfileEdit">
+      <text class="item-icon">✎</text>
+      <view class="item-copy">
+        <text class="item-title">修改个人信息</text>
+      </view>
+      <text class="row-arrow">›</text>
+    </view>
+  </view>
+
+  <view class="group">
+    <view class="item danger" bindtap="onDeactivateAccount">
+      <text class="item-icon">⚠</text>
+      <view class="item-copy">
+        <text class="item-title danger-text">注销账号</text>
+        <text class="item-desc">停用当前账号登录能力</text>
+      </view>
+      <text class="row-arrow">›</text>
+    </view>
+  </view>
+</view>
+

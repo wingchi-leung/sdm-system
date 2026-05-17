@@ -168,3 +168,23 @@ test('退出登录时会立即清空我的页面数据', () => {
   assert.equal(page.data.avatarDisplayUrl, '');
   assert.deepEqual(page.data.myActivities, []);
 });
+
+test('我的页可以跳转到设置和协议说明', () => {
+  const navUrls = [];
+  const pageConfig = loadMinePage({
+    tenant: {
+      appendTenantToUrl: (url) => url,
+    },
+    wxMock: {
+      navigateTo({ url }) {
+        navUrls.push(url);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+
+  page.goSettings();
+  page.goAgreementNotes();
+
+  assert.deepEqual(navUrls, ['/pages/settings/settings', '/pages/agreement-notes/agreement-notes']);
+});

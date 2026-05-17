@@ -1,0 +1,60 @@
+.page {
+  min-height: 100vh;
+  background: var(--background);
+  padding: 24rpx;
+  box-sizing: border-box;
+}
+
+.group {
+  background: #fff;
+  border-radius: 20rpx;
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  margin-bottom: 24rpx;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  padding: 26rpx 22rpx;
+}
+
+.item + .item {
+  border-top: 1px solid var(--border-light);
+}
+
+.item-icon {
+  width: 48rpx;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.item-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  display: block;
+  color: var(--text-primary);
+  font-size: 30rpx;
+  line-height: 42rpx;
+}
+
+.item-desc {
+  display: block;
+  margin-top: 6rpx;
+  color: var(--text-secondary);
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
+.row-arrow {
+  color: var(--text-tertiary);
+}
+
+.danger-text {
+  color: var(--error);
+}
+

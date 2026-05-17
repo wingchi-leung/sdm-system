@@ -1,6 +1,6 @@
 <view class="page {{isAdminMode ? 'page-admin' : ''}}">
   <view class="poster-page safe-area-bottom">
-    <image class="poster-background" src="/assets/loginclean.png" mode="aspectFill" />
+    <image class="poster-background" src="/assets/loginclean.webp" mode="aspectFill" />
     <block wx:if="{{isAdminMode}}">
       <view class="admin-page">
         <view class="admin-card">
@@ -67,7 +67,10 @@
         </view>
       </view>
 
-      <button class="poster-login-trigger" disabled="{{submitting}}" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber"></button>
+      <button class="poster-login-trigger" disabled="{{submitting}}" bindtap="onPhoneAuthTap" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber"></button>
+      <view class="poster-privacy-note">
+        <text class="poster-privacy-note-text">手机号仅用于登录验证与活动服务通知</text>
+      </view>
       <view class="poster-loading-tip" wx:if="{{submitting}}">
         <text class="poster-loading-text">登录中...</text>
       </view>

@@ -272,10 +272,6 @@ function registerParticipant(data) {
       payload.phone_encrypted = encryptWithPublicKey(payload.phone, bundle.public_key);
       delete payload.phone;
     }
-    if (payload.identity_number) {
-      payload.identity_number_encrypted = encryptWithPublicKey(payload.identity_number, bundle.public_key);
-      delete payload.identity_number;
-    }
     payload.encryption_kid = bundle.kid;
     return new Promise((resolve, reject) => {
       wx.request({
@@ -289,6 +285,56 @@ function registerParticipant(data) {
         },
         fail: (err) => reject(err),
       });
+    });
+  });
+}
+
+/** 修改当前用户个人信息  */
+function updateMyProfile(payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/profile`,
+      method: 'PUT',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 删除当前用户部分个人信息字段（不含证件号） */
+function clearMyProfileFields(fields) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/profile-fields`,
+      method: 'DELETE',
+      header: getHeader(true),
+      data: { fields: Array.isArray(fields) ? fields : [] },
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 注销当前账号 */
+function deactivateMyAccount() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/users/me`,
+      method: 'DELETE',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
     });
   });
 }
@@ -689,10 +735,6 @@ function bindUserInfo(bindInfo) {
         payload.phone_encrypted = encryptWithPublicKey(payload.phone, bundle.public_key);
         delete payload.phone;
       }
-      if (payload.identity_number) {
-        payload.identity_number_encrypted = encryptWithPublicKey(payload.identity_number, bundle.public_key);
-        delete payload.identity_number;
-      }
       payload.encryption_kid = bundle.kid;
       return new Promise((resolve, reject) => {
         wx.request({
@@ -798,10 +840,6 @@ function createPaymentOrder(payload) {
     if (requestPayload.phone) {
       requestPayload.phone_encrypted = encryptWithPublicKey(requestPayload.phone, bundle.public_key);
       delete requestPayload.phone;
-    }
-    if (requestPayload.identity_number) {
-      requestPayload.identity_number_encrypted = encryptWithPublicKey(requestPayload.identity_number, bundle.public_key);
-      delete requestPayload.identity_number;
     }
     requestPayload.encryption_kid = bundle.kid;
     return new Promise((resolve, reject) => {
@@ -948,30 +986,6 @@ function unblockUser(userId) {
   });
 }
 
-/** 微信实名校验：传入授权 code + 姓名 + 证件号，后端调用官方接口核验 */
-function verifyRealname(payload) {
-  return getSensitiveRsaPublicKey().then((bundle) => {
-    const requestPayload = { ...payload };
-    if (requestPayload.cred_id) {
-      requestPayload.cred_id_encrypted = encryptWithPublicKey(requestPayload.cred_id, bundle.public_key);
-      delete requestPayload.cred_id;
-    }
-    requestPayload.encryption_kid = bundle.kid;
-    return new Promise((resolve, reject) => {
-      wx.request({
-        url: `${baseUrl}/realname-auth/verify`,
-        method: 'POST',
-        header: getHeader(true),
-        data: requestPayload,
-        success: (res) => {
-          if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
-          else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
-        },
-        fail: (err) => reject(err),
-      });
-    });
-  });
-}
 
 module.exports = {
   baseUrl,
@@ -989,6 +1003,9 @@ module.exports = {
   getAuthSnapshot,
   registerUser,
   getUserProfile,
+  updateMyProfile,
+  clearMyProfileFields,
+  deactivateMyAccount,
   updateUserAvatar,
   registerParticipant,
   createActivity,
@@ -1020,6 +1037,5 @@ module.exports = {
   uploadAvatar,
   blockUser,
   unblockUser,
-  verifyRealname,
   ApiError,
 };

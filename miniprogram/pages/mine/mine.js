@@ -176,6 +176,14 @@ Page({
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/avatar-picker/avatar-picker') });
   },
 
+  goSettings() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/settings/settings') });
+  },
+
+  goAgreementNotes() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/agreement-notes/agreement-notes') });
+  },
+
   goActivityManage() {
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/activity-list/activity-list') });
   },

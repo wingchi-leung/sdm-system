@@ -18,7 +18,10 @@
     "pages/community-post-create/community-post-create",
     "pages/my-activities/my-activities",
     "pages/my-orders/my-orders",
-    "pages/avatar-picker/avatar-picker"
+    "pages/avatar-picker/avatar-picker",
+    "pages/settings/settings",
+    "pages/profile-edit/profile-edit",
+    "pages/agreement-notes/agreement-notes"
   ],
   "window": {
     "backgroundTextStyle": "dark",

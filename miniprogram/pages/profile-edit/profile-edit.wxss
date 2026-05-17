@@ -1,0 +1,73 @@
+.page {
+  min-height: 100vh;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: var(--background);
+}
+
+.form-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: 24rpx;
+  padding: 24rpx;
+}
+
+.field {
+  margin-bottom: 22rpx;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 12rpx;
+  color: var(--text-secondary);
+  font-size: 24rpx;
+}
+
+.input {
+  width: 100%;
+  height: 84rpx;
+  padding: 0 22rpx;
+  box-sizing: border-box;
+  border-radius: 14rpx;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 28rpx;
+}
+
+.picker-row {
+  height: 84rpx;
+  border: 1px solid var(--border);
+  border-radius: 14rpx;
+  padding: 0 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.row-arrow {
+  color: var(--text-tertiary);
+}
+
+.error-box {
+  margin-bottom: 16rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  background: var(--error-bg);
+}
+
+.error-text {
+  color: var(--error);
+  font-size: 24rpx;
+}
+
+.save-btn {
+  margin-top: 8rpx;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999rpx;
+}
+
+.save-btn::after {
+  border: none;
+}
+

@@ -223,3 +223,20 @@ def sync_phone_identifiers(
         cred.identifier = new_phone
 
     db.flush()
+
+
+def deactivate_user_credentials(
+    db: Session,
+    user_id: int,
+    tenant_id: int,
+) -> int:
+    """注销账号时停用该用户在当前租户的全部凭证。"""
+    credentials = db.query(UserCredential).filter(
+        UserCredential.user_id == user_id,
+        UserCredential.tenant_id == tenant_id,
+        UserCredential.status == 1,
+    ).all()
+    for cred in credentials:
+        cred.status = 0
+    db.flush()
+    return len(credentials)

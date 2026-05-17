@@ -6,6 +6,7 @@ function loadLoginPage({
   api = {},
   auth = {},
   tenant = {},
+  privacy = {},
   wxMock = {},
 } = {}) {
   let pageConfig = null;
@@ -28,6 +29,7 @@ function loadLoginPage({
     ['../../utils/api.js', api],
     ['../../utils/auth.js', auth],
     ['../../utils/tenant.js', tenant],
+    ['../../utils/privacy.js', privacy],
   ];
 
   moduleMap.forEach(([modulePath, exportsValue]) => {
@@ -126,4 +128,24 @@ test('退出管理员模式会清空管理员表单状态', () => {
   assert.equal(page.data.account, '');
   assert.equal(page.data.password, '');
   assert.equal(page.data.error, null);
+});
+
+test('手机号授权点击前会触发隐私授权检查', async () => {
+  let called = 0;
+  const pageConfig = loadLoginPage({
+    api: { isUnsafeBaseUrl: () => false },
+    tenant: { applyPageOptions() {} },
+    privacy: {
+      ensurePrivacyAuthorization: async () => {
+        called += 1;
+        return true;
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+
+  page.onPhoneAuthTap();
+  await Promise.resolve();
+
+  assert.equal(called, 1);
 });

@@ -3,6 +3,7 @@ const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
 const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
+const POSTER_UPLOAD_NOTICE_KEY = 'notice_poster_upload_ack_v1';
 
 Page({
   data: {
@@ -176,25 +177,43 @@ Page({
 
   // 选择海报
   onChoosePoster() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
+    const openAlbum = () => {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album'],
+        sizeType: ['compressed'],
+        success: (res) => {
+          const tempFile = res.tempFiles[0];
+          // 检查文件大小
+          if (tempFile.size > MAX_POSTER_SIZE) {
+            wx.showToast({ title: '图片不能超过5MB', icon: 'none' });
+            return;
+          }
+          this.setData({
+            posterLocalPath: tempFile.tempFilePath,
+            error: null,
+          });
+        },
+        fail: () => {
+          wx.showToast({ title: '未选择海报', icon: 'none' });
+        },
+      });
+    };
+
+    if (wx.getStorageSync(POSTER_UPLOAD_NOTICE_KEY)) {
+      openAlbum();
+      return;
+    }
+
+    wx.showModal({
+      title: '用途说明',
+      content: '将从相册选择图片，仅用于活动海报上传。',
+      confirmText: '继续选择',
       success: (res) => {
-        const tempFile = res.tempFiles[0];
-        // 检查文件大小
-        if (tempFile.size > MAX_POSTER_SIZE) {
-          wx.showToast({ title: '图片不能超过5MB', icon: 'none' });
-          return;
-        }
-        this.setData({
-          posterLocalPath: tempFile.tempFilePath,
-          error: null,
-        });
-      },
-      fail: () => {
-        wx.showToast({ title: '未选择海报', icon: 'none' });
+        if (!res.confirm) return;
+        wx.setStorageSync(POSTER_UPLOAD_NOTICE_KEY, 1);
+        openAlbum();
       },
     });
   },

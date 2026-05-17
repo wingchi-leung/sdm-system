@@ -109,6 +109,9 @@ class UserLoginResponse(BaseModel):
 
 class UserResponse(UserBase):
     id: int
+    age: Optional[int] = None
+    occupation: Optional[str] = None
+    industry: Optional[str] = None
     create_time: datetime
     update_time: datetime
 
@@ -152,8 +155,6 @@ class UserBindInfoRequest(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     email: Optional[str] = Field(None, max_length=255)
     industry: str = Field(..., min_length=1, max_length=100)
-    identity_type: str = Field(..., pattern=r'^(mainland|hongkong|foreign)$')
-    identity_number: str = Field(..., min_length=1, max_length=255)
 
     @field_validator('email')
     @classmethod
@@ -174,33 +175,6 @@ class UserBindInfoRequest(BaseModel):
             raise ValueError('手机号格式不正确')
         return v.strip()
 
-    @field_validator('identity_number')
-    @classmethod
-    def identity_number_format(cls, v: str, info) -> str:
-        if not v or not v.strip():
-            raise ValueError('证件号码不能为空')
-        identity_number = v.strip()
-        identity_type = info.data.get('identity_type')
-
-        if identity_type == 'mainland':
-            # 中国大陆身份证：18位，最后一位可以是X
-            if not re.match(r'^[1-9]\d{5}(18|19|20)\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])\d{3}[\dXx]$', identity_number):
-                raise ValueError('身份证号格式不正确，请输入有效的18位中国大陆身份证号')
-        elif identity_type == 'hongkong':
-            # 港澳台通行证：只做基本长度验证
-            if len(identity_number) < 5 or len(identity_number) > 50:
-                raise ValueError('港澳台通行证号码长度应在5-50位之间')
-        elif identity_type == 'foreign':
-            # 护照：只做基本长度验证
-            if len(identity_number) < 5 or len(identity_number) > 50:
-                raise ValueError('护照号码长度应在5-50位之间')
-        else:
-            # 未知类型
-            raise ValueError('请选择有效的证件类型')
-
-        return identity_number
-
-
 class UserBindInfoResponse(BaseModel):
     """用户信息绑定响应"""
     success: bool
@@ -210,6 +184,48 @@ class UserBindInfoResponse(BaseModel):
 class UserAvatarUpdateRequest(BaseModel):
     """用户头像更新请求"""
     avatar_url: str = Field(..., min_length=1, max_length=500)
+
+
+class UserSelfProfileUpdateRequest(BaseModel):
+    """用户自主修改资料（不含手机号和证件号）"""
+    name: str = Field(..., min_length=1, max_length=255)
+    sex: str = Field(..., pattern=r"^(male|female)$")
+    age: int = Field(..., ge=0, le=150)
+    occupation: str = Field(..., min_length=1, max_length=100)
+    email: Optional[str] = Field(None, max_length=255)
+    industry: str = Field(..., min_length=1, max_length=100)
+
+    @field_validator("email")
+    @classmethod
+    def email_format(cls, v: Optional[str]) -> Optional[str]:
+        if v is None or not v.strip():
+            return None
+        pattern = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not re.match(pattern, v.strip()):
+            raise ValueError("邮箱格式不正确")
+        return v.strip()
+
+
+class UserSelfProfileDeleteRequest(BaseModel):
+    """用户自主删除个人信息（不含证件字段）"""
+    fields: list[str] = Field(..., min_length=1)
+
+    @field_validator("fields")
+    @classmethod
+    def validate_fields(cls, value: list[str]) -> list[str]:
+        allowed = {"name", "sex", "age", "occupation", "industry", "email", "avatar_url"}
+        cleaned = []
+        for item in value:
+            field_name = (item or "").strip()
+            if not field_name:
+                continue
+            if field_name not in allowed:
+                raise ValueError(f"不支持删除字段: {field_name}")
+            if field_name not in cleaned:
+                cleaned.append(field_name)
+        if not cleaned:
+            raise ValueError("至少选择一个可删除字段")
+        return cleaned
 
 
 class AdminUserListItem(BaseModel):

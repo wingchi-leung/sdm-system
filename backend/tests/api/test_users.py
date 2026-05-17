@@ -427,6 +427,65 @@ class TestUserProfile:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "头像地址不合法" in response.json()["detail"]
 
+    def test_update_profile_self_success(self, client, user_token):
+        """测试用户可修改个人信息 。"""
+        response = client.put(
+            "/api/v1/users/profile",
+            headers=auth_headers(user_token),
+            json={
+                "name": "更正姓名",
+                "sex": "female",
+                "age": 30,
+                "occupation": "产品经理",
+                "industry": "互联网",
+                "email": "self-update@example.com",
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "更正姓名"
+        assert data["sex"] == "F"
+        assert data["email"] == "self-update@example.com"
+
+    def test_clear_profile_fields_self_success(self, client, user_token):
+        """测试用户可删除部分个人信息字段。"""
+        response = client.request(
+            "DELETE",
+            "/api/v1/users/profile-fields",
+            headers=auth_headers(user_token),
+            json={"fields": ["industry", "occupation", "avatar_url"]},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        me_response = client.get(
+            "/api/v1/users/me",
+            headers=auth_headers(user_token),
+        )
+        assert me_response.status_code == status.HTTP_200_OK
+        data = me_response.json()
+        assert data.get("industry") is None
+        assert data.get("occupation") is None
+        assert data.get("avatar_url") is None
+
+    def test_deactivate_my_account_success(self, client, user_token):
+        """测试用户可注销账号，后续登录被阻止。"""
+        me_before = client.get("/api/v1/users/me", headers=auth_headers(user_token))
+        assert me_before.status_code == status.HTTP_200_OK
+        phone = me_before.json()["phone"]
+
+        response = client.delete(
+            "/api/v1/users/me",
+            headers=auth_headers(user_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["success"] is True
+
+        relogin = client.post("/api/v1/auth/login", json={
+            "identifier": phone,
+            "password": "user123",
+            "tenant_code": "default",
+        })
+        assert relogin.status_code in (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN)
+
 
 @pytest.mark.api
 class TestUserManagement:

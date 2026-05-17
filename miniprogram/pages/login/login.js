@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const privacy = require('../../utils/privacy');
 
 const TAB_PAGES = ['/pages/index/index', '/pages/mine/mine'];
 const SAFE_REDIRECT_PAGES = [
@@ -262,6 +263,12 @@ Page({
             this.handleLoginError(err);
           });
       },
+    });
+  },
+
+  onPhoneAuthTap() {
+    privacy.ensurePrivacyAuthorization().catch(() => {
+      wx.showToast({ title: '请先同意隐私政策后再继续', icon: 'none' });
     });
   },
 });

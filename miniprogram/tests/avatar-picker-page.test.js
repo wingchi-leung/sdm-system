@@ -55,6 +55,7 @@ function createPageInstance(config) {
 
 test('选择自定义头像时会先压缩再上传', async () => {
   let uploadedPath = '';
+  let selectedSourceType = null;
   const pageConfig = loadAvatarPickerPage({
     api: {
       uploadAvatar: async (filePath) => {
@@ -63,7 +64,11 @@ test('选择自定义头像时会先压缩再上传', async () => {
       },
     },
     wxMock: {
+      getStorageSync() {
+        return 1;
+      },
       chooseMedia(options) {
+        selectedSourceType = options.sourceType;
         options.success({ tempFiles: [{ tempFilePath: 'tmp://original.jpg' }] });
       },
       compressImage(options) {
@@ -79,6 +84,7 @@ test('选择自定义头像时会先压缩再上传', async () => {
   await Promise.resolve();
 
   assert.equal(uploadedPath, 'tmp://compressed.jpg');
+  assert.deepEqual(selectedSourceType, ['album']);
   assert.equal(page.data.customAvatarUrl, '/uploads/avatars/optimized.jpg');
   assert.equal(page.data.uploading, false);
 });

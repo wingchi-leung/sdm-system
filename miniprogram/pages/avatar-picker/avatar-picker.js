@@ -7,6 +7,7 @@ const {
   normalizeAvatarValue,
   resolveAvatarDisplayUrl,
 } = require('../../utils/avatar');
+const AVATAR_UPLOAD_NOTICE_KEY = 'notice_avatar_upload_ack_v1';
 
 function compressAvatarImage(filePath) {
   if (!filePath || typeof wx.compressImage !== 'function') {
@@ -108,46 +109,64 @@ Page({
   },
 
   onChooseAvatar() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
-      success: async (res) => {
-        const file = (res.tempFiles || [])[0];
-        if (!file) return;
-        const previousState = {
-          selectedAvatarKey: this.data.selectedAvatarKey,
-          customAvatarUrl: this.data.customAvatarUrl,
-          customAvatarPreviewUrl: this.data.customAvatarPreviewUrl,
-          selectedAvatarDisplayUrl: this.data.selectedAvatarDisplayUrl,
-        };
-        try {
-          this.setData({
-            uploading: true,
-            error: null,
-            selectedAvatarDisplayUrl: file.tempFilePath,
-            customAvatarPreviewUrl: file.tempFilePath,
-          });
-          const uploadPath = await compressAvatarImage(file.tempFilePath);
-          const uploadResult = await api.uploadAvatar(uploadPath);
-          this.setData({
-            selectedAvatarKey: uploadResult.url,
-            customAvatarUrl: uploadResult.url,
-            uploading: false,
-          });
-        } catch (err) {
-          this.setData({
-            uploading: false,
-            selectedAvatarKey: previousState.selectedAvatarKey,
-            customAvatarUrl: previousState.customAvatarUrl,
-            customAvatarPreviewUrl: previousState.customAvatarPreviewUrl,
-            selectedAvatarDisplayUrl: previousState.selectedAvatarDisplayUrl,
-            error: err && err.message ? err.message : '上传头像失败',
-          });
-        }
+    const openAlbum = () => {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album'],
+        sizeType: ['compressed'],
+        success: async (res) => {
+          const file = (res.tempFiles || [])[0];
+          if (!file) return;
+          const previousState = {
+            selectedAvatarKey: this.data.selectedAvatarKey,
+            customAvatarUrl: this.data.customAvatarUrl,
+            customAvatarPreviewUrl: this.data.customAvatarPreviewUrl,
+            selectedAvatarDisplayUrl: this.data.selectedAvatarDisplayUrl,
+          };
+          try {
+            this.setData({
+              uploading: true,
+              error: null,
+              selectedAvatarDisplayUrl: file.tempFilePath,
+              customAvatarPreviewUrl: file.tempFilePath,
+            });
+            const uploadPath = await compressAvatarImage(file.tempFilePath);
+            const uploadResult = await api.uploadAvatar(uploadPath);
+            this.setData({
+              selectedAvatarKey: uploadResult.url,
+              customAvatarUrl: uploadResult.url,
+              uploading: false,
+            });
+          } catch (err) {
+            this.setData({
+              uploading: false,
+              selectedAvatarKey: previousState.selectedAvatarKey,
+              customAvatarUrl: previousState.customAvatarUrl,
+              customAvatarPreviewUrl: previousState.customAvatarPreviewUrl,
+              selectedAvatarDisplayUrl: previousState.selectedAvatarDisplayUrl,
+              error: err && err.message ? err.message : '上传头像失败',
+            });
+          }
+        },
+        fail: () => {},
+      });
+    };
+
+    if (wx.getStorageSync(AVATAR_UPLOAD_NOTICE_KEY)) {
+      openAlbum();
+      return;
+    }
+
+    wx.showModal({
+      title: '提示',
+      content: '将从相册选择图片，用于设置账号头像。',
+      confirmText: '确认',
+      success: (modalRes) => {
+        if (!modalRes.confirm) return;
+        wx.setStorageSync(AVATAR_UPLOAD_NOTICE_KEY, 1);
+        openAlbum();
       },
-      fail: () => {},
     });
   },
 

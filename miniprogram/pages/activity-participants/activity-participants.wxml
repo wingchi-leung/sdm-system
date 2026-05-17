@@ -26,10 +26,6 @@
         <text class="info-label">电话</text>
         <text class="info-value">{{item.phone || '-'}}</text>
       </view>
-      <view class="participant-info" wx:if="{{item.identity_number}}">
-        <text class="info-label">证件</text>
-        <text class="info-value">{{item.identity_number}}</text>
-      </view>
       <view class="participant-info">
         <text class="info-label">报名时间</text>
         <text class="info-value">{{item.create_time}}</text>

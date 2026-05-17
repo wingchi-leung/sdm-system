@@ -3,6 +3,7 @@ const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
 const MAX_POSTER_SIZE = 5 * 1024 * 1024;
+const COVER_UPLOAD_NOTICE_KEY = 'notice_cover_upload_ack_v1';
 
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
@@ -87,19 +88,37 @@ Page({
   },
 
   onChooseCover() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      sizeType: ['compressed'],
+    const openAlbum = () => {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album'],
+        sizeType: ['compressed'],
+        success: (res) => {
+          const file = (res.tempFiles || [])[0];
+          if (!file) return;
+          if (file.size > MAX_POSTER_SIZE) {
+            wx.showToast({ title: '图片不能超过5MB', icon: 'none' });
+            return;
+          }
+          this.setData({ coverLocalPath: file.tempFilePath, error: null });
+        },
+      });
+    };
+
+    if (wx.getStorageSync(COVER_UPLOAD_NOTICE_KEY)) {
+      openAlbum();
+      return;
+    }
+
+    wx.showModal({
+      title: '提示',
+      content: '将从相册选择图片，用于动态封面上传。',
+      confirmText: '确认',
       success: (res) => {
-        const file = (res.tempFiles || [])[0];
-        if (!file) return;
-        if (file.size > MAX_POSTER_SIZE) {
-          wx.showToast({ title: '图片不能超过5MB', icon: 'none' });
-          return;
-        }
-        this.setData({ coverLocalPath: file.tempFilePath, error: null });
+        if (!res.confirm) return;
+        wx.setStorageSync(COVER_UPLOAD_NOTICE_KEY, 1);
+        openAlbum();
       },
     });
   },

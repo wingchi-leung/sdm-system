@@ -263,15 +263,11 @@ def is_user_profile_incomplete(db: Session, user_id: int, tenant_id: int) -> boo
         return True
     if not user.industry or not str(user.industry).strip():
         return True
-    if not user.identity_type:
-        return True
-    if not user.identity_number or not str(user.identity_number).strip():
-        return True
     return False
 
 
 def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: UserBindInfoRequest) -> User:
-    """更新用户绑定信息，接受已经过 Pydantic 校验的请求对象，确保证件号格式合法。"""
+    """更新用户绑定信息（不再采集证件信息）。"""
     user = get_user(db, user_id, tenant_id)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
@@ -301,14 +297,6 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     if existing:
         raise HTTPException(status_code=400, detail="该手机号已被使用")
 
-    existing_identity = db.query(User).filter(
-        User.identity_number_hash == blind_index(bind_info.identity_number, purpose="identity_number"),
-        User.id != user_id,
-        User.tenant_id == tenant_id,
-    ).first()
-    if existing_identity:
-        raise HTTPException(status_code=400, detail="该证件号已被使用")
-
     old_phone = user.phone
 
     # 更新字段
@@ -319,8 +307,6 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     user.phone = bind_phone
     user.email = bind_info.email
     user.industry = bind_info.industry
-    user.identity_number = bind_info.identity_number
-    user.identity_type = bind_info.identity_type
 
     crud_credential.sync_phone_identifiers(db, user_id, tenant_id, old_phone, bind_phone)
     db.commit()
@@ -341,6 +327,88 @@ def update_user_avatar(db: Session, user_id: int, tenant_id: int, avatar_url: st
     user.avatar_url = normalized_avatar_url
     db.commit()
     db.refresh(user)
+    return user
+
+
+def update_user_profile_self(
+    db: Session,
+    user_id: int,
+    tenant_id: int,
+    *,
+    name: str,
+    sex: str,
+    age: int,
+    occupation: str,
+    industry: str,
+    email: str | None,
+) -> User:
+    """用户自主修改资料（不含手机号/证件号）。"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    sex_map = {"male": "M", "female": "F"}
+    if sex not in sex_map:
+        raise HTTPException(status_code=400, detail="请选择男或女")
+
+    if email:
+        existing_email = db.query(User).filter(
+            User.email_hash == blind_index(email, purpose="email"),
+            User.tenant_id == tenant_id,
+            User.id != user_id,
+        ).first()
+        if existing_email:
+            raise HTTPException(status_code=400, detail="该邮箱已被使用")
+
+    user.name = name.strip()
+    user.sex = sex_map[sex]
+    user.age = age
+    user.occupation = occupation.strip()
+    user.industry = industry.strip()
+    user.email = email
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def clear_user_profile_fields_self(
+    db: Session,
+    user_id: int,
+    tenant_id: int,
+    fields: list[str],
+) -> User:
+    """用户自主删除部分个人信息字段（不含身份证相关字段）。"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    for field_name in fields:
+        setattr(user, field_name, None)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def deactivate_user_account(
+    db: Session,
+    user_id: int,
+    tenant_id: int,
+) -> User:
+    """注销账号：清空可删除资料并拉黑账号，防止继续登录。"""
+    user = get_user(db, user_id, tenant_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="用户不存在")
+
+    user.name = "已注销用户"
+    user.sex = None
+    user.age = None
+    user.occupation = None
+    user.industry = None
+    user.email = None
+    user.avatar_url = None
+    user.isblock = 1
+    user.block_reason = "用户自主注销"
+    db.flush()
     return user
 
 

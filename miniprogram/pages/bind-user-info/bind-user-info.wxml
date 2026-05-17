@@ -102,38 +102,9 @@
       />
     </view>
 
-    <!-- 证件类型 -->
-    <view class="field">
-      <text class="field-label optional">证件类型</text>
-      <picker
-        mode="selector"
-        range="{{identityTypeOptions}}"
-        range-key="label"
-        value="{{identityTypeIndex}}"
-        bindchange="onIdentityTypeChange"
-      >
-        <view class="picker-field">
-          <text class="picker-text">{{identityTypeIndex >= 0 ? identityTypeOptions[identityTypeIndex].label : '请选择证件类型'}}</text>
-          <text class="picker-arrow">→</text>
-        </view>
-      </picker>
-    </view>
-
-    <!-- 身份证号 -->
-    <view class="field" wx:if="{{identityTypeIndex >= 0}}">
-      <text class="field-label optional">证件号码</text>
-      <input
-        class="input"
-        placeholder="请输入证件号码"
-        placeholder-class="input-placeholder"
-        value="{{formData.identity_number}}"
-        bindinput="onIdentityNumberInput"
-      />
-    </view>
-
     <!-- 错误提示 -->
-    <view class="error-box" wx:if="{{error || identityError}}">
-      <text class="error-text">{{error || identityError}}</text>
+    <view class="error-box" wx:if="{{error}}">
+      <text class="error-text">{{error}}</text>
     </view>
 
     <!-- 提交按钮 -->

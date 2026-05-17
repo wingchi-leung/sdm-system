@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 
 from app.crud import crud_user, crud_tenant, crud_rbac
+from app.crud import crud_credential
 from app.api import deps
 from app.core.pii import mask_email, mask_name, mask_phone
 from app.core.sensitive_field_crypto import (
@@ -116,9 +117,6 @@ async def bind_user_info(
         kid = payload.get("encryption_kid")
 
         encrypted_phone = payload.get("phone_encrypted")
-        encrypted_identity = payload.get("identity_number_encrypted")
-        if not encrypted_identity:
-            raise HTTPException(status_code=400, detail="敏感字段必须使用加密传输")
         if encrypted_phone:
             payload["phone"] = decrypt_sensitive_field(encrypted_phone, kid)
         else:
@@ -126,8 +124,6 @@ async def bind_user_info(
             if db_user is None or not db_user.phone:
                 raise HTTPException(status_code=400, detail="缺少可用手机号，请重新登录授权手机号后再绑定")
             payload["phone"] = db_user.phone
-        if encrypted_identity:
-            payload["identity_number"] = decrypt_sensitive_field(encrypted_identity, kid)
 
         bind_info = user.UserBindInfoRequest.model_validate(payload)
         crud_user.update_user_bind_info(
@@ -179,6 +175,68 @@ def update_user_avatar_post(
         tenant_id=ctx.tenant_id,
         avatar_url=body.avatar_url,
     )
+
+
+@router.put("/profile", response_model=user.UserResponse)
+def update_my_profile_self(
+    body: user.UserSelfProfileUpdateRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """修改当前用户的个人信息 。"""
+    return crud_user.update_user_profile_self(
+        db=db,
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        name=body.name,
+        sex=body.sex,
+        age=body.age,
+        occupation=body.occupation,
+        industry=body.industry,
+        email=body.email,
+    )
+
+
+@router.delete("/profile-fields", response_model=user.UserResponse)
+def clear_my_profile_fields_self(
+    body: user.UserSelfProfileDeleteRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """删除当前用户指定个人信息字段（不含证件字段）。"""
+    return crud_user.clear_user_profile_fields_self(
+        db=db,
+        user_id=ctx.user_id,
+        tenant_id=ctx.tenant_id,
+        fields=body.fields,
+    )
+
+
+@router.delete("/me")
+def deactivate_my_account(
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """注销当前账号。"""
+    try:
+        crud_user.deactivate_user_account(
+            db=db,
+            user_id=ctx.user_id,
+            tenant_id=ctx.tenant_id,
+        )
+        crud_credential.deactivate_user_credentials(
+            db=db,
+            user_id=ctx.user_id,
+            tenant_id=ctx.tenant_id,
+        )
+        db.commit()
+        return {"success": True, "message": "账号已注销"}
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"注销失败: {str(e)}")
 
 
 @router.get("/check-bind-status")
