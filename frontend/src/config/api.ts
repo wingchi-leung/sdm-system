@@ -227,7 +227,7 @@ export const apiRequest = async <T>(
   };
 
   try {
-    const requestOptions = {
+    const requestOptions: RequestInit = {
       ...options,
       headers,
       credentials: 'include',
