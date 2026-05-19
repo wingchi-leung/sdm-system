@@ -38,31 +38,20 @@
 
     <view class="info-grid">
       <view class="info-col">
-        <view class="info-label-row">
-          <text class="meta-icon">◷</text>
-          <text class="info-label">开始时间</text>
-        </view>
+        <text class="info-label">开始时间</text>
         <text class="info-value">{{activity.start_display || '--'}}</text>
       </view>
       <view class="info-col">
-        <view class="info-label-row">
-          <text class="meta-icon">⌖</text>
-          <text class="info-label">活动地点</text>
-        </view>
+        <text class="info-label">活动地点</text>
         <text class="info-value">{{activity.location || '线上活动'}}</text>
       </view>
       <view class="info-col">
-        <view class="info-label-row">
-          <text class="meta-icon">◌</text>
-          <text class="info-label">参与方式</text>
-        </view>
+        <text class="info-label">参与方式</text>
         <text class="info-value">{{activity.join_method_display}}</text>
       </view>
     </view>
 
-    <view class="section-divider"></view>
-
-    <view class="intro-block intro-card">
+    <view class="intro-block">
       <text class="section-title">活动介绍</text>
       <text class="intro-text">{{activity.activity_intro || '暂无活动介绍'}}</text>
     </view>
@@ -151,10 +140,9 @@
     </view>
 
     <view class="action-section">
-      <view wx:if="{{canEnroll}}" class="btn-wrap">
-        <button class="btn-enroll" bindtap="goRegister">
-          <text class="btn-text">进入报名 →</text>
-        </button>
+      <view wx:if="{{canEnroll}}" class="cta-wrap" bindtap="goRegister">
+        <text class="cta-text">进入报名 <text class="cta-arrow">→</text></text>
+        <view class="cta-line"></view>
       </view>
       <view wx:else class="disabled-tip">
         <text>{{actionTipText}}</text>

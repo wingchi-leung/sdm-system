@@ -27,6 +27,7 @@ Page({
     submitting: false,
     error: null,
     unsafeTip: false,
+    usePngBackground: false,
   },
 
   // 快速点击计数：连续点击 5 次进入管理员模式。
@@ -36,6 +37,13 @@ Page({
   onLoad(options) {
     tenant.applyPageOptions(options);
     this.setData({ unsafeTip: api.isUnsafeBaseUrl() });
+  },
+
+  onBackgroundLoadError() {
+    if (this.data.usePngBackground) {
+      return;
+    }
+    this.setData({ usePngBackground: true });
   },
 
   getRedirectUrl() {

@@ -60,7 +60,7 @@
   height: 188rpx;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 12rpx 30rpx rgba(47, 79, 70, 0.10);
+  box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.10);
 }
 
 .preview-avatar {
@@ -96,8 +96,8 @@
 }
 
 .avatar-option.active {
-  border-color: #2F4F46;
-  box-shadow: 0 0 0 6rpx rgba(47, 79, 70, 0.08);
+  border-color: #000000;
+  box-shadow: 0 0 0 6rpx rgba(0, 0, 0, 0.08);
 }
 
 .avatar-option:active {
@@ -184,7 +184,7 @@
 }
 
 .upload-btn-label {
-  color: #2F4F46;
+  color: #000000;
 }
 
 .error-box {
@@ -208,11 +208,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #2F4F46;
+  background: #000000;
   border: 1rpx solid #29453D;
-  box-shadow: 0 10rpx 24rpx rgba(47, 79, 70, 0.12);
+  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.12);
 }
 
 .save-btn[disabled] {
   opacity: 0.6;
 }
+

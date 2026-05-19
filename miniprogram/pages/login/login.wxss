@@ -147,10 +147,11 @@
   display: inline-block;
   padding: 10rpx 20rpx;
   border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.8);
-  color: #163A6B;
+  background: transparent;
+  color: rgba(22, 58, 107, 0.92);
   font-size: 22rpx;
   line-height: 30rpx;
+  text-shadow: 0 1rpx 2rpx rgba(255, 255, 255, 0.75);
 }
 
 .admin-brand-title {

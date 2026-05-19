@@ -160,7 +160,7 @@
   margin: 0;
   border: 0;
   border-radius: 16rpx;
-  background: #2F4F46;
+  background: #000000;
   color: #FFFFFF;
   font-size: 24rpx;
   line-height: 80rpx;
@@ -173,3 +173,4 @@
 .comment-btn[disabled] {
   opacity: 0.6;
 }
+

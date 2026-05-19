@@ -29,7 +29,10 @@ def verify_password(plain: str, hashed: str) -> bool:
     """校验明文密码与存储的哈希"""
     if not _password_bytes_ok(plain):
         return False
-    return pwd_context.verify(plain, hashed)
+    try:
+        return pwd_context.verify(plain, hashed)
+    except (ValueError, TypeError):
+        return False
 
 
 def create_access_token(

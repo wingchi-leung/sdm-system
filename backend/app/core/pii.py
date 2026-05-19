@@ -65,7 +65,15 @@ def decrypt_pii(value: str | None) -> str | None:
         plain = AESGCM(_AES_KEY).decrypt(nonce, cipher, None)
         return plain.decode("utf-8")
     except Exception:
-        # 兼容历史明文数据：当值不是加密密文时，按原文返回，避免读取老数据时报错。
+        # 兼容历史明文数据：当值不是加密密文时，按原文返回。
+        # 但若看起来是密文（base64url 且长度较长）却解密失败，说明密钥不一致或数据损坏，
+        # 为避免把密文误当明文返回给上层校验与前端，统一降级为 None。
+        try:
+            candidate = base64.urlsafe_b64decode(text.encode("ascii"))
+            if len(candidate) > 28:
+                return None
+        except Exception:
+            pass
         return text
 
 

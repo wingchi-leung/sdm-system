@@ -1,13 +1,15 @@
 <view class="page">
   <!-- 搜索栏 -->
   <view class="search-section">
-    <input
-      class="search-input"
-      placeholder="搜索姓名或手机号"
-      value="{{keyword}}"
-      bindinput="onSearchInput"
-      bindconfirm="onSearch"
-    />
+    <view class="search-main">
+      <input
+        class="search-input"
+        placeholder="搜索姓名或手机号"
+        value="{{keyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearch"
+      />
+    </view>
     <view class="search-actions">
       <text class="search-btn" bindtap="onSearch">搜索</text>
       <text wx:if="{{keyword}}" class="clear-btn" bindtap="onClearSearch">清除</text>
@@ -15,9 +17,23 @@
   </view>
 
   <!-- 统计 -->
-  <view class="stats-header">
-    <text class="stats-label">用户总数</text>
-    <text class="stats-count">{{total}}</text>
+  <view class="toolbar">
+    <view class="stats-header">
+      <text class="stats-label">用户总数</text>
+      <text class="stats-count">{{total}}</text>
+    </view>
+    <view class="mode-switch">
+      <text
+        class="mode-btn {{viewMode === 'list' ? 'active' : ''}}"
+        data-mode="list"
+        bindtap="onChangeViewMode"
+      >列表</text>
+      <text
+        class="mode-btn {{viewMode === 'detail' ? 'active' : ''}}"
+        data-mode="detail"
+        bindtap="onChangeViewMode"
+      >详情</text>
+    </view>
   </view>
 
   <!-- 加载中 -->
@@ -33,50 +49,61 @@
   <!-- 用户列表 -->
   <view wx:else class="list">
     <view wx:for="{{users}}" wx:key="id" class="user-item">
-      <view class="user-header">
-        <text class="user-name">{{item.name || '未设置姓名'}}</text>
-        <text class="user-status {{item.isblock === 1 ? 'blocked' : ''}}">
-          {{item.isblock === 1 ? '已拉黑' : '正常'}}
-        </text>
-      </view>
-      <view class="user-info">
-        <view class="info-row">
-          <text class="info-label">手机号</text>
-          <text class="info-value">{{item.phone || '-'}}</text>
+      <view class="user-main">
+        <view class="user-left">
+          <view class="user-header">
+            <text class="user-name">{{item.name || '未设置姓名'}}</text>
+          </view>
+          <view wx:if="{{viewMode === 'detail'}}" class="user-info">
+            <view class="info-row">
+              <text class="info-label">手机号</text>
+              <text class="info-value">{{item.phone || '-'}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">邮箱</text>
+              <text class="info-value">{{item.email || '-'}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">性别</text>
+              <text class="info-value">{{item.sex === 'M' ? '男' : item.sex === 'F' ? '女' : '-'}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">年龄</text>
+              <text class="info-value">{{item.age || '-'}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">职业</text>
+              <text class="info-value">{{item.occupation || '-'}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">行业</text>
+              <text class="info-value">{{item.industry || '-'}}</text>
+            </view>
+            <view class="info-row">
+              <text class="info-label">注册时间</text>
+              <text class="info-value">{{item.create_time}}</text>
+            </view>
+            <view wx:if="{{item.isblock === 1 && item.block_reason}}" class="info-row">
+              <text class="info-label">拉黑原因</text>
+              <text class="info-value block-reason">{{item.block_reason}}</text>
+            </view>
+          </view>
+          <view wx:else class="user-info compact-info">
+            <text class="compact-text">{{item.phone || '-'}}</text>
+            <text class="compact-dot">·</text>
+            <text class="compact-text">{{item.email || '未填写邮箱'}}</text>
+          </view>
         </view>
-        <view class="info-row">
-          <text class="info-label">邮箱</text>
-          <text class="info-value">{{item.email || '-'}}</text>
+
+        <view class="user-right">
+          <view class="user-status {{item.isblock === 1 ? 'blocked' : ''}}">
+            <text class="user-status-text">{{item.isblock === 1 ? '已拉黑' : '正常'}}</text>
+          </view>
+          <view class="user-actions">
+            <text wx:if="{{item.isblock === 0}}" class="action-btn block-btn" bindtap="onBlockUser" data-user="{{item}}">拉黑</text>
+            <text wx:else class="action-btn unblock-btn" bindtap="onUnblockUser" data-user="{{item}}">解除拉黑</text>
+          </view>
         </view>
-        <view class="info-row">
-          <text class="info-label">性别</text>
-          <text class="info-value">{{item.sex === 'M' ? '男' : item.sex === 'F' ? '女' : '-'}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">年龄</text>
-          <text class="info-value">{{item.age || '-'}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">职业</text>
-          <text class="info-value">{{item.occupation || '-'}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">行业</text>
-          <text class="info-value">{{item.industry || '-'}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">注册时间</text>
-          <text class="info-value">{{item.create_time}}</text>
-        </view>
-        <view wx:if="{{item.isblock === 1 && item.block_reason}}" class="info-row">
-          <text class="info-label">拉黑原因</text>
-          <text class="info-value block-reason">{{item.block_reason}}</text>
-        </view>
-      </view>
-      <!-- 操作按钮 -->
-      <view class="user-actions">
-        <text wx:if="{{item.isblock === 0}}" class="action-btn block-btn" bindtap="onBlockUser" data-user="{{item}}">拉黑</text>
-        <text wx:else class="action-btn unblock-btn" bindtap="onUnblockUser" data-user="{{item}}">解除拉黑</text>
       </view>
     </view>
 

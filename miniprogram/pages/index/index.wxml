@@ -3,8 +3,10 @@
     <view class="hero-top">
       <view class="hero-copy">
         <text class="hero-title">{{todayLabel}}</text>
-        <text class="hero-subtitle">{{todayDateCn}}</text>
-        <text class="hero-subtitle">{{weekdayLabelCn}}</text>
+        <text class="hero-subtitle">
+          <text class="hero-subtitle-cn">{{todayDateCn}}</text>
+          <text class="hero-subtitle-gap">{{weekdayLabelCn}}</text>
+        </text>
       </view>
       <view class="hero-side">
         <view class="header-avatar" wx:if="{{isUser}}" bindtap="goMine">
@@ -72,18 +74,24 @@
         </view>
 
         <view class="item-content">
-          <text class="item-name">{{item.activity_name}}</text>
+          <text class="item-name">
+            <text class="item-name-cn">{{item.activity_name}}</text>
+            <text wx:if="{{item.activity_name_en}}" class="item-name-sep"> · </text>
+            <text wx:if="{{item.activity_name_en}}" class="item-name-en">{{item.activity_name_en}}</text>
+          </text>
           <view class="item-info">
             <view class="info-row">
-              <text class="meta-icon">◷</text>
-              <text class="info-text info-text-strong">{{item.time_range_display}}</text>
-              <text class="info-text">{{item.date_label}} {{item.weekday_label}}</text>
+              <image class="meta-icon meta-icon-image" src="/assets/icons/time.png" mode="aspectFit" />
+              <text class="info-text">{{item.time_range_display}}</text>
+              <text class="info-text">{{item.date_label}} · {{item.weekday_label}}</text>
             </view>
             <view class="info-row">
-              <text class="meta-icon">⌖</text>
+              <image class="meta-icon meta-icon-image" src="/assets/icons/location.png" mode="aspectFit" />
               <text class="info-text">{{item.location_display}}</text>
+              <text wx:if="{{item.location_display_en}}" class="info-text">{{item.location_display_en}}</text>
             </view>
           </view>
+          <view class="item-divider"></view>
         </view>
       </view>
     </block>

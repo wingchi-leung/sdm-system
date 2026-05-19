@@ -149,6 +149,7 @@ Page({
             start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
             time_range_display: timeRangeDisplay,
             status_text: a.status === 1 ? '未开始' : a.status === 2 ? '进行中' : '已结束',
+            activity_name_en: this.resolveActivityNameEn(a),
             date_day: dateDisplay.day,
             date_month: dateDisplay.month,
             date_key: dateDisplay.key,
@@ -160,6 +161,7 @@ Page({
               ? (registration.enroll_status === 2 ? '候补中' : '已报名')
               : '',
             location_display: this.formatLocation(a.location),
+            location_display_en: this.formatLocationEn(a.location),
             participant_display: this.formatParticipantText(a),
             summary_text: this.buildActivitySummary(a),
           };
@@ -253,6 +255,24 @@ Page({
     return value || '线上活动';
   },
 
+  formatLocationEn(location) {
+    const value = location ? String(location).trim() : '';
+    if (!value) return 'Online';
+    if (value === '线上活动') return 'Online';
+    return '';
+  },
+
+  resolveActivityNameEn(activity) {
+    const fields = [
+      activity.activity_name_en,
+      activity.name_en,
+      activity.title_en,
+      activity.activity_type_name_en,
+    ];
+    const candidate = fields.find((value) => value && String(value).trim());
+    return candidate ? String(candidate).trim() : '';
+  },
+
   formatParticipantText(activity) {
     const count = Number(activity.current_participants || activity.participant_count || activity.registered_count || 0);
     if (count > 0) {
@@ -293,7 +313,7 @@ Page({
     const day = d.getDate();
     const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     const month = months[d.getMonth()];
-    const weekdays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const today = new Date();
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

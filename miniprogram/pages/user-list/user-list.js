@@ -11,6 +11,7 @@ Page({
     limit: 20,
     keyword: '',
     hasMore: true,
+    viewMode: 'list',
   },
 
   resetSensitiveData() {
@@ -91,6 +92,12 @@ Page({
   onClearSearch() {
     this.setData({ keyword: '' });
     this.loadUsers(false);
+  },
+
+  onChangeViewMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    if (mode !== 'list' && mode !== 'detail') return;
+    this.setData({ viewMode: mode });
   },
 
   onReachBottom() {

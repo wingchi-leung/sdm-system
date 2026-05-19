@@ -53,6 +53,10 @@ class TestPasswordSecurity:
         is_valid = verify_password(wrong_password, hashed)
         assert is_valid is False
 
+    def test_verify_password_invalid_hash(self):
+        """测试凭证哈希格式异常时返回 False（不抛出异常）"""
+        assert verify_password("any_password", "$2b$12$invalid$hash$with$too$many$parts") is False
+
     def test_hash_and_verify_roundtrip(self):
         """测试哈希和验证的往返"""
         passwords = [

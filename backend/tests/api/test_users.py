@@ -747,14 +747,14 @@ class TestUserManagement:
         assert data["total"] == 1
         assert data["items"][0]["tenant_id"] == other_tenant.id
 
-    def test_admin_all_web_returns_raw_pii(
+    def test_admin_all_and_all_web_return_raw_pii(
         self,
         client,
         db_session,
         super_admin_token,
         default_tenant,
     ):
-        """测试 /admin/all-web 返回未脱敏字段（仅 Web 管理端专用）。"""
+        """测试 /admin/all 与 /admin/all-web 均返回未脱敏字段。"""
         from app.schemas import User
 
         raw_user = User(
@@ -767,16 +767,17 @@ class TestUserManagement:
         db_session.add(raw_user)
         db_session.commit()
 
-        masked_res = client.get(
+        admin_all_res = client.get(
             "/api/v1/users/admin/all",
             headers=auth_headers(super_admin_token),
         )
-        assert masked_res.status_code == status.HTTP_200_OK
-        masked_items = masked_res.json()["items"]
-        masked_target = next((item for item in masked_items if item["id"] == raw_user.id), None)
-        assert masked_target is not None
-        assert masked_target["name"] != "明文姓名"
-        assert masked_target["phone"] != "13800138123"
+        assert admin_all_res.status_code == status.HTTP_200_OK
+        admin_all_items = admin_all_res.json()["items"]
+        admin_all_target = next((item for item in admin_all_items if item["id"] == raw_user.id), None)
+        assert admin_all_target is not None
+        assert admin_all_target["name"] == "明文姓名"
+        assert admin_all_target["phone"] == "13800138123"
+        assert admin_all_target["email"] == "raw@example.com"
 
         raw_res = client.get(
             "/api/v1/users/admin/all-web",

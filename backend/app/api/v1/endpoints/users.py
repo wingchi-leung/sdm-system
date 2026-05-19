@@ -292,7 +292,7 @@ def get_all_users_for_super_admin(
     )
 
     return user.UserListForAdminResponse(
-        items=[_serialize_admin_user_list_item(u) for u in users],
+        items=[_serialize_admin_user_list_item_raw(u) for u in users],
         total=total,
         skip=skip,
         limit=limit,

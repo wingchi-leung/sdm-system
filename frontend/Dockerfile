@@ -1,19 +1,18 @@
-FROM node:18-alpine
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# 先复制 package 文件，利用 Docker 缓存层
 COPY package*.json ./
-
-# 安装依赖
 RUN npm config set registry https://registry.npmmirror.com && npm ci
 
-# 复制其他源代码
 COPY . .
-
-# 构建检查
 RUN npm run build
+
+FROM nginx:alpine AS runner
+
+COPY --from=builder /app/build /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["nginx", "-g", "daemon off;"]

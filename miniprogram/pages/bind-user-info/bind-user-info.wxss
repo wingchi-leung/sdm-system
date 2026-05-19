@@ -245,7 +245,7 @@
   height: 88rpx;
   margin-top: 24rpx;
   border-radius: 16rpx;
-  background: #2F4F46;
+  background: #000000;
   box-shadow: none;
 }
 
@@ -255,3 +255,4 @@
   font-weight: 500;
   letter-spacing: 0.4rpx;
 }
+

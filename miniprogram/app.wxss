@@ -12,15 +12,15 @@ page {
    * ───────────────────────────────────────────────────────────── */
 
   /* 主色调 - 深灰而非纯黑，更柔和 */
-  --primary: #2F4F46;
-  --primary-dark: #2F4F46;
-  --primary-light: rgba(47, 79, 70, 0.08);
-  --primary-glow: rgba(47, 79, 70, 0.08);
+  --primary: #000000;
+  --primary-dark: #000000;
+  --primary-light: rgba(0, 0, 0, 0.08);
+  --primary-glow: rgba(0, 0, 0, 0.08);
 
   /* 强调色 - 优雅金色 */
-  --accent: #2F4F46;
-  --accent-light: rgba(47, 79, 70, 0.08);
-  --accent-dark: #2F4F46;
+  --accent: #000000;
+  --accent-light: rgba(0, 0, 0, 0.08);
+  --accent-dark: #000000;
 
   /* 背景色 - 温暖的灰白 */
   --background: #FFFFFF;
@@ -38,14 +38,14 @@ page {
   /* 状态色 - 优雅克制 */
   --status-not-started: #9B9B9B;
   --status-not-started-bg: rgba(155, 155, 155, 0.06);
-  --status-ongoing: #2F4F46;
-  --status-ongoing-bg: rgba(47, 79, 70, 0.08);
+  --status-ongoing: #000000;
+  --status-ongoing-bg: rgba(0, 0, 0, 0.08);
   --status-ended: #9B9B9B;
   --status-ended-bg: rgba(155, 155, 155, 0.06);
 
   /* 语义色 */
-  --success: #2F4F46;
-  --success-bg: rgba(47, 79, 70, 0.08);
+  --success: #000000;
+  --success-bg: rgba(0, 0, 0, 0.08);
   --error: #B24137;
   --error-bg: rgba(178, 65, 55, 0.08);
   --warning: #8A7451;
@@ -60,7 +60,7 @@ page {
   --form-surface: #FFFFFF;
   --form-surface-soft: #FFFFFF;
   --form-border: rgba(17, 17, 17, 0.08);
-  --form-border-strong: rgba(47, 79, 70, 0.22);
+  --form-border-strong: rgba(0, 0, 0, 0.22);
   --form-shadow: none;
   --form-shadow-focus: none;
 
@@ -100,7 +100,7 @@ page {
   --font-display: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   --ink: #111111;
-  --green: #2F4F46;
+  --green: #000000;
   --text-soft: #999999;
   --paper: #F7F7F5;
   --line: #E5E7EB;
@@ -371,3 +371,4 @@ input,
 textarea {
   box-shadow: none !important;
 }
+
