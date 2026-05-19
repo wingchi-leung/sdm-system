@@ -72,7 +72,16 @@
         </view>
       </view>
 
-      <button class="poster-login-trigger" disabled="{{submitting}}" bindtap="onPhoneAuthTap" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber"></button>
+      <button
+        class="poster-login-trigger"
+        disabled="{{submitting}}"
+        bindtap="onPhoneAuthTap"
+        open-type="getPhoneNumber"
+        bindgetphonenumber="onGetPhoneNumber"
+        hover-class="none"
+      >
+        <text class="poster-login-trigger-text">微信快捷登录</text>
+      </button>
 
       <view class="poster-loading-tip" wx:if="{{submitting}}">
         <text class="poster-loading-text">登录中...</text>
