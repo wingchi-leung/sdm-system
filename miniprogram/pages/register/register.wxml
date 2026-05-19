@@ -153,10 +153,7 @@
   </view>
 
   <view class="section-block payment-block" wx:if="{{requirePayment}}">
-    <view class="section-title-row">
-      <text class="section-marker"></text>
-      <text class="section-kicker section-kicker-strong">支付信息</text>
-    </view>
+    
 
     <view class="field fee-field">
       <text class="field-label">支付金额</text>
