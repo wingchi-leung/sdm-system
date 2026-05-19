@@ -3,6 +3,8 @@ const DEFAULT_STATIC_BASE_URL = 'http://localhost:8000';
 
 const BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_BASE_URL;
 const STATIC_BASE_URL = process.env.REACT_APP_STATIC_URL || DEFAULT_STATIC_BASE_URL;
+const NETWORK_RETRY_DELAY_MS = 300;
+const NETWORK_RETRY_ATTEMPTS = 2;
 
 function getConfigHint(): string {
   return `请检查前端环境变量 REACT_APP_API_URL（当前: ${BASE_URL}）以及后端服务/CORS是否可用`;
@@ -175,6 +177,46 @@ export function formatNetworkError(error: unknown): string {
   return error.message;
 }
 
+function getRequestMethod(options: RequestInit): string {
+  return (options.method || 'GET').toUpperCase();
+}
+
+function shouldRetryNetworkError(method: string, error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return ['GET', 'HEAD'].includes(method) && error.message === 'Failed to fetch';
+}
+
+function waitForRetry(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+async function fetchWithRetry(url: string, options: RequestInit): Promise<Response> {
+  const method = getRequestMethod(options);
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= NETWORK_RETRY_ATTEMPTS; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+
+      if (!shouldRetryNetworkError(method, error) || attempt === NETWORK_RETRY_ATTEMPTS) {
+        throw error;
+      }
+
+      // 仅对只读请求做一次轻量重试，缓解 Tunnel/网络瞬时抖动。
+      await waitForRetry(NETWORK_RETRY_DELAY_MS);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Failed to fetch');
+}
+
 export const apiRequest = async <T>(
   url: string,
   options: RequestInit = {},
@@ -185,11 +227,12 @@ export const apiRequest = async <T>(
   };
 
   try {
-    const response = await fetch(url, {
+    const requestOptions = {
       ...options,
       headers,
       credentials: 'include',
-    });
+    };
+    const response = await fetchWithRetry(url, requestOptions);
 
     const text = await response.text();
     const payload = text ? JSON.parse(text) : null;
