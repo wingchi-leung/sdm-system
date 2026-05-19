@@ -66,7 +66,7 @@
         <text class="row-arrow">›</text>
       </view>
       <view class="item" bindtap="goSettings">
-        <text class="item-icon">⚙</text>
+        <image class="item-icon-image" src="/assets/icons/setting.png" mode="aspectFit" />
         <view class="item-copy">
           <text class="item-title">设置</text>
           <text class="item-desc">修改个人信息、注销账号</text>
