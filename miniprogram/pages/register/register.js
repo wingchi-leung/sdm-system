@@ -80,7 +80,12 @@ Page({
         tenant.getTenantCode(),
         auth.getUserId()
       ));
-      if (stored && stored.activityId === activityId && stored.orderNo) {
+      if (
+        stored &&
+        stored.orderNo &&
+        stored.activityId != null &&
+        String(stored.activityId) === String(activityId)
+      ) {
         this.setData({
           paymentOrderNo: stored.orderNo,
           recoverPendingPayment: true,

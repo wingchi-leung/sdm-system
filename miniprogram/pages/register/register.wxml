@@ -193,12 +193,12 @@
         <text class="bottom-sub">订单号：{{paymentOrderNo}}</text>
       </view>
       <view wx:else>
-        <text class="bottom-title">当前订单仍可继续支付</text>
-        <text class="bottom-sub">订单号：{{paymentOrderNo || '待生成'}}</text>
+        <text class="bottom-title">提交后将创建新订单</text>
+        <text class="bottom-sub">支付完成后即报名成功</text>
       </view>
     </view>
     <button class="btn-submit {{isFull ? 'waitlist' : ''}}" disabled="{{submitting}}" bindtap="submit">
-      <text class="btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : (isFull ? '进入候补' : '继续支付'))}}</text>
+      <text class="btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : (isFull ? '进入候补' : '确认报名并支付'))}}</text>
     </button>
   </view>
 </view>

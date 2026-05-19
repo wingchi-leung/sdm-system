@@ -257,3 +257,77 @@ test('报名提交 payload 不包含证件号字段', () => {
   assert.equal(payload.identity_number, undefined);
   assert.equal(payload.identity_type, undefined);
 });
+
+test('报名页仅在同活动存在待支付订单时恢复继续支付', () => {
+  const calls = {
+    initPage: 0,
+  };
+  const pageConfig = loadRegisterPage({
+    auth: {
+      isLoggedIn: () => true,
+      isSuperAdmin: () => false,
+      getUserId: () => 1001,
+    },
+    tenant: {
+      applyPageOptions() {},
+      getTenantCode: () => 'demo',
+    },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'pending-order-key',
+      buildOrderHistoryStorageKey: () => 'history-order-key',
+      upsertOrderRecord: (current) => current,
+    },
+    wxMock: {
+      getStorageSync() {
+        return {
+          activityId: 12,
+          orderNo: 'ORDER-RECOVER-1',
+        };
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+  page.initPage = () => {
+    calls.initPage += 1;
+  };
+
+  page.onLoad({ id: '12' });
+
+  assert.equal(page.data.recoverPendingPayment, true);
+  assert.equal(page.data.paymentOrderNo, 'ORDER-RECOVER-1');
+  assert.equal(calls.initPage, 1);
+});
+
+test('报名页不会恢复其他活动的待支付订单', () => {
+  const pageConfig = loadRegisterPage({
+    auth: {
+      isLoggedIn: () => true,
+      isSuperAdmin: () => false,
+      getUserId: () => 1001,
+    },
+    tenant: {
+      applyPageOptions() {},
+      getTenantCode: () => 'demo',
+    },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'pending-order-key',
+      buildOrderHistoryStorageKey: () => 'history-order-key',
+      upsertOrderRecord: (current) => current,
+    },
+    wxMock: {
+      getStorageSync() {
+        return {
+          activityId: 33,
+          orderNo: 'ORDER-RECOVER-2',
+        };
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+  page.initPage = () => {};
+
+  page.onLoad({ id: '12' });
+
+  assert.equal(page.data.recoverPendingPayment, false);
+  assert.equal(page.data.paymentOrderNo, '');
+});
