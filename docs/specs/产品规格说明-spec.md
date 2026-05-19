@@ -100,6 +100,7 @@
 | 用户头像 | 普通用户可选择默认头像或上传自定义 | ✅ 已实现 | 4 个默认头像 + 自定义上传 |
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
 | 我的页信息架构 | 一级菜单包含「设置」「协议和说明」 | ✅ 已实现 | 设置承载账号操作，协议页承载文档入口 |
+| 报名页极简重排版 | 小程序活动报名页采用克制的高级字体层级与文字入口式提交 | ✅ 已实现 | 保留原版式结构，统一为 PingFang SC / SF Pro 字体系统与极细分隔线 |
 
 ---
 
@@ -118,6 +119,7 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-05-19 | 小程序活动报名页重做字体系统与信息节奏，底部提交改为极简文字入口样式 | `miniprogram/pages/register/register.wxml`, `miniprogram/pages/register/register.wxss` |
 | 2026-05-18 | 新增微信审核合规文档：《微信小程序隐私政策》《微信小程序用户服务协议》 | `docs/compliance/微信小程序隐私政策.md`, `docs/compliance/微信小程序用户服务协议.md` |
 | 2026-05-17 | 下线小程序身份证采集、证件展示与实名核验链路；绑定资料改为无证件字段 | `miniprogram/pages/bind-user-info/*`, `miniprogram/utils/api.js`, `backend/app/api/v1/endpoints/users.py` |
 | 2026-05-17 | 小程序“我的”页重构：新增设置/协议和说明，个人信息更正改为完整表单，账号注销迁移到设置页，移除前端删除个人信息入口 | `miniprogram/pages/mine/*`, `miniprogram/pages/settings/*`, `miniprogram/pages/profile-edit/*`, `miniprogram/pages/agreement-notes/*` |

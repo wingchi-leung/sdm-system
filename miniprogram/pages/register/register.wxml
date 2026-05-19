@@ -163,7 +163,6 @@
       <view class="fee-input-wrapper">
         <text class="fee-currency">¥</text>
         <view class="fee-control {{activeField === 'fee' ? 'active' : ''}}">
-          <text class="fee-value">{{actualFeeYuan || suggestedFeeYuan}}</text>
           <input
             class="input fee-input"
             type="digit"
@@ -187,9 +186,12 @@
   </view>
 
   <view class="bottom-bar">
-    
-    <button class="btn-submit {{isFull ? 'waitlist' : ''}}" disabled="{{submitting}}" bindtap="submit">
-      <text class="btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : (isFull ? '进入候补' : '确认报名并支付'))}}</text>
-    </button>
+    <view class="btn-entry">
+      <button class="btn-submit {{isFull ? 'waitlist' : ''}}" disabled="{{submitting}}" bindtap="submit">
+        <text class="btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : (isFull ? '进入候补' : '确认报名并支付'))}}</text>
+        <text class="btn-arrow">→</text>
+      </button>
+      <view class="btn-line"></view>
+    </view>
   </view>
 </view>

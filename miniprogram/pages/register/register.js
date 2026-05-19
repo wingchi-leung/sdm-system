@@ -246,9 +246,10 @@ Page({
     // 失焦时格式化金额
     const feeYuan = parseFloat(this.data.actualFeeYuan) || 0;
     const feeFen = Math.round(feeYuan * 100);
+    const resolvedFen = Math.max(feeFen, this.data.suggestedFee || 0);
     this.setData({
-      actualFeeYuan: feeYuan.toFixed(2),
-      actualFee: feeFen,
+      actualFeeYuan: (resolvedFen / 100).toFixed(2),
+      actualFee: resolvedFen,
       activeField: '',
     });
   },
