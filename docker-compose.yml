@@ -35,7 +35,10 @@ services:
 
   # 后端 FastAPI
   backend:
-    image: ${BACKEND_IMAGE}
+    image: ${BACKEND_IMAGE:-sdm-backend:local}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: sdm-backend
     restart: unless-stopped
     environment:
@@ -64,7 +67,7 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS}
       - STORAGE_TYPE=${STORAGE_TYPE:-local}
       - LOCAL_UPLOAD_DIR=${LOCAL_UPLOAD_DIR:-uploads}
-      - STORAGE_BASE_URL=${STATIC_BASE_URL}/uploads
+      - STORAGE_BASE_URL=${API_BASE_URL}/uploads
     ports:
       - "8000:8000"
     volumes:
@@ -76,12 +79,15 @@ services:
 
   # 前端 React (craco)
   frontend:
-    image: ${FRONTEND_IMAGE}
+    image: ${FRONTEND_IMAGE:-sdm-frontend:local}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: sdm-frontend
     restart: unless-stopped
     environment:
       - REACT_APP_API_URL=${API_BASE_URL}/api/v1
-      - REACT_APP_STATIC_URL=${STATIC_BASE_URL}
+      - REACT_APP_STATIC_URL=${API_BASE_URL}
     ports:
       - "3000:3000"
     depends_on:

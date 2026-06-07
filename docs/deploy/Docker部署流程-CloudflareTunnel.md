@@ -106,6 +106,8 @@ JWT_SECRET=请使用强随机字符串（至少32位）
  
 # API 访问地址
 API_BASE_URL=https://api.你的域名.com
+# 静态资源地址：可选，默认跟 API_BASE_URL 一致
+STATIC_BASE_URL=https://api.你的域名.com
 CORS_ORIGINS=https://web.你的域名.com,https://api.你的域名.com
 
 # 微信配置（可选）
@@ -145,6 +147,12 @@ docker compose ps
 # 查看日志
 docker compose logs -f
 ```
+
+说明：
+
+- `BACKEND_IMAGE` / `FRONTEND_IMAGE` 可以不填，`docker compose up -d` 会直接使用仓库内的 `backend/Dockerfile` 和 `frontend/Dockerfile` 本地构建镜像。
+- `STATIC_BASE_URL` 不是必填项，compose 里默认直接使用 `API_BASE_URL` 作为静态资源前缀。
+- 如果你希望部署到私有仓库镜像，再在 `.env` 中填写这两个变量即可覆盖默认本地构建。
 
 #### 2.3 初始化数据库
 
