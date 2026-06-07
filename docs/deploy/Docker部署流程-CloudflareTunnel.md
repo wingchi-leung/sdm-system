@@ -21,7 +21,7 @@ Cloudflare Tunnel 客户端 (你的笔记本，Docker 容器内运行)
     ↓
 Docker Network (sdm-network)
 ├── cloudflared (隧道客户端)
-├── mysql (MySQL 8.0, :3306)
+├── mysql (MySQL 8.0, host :3307 -> container :3306)
 ├── backend (FastAPI, :8000)
 └── frontend (Next.js, :3000)
 ```
@@ -152,6 +152,7 @@ docker compose logs -f
 
 - `BACKEND_IMAGE` / `FRONTEND_IMAGE` 可以不填，`docker compose up -d` 会直接使用仓库内的 `backend/Dockerfile` 和 `frontend/Dockerfile` 本地构建镜像。
 - `STATIC_BASE_URL` 不是必填项，compose 里默认直接使用 `API_BASE_URL` 作为静态资源前缀。
+- 如果宿主机上已经有 MySQL 占用 `3306`，保持 `MYSQL_HOST_PORT=3307` 即可，容器内仍然使用 `3306`。
 - 如果你希望部署到私有仓库镜像，再在 `.env` 中填写这两个变量即可覆盖默认本地构建。
 
 #### 2.3 初始化数据库
@@ -172,7 +173,7 @@ docker exec -i sdm-mysql mysql -u root -p${MYSQL_ROOT_PASSWORD} < backend/table.
 |------|----------|----------|
 | 后端 API | http://localhost:8000/docs | https://api.你的域名.com/docs |
 | 前端 Web | http://localhost:3000 | https://web.你的域名.com |
-| MySQL | localhost:3306 | - |
+| MySQL | localhost:3307 | - |
 
 ---
 
@@ -211,7 +212,7 @@ production: {
 - `docker compose up -d --build` 会构建并启动 `mysql`、`backend`、`frontend`、`cloudflared`。
 - MySQL 首次创建数据卷时会自动执行 `backend/table.sql`，脚本挂载路径为 `/docker-entrypoint-initdb.d/01-table.sql`。
 - 如果 `sdm-system_mysql-data` 数据卷已经存在，MySQL 不会重复执行初始化 SQL；需要重置空库时才使用 `docker compose down -v`，这会删除当前容器数据库数据。
-- 前端容器使用 `REACT_APP_API_URL=${API_BASE_URL}/api/v1` 与 `REACT_APP_STATIC_URL=${STATIC_BASE_URL}`，需要和 `.env` 保持一致。
+- 前端容器使用 `REACT_APP_API_URL=${API_BASE_URL}/api/v1` 与 `REACT_APP_STATIC_URL=${API_BASE_URL}`，需要和 `.env` 保持一致。
 - Cloudflare Tunnel 在容器网络内转发到 `backend:8000` 与 `frontend:3000`，避免依赖宿主机端口解析。
 - 同一个 Cloudflare Tunnel 凭据如果在旧电脑和新电脑同时运行，Cloudflare 会在多个 connector 间分流；迁移切换时需要停掉旧电脑的 `cloudflared`，否则公网请求可能仍命中旧电脑。
 
