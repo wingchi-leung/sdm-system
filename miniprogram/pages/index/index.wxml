@@ -1,25 +1,24 @@
 <view class="page">
   <view class="hero">
     <view class="hero-top">
-      <view class="hero-copy">
-        <text class="hero-title">{{todayLabel}}</text>
-        <text class="hero-subtitle">
-          <text class="hero-subtitle-cn">{{todayDateCn}}</text>
-          <text class="hero-subtitle-gap">{{weekdayLabelCn}}</text>
-        </text>
-      </view>
-      <view class="hero-side">
-        <view class="header-avatar" wx:if="{{isUser}}" bindtap="goMine">
-          <image wx:if="{{headerAvatarUrl}}" class="header-avatar-image" src="{{headerAvatarUrl}}" mode="aspectFill" />
-          <text wx:else class="header-avatar-text">{{headerAvatarText}}</text>
-        </view>
-        <view class="header-action" wx:if="{{isAdmin && canCreateActivity}}">
-          <button class="btn-publish" bindtap="goCreateActivity">
-            <text class="publish-icon">+</text>
-          </button>
+      <text class="hero-eyebrow">{{todayLabel}}</text>
+      <view class="hero-action" bindtap="goCommunityNotifications">
+        <text class="hero-action-mark">•</text>
+        <view wx:if="{{communityUnreadCount > 0}}" class="hero-action-badge">
+          <text class="hero-action-badge-text">{{communityUnreadCount > 99 ? '99+' : communityUnreadCount}}</text>
         </view>
       </view>
     </view>
+
+    <view class="hero-copy">
+      <text class="hero-title">探索未知，</text>
+      <text class="hero-title">超越所见。</text>
+      <text class="hero-subtitle">Explore the Unexplored.</text>
+    </view>
+
+    <view class="hero-rule"></view>
+
+    <text class="hero-date">{{todayDateShort}} {{weekdayLabelEn}}</text>
   </view>
 
   <view wx:if="{{loading}}" class="state-wrap">
@@ -34,67 +33,57 @@
     <button class="btn-retry" bindtap="onRefresh">重试</button>
   </view>
 
-  <!-- 空状态 -->
-  <view wx:elif="{{activities.length === 0}}" class="state-wrap empty">
+  <view wx:elif="{{visibleActivities.length === 0}}" class="state-wrap empty">
     <image class="empty-image" src="/assets/icons/noactivity.png" mode="aspectFit" />
     <text class="state-title">暂无活动</text>
-    <text class="state-text">精彩活动即将上线，敬请期待</text>
+    <text class="state-text">稍后刷新，看看有没有新发布的活动。</text>
     <button class="btn-text" bindtap="onRefresh">刷新</button>
   </view>
 
   <view wx:else class="list-shell">
     <view class="section-header">
-      <text class="section-title">{{visibleActivities.length}} 场活动</text>
+      <text class="section-title">即将开始</text>
     </view>
 
-    <view wx:if="{{visibleActivities.length === 0}}" class="day-empty">
-      <text class="day-empty-title">暂时没有活动</text>
-      <text class="day-empty-text">稍后刷新，看看有没有新发布的活动。</text>
-    </view>
-
-    <block wx:else>
+    <view class="activity-list">
       <view
-        class="activity-item"
+        class="activity-card"
         wx:for="{{visibleActivities}}"
         wx:key="id"
         data-activity="{{item}}"
         bindtap="goDetail"
       >
-        <view class="poster-wrap">
+        <view class="activity-cover">
           <image
             wx:if="{{item.poster_url}}"
-            class="poster-img"
+            class="activity-cover-image"
             src="{{item.poster_url}}"
             mode="aspectFill"
             lazy-load
           />
-          <view wx:else class="no-poster">
-            <text class="no-poster-mark">SDM</text>
+          <view wx:else class="activity-cover-placeholder">
+            <text class="activity-cover-placeholder-text">SDM</text>
           </view>
         </view>
 
-        <view class="item-content">
-          <text class="item-name">
-            <text class="item-name-cn">{{item.activity_name}}</text>
-            <text wx:if="{{item.activity_name_en}}" class="item-name-sep"> · </text>
-            <text wx:if="{{item.activity_name_en}}" class="item-name-en">{{item.activity_name_en}}</text>
-          </text>
-          <view class="item-info">
-            <view class="info-row">
-              <image class="meta-icon meta-icon-image" src="/assets/icons/time.png" mode="aspectFit" />
-              <text class="info-text">{{item.time_range_display}}</text>
-              <text class="info-text">{{item.date_label}} · {{item.weekday_label}}</text>
-            </view>
-            <view class="info-row">
-              <image class="meta-icon meta-icon-image" src="/assets/icons/location.png" mode="aspectFit" />
-              <text class="info-text">{{item.location_display}}</text>
-              <text wx:if="{{item.location_display_en}}" class="info-text">{{item.location_display_en}}</text>
-            </view>
+        <view class="activity-content">
+          <view class="activity-head">
+            <text class="activity-title-text">{{item.activity_name}}</text>
+            <text class="activity-arrow">→</text>
           </view>
-          <view class="item-divider"></view>
+
+          <text wx:if="{{item.summary_text}}" class="activity-summary">{{item.summary_text}}</text>
+          <text wx:else class="activity-summary muted">探索更多活动细节</text>
+
+          <view class="activity-meta">
+            <text wx:if="{{item.date_label}}" class="activity-meta-text">{{item.date_label}}</text>
+            <text wx:if="{{item.weekday_label}}" class="activity-meta-text">{{item.weekday_label}}</text>
+            <text wx:if="{{item.time_range_display}}" class="activity-meta-text">{{item.time_range_display}}</text>
+            <text class="activity-meta-text">{{item.location_display}}</text>
+          </view>
         </view>
       </view>
-    </block>
+    </view>
   </view>
 
   <view class="footer-space"></view>

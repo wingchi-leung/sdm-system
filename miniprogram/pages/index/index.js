@@ -28,9 +28,11 @@ Page({
     canCreateActivity: false,
     headerAvatarUrl: '',
     headerAvatarText: '用',
-    todayLabel: '今天',
+    todayLabel: '探索',
     weekdayLabelCn: '',
-    todayDateCn: '',
+    weekdayLabelEn: '',
+    todayDateShort: '',
+    communityUnreadCount: 0,
   },
 
   _redirectingToLogin: false,
@@ -42,9 +44,10 @@ Page({
       activities: [],
       visibleActivities: [],
       headerAvatarUrl: '',
-      todayLabel: '今天',
+      todayLabel: '探索',
       weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
-      todayDateCn: this.getTodayDateCn(new Date()),
+      weekdayLabelEn: this.getWeekdayLabelEn(new Date()),
+      todayDateShort: this.getTodayDateShort(new Date()),
       ...overrides,
     });
   },
@@ -115,9 +118,19 @@ Page({
     this.syncAdminCapabilities().finally(() => {
       this.resolveAdminState();
       this.load();
+      this.loadCommunityUnreadCount();
     });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
+    }
+  },
+
+  async loadCommunityUnreadCount() {
+    try {
+      const res = await api.getCommunityNotificationUnreadCount();
+      this.setData({ communityUnreadCount: Number(res.unread_count || 0) });
+    } catch (_) {
+      this.setData({ communityUnreadCount: 0 });
     }
   },
 
@@ -128,8 +141,9 @@ Page({
   load() {
     this.resetPageState();
     this.resolveAdminState();
-    // 首页活动列表始终按用户视角展示，管理员也能看到自己绑定类型的活动
-    const tasks = [api.getEnrollableActivities({ asUserView: true })];
+    // 超级管理员按管理视角看全量活动；其他账号按用户视角展示。
+    const useAdminView = auth.isSuperAdmin();
+    const tasks = [api.getEnrollableActivities({ asUserView: !useAdminView })];
     if (auth.isUser()) {
       tasks.push(api.getMyParticipantActivities());
       tasks.push(api.getUserProfile());
@@ -144,6 +158,8 @@ Page({
           const dateDisplay = this.formatDateForDisplay(a.start_time);
           const timeRangeDisplay = this.formatTimeRange(a.start_time, a.end_time);
           const registration = registrationMap[a.id];
+          const hasPendingPayment = !!registration && Number(registration.payment_status) === 1;
+          const hasRegistered = !!registration && !hasPendingPayment;
           return {
             ...a,
             start_time_display: a.start_time ? this.formatTime(a.start_time) : '',
@@ -156,9 +172,11 @@ Page({
             weekday_label: dateDisplay.weekdayLabel,
             date_label: dateDisplay.dateLabel,
             is_today: dateDisplay.isToday,
-            has_registered: !!registration,
+            has_registered: hasRegistered,
             registration_status_text: registration
-              ? (registration.enroll_status === 2 ? '候补中' : '已报名')
+              ? (hasPendingPayment
+                ? '待支付'
+                : (registration.enroll_status === 2 ? '候补中' : '已报名'))
               : '',
             location_display: this.formatLocation(a.location),
             location_display_en: this.formatLocationEn(a.location),
@@ -182,7 +200,8 @@ Page({
           loading: false,
           headerAvatarUrl,
           weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
-          todayDateCn: this.getTodayDateCn(new Date()),
+          weekdayLabelEn: this.getWeekdayLabelEn(new Date()),
+          todayDateShort: this.getTodayDateShort(new Date()),
         });
       })
       .catch((err) => {
@@ -194,7 +213,8 @@ Page({
           visibleActivities: [],
           headerAvatarUrl: '',
           weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
-          todayDateCn: this.getTodayDateCn(new Date()),
+          weekdayLabelEn: this.getWeekdayLabelEn(new Date()),
+          todayDateShort: this.getTodayDateShort(new Date()),
         });
       });
   },
@@ -220,6 +240,10 @@ Page({
 
   goMine() {
     wx.switchTab({ url: '/pages/mine/mine' });
+  },
+
+  goCommunityNotifications() {
+    wx.navigateTo({ url: '/pages/community-notifications/community-notifications' });
   },
 
   statusText(status) {
@@ -364,9 +388,18 @@ Page({
     return `${date.getMonth() + 1}月${date.getDate()}日`;
   },
 
+  getTodayDateShort(date) {
+    return `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
+  },
+
+  getWeekdayLabelEn(date) {
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return weekdays[date.getDay()] || '';
+  },
+
   onShareAppMessage() {
     return {
-      title: '活动列表',
+      title: '探索',
       path: tenant.appendTenantToUrl('/pages/index/index'),
     };
   },

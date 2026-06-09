@@ -25,7 +25,7 @@
 | 规格项 | 描述 | 状态 | 说明 |
 |--------|------|------|------|
 | 活动发布 | 管理员可创建并发布活动 | ✅ 已实现 | 后端 `POST /activities`，各端均有入口 |
-| 活动报名 | 已登录用户可查看活动并提交报名 | ✅ 已实现 | 后端 `POST /participants` |
+| 活动报名 | 已登录用户可查看活动并提交报名 | ✅ 已实现 | 后端 `POST /participants`；付费活动的“待支付”不算已报名，需支付成功后才进入正式报名态 |
 | 活动签到 | 现场对已报名人员进行签到记录 | ✅ 已实现 | 后端 `POST /checkins` |
 | 报名时支付 | 付费活动未满员时必须走微信支付 | ✅ 已实现 | 小程序微信支付主链路已完成 |
 | 活动编辑/删除 | 管理员可编辑活动信息、删除活动 | ✅ 已实现 | `PUT/DELETE /activities/{id}` |
@@ -97,6 +97,7 @@
 | 规格项 | 描述 | 状态 | 说明 |
 |--------|------|------|------|
 | 现代 UI | 参考 Teams、即刻、微信风格 | ⚠️ 部分实现 | 小程序首版视觉已完成 |
+| 首页活动列表改版 | 小程序首页活动列表采用探索页极简留白风格，活动封面统一为正方形卡片，列表信息改为左图右文 | ✅ 已实现 | `miniprogram/pages/index/index.wxml`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/index/index.js` |
 | 用户头像 | 普通用户可选择默认头像或上传自定义 | ✅ 已实现 | 4 个默认头像 + 自定义上传 |
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
 | 我的页信息架构 | 一级菜单包含「设置」「协议和说明」 | ✅ 已实现 | 设置承载账号操作，协议页承载文档入口 |
@@ -119,6 +120,9 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-05-27 | 新增小程序订阅消息通知能力底座：支持订阅授权上报、通知任务入队去重、失败重试（最多5次）、活动开始前30分钟提醒（仅审核通过且已支付/免支付人群）；新增退款结果通知入队接口 | `docs/specs/小程序订阅消息通知-spec.md`, `backend/app/api/v1/endpoints/notifications.py`, `backend/app/tasks/scheduler.py`, `backend/app/services/wechat_subscribe.py` |
+| 2026-06-09 | 小程序首页活动列表改版为探索页风格：增加大标题留白区、顶部极简入口、左图右文列表与正方形活动封面 | `miniprogram/pages/index/index.wxml`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/index/index.js` |
+| 2026-06-07 | 统一付费活动报名语义：待支付记录不再视为已报名，小程序活动详情/我的活动/社区可见性同步区分“待支付”与“已报名” | `backend/app/crud/crud_participant.py`, `backend/tests/api/test_community.py`, `backend/tests/unit/test_crud_participant.py`, `miniprogram/pages/activity-detail/*`, `miniprogram/pages/index/*`, `miniprogram/pages/my-activities/*`, `miniprogram/utils/mine-data.js` |
 | 2026-05-19 | 小程序活动报名页重做字体系统与信息节奏，底部提交改为极简文字入口样式 | `miniprogram/pages/register/register.wxml`, `miniprogram/pages/register/register.wxss` |
 | 2026-05-18 | 新增微信审核合规文档：《微信小程序隐私政策》《微信小程序用户服务协议》 | `docs/compliance/微信小程序隐私政策.md`, `docs/compliance/微信小程序用户服务协议.md` |
 | 2026-05-17 | 下线小程序身份证采集、证件展示与实名核验链路；绑定资料改为无证件字段 | `miniprogram/pages/bind-user-info/*`, `miniprogram/utils/api.js`, `backend/app/api/v1/endpoints/users.py` |
