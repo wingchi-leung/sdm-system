@@ -1,194 +1,196 @@
-<!-- 加载状态 -->
-<view wx:if="{{loading}}" class="page loading-wrap">
-  <view class="loading"></view>
-  <text class="loading-text">加载中…</text>
-</view>
+<view class="page" style="--status-bar-height: {{statusBarHeight}}px;">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
 
-<view class="page" wx:elif="{{activity}}">
+  <view wx:elif="{{activity}}" class="shell">
+    <view class="top-bar">
+      <view class="nav-btn" bindtap="goBack">
+        <text class="nav-icon">‹</text>
+      </view>
+      <view class="nav-spacer"></view>
+      <view class="nav-btn nav-btn-more" bindtap="onMoreTap">
+        <text class="nav-icon">···</text>
+      </view>
+    </view>
 
-  <view class="hero-card">
-    <view class="hero-copy">
-      <text class="hero-eyebrow-cn">活动报名</text>
+    <view class="hero">
+      <text class="hero-title">加入本次探索</text>
+      <view class="hero-underline"></view>
+      <text class="hero-subtitle">报名问卷</text>
       <text class="hero-activity">{{activity.activity_name}}</text>
-      <text class="hero-code">参 001</text>
-    </view>
-    <view class="hero-poster">
-      <image wx:if="{{activity.poster_url}}" class="hero-poster-image" src="{{activity.poster_url}}" mode="aspectFill" />
-      <view wx:else class="hero-poster-fallback">
-        <text class="hero-poster-fallback-text">SDM</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="profile-summary" bindtap="toggleBasicInfo">
-    <view class="profile-summary-left">
-      <text class="profile-icon">◌</text>
-      <text class="profile-label">个人资料</text>
-    </view>
-    <view class="profile-summary-right">
-      <text class="profile-summary-title">基本信息</text>
-      <text class="section-arrow {{basicInfoExpanded ? 'expanded' : ''}}">›</text>
-    </view>
-  </view>
-
-  <view wx:if="{{basicInfoExpanded}}" class="profile-list">
-    <view class="field field-readonly">
-      <text class="field-label">姓名</text>
-      <view class="readonly-value">{{name || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">性别</text>
-      <view class="readonly-value">{{sex || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">年龄</text>
-      <view class="readonly-value">{{age || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">职业</text>
-      <view class="readonly-value">{{occupation || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">电话</text>
-      <view class="readonly-value">{{phone || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">邮箱</text>
-      <view class="readonly-value">{{email || '未设置'}}</view>
-    </view>
-    <view class="field field-readonly">
-      <text class="field-label">行业</text>
-      <view class="readonly-value">{{industry || '未设置'}}</view>
-    </view>
-  </view>
-
-  <view class="form-card">
-    <view class="section-title-row">
-      <text class="section-marker"></text>
-      <text class="section-kicker section-kicker-strong">报名问卷</text>
+      <text wx:if="{{recoverPendingPayment}}" class="hero-badge">当前有未完成支付</text>
     </view>
 
-    <view class="field">
-      <text class="field-label required">为什么要参与？</text>
-      <view class="control-wrap {{activeField === 'whyJoin' ? 'active' : ''}}">
-        <textarea
-          class="textarea"
-          placeholder=""
-          value="{{whyJoin}}"
-          bindinput="onWhyJoinInput"
-          bindfocus="onFieldFocus"
-          bindblur="onFieldBlur"
-          data-field="whyJoin"
-          maxlength="500"
-          auto-height
-        />
+    <view class="profile-toggle" bindtap="toggleBasicInfo">
+      <text class="profile-toggle-label">个人资料</text>
+      <view class="profile-toggle-meta">
+        <text class="profile-toggle-text">{{basicInfoExpanded ? '收起' : '展开'}}</text>
+        <text class="profile-toggle-arrow {{basicInfoExpanded ? 'expanded' : ''}}">›</text>
       </view>
     </view>
 
-    <view class="field">
-      <text class="field-label required">您是通过什么渠道了解此活动的？</text>
-      <view class="control-wrap {{activeField === 'channel' ? 'active' : ''}}">
-        <input
-          class="input"
-          placeholder=""
-          value="{{channel}}"
-          bindinput="onChannelInput"
-          bindfocus="onFieldFocus"
-          bindblur="onFieldBlur"
-          data-field="channel"
-          maxlength="255"
-        />
+    <view wx:if="{{basicInfoExpanded}}" class="profile-panel">
+      <view class="profile-grid">
+        <view class="profile-item">
+          <text class="profile-name">姓名</text>
+          <text class="profile-value">{{name || '未设置'}}</text>
+        </view>
+        <view class="profile-item">
+          <text class="profile-name">性别</text>
+          <text class="profile-value">{{sex || '未设置'}}</text>
+        </view>
+        <view class="profile-item">
+          <text class="profile-name">年龄</text>
+          <text class="profile-value">{{age || '未设置'}}</text>
+        </view>
+        <view class="profile-item">
+          <text class="profile-name">职业</text>
+          <text class="profile-value">{{occupation || '未设置'}}</text>
+        </view>
+        <view class="profile-item">
+          <text class="profile-name">电话</text>
+          <text class="profile-value">{{phone || '未设置'}}</text>
+        </view>
+        <view class="profile-item">
+          <text class="profile-name">邮箱</text>
+          <text class="profile-value">{{email || '未设置'}}</text>
+        </view>
+        <view class="profile-item">
+          <text class="profile-name">行业</text>
+          <text class="profile-value">{{industry || '未设置'}}</text>
+        </view>
       </view>
     </view>
 
-    <view class="field">
-      <text class="field-label required">您对本次活动有什么学习期望？</text>
-      <view class="control-wrap {{activeField === 'expectation' ? 'active' : ''}}">
-        <textarea
-          class="textarea"
-          placeholder=""
-          value="{{expectation}}"
-          bindinput="onExpectationInput"
-          bindfocus="onFieldFocus"
-          bindblur="onFieldBlur"
-          data-field="expectation"
-          maxlength="500"
-          auto-height
-        />
-      </view>
-    </view>
+    <view class="question-card">
+      <view class="question-section-title">填写报名内容</view>
 
-    <view class="field">
-      <text class="field-label">用一句话描述您对本活动的了解？</text>
-      <view class="control-wrap {{activeField === 'understanding' ? 'active' : ''}}">
-        <input
-          class="input"
-          placeholder=""
-          value="{{activityUnderstanding}}"
-          bindinput="onUnderstandingInput"
-          bindfocus="onFieldFocus"
-          bindblur="onFieldBlur"
-          data-field="understanding"
-          maxlength="255"
-        />
-      </view>
-    </view>
-
-    <view class="field">
-      <text class="field-label">您是否有任何问题想要了解？</text>
-      <view class="control-wrap {{activeField === 'questions' ? 'active' : ''}}">
-        <textarea
-          class="textarea"
-          placeholder=""
-          value="{{hasQuestions}}"
-          bindinput="onQuestionsInput"
-          bindfocus="onFieldFocus"
-          bindblur="onFieldBlur"
-          data-field="questions"
-          maxlength="500"
-          auto-height
-        />
-      </view>
-    </view>
-  </view>
-
-  <view class="section-block payment-block" wx:if="{{requirePayment}}">
-    
-
-    <view class="field fee-field">
-      <text class="field-label">支付金额</text>
-      <view class="fee-input-wrapper">
-        <text class="fee-currency">¥</text>
-        <view class="fee-control {{activeField === 'fee' ? 'active' : ''}}">
-          <input
-            class="input fee-input"
-            type="digit"
-            placeholder=""
-            value="{{actualFeeYuan}}"
-            bindinput="onFeeInput"
+      <view class="question-item">
+        <text class="question-index">01</text>
+        <text class="question-label required">为什么想参与？</text>
+        <view class="question-control {{activeField === 'whyJoin' ? 'active' : ''}}">
+          <textarea
+            class="question-input question-textarea"
+            placeholder="请输入您的回答"
+            placeholder-class="question-placeholder"
+            value="{{whyJoin}}"
+            bindinput="onWhyJoinInput"
             bindfocus="onFieldFocus"
-            bindblur="onFeeBlur"
-            data-field="fee"
+            bindblur="onFieldBlur"
+            data-field="whyJoin"
+            maxlength="500"
+            auto-height
           />
         </view>
       </view>
-      <view class="fee-info">
-        <text class="fee-hint">建议费用：¥{{suggestedFeeYuan}}，可支付更高金额</text>
+
+      <view class="question-item">
+        <text class="question-index">02</text>
+        <text class="question-label required">您是通过什么渠道了解此活动的？</text>
+        <view class="question-control {{activeField === 'channel' ? 'active' : ''}}">
+          <input
+            class="question-input"
+            placeholder="请输入您的回答"
+            placeholder-class="question-placeholder"
+            value="{{channel}}"
+            bindinput="onChannelInput"
+            bindfocus="onFieldFocus"
+            bindblur="onFieldBlur"
+            data-field="channel"
+            maxlength="255"
+          />
+        </view>
+      </view>
+
+      <view class="question-item">
+        <text class="question-index">03</text>
+        <text class="question-label required">您对本次活动有什么学习期望？</text>
+        <view class="question-control {{activeField === 'expectation' ? 'active' : ''}}">
+          <textarea
+            class="question-input question-textarea"
+            placeholder="请输入您的回答"
+            placeholder-class="question-placeholder"
+            value="{{expectation}}"
+            bindinput="onExpectationInput"
+            bindfocus="onFieldFocus"
+            bindblur="onFieldBlur"
+            data-field="expectation"
+            maxlength="500"
+            auto-height
+          />
+        </view>
+      </view>
+
+      <view class="question-item">
+        <text class="question-index">04</text>
+        <text class="question-label">用一句话描述您对本次活动的了解？</text>
+        <view class="question-control {{activeField === 'understanding' ? 'active' : ''}}">
+          <input
+            class="question-input"
+            placeholder="请输入您的回答"
+            placeholder-class="question-placeholder"
+            value="{{activityUnderstanding}}"
+            bindinput="onUnderstandingInput"
+            bindfocus="onFieldFocus"
+            bindblur="onFieldBlur"
+            data-field="understanding"
+            maxlength="255"
+          />
+        </view>
+      </view>
+
+      <view class="question-item">
+        <text class="question-index">05</text>
+        <text class="question-label required">您是否有任何问题想要了解？</text>
+        <view class="question-control {{activeField === 'questions' ? 'active' : ''}}">
+          <textarea
+            class="question-input question-textarea"
+            placeholder="请输入您的回答"
+            placeholder-class="question-placeholder"
+            value="{{hasQuestions}}"
+            bindinput="onQuestionsInput"
+            bindfocus="onFieldFocus"
+            bindblur="onFieldBlur"
+            data-field="questions"
+            maxlength="500"
+            auto-height
+          />
+        </view>
+      </view>
+
+      <view wx:if="{{requirePayment}}" class="payment-note">
+        <text class="payment-note-title">支付金额</text>
+        <view class="fee-row">
+          <text class="fee-currency">¥</text>
+          <view class="fee-control {{activeField === 'fee' ? 'active' : ''}}">
+            <input
+              class="fee-input"
+              type="digit"
+              placeholder="请输入金额"
+              placeholder-class="question-placeholder"
+              value="{{actualFeeYuan}}"
+              bindinput="onFeeInput"
+              bindfocus="onFieldFocus"
+              bindblur="onFeeBlur"
+              data-field="fee"
+            />
+          </view>
+        </view>
+        <text class="payment-hint">建议费用：¥{{suggestedFeeYuan}}，可支付更高金额</text>
+      </view>
+
+      <view wx:if="{{error}}" class="error-box">
+        <text class="error-text">{{error}}</text>
       </view>
     </view>
   </view>
 
-  <view class="error-box" wx:if="{{error}}">
-    <text class="error-text">{{error}}</text>
-  </view>
-
-  <view class="bottom-bar">
-    <view class="btn-entry">
-      <button class="btn-submit {{isFull ? 'waitlist' : ''}}" disabled="{{submitting}}" bindtap="submit">
-        <text class="btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : (isFull ? '进入候补' : '确认报名并支付'))}}</text>
-        <text class="btn-arrow">→</text>
-      </button>
-      <view class="btn-line"></view>
-    </view>
+  <view wx:if="{{activity}}" class="bottom-bar">
+    <button class="next-btn" disabled="{{submitting}}" bindtap="submit">
+      <text class="next-btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : '下一步')}}</text>
+      <text class="next-btn-arrow">→</text>
+    </button>
   </view>
 </view>

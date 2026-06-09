@@ -229,6 +229,35 @@ test('报名页加载活动时会解析海报展示地址', async () => {
   assert.equal(page.data.suggestedFeeYuan, '99.00');
 });
 
+test('报名页会同步展示用户资料到个人资料区', async () => {
+  const pageConfig = loadRegisterPage({
+    api: {
+      getUserProfile() {
+        return Promise.resolve({
+          name: '报名用户',
+          sex: 'F',
+          age: 28,
+          occupation: '产品经理',
+          phone: '13800000000',
+          email: 'demo@example.com',
+          industry: '教育',
+        });
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+
+  await page.loadUserProfile();
+
+  assert.equal(page.data.name, '报名用户');
+  assert.equal(page.data.sex, '女');
+  assert.equal(page.data.age, '28');
+  assert.equal(page.data.occupation, '产品经理');
+  assert.equal(page.data.phone, '13800000000');
+  assert.equal(page.data.email, 'demo@example.com');
+  assert.equal(page.data.industry, '教育');
+});
+
 test('报名页不再暴露证件类型字段', () => {
   const pageConfig = loadRegisterPage();
   const page = createPageInstance(pageConfig);

@@ -12,9 +12,16 @@ Page({
   data: {
     activityId: null,
     activity: null,
+    statusBarHeight: 0,
     // 用户信息（从用户资料获取，不可编辑）
     userInfo: null,
     name: '',
+    sex: '',
+    age: '',
+    occupation: '',
+    phone: '',
+    email: '',
+    industry: '',
     // 问卷字段（用户填写）
     whyJoin: '',
     channel: '',
@@ -47,6 +54,45 @@ Page({
     this.setData({ basicInfoExpanded: !this.data.basicInfoExpanded });
   },
 
+  goBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+    wx.reLaunch({ url: tenant.appendTenantToUrl('/pages/index/index') });
+  },
+
+  onMoreTap() {
+    const activityName = this.data.activity && this.data.activity.activity_name
+      ? this.data.activity.activity_name
+      : '活动报名';
+    const registerPath = tenant.appendTenantToUrl('/pages/register/register', {
+      id: this.data.activityId,
+    });
+
+    wx.showActionSheet({
+      itemList: ['复制活动名称', '复制报名链接'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          wx.setClipboardData({
+            data: activityName,
+            success: () => wx.showToast({ title: '已复制', icon: 'success' }),
+            fail: () => wx.showToast({ title: '复制失败', icon: 'none' }),
+          });
+          return;
+        }
+        if (res.tapIndex === 1) {
+          wx.setClipboardData({
+            data: registerPath,
+            success: () => wx.showToast({ title: '已复制', icon: 'success' }),
+            fail: () => wx.showToast({ title: '复制失败', icon: 'none' }),
+          });
+        }
+      },
+    });
+  },
+
   onLoad(options) {
     tenant.applyPageOptions(options);
     const activityId = options.id;
@@ -74,6 +120,16 @@ Page({
       return;
     }
 
+    let statusBarHeight = 0;
+    try {
+      const systemInfo = typeof wx.getSystemInfoSync === 'function'
+        ? wx.getSystemInfoSync()
+        : null;
+      statusBarHeight = systemInfo && systemInfo.statusBarHeight ? systemInfo.statusBarHeight : 0;
+    } catch (_) {
+      statusBarHeight = 0;
+    }
+
     // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
     try {
       const stored = wx.getStorageSync(buildPendingOrderStorageKey(
@@ -95,7 +151,7 @@ Page({
       // Storage 读取失败不影响主流程
     }
 
-    this.setData({ activityId, loading: true, error: null });
+    this.setData({ activityId, loading: true, error: null, statusBarHeight });
     this.initPage(activityId);
   },
 
@@ -104,6 +160,7 @@ Page({
       await Promise.all([
         this.loadActivity(activityId),
         this.ensureProfileBound(),
+        this.refreshPendingPaymentStatus(activityId),
       ]);
     } catch (err) {
       if (err && err.stopFlow) {
@@ -115,6 +172,37 @@ Page({
       setTimeout(() => wx.navigateBack(), 1500);
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  async refreshPendingPaymentStatus(activityId) {
+    if (!this.data.recoverPendingPayment || !this.data.paymentOrderNo) {
+      return;
+    }
+
+    try {
+      const orderDetail = await api.queryPaymentOrder(this.data.paymentOrderNo);
+      if (String(orderDetail?.activity_id || '') !== String(activityId)) {
+        this._persistPendingOrder('');
+        this.setData({
+          paymentOrderNo: '',
+          recoverPendingPayment: false,
+        });
+        return;
+      }
+
+      if (orderDetail.status === 0) {
+        this.setData({ recoverPendingPayment: true });
+        return;
+      }
+
+      this._persistPendingOrder('');
+      this.setData({
+        paymentOrderNo: '',
+        recoverPendingPayment: false,
+      });
+    } catch (_) {
+      // 查询失败时保留本地待支付状态，避免网络波动导致误清理
     }
   },
 
@@ -176,10 +264,19 @@ Page({
   // 加载用户资料
   async loadUserProfile() {
     const profile = await api.getUserProfile();
+    const sexText = profile?.sex === 'F' || profile?.sex === 'female'
+      ? '女'
+      : (profile?.sex === 'M' || profile?.sex === 'male' ? '男' : (profile?.sex || ''));
 
     this.setData({
       userInfo: profile,
       name: profile.name || '',
+      sex: sexText,
+      age: profile.age == null ? '' : String(profile.age),
+      occupation: profile.occupation || '',
+      phone: profile.phone || '',
+      email: profile.email || '',
+      industry: profile.industry || '',
     });
   },
 
