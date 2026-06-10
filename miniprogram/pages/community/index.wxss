@@ -10,6 +10,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
+  min-height: 80rpx;
+  padding: 12rpx 0 6rpx;
 }
 
 .topbar-title {
@@ -24,12 +26,13 @@
   display: flex;
   align-items: center;
   gap: 16rpx;
+  padding-top: 4rpx;
 }
 
 .icon-btn {
   position: relative;
-  width: 56rpx;
-  height: 56rpx;
+  width: 64rpx;
+  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -41,16 +44,16 @@
 }
 
 .icon-bell-image {
-  width: 36rpx;
-  height: 36rpx;
+  width: 40rpx;
+  height: 40rpx;
   display: block;
 }
 
 .icon-plus {
-  font-size: 40rpx;
+  font-size: 48rpx;
   line-height: 1;
-  font-weight: 300;
-  opacity: 0.92;
+  font-weight: 400;
+  opacity: 0.96;
 }
 
 .icon-badge {
