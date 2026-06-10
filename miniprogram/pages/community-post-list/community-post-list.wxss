@@ -94,11 +94,6 @@
   opacity: 0.86;
 }
 
-.post-cover {
-  width: 100%;
-  height: 280rpx;
-}
-
 .post-body {
   padding: 24rpx 24rpx 28rpx;
 }
@@ -131,6 +126,13 @@
   -webkit-box-orient: vertical;
 }
 
+.post-inline-image {
+  width: 100%;
+  height: 260rpx;
+  margin-top: 16rpx;
+  border-radius: 16rpx;
+}
+
 .post-comments,
 .post-link {
   display: block;
@@ -143,8 +145,97 @@
 }
 
 .post-link {
-  color: var(--green);
+  color: var(--link);
   font-size: 24rpx;
   line-height: 1.6;
 }
+
+/* ===== Phase 2 批次 3: 2 列瀑布流 ===== */
+.waterfall {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-sm);
+  padding: 0 var(--space-md);
+  align-items: flex-start; /* 两列独立高度,矮列向上对齐 */
+}
+
+.waterfall-col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.waterfall-col .post-card {
+  margin: 0; /* 瀑布流用 gap,去掉卡片自身 margin */
+  width: 100%;
+}
+
+.waterfall-col .post-cover {
+  width: 100%;
+  background: var(--background);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  position: relative;
+}
+
+.waterfall-col .post-cover-image {
+  width: 100%;
+  display: block;
+}
+
+.waterfall-col .post-cover-count {
+  position: absolute;
+  right: 12rpx;
+  bottom: 12rpx;
+  padding: 4rpx 12rpx;
+  background: rgba(17, 17, 17, 0.55);
+  color: #ffffff;
+  font-size: 20rpx;
+  border-radius: var(--radius-md);
+}
+
+.waterfall-col .post-body {
+  padding: 0 8rpx;
+}
+
+.waterfall-col .post-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 16rpx 0 8rpx;
+  line-height: 1.4;
+}
+
+.waterfall-col .post-summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+  word-break: break-all;
+}
+
+.waterfall-col .post-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8rpx 16rpx;
+}
+
+.waterfall-col .post-meta {
+  font-size: 22rpx;
+  color: var(--text-tertiary);
+}
+
+.waterfall-col .post-comments {
+  font-size: 22rpx;
+  color: var(--text-tertiary);
+}
+
 
