@@ -1,7 +1,7 @@
 # 小程序社区频道模块 — Phase 2 UI 大改实施 Spec
 
-> 本文档是「社区 UI 大改」项目的**唯一追踪 spec**,把之前的 7 份调研方案汇总成一份带实施看板的精简版。
-> 历史调研方案已 commit 留在 `docs/handover/社区UI改造-*.md`,需要细节时回看。
+> 本文档是「社区 UI 大改」项目的 追踪 spec 
+> 历史调研方案已 commit 并归档到 `docs/archive/社区UI改造-*.md`,需要细节时回看。
 > 本 spec 维护规则: 每次有 Phase 2 PR 合并,同步更新本文「实施看板」+「实现状态」两章。
 
 ---
@@ -10,11 +10,10 @@
 
 | # | 需求 | 决议 |
 |---|------|------|
-| 1 | 社区内容**瀑布流** + 不跳页"查看全部" + 评论直接展示在社区页 | ✅ 实现(单频道帖流页 2 列瀑布流;卡片跳详情,评论在详情页展开) |
+| 1 | 社区内容**瀑布流** + 评论直接展示在社区页 |  |
 | 2 | 发布页:**富文本编辑器** + 多选图片上传 | ✅ 实现(微信原生 `<editor>` + HTML 主存) |
 | 3 | 频道创建支持**上传头像** | ✅ 实现(独立页 + 后端 `avatar-upload` endpoint) |
 
-**设计稿**: 用户不出,视觉由 token 体系(`--link` / `--success` 等)撑着,留给后续 AI 改换肤。
 
 **核心原则**: **以源码为准** —— 摸底中发现的 spec 与代码不一致(频道帖走 `community_channel_post` 表,不再复用 `community_post`),按代码现状走,后续反向更新 spec。
 
@@ -142,13 +141,14 @@
 
 | 文件 | 状态 |
 |---|---|
-| `docs/handover/社区UI改造-00-现状摸底.md` | 已 commit(基线) |
-| `docs/handover/社区UI改造-01-架构蓝图.md` | 已 commit |
-| `docs/handover/社区UI改造-02-设计规范基线.md` | 已 commit |
-| `docs/handover/社区UI改造-03-前端重构方案.md` | 已 commit |
-| `docs/handover/社区UI改造-04-后端接口方案.md` | 已 commit |
-| `docs/handover/社区UI改造-总方案.md` | 已 commit |
-| `docs/handover/社区UI改造-需求基线.md` | 已 commit |
+| `docs/archive/社区UI改造-00-现状摸底.md` | 已 commit → 归档(基线) |
+| `docs/archive/社区UI改造-01-架构蓝图.md` | 已 commit → 归档 |
+| `docs/archive/社区UI改造-02-设计规范基线.md` | 已 commit → 归档 |
+| `docs/archive/社区UI改造-03-前端重构方案.md` | 已 commit → 归档 |
+| `docs/archive/社区UI改造-04-后端接口方案.md` | 已 commit → 归档 |
+| `docs/archive/社区UI改造-总方案.md` | 已 commit → 归档(§7 冲突仲裁) |
+| `docs/archive/社区UI改造-需求基线.md` | 已 commit → 归档 |
+| `docs/archive/README.md` | 归档索引 |
 
 ---
 
@@ -233,15 +233,16 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
 
 ## 十、相关链接
 
-- 调研阶段 7 份文档(已 commit):
-  - `docs/handover/社区UI改造-00-现状摸底.md`
-  - `docs/handover/社区UI改造-01-架构蓝图.md`
-  - `docs/handover/社区UI改造-02-设计规范基线.md`
-  - `docs/handover/社区UI改造-03-前端重构方案.md`
-  - `docs/handover/社区UI改造-04-后端接口方案.md`
-  - `docs/handover/社区UI改造-总方案.md`
-  - `docs/handover/社区UI改造-需求基线.md`
-- 权限前置(批次 1 必读):
+- 调研阶段 7 份文档(已 commit,已归档):
+  - `docs/archive/社区UI改造-00-现状摸底.md`
+  - `docs/archive/社区UI改造-01-架构蓝图.md`
+  - `docs/archive/社区UI改造-02-设计规范基线.md`
+  - `docs/archive/社区UI改造-03-前端重构方案.md`
+  - `docs/archive/社区UI改造-04-后端接口方案.md`
+  - `docs/archive/社区UI改造-总方案.md`
+  - `docs/archive/社区UI改造-需求基线.md`
+  - `docs/archive/README.md` (归档索引)
+- 权限前置(批次 1 必读,仍在 handover):
   - `docs/handover/权限系统架构文档.md`
   - `docs/handover/权限系统设计原则.md`
 - 原始 spec(本 spec 的源头,反向更新用):
