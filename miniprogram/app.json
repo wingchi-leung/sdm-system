@@ -8,6 +8,8 @@
     "pages/register/register",
     "pages/create-activity/create-activity",
     "pages/activity-list/activity-list",
+    "pages/community/index",
+    "pages/community-notifications/community-notifications",
     "pages/edit-activity/edit-activity",
     "pages/activity-participants/activity-participants",
     "pages/activity-checkins/activity-checkins",
@@ -16,6 +18,8 @@
     "pages/community-post-list/community-post-list",
     "pages/community-post-detail/community-post-detail",
     "pages/community-post-create/community-post-create",
+    "pages/community-moderation/community-moderation",
+    "pages/community-channel-create/community-channel-create",
     "pages/my-activities/my-activities",
     "pages/my-orders/my-orders",
     "pages/avatar-picker/avatar-picker",
@@ -45,6 +49,12 @@
         "text": ""
       },
       {
+        "pagePath": "pages/community/index",
+        "iconPath": "assets/icons/activity-default.png",
+        "selectedIconPath": "assets/icons/activity-active.png",
+        "text": ""
+      },
+      {
         "pagePath": "pages/mine/mine",
         "iconPath": "assets/icons/mine-default.png",
         "selectedIconPath": "assets/icons/mine-active.png",
@@ -53,5 +63,6 @@
     ]
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "创建频道",
+  "usingComponents": {
+    "page-hero": "/components/page-hero/page-hero",
+    "surface-card": "/components/surface-card/surface-card"
+  }
+}

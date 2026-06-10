@@ -44,14 +44,18 @@ page {
   --status-ended-bg: rgba(155, 155, 155, 0.06);
 
   /* 语义色 */
-  --success: #000000;
-  --success-bg: rgba(0, 0, 0, 0.08);
+  --success: #12B76A;
+  --success-bg: rgba(18, 183, 106, 0.10);
   --error: #B24137;
   --error-bg: rgba(178, 65, 55, 0.08);
   --warning: #8A7451;
   --warning-bg: rgba(138, 116, 81, 0.08);
   --info: #6B8CAF;
   --info-bg: rgba(107, 140, 175, 0.06);
+
+  /* 链接色 —— 用于链接文字、按钮、强调点
+     修正：旧 --green 值为 #000000，链接色 = 黑色 = 不可见，重命名为 --link */
+  --link: #2F6FE8;
 
   /* 边框与分割 */
   --border: #E5E7EB;
@@ -100,7 +104,6 @@ page {
   --font-display: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   --ink: #111111;
-  --green: #000000;
   --text-soft: #999999;
   --paper: #F7F7F5;
   --line: #E5E7EB;

@@ -1,0 +1,9 @@
+<!-- surface-card 组件模板 -->
+<!-- 白卡容器,圆角 + 轻阴影,内含默认 slot -->
+<view
+  class="surface-card {{paddingClass}} {{clickable ? 'surface-card--clickable' : ''}}"
+  bindtap="_onTap"
+  hover-class="{{clickable ? 'surface-card--active' : 'none'}}"
+>
+  <slot></slot>
+</view>

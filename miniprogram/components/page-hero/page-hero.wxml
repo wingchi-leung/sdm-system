@@ -1,0 +1,12 @@
+<!-- 页面 hero 区:左主区(eyebrow+title+description),右上 tools 插槽 -->
+<view class="page-hero page-hero--{{tone}}">
+  <view class="page-hero__main">
+    <view wx:if="{{eyebrow}}" class="page-hero__eyebrow">{{eyebrow}}</view>
+    <view wx:if="{{title}}" class="page-hero__title">{{title}}</view>
+    <view wx:if="{{description}}" class="page-hero__description">{{description}}</view>
+    <slot />
+  </view>
+  <view class="page-hero__tools">
+    <slot name="tools" />
+  </view>
+</view>

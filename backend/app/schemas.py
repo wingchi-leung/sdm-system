@@ -243,6 +243,10 @@ class ActivityParticipant(BaseModel):
     user_id = Column(Integer, nullable=True)
     _participant_name_ciphertext = Column("participant_name", String(1024))
     enroll_status = Column(Integer, default=1)      # 报名状态：1-已报名 2-候补
+    review_status = Column(Integer, default=1)      # 审核状态：0-待审核 1-通过 2-拒绝
+    review_reason = Column(String(255), nullable=True)
+    reviewed_by = Column(Integer, nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
     payment_status = Column(Integer, default=0)     # 0-无需支付 1-待支付 2-已支付
     payment_order_id = Column(Integer, nullable=True)
     paid_amount = Column(Integer, default=0)        # 实际支付金额（分）
@@ -297,8 +301,67 @@ class PaymentOrder(BaseModel):
     openid = Column(String(64), nullable=True)            # 付款用户 openid
     prepay_id = Column(String(128), nullable=True)        # 预支付ID
     paid_at = Column(DateTime, nullable=True)             # 支付成功时间
+    refund_status = Column(Integer, default=0, index=True)  # 退款状态：0-无退款 1-待退款 2-处理中 3-成功 4-失败 5-关闭
+    refund_amount = Column(Integer, default=0)             # 退款金额（分）
+    refund_apply_by = Column(Integer, nullable=True)       # 退款操作人
+    refund_apply_at = Column(DateTime, nullable=True)      # 退款申请时间
+    refund_success_at = Column(DateTime, nullable=True)    # 退款成功时间
+    refund_fail_reason = Column(String(255), nullable=True)
     expire_at = Column(DateTime, nullable=False)          # 过期时间
     callback_raw = Column(String(2000), nullable=True)    # 回调原始数据
+
+
+class PaymentRefund(BaseModel):
+    __tablename__ = "payment_refund"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "out_refund_no", name="uk_refund_out_refund_no"),
+    )
+    tenant_id = Column(Integer, nullable=False, index=True)
+    payment_order_id = Column(Integer, nullable=False, index=True)
+    participant_id = Column(Integer, nullable=True, index=True)
+    out_refund_no = Column(String(64), nullable=False, index=True)
+    wechat_refund_id = Column(String(64), nullable=True, index=True)
+    amount = Column(Integer, nullable=False)
+    status = Column(String(20), nullable=False, default="pending", index=True)
+    idempotency_key = Column(String(128), nullable=False)
+    operator_id = Column(Integer, nullable=True, index=True)
+    reason = Column(String(255), nullable=True)
+    request_raw = Column(Text, nullable=True)
+    callback_raw = Column(Text, nullable=True)
+    fail_reason = Column(String(255), nullable=True)
+
+
+class MessageTask(BaseModel):
+    __tablename__ = "message_task"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "scene", "biz_id", "user_id", name="uk_message_task_scene_biz_user"),
+    )
+    tenant_id = Column(Integer, nullable=False, index=True)
+    scene = Column(String(64), nullable=False, index=True)
+    biz_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    openid = Column(String(64), nullable=False)
+    template_id = Column(String(64), nullable=False)
+    payload_json = Column(Text, nullable=False)
+    status = Column(String(20), nullable=False, default="pending", index=True)
+    retry_count = Column(Integer, nullable=False, default=0)
+    max_retry = Column(Integer, nullable=False, default=5)
+    next_retry_at = Column(DateTime, nullable=True, index=True)
+    last_error = Column(String(255), nullable=True)
+    sent_at = Column(DateTime, nullable=True)
+
+
+class SubscribeConsent(BaseModel):
+    __tablename__ = "subscribe_consent"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "user_id", "template_id", name="uk_subscribe_consent_user_template"),
+    )
+    tenant_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    template_id = Column(String(64), nullable=False)
+    accept_status = Column(String(16), nullable=False)
+    accept_time = Column(DateTime, nullable=True)
+    source_page = Column(String(255), nullable=True)
 
 
 # ============================================================
@@ -307,11 +370,15 @@ class PaymentOrder(BaseModel):
 class CommunityPost(BaseModel):
     __tablename__ = "community_post"
     tenant_id = Column(Integer, nullable=False, index=True)
-    activity_id = Column(Integer, nullable=False, index=True)
+    activity_id = Column(Integer, nullable=True, index=True)
+    # channel_id:Phase 2 新增,与 activity_id 互斥(频道帖子归属);DDL 索引在 field.sql
+    channel_id = Column(Integer, nullable=True, index=True)
     author_user_id = Column(Integer, nullable=False, index=True)
     title = Column(String(120), nullable=False)
     content = Column(Text, nullable=False)
-    cover_url = Column(String(500), nullable=True)
+    # content_format:Phase 2 新增,text/html/blocks;DDL 升 MEDIUMTEXT 在 field.sql
+    content_format = Column(String(16), nullable=False, default="text")
+    images = Column(Text, nullable=True)
     status = Column(SmallInteger, default=1, nullable=False, index=True)
 
 
@@ -325,7 +392,80 @@ class CommunityComment(BaseModel):
     post_id = Column(Integer, nullable=False, index=True)
     user_id = Column(Integer, nullable=False, index=True)
     content = Column(Text, nullable=False)
+    images = Column(Text, nullable=True)
     status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+class CommunityChannel(BaseModel):
+    __tablename__ = "community_channel"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    name = Column(String(64), nullable=False)
+    description = Column(String(500), nullable=True)
+    avatar_url = Column(String(500), nullable=True)
+    admin_user_id = Column(Integer, nullable=False, index=True)
+    invite_code = Column(String(32), nullable=True, index=True)
+    invite_code_expire_at = Column(DateTime, nullable=True)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+class CommunityChannelMember(BaseModel):
+    __tablename__ = "community_channel_member"
+    __table_args__ = (
+        UniqueConstraint("channel_id", "user_id", name="uk_channel_member"),
+    )
+    channel_id = Column(Integer, nullable=False, index=True)
+    tenant_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    role = Column(String(20), nullable=False, default="member")
+    status = Column(String(20), nullable=False, default="active")
+    invited_by = Column(Integer, nullable=True)
+    joined_at = Column(DateTime, nullable=True)
+
+
+class CommunityNotification(BaseModel):
+    __tablename__ = "community_notification"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    recipient_user_id = Column(Integer, nullable=False, index=True)
+    type = Column(String(32), nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    content = Column(String(500), nullable=True)
+    data = Column(Text, nullable=True)
+    is_read = Column(SmallInteger, default=0, nullable=False, index=True)
+
+
+class CommunityChannelPost(BaseModel):
+    __tablename__ = "community_channel_post"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    channel_id = Column(Integer, nullable=False, index=True)
+    author_user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    content = Column(Text, nullable=False)
+    images = Column(Text, nullable=True)
+    is_official = Column(SmallInteger, default=0, nullable=False)
+    is_pinned = Column(SmallInteger, default=0, nullable=False)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+class CommunityChannelComment(BaseModel):
+    __tablename__ = "community_channel_comment"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    channel_id = Column(Integer, nullable=False, index=True)
+    post_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    images = Column(Text, nullable=True)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+class CommunityMediaModerationTask(BaseModel):
+    __tablename__ = "community_media_moderation_task"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    item_type = Column(String(32), nullable=False, index=True)
+    item_id = Column(Integer, nullable=False, index=True)
+    media_url = Column(String(1024), nullable=False)
+    trace_id = Column(String(128), nullable=True, index=True)
+    status = Column(String(32), nullable=False, default="pending")
+    reason = Column(String(255), nullable=True)
 
 
 # ============================================================

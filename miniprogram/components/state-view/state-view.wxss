@@ -1,0 +1,72 @@
+/**
+ * state-view 组件样式
+ * 视觉: 居中,使用 design tokens
+ */
+
+.state-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-md);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.state-view-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-sm);
+}
+
+.state-view-emoji {
+  font-size: 80rpx;
+  line-height: 1;
+}
+
+/* loading 状态转圈 */
+.state-view-spinner {
+  width: 48rpx;
+  height: 48rpx;
+  border: 2rpx solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: state-view-spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes state-view-spin {
+  to { transform: rotate(360deg); }
+}
+
+.state-view-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.state-view-description {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.state-view-action {
+  margin-top: var(--space-md);
+  border: 1rpx solid var(--form-border);
+  padding: 16rpx 32rpx;
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-size: 26rpx;
+  line-height: 1.4;
+  background: transparent;
+  text-align: center;
+}
+
+.state-view-action:active {
+  background: var(--background-subtle);
+}

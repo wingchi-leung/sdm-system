@@ -1,0 +1,11 @@
+<view class="floating-bell" style="{{styleText}}" bindtap="onTap">
+  <image class="bell-icon" src="/assets/icons/bell.png" mode="aspectFit" />
+  <view
+    wx:if="{{_internalUnread > 0 || unreadCount > 0}}"
+    class="badge {{dotOnly ? 'badge-dot' : ''}}"
+  >
+    <text wx:if="{{!dotOnly}}" class="badge-text">
+      {{(_internalUnread || unreadCount) > 99 ? '99+' : (_internalUnread || unreadCount)}}
+    </text>
+  </view>
+</view>

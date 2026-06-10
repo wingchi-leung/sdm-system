@@ -1,0 +1,64 @@
+<!-- image-grid:根据图片数量自适应 1/2/3 列排布 -->
+<view class="image-grid image-grid--{{layout}}" wx:if="{{images.length > 0 || mode === 'edit'}}">
+  <block wx:if="{{layout === 'single'}}">
+    <!-- 单图:宽 100%,高度自适应 -->
+    <view class="image-grid__single">
+      <image
+        class="image-grid__item"
+        src="{{images[0]}}"
+        mode="widthFix"
+        bindtap="onTapImage"
+        data-index="{{0}}"
+        data-url="{{images[0]}}"
+      />
+      <view
+        wx:if="{{mode === 'edit'}}"
+        class="image-grid__remove"
+        catchtap="onTapRemove"
+        data-index="{{0}}"
+        data-url="{{images[0]}}"
+      >×</view>
+    </view>
+    <!-- edit 模式:追加 + 占位 -->
+    <view
+      wx:if="{{mode === 'edit' && images.length < max}}"
+      class="image-grid__add image-grid__add--single"
+      bindtap="onTapAdd"
+    >
+      <text class="image-grid__add-icon">+</text>
+    </view>
+  </block>
+
+  <block wx:else>
+    <!-- 2/3 列网格 -->
+    <view
+      wx:for="{{images}}"
+      wx:key="*this"
+      class="image-grid__cell"
+    >
+      <image
+        class="image-grid__item"
+        src="{{item}}"
+        mode="aspectFill"
+        bindtap="onTapImage"
+        data-index="{{index}}"
+        data-url="{{item}}"
+      />
+      <view
+        wx:if="{{mode === 'edit'}}"
+        class="image-grid__remove"
+        catchtap="onTapRemove"
+        data-index="{{index}}"
+        data-url="{{item}}"
+      >×</view>
+    </view>
+    <!-- edit 模式:末尾追加 + 占位 -->
+    <view
+      wx:if="{{mode === 'edit' && images.length < max}}"
+      class="image-grid__add image-grid__cell"
+      bindtap="onTapAdd"
+    >
+      <text class="image-grid__add-icon">+</text>
+    </view>
+  </block>
+</view>

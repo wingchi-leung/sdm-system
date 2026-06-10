@@ -1,0 +1,30 @@
+/**
+ * surface-card 组件样式
+ * 视觉: 白卡 + 圆角 + 轻阴影 + 可选点击反馈
+ */
+
+.surface-card {
+  background: var(--background-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2rpx 12rpx rgba(17, 17, 17, 0.04);
+  box-sizing: border-box;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 内边距档位 */
+.surface-card--padding-none { padding: 0; }
+.surface-card--padding-sm   { padding: var(--space-sm); }
+.surface-card--padding-md   { padding: var(--space-md); }
+.surface-card--padding-lg   { padding: var(--space-lg); }
+
+/* 可点击态 */
+.surface-card--clickable {
+  transition: transform 120ms ease, box-shadow 120ms ease;
+  cursor: pointer;
+}
+
+.surface-card--active,
+.surface-card--clickable:active {
+  transform: scale(0.98);
+}

@@ -106,6 +106,10 @@ CREATE TABLE IF NOT EXISTS `activity_participants` (
   `user_id` int DEFAULT NULL COMMENT '用户ID',
   `participant_name` varchar(255) NOT NULL COMMENT '参与人姓名',
   `enroll_status` int DEFAULT 1 COMMENT '报名状态：1-已报名 2-候补',
+  `review_status` int NOT NULL DEFAULT 1 COMMENT '审核状态：0-待审核 1-通过 2-拒绝',
+  `review_reason` varchar(255) DEFAULT NULL COMMENT '审核拒绝原因',
+  `reviewed_by` int DEFAULT NULL COMMENT '审核人ID',
+  `reviewed_at` datetime DEFAULT NULL COMMENT '审核时间',
   `payment_status` int DEFAULT 0 COMMENT '支付状态：0-无需支付 1-待支付 2-已支付',
   `payment_order_id` int DEFAULT NULL COMMENT '支付订单ID',
   `paid_amount` int DEFAULT 0 COMMENT '实际支付金额（分）',
@@ -163,6 +167,12 @@ CREATE TABLE IF NOT EXISTS `payment_order` (
   `openid` varchar(64) DEFAULT NULL COMMENT '付款用户 openid',
   `prepay_id` varchar(128) DEFAULT NULL COMMENT '预支付ID',
   `paid_at` datetime DEFAULT NULL COMMENT '支付成功时间',
+  `refund_status` int NOT NULL DEFAULT 0 COMMENT '退款状态：0-无退款 1-待退款 2-处理中 3-成功 4-失败 5-关闭',
+  `refund_amount` int NOT NULL DEFAULT 0 COMMENT '退款金额（分）',
+  `refund_apply_by` int DEFAULT NULL COMMENT '退款操作人ID',
+  `refund_apply_at` datetime DEFAULT NULL COMMENT '退款申请时间',
+  `refund_success_at` datetime DEFAULT NULL COMMENT '退款成功时间',
+  `refund_fail_reason` varchar(255) DEFAULT NULL COMMENT '退款失败原因',
   `expire_at` datetime NOT NULL COMMENT '过期时间',
   `callback_raw` varchar(2000) DEFAULT NULL COMMENT '回调原始数据',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -176,6 +186,76 @@ CREATE TABLE IF NOT EXISTS `payment_order` (
   KEY `idx_participant_id` (`participant_id`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付订单表';
+
+-- 
+-- 9. 退款流水表
+-- 
+CREATE TABLE IF NOT EXISTS `payment_refund` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `payment_order_id` int NOT NULL COMMENT '支付订单ID',
+  `participant_id` int DEFAULT NULL COMMENT '参与人ID',
+  `out_refund_no` varchar(64) NOT NULL COMMENT '商户退款单号',
+  `wechat_refund_id` varchar(64) DEFAULT NULL COMMENT '微信退款单号',
+  `amount` int NOT NULL COMMENT '退款金额（分）',
+  `status` varchar(20) NOT NULL DEFAULT 'pending' COMMENT '退款状态：pending/processing/success/failed/closed',
+  `idempotency_key` varchar(128) NOT NULL COMMENT '幂等键',
+  `operator_id` int DEFAULT NULL COMMENT '操作人ID',
+  `reason` varchar(255) DEFAULT NULL COMMENT '退款原因',
+  `request_raw` text DEFAULT NULL COMMENT '退款请求原文',
+  `callback_raw` text DEFAULT NULL COMMENT '退款回调原文',
+  `fail_reason` varchar(255) DEFAULT NULL COMMENT '失败原因',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_refund_out_refund_no` (`tenant_id`, `out_refund_no`),
+  KEY `idx_payment_refund_payment_order_id` (`payment_order_id`),
+  KEY `idx_payment_refund_status` (`status`),
+  KEY `idx_payment_refund_operator_id` (`operator_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='退款流水表';
+
+-- 
+-- 10. 通知任务表
+-- 
+CREATE TABLE IF NOT EXISTS `message_task` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `scene` varchar(64) NOT NULL COMMENT '通知场景',
+  `biz_id` int NOT NULL COMMENT '业务ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `openid` varchar(64) NOT NULL COMMENT '接收者 openid',
+  `template_id` varchar(64) NOT NULL COMMENT '订阅消息模板ID',
+  `payload_json` text NOT NULL COMMENT '消息体 JSON',
+  `status` varchar(20) NOT NULL DEFAULT 'pending' COMMENT '任务状态：pending/sending/success/failed/dead',
+  `retry_count` int NOT NULL DEFAULT 0 COMMENT '重试次数',
+  `max_retry` int NOT NULL DEFAULT 5 COMMENT '最大重试次数',
+  `next_retry_at` datetime DEFAULT NULL COMMENT '下次重试时间',
+  `last_error` varchar(255) DEFAULT NULL COMMENT '最后错误信息',
+  `sent_at` datetime DEFAULT NULL COMMENT '发送成功时间',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_message_task_scene_biz_user` (`tenant_id`, `scene`, `biz_id`, `user_id`),
+  KEY `idx_message_task_status` (`status`),
+  KEY `idx_message_task_next_retry_at` (`next_retry_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知任务表';
+
+-- 
+-- 11. 订阅消息授权记录表
+-- 
+CREATE TABLE IF NOT EXISTS `subscribe_consent` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `template_id` varchar(64) NOT NULL COMMENT '模板ID',
+  `accept_status` varchar(16) NOT NULL COMMENT 'accept/reject/ban',
+  `accept_time` datetime DEFAULT NULL COMMENT '授权时间',
+  `source_page` varchar(255) DEFAULT NULL COMMENT '来源页面',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_subscribe_consent_user_template` (`tenant_id`, `user_id`, `template_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订阅消息授权记录表';
 
 -- 10. RBAC 权限表
 
@@ -369,6 +449,124 @@ CREATE TABLE IF NOT EXISTS `community_comment` (
   KEY `idx_community_comment_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区评论表';
 
+CREATE TABLE IF NOT EXISTS `community_channel` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `name` varchar(64) NOT NULL COMMENT '频道名称',
+  `description` varchar(500) DEFAULT NULL COMMENT '频道描述',
+  `avatar_url` varchar(500) DEFAULT NULL COMMENT '频道头像',
+  `admin_user_id` int NOT NULL COMMENT '管理员用户ID',
+  `invite_code` varchar(32) DEFAULT NULL COMMENT '邀请码',
+  `invite_code_expire_at` datetime DEFAULT NULL COMMENT '邀请码过期时间',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态：1-正常 0-禁用',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_community_channel_tenant_id` (`tenant_id`),
+  KEY `idx_community_channel_admin_user_id` (`admin_user_id`),
+  KEY `idx_community_channel_invite_code` (`invite_code`),
+  KEY `idx_community_channel_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道表';
+
+CREATE TABLE IF NOT EXISTS `community_channel_member` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `channel_id` int NOT NULL COMMENT '频道ID',
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `user_id` int NOT NULL COMMENT '用户ID',
+  `role` varchar(20) NOT NULL DEFAULT 'member' COMMENT '成员角色：member/admin',
+  `status` varchar(20) NOT NULL DEFAULT 'active' COMMENT '状态：active/inactive',
+  `invited_by` int DEFAULT NULL COMMENT '邀请人ID',
+  `joined_at` datetime DEFAULT NULL COMMENT '加入时间',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_channel_member` (`channel_id`, `user_id`),
+  KEY `idx_community_channel_member_channel_id` (`channel_id`),
+  KEY `idx_community_channel_member_tenant_id` (`tenant_id`),
+  KEY `idx_community_channel_member_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道成员表';
+
+CREATE TABLE IF NOT EXISTS `community_media_moderation_task` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `item_type` varchar(32) NOT NULL COMMENT '内容类型',
+  `item_id` int NOT NULL COMMENT '内容ID',
+  `media_url` varchar(1024) NOT NULL COMMENT '媒体URL',
+  `trace_id` varchar(128) DEFAULT NULL COMMENT '追踪ID',
+  `status` varchar(32) NOT NULL DEFAULT 'pending' COMMENT '状态：pending/approved/rejected',
+  `reason` varchar(255) DEFAULT NULL COMMENT '处理原因',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_cmmt_tenant_id` (`tenant_id`),
+  KEY `idx_cmmt_item_type` (`item_type`),
+  KEY `idx_cmmt_item_id` (`item_id`),
+  KEY `idx_cmmt_trace_id` (`trace_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区媒体审核任务表';
+
+-- ============================================================
+-- 漂移修复 (Phase 2 批次 1): 补 ORM 已定义但 table.sql 缺失的表
+-- 说明: 这 3 张表由 SQLAlchemy create_all 在开发环境自动建过,
+--       生产环境通过本文件补齐,消除合规漂移。
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `community_notification` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `recipient_user_id` int NOT NULL COMMENT '接收用户ID',
+  `type` varchar(32) NOT NULL COMMENT '通知类型(channel_invite/system等)',
+  `title` varchar(120) NOT NULL COMMENT '通知标题',
+  `content` varchar(500) NULL COMMENT '通知内容',
+  `data` text NULL COMMENT '附加数据 JSON',
+  `is_read` smallint NOT NULL DEFAULT 0 COMMENT '是否已读:0-未读 1-已读',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_cn_tenant_id` (`tenant_id`),
+  KEY `idx_cn_recipient_user_id` (`recipient_user_id`),
+  KEY `idx_cn_type` (`type`),
+  KEY `idx_cn_is_read` (`is_read`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区站内通知表';
+
+CREATE TABLE IF NOT EXISTS `community_channel_post` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `channel_id` int NOT NULL COMMENT '频道ID',
+  `author_user_id` int NOT NULL COMMENT '发布用户ID',
+  `title` varchar(120) NOT NULL COMMENT '标题',
+  `content` text NOT NULL COMMENT '内容',
+  `images` text NULL COMMENT '图片列表 JSON',
+  `is_official` smallint NOT NULL DEFAULT 0 COMMENT '是否官方发布:0-否 1-是',
+  `is_pinned` smallint NOT NULL DEFAULT 0 COMMENT '是否置顶:0-否 1-是',
+  `status` smallint NOT NULL DEFAULT 1 COMMENT '状态:0-审核中 1-正常 -1-已拒绝',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ccp_tenant_id` (`tenant_id`),
+  KEY `idx_ccp_channel_id` (`channel_id`),
+  KEY `idx_ccp_author_user_id` (`author_user_id`),
+  KEY `idx_ccp_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道帖子表(预留,当前复用 community_post)';
+
+CREATE TABLE IF NOT EXISTS `community_channel_comment` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `channel_id` int NOT NULL COMMENT '频道ID',
+  `post_id` int NOT NULL COMMENT '帖子ID',
+  `user_id` int NOT NULL COMMENT '评论用户ID',
+  `content` text NOT NULL COMMENT '评论内容',
+  `images` text NULL COMMENT '图片列表 JSON',
+  `status` smallint NOT NULL DEFAULT 1 COMMENT '状态:0-审核中 1-正常 -1-已拒绝',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ccc_tenant_id` (`tenant_id`),
+  KEY `idx_ccc_channel_id` (`channel_id`),
+  KEY `idx_ccc_post_id` (`post_id`),
+  KEY `idx_ccc_user_id` (`user_id`),
+  KEY `idx_ccc_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道评论表(预留,当前复用 community_comment)';
+
 --
 -- 用户-活动类型关联表
 --
@@ -385,3 +583,158 @@ CREATE TABLE IF NOT EXISTS `user_activity_type` (
   KEY `idx_user_activity_type_activity_type_id` (`activity_type_id`),
   KEY `idx_user_activity_type_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户-活动类型关联表';
+
+-- 
+-- 17. 旧库升级 SQL
+--    用于已存在旧库的数据补字段，避免只跑 CREATE TABLE 后缺少运行时字段。
+--    MySQL 版本兼容写法：先查 information_schema，再动态执行 ALTER TABLE。
+-- 
+SET @schema_name := DATABASE();
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'user' AND column_name = 'phone_hash'
+);
+SET @sql := IF(@need, 'ALTER TABLE `user` ADD COLUMN `phone_hash` varchar(64) DEFAULT NULL AFTER `phone`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'user' AND column_name = 'phone_masked'
+);
+SET @sql := IF(@need, 'ALTER TABLE `user` ADD COLUMN `phone_masked` varchar(32) DEFAULT NULL AFTER `phone_hash`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'user' AND column_name = 'email_hash'
+);
+SET @sql := IF(@need, 'ALTER TABLE `user` ADD COLUMN `email_hash` varchar(64) DEFAULT NULL AFTER `email`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'user' AND column_name = 'identity_number_hash'
+);
+SET @sql := IF(@need, 'ALTER TABLE `user` ADD COLUMN `identity_number_hash` varchar(64) DEFAULT NULL AFTER `identity_number`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'user' AND column_name = 'identity_last4'
+);
+SET @sql := IF(@need, 'ALTER TABLE `user` ADD COLUMN `identity_last4` varchar(8) DEFAULT NULL AFTER `identity_number_hash`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'activity_participants' AND column_name = 'email_hash'
+);
+SET @sql := IF(@need, 'ALTER TABLE `activity_participants` ADD COLUMN `email_hash` varchar(64) DEFAULT NULL', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'activity_participants' AND column_name = 'review_status'
+);
+SET @sql := IF(@need, 'ALTER TABLE `activity_participants` ADD COLUMN `review_status` int NOT NULL DEFAULT 1 AFTER `enroll_status`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'activity_participants' AND column_name = 'review_reason'
+);
+SET @sql := IF(@need, 'ALTER TABLE `activity_participants` ADD COLUMN `review_reason` varchar(255) DEFAULT NULL AFTER `review_status`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'activity_participants' AND column_name = 'reviewed_by'
+);
+SET @sql := IF(@need, 'ALTER TABLE `activity_participants` ADD COLUMN `reviewed_by` int DEFAULT NULL AFTER `review_reason`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'activity_participants' AND column_name = 'reviewed_at'
+);
+SET @sql := IF(@need, 'ALTER TABLE `activity_participants` ADD COLUMN `reviewed_at` datetime DEFAULT NULL AFTER `reviewed_by`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'community_post' AND column_name = 'images'
+);
+SET @sql := IF(@need, 'ALTER TABLE `community_post` ADD COLUMN `images` text DEFAULT NULL AFTER `content`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'community_comment' AND column_name = 'images'
+);
+SET @sql := IF(@need, 'ALTER TABLE `community_comment` ADD COLUMN `images` text DEFAULT NULL AFTER `content`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'payment_order' AND column_name = 'refund_status'
+);
+SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_status` int NOT NULL DEFAULT 0 AFTER `paid_at`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'payment_order' AND column_name = 'refund_amount'
+);
+SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_amount` int NOT NULL DEFAULT 0 AFTER `refund_status`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'payment_order' AND column_name = 'refund_apply_by'
+);
+SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_apply_by` int DEFAULT NULL AFTER `refund_amount`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'payment_order' AND column_name = 'refund_apply_at'
+);
+SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_apply_at` datetime DEFAULT NULL AFTER `refund_apply_by`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'payment_order' AND column_name = 'refund_success_at'
+);
+SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_success_at` datetime DEFAULT NULL AFTER `refund_apply_at`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'payment_order' AND column_name = 'refund_fail_reason'
+);
+SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_fail_reason` varchar(255) DEFAULT NULL AFTER `refund_success_at`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+
+ALTER TABLE user_role
+   ADD COLUMN update_time timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '' AFTER create_time;

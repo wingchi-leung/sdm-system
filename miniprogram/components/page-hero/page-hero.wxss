@@ -1,0 +1,52 @@
+/* 页面 hero 区视觉规范:左主区 + 右上工具区 */
+.page-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-xl) var(--space-md) var(--space-lg);
+  background: var(--background);
+  box-sizing: border-box;
+}
+
+.page-hero--soft {
+  background: var(--background-subtle);
+}
+
+.page-hero__main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.page-hero__eyebrow {
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.page-hero__title {
+  font-size: 42rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: var(--space-xs);
+  line-height: 1.3;
+  letter-spacing: 0.4rpx;
+}
+
+.page-hero__description {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+  margin-top: var(--space-xs);
+  line-height: 1.5;
+  letter-spacing: 0.4rpx;
+}
+
+.page-hero__tools {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  margin-left: var(--space-sm);
+  padding-top: 4rpx;
+}

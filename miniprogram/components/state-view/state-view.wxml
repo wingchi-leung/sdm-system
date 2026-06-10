@@ -1,0 +1,19 @@
+<!-- state-view 组件模板 -->
+<!-- 居中展示 icon(loading 转圈 / error ⚠️ / empty 📭) + title + description + 可选 action 按钮 -->
+<view class="state-view" wx:if="{{state !== 'idle'}}">
+  <!-- loading 状态: 用转圈动画,不用 emoji -->
+  <view class="state-view-icon" wx:if="{{state === 'loading'}}">
+    <view class="state-view-spinner"></view>
+  </view>
+  <!-- error / empty 状态: emoji 占位 -->
+  <view class="state-view-icon" wx:else>
+    <text class="state-view-emoji">{{iconText}}</text>
+  </view>
+
+  <view class="state-view-title" wx:if="{{resolvedTitle}}">{{resolvedTitle}}</view>
+  <view class="state-view-description" wx:if="{{resolvedDescription}}">{{resolvedDescription}}</view>
+
+  <view class="state-view-action" wx:if="{{actionText}}" bindtap="_onActionTap">
+    {{actionText}}
+  </view>
+</view>
