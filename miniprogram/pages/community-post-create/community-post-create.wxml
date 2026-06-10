@@ -1,12 +1,14 @@
 <view class="page">
   <view class="form">
+    <!-- 频道信息 -->
     <view class="field">
-      <text class="field-label">所属活动</text>
+      <text class="field-label">所属频道</text>
       <view class="static-box">
-        <text class="static-text">{{activityName || activity.activity_name || '当前活动'}}</text>
+        <text class="static-text">{{channelName || '当前频道'}}</text>
       </view>
     </view>
 
+    <!-- 标题 -->
     <view class="field">
       <text class="field-label">标题</text>
       <input
@@ -14,43 +16,37 @@
         placeholder="请输入动态标题"
         placeholder-class="input-placeholder"
         value="{{title}}"
+        maxlength="60"
         bindinput="onTitleInput"
       />
     </view>
 
+    <!-- 富文本编辑器(微信原生 <editor> 单编辑器,支持图文混排) -->
     <view class="field">
-      <text class="field-label">正文</text>
-      <textarea
-        class="textarea"
-        placeholder="请输入动态内容"
-        placeholder-class="input-placeholder"
-        value="{{content}}"
-        bindinput="onContentInput"
-        maxlength="10000"
-      />
-    </view>
-
-    <view class="field">
-      <text class="field-label">封面图</text>
-      <view class="poster-section">
-        <view wx:if="{{coverLocalPath}}" class="poster-preview">
-          <image class="poster-image" src="{{coverLocalPath}}" mode="aspectFill" />
-          <view class="poster-remove" bindtap="onRemoveCover">
-            <text class="remove-icon">×</text>
-          </view>
-        </view>
-        <view wx:else class="poster-upload" bindtap="onChooseCover">
-          <view class="upload-icon">+</view>
-          <text class="upload-text">选择封面图</text>
-          <text class="upload-hint">支持 PNG、JPG，最大 5MB</text>
-        </view>
+      <view class="field-label-row">
+        <text class="field-label">正文</text>
+        <text class="field-tip">支持加粗/斜体/列表/插入图片</text>
+      </view>
+      <view class="editor-wrap">
+        <editor
+          id="richEditor"
+          class="rich-editor"
+          placeholder="说点什么…"
+          show-img-toolbar="{{true}}"
+          show-img-resize="{{true}}"
+          bindinput="onEditorInput"
+          bindready="onEditorReady"
+          bindblur="onEditorBlur"
+        />
       </view>
     </view>
 
+    <!-- 错误提示 -->
     <view wx:if="{{error}}" class="error-box">
       <text class="error-text">{{error}}</text>
     </view>
 
+    <!-- 提交 -->
     <button class="btn-submit" disabled="{{submitting}}" bindtap="onSubmit">
       <text class="btn-text">{{submitting ? '发布中…' : '发布动态'}}</text>
     </button>

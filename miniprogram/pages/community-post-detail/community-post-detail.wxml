@@ -9,13 +9,22 @@
   </view>
 
   <view wx:else class="content">
-    <image wx:if="{{post.cover_url}}" class="post-cover" src="{{post.cover_url}}" mode="aspectFill" />
-
     <view class="post-card">
       <text class="post-caption">活动动态</text>
       <text class="post-title">{{post.title}}</text>
       <text class="post-meta">{{post.author_name}} · {{post.create_time_display}}</text>
-      <text class="post-content">{{post.content}}</text>
+      <!-- Phase 2 A 方案: 新帖子是 HTML, 用 rich-text 渲染; 老 block JSON 走原循环 -->
+      <view wx:if="{{post.parsed.isHtml}}" class="post-html">
+        <rich-text nodes="{{post.parsed.html}}" />
+      </view>
+      <view wx:else>
+        <view wx:for="{{post.parsed.blocks}}" wx:for-item="block" wx:for-index="blockIndex" wx:key="blockIndex" class="post-block">
+          <text wx:if="{{block.type === 'text'}}" class="post-content">{{block.text}}</text>
+          <view wx:elif="{{block.type === 'images'}}" class="post-image-grid">
+            <image wx:for="{{block.images}}" wx:key="*this" class="post-image" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="onPreviewPostImage" />
+          </view>
+        </view>
+      </view>
     </view>
 
     <view class="comment-section">
@@ -25,12 +34,27 @@
       </view>
 
       <view wx:if="{{comments.length > 0}}" class="comment-list">
-        <view wx:for="{{comments}}" wx:key="id" class="comment-card">
+        <view wx:for="{{comments}}" wx:for-item="comment" wx:for-index="commentIndex" wx:key="id" class="comment-card">
           <view class="comment-top">
-            <text class="comment-user">{{item.user_name}}</text>
-            <text class="comment-time">{{item.create_time_display}}</text>
+            <text class="comment-user">{{comment.user_name}}</text>
+            <text class="comment-time">{{comment.create_time_display}}</text>
           </view>
-          <text class="comment-content">{{item.content}}</text>
+          <text class="comment-content">{{comment.content}}</text>
+          <view wx:if="{{comment.images && comment.images.length > 0}}" class="comment-image-grid">
+            <image
+              wx:for="{{comment.images}}"
+              wx:for-item="imgUrl"
+              wx:for-index="imageIndex"
+              wx:key="imgUrl"
+              class="comment-image"
+              src="{{imgUrl}}"
+              mode="aspectFill"
+              data-url="{{imgUrl}}"
+              data-comment-index="{{commentIndex}}"
+              data-image-index="{{imageIndex}}"
+              bindtap="onPreviewCommentImage"
+            />
+          </view>
         </view>
       </view>
 
@@ -41,19 +65,30 @@
   </view>
 
   <view wx:if="{{!loading && !error && canComment}}" class="comment-bar">
-    <view class="comment-input-wrap">
-      <input
-        class="comment-input"
-        placeholder="写下你的评论"
-        placeholder-class="comment-placeholder"
-        value="{{commentContent}}"
-        bindinput="onCommentInput"
-        confirm-type="send"
-        bindconfirm="onSubmitComment"
-      />
+    <view wx:if="{{commentImageLocalPaths.length > 0}}" class="comment-upload-grid">
+      <view wx:for="{{commentImageLocalPaths}}" wx:key="*this" class="comment-upload-item">
+        <image class="comment-upload-preview" src="{{item}}" mode="aspectFill" />
+        <view class="comment-upload-remove" data-index="{{index}}" bindtap="onRemoveCommentImage">×</view>
+      </view>
     </view>
-    <button class="comment-btn" disabled="{{commentSubmitting}}" bindtap="onSubmitComment">
-      {{commentSubmitting ? '提交中' : '发送'}}
-    </button>
+    <view class="comment-tool-row">
+      <view class="comment-add-image" bindtap="onChooseCommentImages">+ 图片 {{commentImageLocalPaths.length}}/9</view>
+    </view>
+    <view class="comment-action-row">
+      <view class="comment-input-wrap">
+        <input
+          class="comment-input"
+          placeholder="写下你的评论"
+          placeholder-class="comment-placeholder"
+          value="{{commentContent}}"
+          bindinput="onCommentInput"
+          confirm-type="send"
+          bindconfirm="onSubmitComment"
+        />
+      </view>
+      <button class="comment-btn" disabled="{{commentSubmitting}}" bindtap="onSubmitComment">
+        {{commentSubmitting ? '提交中' : '发送'}}
+      </button>
+    </view>
   </view>
 </view>
