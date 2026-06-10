@@ -22,6 +22,10 @@ JSON_FIELD_PATTERNS = (
     re.compile(r'("name"\s*:\s*")([^"]+)(")'),
     re.compile(r"('name'\s*:\s*')([^']+)(')"),
 )
+_BASE64URL_TEXT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+={0,2}$")
+# 看起来像密文但可能不在 base64url 字符集内的模式（含 +/ 等标准 base64 字符）。
+# 中国姓名、手机号等明文不会匹配此模式。
+_LOOKS_LIKE_CIPHER_PATTERN = re.compile(r"^[A-Za-z0-9+/=_-]{20,}$")
 
 
 def _derive_aes_key() -> bytes:
@@ -65,15 +69,25 @@ def decrypt_pii(value: str | None) -> str | None:
         plain = AESGCM(_AES_KEY).decrypt(nonce, cipher, None)
         return plain.decode("utf-8")
     except Exception:
-        # 兼容历史明文数据：当值不是加密密文时，按原文返回。
-        # 但若看起来是密文（base64url 且长度较长）却解密失败，说明密钥不一致或数据损坏，
-        # 为避免把密文误当明文返回给上层校验与前端，统一降级为 None。
+        # 解密失败时，需要判断原始值是密文还是历史明文数据。
+        # 密文特征：长度较长、base64url 编码、解码后 >= 28 字节（12 nonce + 16 tag 最小密文）。
+        # 历史明文特征：中文姓名、手机号等短文本，不含大量 base64 字符。
+        # 为避免把密文误当明文泄露到前端，采用保守策略：
+        # 能被 base64 解码且解码后 >= 28 字节的，一律视为密文降级为 None。
+        if len(text) >= 32 and _BASE64URL_TEXT_PATTERN.fullmatch(text):
+            return None
         try:
             candidate = base64.urlsafe_b64decode(text.encode("ascii"))
-            if len(candidate) > 28:
+            if len(candidate) >= 28:
                 return None
         except Exception:
             pass
+        # 无法被 base64 解码的短文本，视为历史明文安全返回。
+        # 能被解码但解码后 < 28 字节的短值，也视为历史明文（中文姓名等通常 < 20 字节）。
+        # 但如果文本看起来像 base64 编码（含大量 [A-Za-z0-9+/=_-] 字符且无中文），
+        # 极有可能是密文因密钥变更而解密失败，降级为 None 以防泄露。
+        if _LOOKS_LIKE_CIPHER_PATTERN.fullmatch(text):
+            return None
         return text
 
 
