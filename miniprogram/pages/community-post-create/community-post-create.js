@@ -338,15 +338,19 @@ Page({
 
         wx.showLoading({ title: `上传图片 ${index + 1}/${files.length}` });
         const uploadResult = await api.uploadCommunityImage(file.tempFilePath);
+        const imageUrl = api.getImageUrl(uploadResult && uploadResult.url);
+        if (!imageUrl) {
+          throw new Error('图片地址无效');
+        }
         if (!editorCtx || typeof editorCtx.insertImage !== 'function') {
           throw new Error('编辑器图片插入不可用');
         }
 
         editorCtx.insertImage({
-          src: uploadResult.url,
+          src: imageUrl,
           width: '100%',
           success: () => {
-            this.data._editorHtml = `${this.data._editorHtml || ''}<img src="${uploadResult.url}" />`;
+            this.data._editorHtml = `${this.data._editorHtml || ''}<img src="${imageUrl}" />`;
             setTimeout(() => {
               this._captureEditorSnapshot(editorCtx).catch(() => {});
             }, 0);

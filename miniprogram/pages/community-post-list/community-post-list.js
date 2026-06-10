@@ -2,6 +2,11 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 const contentUtils = require('../../utils/community-content');
+const { resolveAvatarDisplayUrl, getDefaultAvatarPath } = require('../../utils/avatar');
+
+const PAGE_SIZE = 10;
+const COMMENT_PAGE_SIZE = 20;
+const HTML_TAG_PATTERN = /<\/?(p|div|span|img|br|strong|em|h[1-6]|ul|ol|li|blockquote|a)\b/i;
 
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
@@ -13,57 +18,19 @@ function decodeDisplayText(value) {
   }
 }
 
-// 估计卡片高度(单位:px 近似)—— 用于矮列优先分列
-// 真实高度在小程序里是 layout-after,这里只能粗估,真实显示时容器 flex 会按内容自适应
-function estimateCardHeight(post) {
-  let h = 0;
-  // 标题行(固定 ~50)
-  h += 50;
-  // 摘要(按 100 字折 1 行 = 30px,最多 6 行 = 180)
-  const summary = (post.content_summary || '').length;
-  h += Math.min(180, Math.ceil(summary / 18) * 30);
-  // 图片(0 张 = 0;1 张 = 200;2-3 张 = 140;4+ = 200)
-  const imgCount = (post.images || []).length;
-  if (imgCount === 1) h += 200;
-  else if (imgCount <= 3) h += 140;
-  else if (imgCount >= 4) h += 220;
-  // 底部 meta(40)
-  h += 40;
-  // 间距(20)
-  h += 20;
-  return h;
-}
-
-// 矮列优先分列算法:把 posts 分到两列,两列累计高度差尽量小
-function splitIntoColumns(posts) {
-  const colA = [];
-  const colB = [];
-  let hA = 0;
-  let hB = 0;
-  (posts || []).forEach((post) => {
-    const h = estimateCardHeight(post);
-    if (hA <= hB) {
-      colA.push(post);
-      hA += h;
-    } else {
-      colB.push(post);
-      hB += h;
-    }
-  });
-  return { colA, colB };
-}
-
 Page({
   data: {
     channelId: null,
     channelName: '',
     channelRole: 'member',
     posts: [],
-    colA: [],
-    colB: [],
     loading: true,
+    loadingMore: false,
     error: null,
     showCreateButton: true,
+    hasMorePosts: false,
+    total: 0,
+    skip: 0,
   },
 
   resolvePageState() {
@@ -85,67 +52,129 @@ Page({
       channelRole: decodeDisplayText(options.channelRole || 'member'),
     });
     this.resolvePageState();
-    this.loadPosts();
+    this.loadPosts({ reset: true });
   },
 
   onShow() {
     if (this.data.channelId) {
       this.resolvePageState();
-      this.loadPosts();
+      this.loadPosts({ reset: true });
     }
   },
 
-  async loadPosts() {
-    this.setData({ loading: true, error: null });
-    try {
-      const result = await api.getCommunityChannelPosts(this.data.channelId, { limit: 100 });
-      const posts = (result.items || []).map((item) => {
-        // Phase 2 A 方案: 新帖子 content 是 HTML 字符串
-        const raw = item.content || '';
-        const isHtml = /<\/?(p|div|span|img|br|strong|em|h[1-6]|ul|ol|li|blockquote|a)\b/i.test(raw);
-        let textSummary = '';
-        let images = [];
-        if (isHtml) {
-          textSummary = this._htmlToText(raw).slice(0, 240);
-          const matches = raw.match(/<img[^>]+src=["']([^"']+)["']/gi) || [];
-          images = matches
-            .map((m) => { const r = m.match(/src=["']([^"']+)["']/i); return r ? r[1] : null; })
-            .filter(Boolean);
-        } else {
-          // 兼容老 block JSON
-          const parsed = contentUtils.parsePostContent(raw);
-          textSummary = (parsed.text || '').trim().slice(0, 240);
-          const blockImages = (parsed.blocks || [])
-            .filter((block) => block.type === 'images')
-            .flatMap((block) => block.images || []);
-          images = blockImages.length ? blockImages : (item.images || []);
-        }
-        if (!textSummary) textSummary = images.length ? '图片动态' : '';
-        return {
-          ...item,
-          content_summary: textSummary,
-          images: images.map((url) => api.getImageUrl(url)),
-          create_time_display: this.formatTime(item.create_time),
-        };
-      });
+  async loadPosts({ reset = false } = {}) {
+    const nextSkip = reset ? 0 : this.data.skip;
+    this.setData(reset
+      ? { loading: true, error: null }
+      : { loadingMore: true, error: null });
 
-      // 矮列优先分列
-      const { colA, colB } = splitIntoColumns(posts);
-      this.setData({ posts, colA, colB, loading: false });
+    try {
+      const result = await api.getCommunityChannelPosts(this.data.channelId, {
+        skip: nextSkip,
+        limit: PAGE_SIZE,
+      });
+      const normalized = await Promise.all((result.items || []).map((item) => this.normalizePostItem(item)));
+      const posts = reset ? normalized : [...this.data.posts, ...normalized];
+      const total = Number(result.total || 0);
+      const skip = nextSkip + normalized.length;
+      this.setData({
+        posts,
+        total,
+        skip,
+        hasMorePosts: skip < total,
+        loading: false,
+        loadingMore: false,
+      });
     } catch (err) {
       this.setData({
         loading: false,
+        loadingMore: false,
         error: err.message || '加载频道动态失败',
-        posts: [],
-        colA: [],
-        colB: [],
       });
     }
   },
 
-  _htmlToText(html) {
+  async normalizePostItem(item) {
+    const parsed = this.parsePostContent(item.content || '', item.images || []);
+    const previewComments = await Promise.all(
+      (item.preview_comments || []).map((comment) => this.normalizeComment(comment)),
+    );
+
+    return {
+      ...item,
+      parsed,
+      author_avatar_display_url: await this.resolveAvatar(item.author_avatar_url),
+      cover_image: parsed.images[0] || '',
+      extra_image_count: Math.max(0, parsed.images.length - 1),
+      create_time_display: this.formatDate(item.create_time),
+      publish_time_ago: this.formatRelativeTime(item.create_time),
+      content_summary: parsed.text.slice(0, 96),
+      content_expanded: false,
+      comments_collapsed: false,
+      comments_loading: false,
+      comments: previewComments,
+      comments_loaded_all: previewComments.length >= Number(item.comment_count || 0),
+    };
+  },
+
+  async normalizeComment(comment) {
+    return {
+      ...comment,
+      images: (comment.images || []).map((url) => api.getImageUrl(url)),
+      user_avatar_display_url: await this.resolveAvatar(comment.user_avatar_url),
+      create_time_display: this.formatRelativeTime(comment.create_time),
+    };
+  },
+
+  parsePostContent(rawContent, rawImages) {
+    const raw = rawContent || '';
+    const imageList = (rawImages || []).map((url) => api.getImageUrl(url));
+    if (HTML_TAG_PATTERN.test(raw)) {
+      const htmlImages = this.extractImageUrls(raw).map((url) => api.getImageUrl(url));
+      return {
+        isHtml: true,
+        html: raw,
+        text: this.htmlToText(raw),
+        blocks: [],
+        images: htmlImages.length ? htmlImages : imageList,
+      };
+    }
+
+    const parsed = contentUtils.parsePostContent(raw);
+    const blocks = (parsed.blocks || []).map((block) => {
+      if (block.type !== 'images') return block;
+      return {
+        ...block,
+        images: (block.images || []).map((url) => api.getImageUrl(url)),
+      };
+    });
+    const blockImages = blocks
+      .filter((block) => block.type === 'images')
+      .flatMap((block) => block.images || []);
+
+    return {
+      isHtml: false,
+      html: '',
+      text: (parsed.text || '').trim() || raw,
+      blocks,
+      images: blockImages.length ? blockImages : imageList,
+    };
+  },
+
+  extractImageUrls(html) {
+    if (!html) return [];
+    const matches = html.match(/<img[^>]+src=["']([^"']+)["']/gi) || [];
+    return matches
+      .map((item) => {
+        const result = item.match(/src=["']([^"']+)["']/i);
+        return result ? result[1] : null;
+      })
+      .filter(Boolean);
+  },
+
+  htmlToText(html) {
     if (!html) return '';
-    return html
+    return String(html)
       .replace(/<style[\s\S]*?<\/style>/gi, '')
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/<br\s*\/?>/gi, '\n')
@@ -156,27 +185,118 @@ Page({
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
+      .replace(/\n{2,}/g, '\n')
       .trim();
   },
 
-  formatTime(iso) {
+  formatDate(iso) {
     if (!iso) return '';
-    const d = new Date(iso);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}.${m}.${day}`;
+    const date = new Date(iso);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}.${month}.${day}`;
   },
 
-  onOpenPost(e) {
-    const id = e.currentTarget.dataset.id;
-    if (!id) return;
-    wx.navigateTo({
-      url: tenant.appendTenantToUrl('/pages/community-post-detail/community-post-detail', {
-        id,
-        channelId: this.data.channelId,
-      }),
-    });
+  formatRelativeTime(iso) {
+    if (!iso) return '';
+    const now = Date.now();
+    const target = new Date(iso).getTime();
+    if (!target) return '';
+    const diffMinutes = Math.max(1, Math.floor((now - target) / 60000));
+    if (diffMinutes < 60) return `${diffMinutes} 分钟前`;
+    const diffHours = Math.floor(diffMinutes / 60);
+    if (diffHours < 24) return `${diffHours} 小时前`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays} 天前`;
+    return this.formatDate(iso);
+  },
+
+  async resolveAvatar(avatarUrl) {
+    try {
+      return await resolveAvatarDisplayUrl(avatarUrl);
+    } catch (_) {
+      return getDefaultAvatarPath();
+    }
+  },
+
+  updatePostById(postId, updater) {
+    const nextPosts = (this.data.posts || []).map((post) => (
+      post.id === postId ? updater(post) : post
+    ));
+    this.setData({ posts: nextPosts });
+  },
+
+  onToggleContent(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    this.updatePostById(postId, (post) => ({
+      ...post,
+      content_expanded: !post.content_expanded,
+    }));
+  },
+
+  onToggleComments(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    this.updatePostById(postId, (post) => ({
+      ...post,
+      comments_collapsed: !post.comments_collapsed,
+    }));
+  },
+
+  async onLoadMoreComments(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    const target = (this.data.posts || []).find((post) => post.id === postId);
+    if (!target || target.comments_loading || target.comments_loaded_all) return;
+
+    this.updatePostById(postId, (post) => ({ ...post, comments_loading: true }));
+    try {
+      const result = await api.getCommunityChannelComments(this.data.channelId, postId, {
+        skip: target.comments.length,
+        limit: COMMENT_PAGE_SIZE,
+      });
+      const appended = await Promise.all((result.items || []).map((item) => this.normalizeComment(item)));
+      this.updatePostById(postId, (post) => {
+        const comments = [...post.comments, ...appended];
+        return {
+          ...post,
+          comments,
+          comments_loading: false,
+          comments_loaded_all: comments.length >= Number(result.total || post.comment_count || 0),
+        };
+      });
+    } catch (err) {
+      this.updatePostById(postId, (post) => ({ ...post, comments_loading: false }));
+      wx.showToast({ title: err.message || '加载评论失败', icon: 'none' });
+    }
+  },
+
+  onPreviewPostImage(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    const current = e.currentTarget.dataset.url;
+    const target = (this.data.posts || []).find((post) => post.id === postId);
+    const urls = target && target.parsed ? (target.parsed.images || []) : [];
+    if (!current || !urls.length) return;
+    wx.previewImage({ current, urls });
+  },
+
+  onPreviewCommentImage(e) {
+    const postId = Number(e.currentTarget.dataset.postId);
+    const commentId = Number(e.currentTarget.dataset.commentId);
+    const current = e.currentTarget.dataset.url;
+    const target = (this.data.posts || []).find((post) => post.id === postId);
+    if (!target) return;
+    const comment = (target.comments || []).find((item) => item.id === commentId);
+    const urls = comment ? (comment.images || []) : [];
+    if (!current || !urls.length) return;
+    wx.previewImage({ current, urls });
+  },
+
+  onLoadMorePosts() {
+    if (this.data.loadingMore || !this.data.hasMorePosts) return;
+    this.loadPosts({ reset: false });
   },
 
   onCreatePost() {

@@ -99,8 +99,9 @@ test('发布页插入图片后会上传并回写编辑器快照', async () => {
     ['../../utils/api.js', {
       uploadCommunityImage: async (filePath) => {
         uploadedPath = filePath;
-        return { url: 'https://cdn.example.com/community/1.jpg' };
+        return { url: '/uploads/community/1.jpg' };
       },
+      getImageUrl: (url) => `https://static.example.com${url}`,
       createCommunityChannelPost: async () => {
         throw new Error('不应触发发布');
       },
@@ -131,7 +132,8 @@ test('发布页插入图片后会上传并回写编辑器快照', async () => {
   await new Promise((resolve) => setTimeout(resolve, 10));
 
   assert.equal(uploadedPath, 'tmp://image-1.jpg');
-  assert.equal(page.data._editorHtml.includes('https://cdn.example.com/community/1.jpg'), true);
+  assert.equal(insertedImageUrl, 'https://static.example.com/uploads/community/1.jpg');
+  assert.equal(page.data._editorHtml.includes('https://static.example.com/uploads/community/1.jpg'), true);
   assert.equal(page.data.contentLength, 2);
 });
 
