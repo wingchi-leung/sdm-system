@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  padding: calc(env(safe-area-inset-top) + 72rpx) 32rpx calc(148rpx + env(safe-area-inset-bottom));
+  padding: calc(env(safe-area-inset-top) + 88rpx) 32rpx calc(148rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: #ffffff;
 }
@@ -10,8 +10,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 20rpx;
-  min-height: 96rpx;
-  padding: 34rpx 0 8rpx;
+  min-height: 100rpx;
+  padding: 42rpx 0 8rpx;
 }
 
 .topbar-title {
@@ -26,7 +26,7 @@
   display: flex;
   align-items: center;
   gap: 16rpx;
-  padding-top: 18rpx;
+  padding-top: 24rpx;
 }
 
 .icon-btn {
