@@ -1,6 +1,6 @@
-# 小程序社区频道模块 — Phase 2 UI 大改实施 Spec
+# 小程序社区频道模块 — Phase 2 设计稿落地实施 Spec
 
-> 本文档是「社区 UI 大改」项目的 追踪 spec 
+> 本文档是「社区 UI 按设计稿落地」项目的追踪 spec。
 > 历史调研方案已 commit 并归档到 `docs/archive/社区UI改造-*.md`,需要细节时回看。
 > 本 spec 维护规则: 每次有 Phase 2 PR 合并,同步更新本文「实施看板」+「实现状态」两章。
 
@@ -10,20 +10,22 @@
 
 | # | 需求 | 决议 |
 |---|------|------|
-| 1 | 社区内容**瀑布流** + 评论直接展示在社区页 |  |
-| 2 | 发布页:**富文本编辑器** + 多选图片上传 | ✅ 实现(微信原生 `<editor>` + HTML 主存) |
-| 3 | 频道创建支持**上传头像** | ✅ 实现(独立页 + 后端 `avatar-upload` endpoint) |
+| 1 | 社区内容要**按设计稿贴**，不要做成两列瀑布流 | ✅ 已纠偏: 统一改成单列信息流 |
+| 2 | 发布页要按 `sendpost.png` 做成**富文本编辑器页** | ✅ 需要保留现有 `editor` 方案,继续按设计稿细化 |
+| 3 | 社区帖子列表页要按 `channel-message.png` 贴图 | ✅ 需要把帖子 + 评论预览改成单列信息流 |
+| 4 | 需要包含**后台功能** | ✅ 后端接口需要配合前端展示所需字段/预览数据 |
+| 5 | 频道创建支持**上传头像** | ✅ 已实现(独立页 + 后端 `avatar-upload` endpoint) |
 
 
-**核心原则**: **以源码为准** —— 摸底中发现的 spec 与代码不一致(频道帖走 `community_channel_post` 表,不再复用 `community_post`),按代码现状走,后续反向更新 spec。
+**核心原则**: **以设计稿为准**。当前代码里出现的两列瀑布流属于错误实现，后续以 `channel-message.png` / `sendpost.png` 为准回收重做；数据表与接口尽量复用现有实现，只补齐设计稿所需的展示字段和预览数据。
 
 ---
 
-## 二、技术决策(16 个,实施必须遵守)
+## 二、技术决策(实施必须遵守)
 
 | ID | 决策 | 备注 |
 |---|---|---|
-| **D1** | 瀑布流 = 2 列 `flex` + 矮列优先分列 | 不引入第三方库;`splitIntoColumns()` 纯 JS |
+| **D1** | 帖子列表 = **单列纵向信息流** | 设计稿不是瀑布流,不再使用双列分栏 |
 | **D2** | 富文本写入 = 微信原生 `<editor>` | 唯一生态选择,不出 mp-html 第三方 |
 | **D3** | 富文本存储 = **HTML 主存** | `content` 字段直接存微信 `<editor>` 输出 |
 | **D4** | `community_channel_post.content` 仍是 Text 类型,够用 | 不升 MEDIUMTEXT(数据量小) |
@@ -68,18 +70,18 @@
 ### ✅ 批次 2(commit `7fa0156`)| 富文本编辑器
 
 ```
-- [x] FE-2-1 community-post-create: 块编辑器 → 微信原生 <editor>(单编辑器图文混排)
+- [x] FE-2-1 community-post-create: 微信原生 <editor> 图文混排 + 自定义头部/工具栏 + 图片插入上传
 - [x] FE-2-1 onSubmit: EditorContext.getContents 拉 HTML,提取图片 URL 传后端
 - [x] FE-2-2 community-post-detail: 识别 HTML 帖子用 <rich-text nodes> 渲染
 - [x] FE-2-2 community-post-detail: 老 block JSON 兼容走原循环
 ```
 
-### ✅ 批次 3(commit `1a0f9fb`)| 单频道瀑布流
+### ⏸ 批次 3(commit `1a0f9fb`)| 单频道列表错误实现,需按设计稿回退重做
 
 ```
-- [x] FE-3-1 community-post-list: 单列 → 2 列瀑布流
-- [x] FE-3-1 splitIntoColumns() 矮列优先分列(按卡片估算高度)
-- [x] FE-3-1 图片 widthFix 自适应,卡片高度按内容驱动
+- [x] FE-3-1 community-post-list: 已切成 2 列瀑布流(当前实现,但与设计稿不符)
+- [x] FE-3-1 已回退为单列信息流,按设计稿重排帖子和评论层级
+- [x] FE-3-1 已补齐评论预览数据,避免前端为每条帖子额外发多次请求
 ```
 
 ### ⏸ 批次 4(暂缓)| 详情页降级 + 顺手改
@@ -135,7 +137,7 @@
 | `miniprogram/pages/community/index.js` | onCreateChannel 改 navigateTo + onShow 检测 dirty flag |
 | `miniprogram/pages/community-post-create/` | 块编辑器 → 微信原生 `<editor>` |
 | `miniprogram/pages/community-post-detail/` | 渲染层支持 HTML `<rich-text>` + 老 block JSON 兼容 |
-| `miniprogram/pages/community-post-list/` | 单列 → 2 列瀑布流 + 矮列优先分列 |
+| `miniprogram/pages/community-post-list/` | 已按设计稿回退为单列信息流,展示帖子头图和评论预览 |
 
 ### 文档
 
@@ -183,7 +185,7 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
 | 风险 | 等级 | 回滚 |
 |---|---|---|
 | 富文本 HTML 过大导致存储爆 | 低 | content 是 MEDIUMTEXT(16MB 上限),本批次 1 KB - 50 KB,够用 |
-| 瀑布流高度估算误差导致抖动 | 中 | skeleton 占位 + 真实内容驱动(不用固定高度) |
+| 评论预览字段缺失导致前端补请求 | 中 | 列表接口已补 preview_comments + 头像字段,避免 N+1 请求 |
 | 头像审核异步延迟 | 中 | 前端发布后 status=0,显示"审核中";管理员审核通过后 status=1 |
 | 旧 block JSON 帖子渲染异常 | 低 | 已加 isHtml 正则识别,识别失败 fallback 老 block 循环 |
 | 后端 Pydantic 字段长度限制 | 低 | title 60 / content 10000,够日常;超长需前端截断 |
@@ -199,8 +201,9 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
 
 真机需要你跑的:
 - [ ] **小程 IDE**: 打开 `/pages/community-channel-create` 模拟创建频道(带头像)
-- [ ] **小程 IDE**: 在某频道点"发布动态",验证 `<editor>` 能输入文字+插入图片
-- [ ] **小程 IDE**: 发布后跳回 `/pages/community-post-list`,验证瀑布流 2 列展示
+- [ ] **小程 IDE**: 在某频道点"发布动态",验证 `<editor>` 能输入文字+插入图片,并贴近 `sendpost.png`
+- [ ] **小程 IDE**: 发布后跳回 `/pages/community-post-list`,验证单列信息流而不是 2 列瀑布流
+- [ ] **小程 IDE**: 列表页验证帖子正文、作者、时间、图片和评论预览的层级与 `channel-message.png` 一致
 - [ ] **小程 IDE**: 点击卡片跳详情,验证 `<rich-text>` 渲染 HTML 正确
 - [ ] **小程 IDE**: 改一次 token(临时改 `app.wxss` 的 `--link`)看是否所有引用都跟着变
 - [ ] **小程序 IDE**: 把 `<floating-bell>` 拖到三个入口(mine / index / community)验证位置
@@ -261,3 +264,4 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
 | 2026-06-10 v3 | 批次 2 实施: 富文本编辑器 | `7fa0156` |
 | 2026-06-10 v4 | 批次 3 实施: 单频道瀑布流 | `1a0f9fb` |
 | 2026-06-10 v4.1 | 收口成单一 spec 文档 + 实施看板 | (本文件) |
+| 2026-06-10 v5 | 按设计稿纠偏: 列表页回退单列信息流,补评论预览与后台返回字段 | (本次实现) |

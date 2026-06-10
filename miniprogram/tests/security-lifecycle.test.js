@@ -135,6 +135,7 @@ test('动态详情页返回前台时会按当前身份关闭评论能力', () =>
     '../../utils/api.js': {},
     '../../utils/auth.js': {
       isUser: () => false,
+      isAdmin: () => false,
     },
     '../../utils/tenant.js': {},
   });

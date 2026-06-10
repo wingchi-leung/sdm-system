@@ -1,54 +1,93 @@
 <view class="page">
-  <view class="form">
-    <!-- 频道信息 -->
-    <view class="field">
-      <text class="field-label">所属频道</text>
-      <view class="static-box">
-        <text class="static-text">{{channelName || '当前频道'}}</text>
+  <view class="status-spacer" style="height: {{statusBarHeight}}px;"></view>
+
+  <view class="header">
+    <view class="header-action header-action-back" bindtap="onBackTap" hover-class="header-action--active">
+      <text class="header-back-icon">‹</text>
+    </view>
+    <text class="header-title">发布动态</text>
+    <view class="header-actions">
+      <view class="header-action header-action-plus" bindtap="onAddTap" hover-class="header-action--active">
+        <text class="header-plus-icon">+</text>
+      </view>
+      <image class="header-bell" src="/assets/icons/bell.png" mode="aspectFit" bindtap="onBellTap" />
+    </view>
+  </view>
+
+  <view class="composer-shell">
+    <text wx:if="{{channelName}}" class="channel-name">{{channelName}}</text>
+
+    <view class="field field-title">
+      <view class="field-head">
+        <text class="field-label">标题</text>
+        <text class="field-required">*</text>
+      </view>
+      <view class="title-row">
+        <input
+          class="title-input"
+          placeholder="输入动态标题"
+          placeholder-class="input-placeholder"
+          value="{{title}}"
+          maxlength="50"
+          bindinput="onTitleInput"
+        />
+        <text class="field-counter">{{titleLength}}/50</text>
       </view>
     </view>
 
-    <!-- 标题 -->
-    <view class="field">
-      <text class="field-label">标题</text>
-      <input
-        class="input"
-        placeholder="请输入动态标题"
-        placeholder-class="input-placeholder"
-        value="{{title}}"
-        maxlength="60"
-        bindinput="onTitleInput"
-      />
-    </view>
-
-    <!-- 富文本编辑器(微信原生 <editor> 单编辑器,支持图文混排) -->
-    <view class="field">
-      <view class="field-label-row">
+    <view class="field field-editor">
+      <view class="field-head">
         <text class="field-label">正文</text>
-        <text class="field-tip">支持加粗/斜体/列表/插入图片</text>
+        <text class="field-required">*</text>
       </view>
-      <view class="editor-wrap">
+
+      <view class="editor-panel">
+        <scroll-view class="toolbar-scroll" scroll-x="{{true}}" enable-flex="{{true}}" show-scrollbar="{{false}}">
+          <view class="toolbar">
+            <view class="tool-btn tool-btn-text" data-action="paragraph" bindtap="onToolbarAction">
+              <text>正文</text>
+              <text class="tool-caret">⌄</text>
+            </view>
+            <view class="tool-btn tool-btn-strong" data-action="bold" bindtap="onToolbarAction">B</view>
+            <view class="tool-btn tool-btn-italic" data-action="italic" bindtap="onToolbarAction">I</view>
+            <view class="tool-btn tool-btn-underline" data-action="underline" bindtap="onToolbarAction">U</view>
+            <view class="tool-btn tool-btn-strike" data-action="strike" bindtap="onToolbarAction">S</view>
+            <view class="tool-divider"></view>
+            <view class="tool-btn tool-btn-align" data-action="align-left" bindtap="onToolbarAction">≡</view>
+            <view class="tool-btn" data-action="list-bullet" bindtap="onToolbarAction">•</view>
+            <view class="tool-btn" data-action="list-ordered" bindtap="onToolbarAction">1.</view>
+            <view class="tool-btn tool-btn-quote" data-action="blockquote" bindtap="onToolbarAction">“ ”</view>
+            <view class="tool-btn tool-btn-image" data-action="insert-image" bindtap="onToolbarAction">🖼</view>
+            <view class="tool-btn tool-btn-clear" data-action="clear" bindtap="onToolbarAction">清空</view>
+          </view>
+        </scroll-view>
+
         <editor
           id="richEditor"
           class="rich-editor"
-          placeholder="说点什么…"
-          show-img-toolbar="{{true}}"
+          placeholder="输入正文内容"
+          show-img-toolbar="{{false}}"
           show-img-resize="{{true}}"
-          bindinput="onEditorInput"
           bindready="onEditorReady"
+          bindinput="onEditorInput"
           bindblur="onEditorBlur"
         />
+
+        <view class="editor-footer">
+          <text class="editor-tip">支持图文混排，最多插入 9 张图片</text>
+          <text class="field-counter">{{contentLength}} 字</text>
+        </view>
       </view>
     </view>
 
-    <!-- 错误提示 -->
     <view wx:if="{{error}}" class="error-box">
       <text class="error-text">{{error}}</text>
     </view>
+  </view>
 
-    <!-- 提交 -->
-    <button class="btn-submit" disabled="{{submitting}}" bindtap="onSubmit">
-      <text class="btn-text">{{submitting ? '发布中…' : '发布动态'}}</text>
+  <view class="footer-bar">
+    <button class="submit-btn" disabled="{{submitting}}" bindtap="onSubmit">
+      {{submitting ? '发布中…' : '发布'}}
     </button>
   </view>
 </view>

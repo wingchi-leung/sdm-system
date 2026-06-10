@@ -225,7 +225,11 @@ function saveAdminToken(accessToken, meta = null) {
   } else {
     wx.removeStorageSync(KEY_USER_ID);
   }
-  wx.setStorageSync(KEY_USER_NAME, userNameRaw || '');
+  if (userNameRaw) {
+    wx.setStorageSync(KEY_USER_NAME, userNameRaw);
+  } else {
+    wx.removeStorageSync(KEY_USER_NAME);
+  }
   clearRequireBindInfo();
   const parsed = parseAdminMeta(meta || {});
   wx.setStorageSync(KEY_ADMIN_LEVEL, parsed.adminLevel);
@@ -245,7 +249,11 @@ function saveUserToken({ accessToken, userId, userName }) {
   wx.setStorageSync(KEY_TOKEN, accessToken);
   wx.setStorageSync(KEY_ROLE, 'user');
   wx.setStorageSync(KEY_USER_ID, userId);
-  wx.setStorageSync(KEY_USER_NAME, userName || '');
+  if (userName) {
+    wx.setStorageSync(KEY_USER_NAME, userName);
+  } else {
+    wx.removeStorageSync(KEY_USER_NAME);
+  }
   clearRequireBindInfo();
   wx.removeStorageSync(KEY_ADMIN_LEVEL);
   wx.removeStorageSync(KEY_ADMIN_ACTIVITY_TYPES);
