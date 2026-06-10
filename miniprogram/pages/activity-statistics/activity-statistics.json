@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "报名统计",
-  "usingComponents": {}
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom"
 }

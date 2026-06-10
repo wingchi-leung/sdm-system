@@ -2,6 +2,7 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
+const { syncTabBarSelected } = require('../../utils/tab-bar');
 const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
 
 /** 把接口/网络错误转成可读文案，避免显示 [object Object] */
@@ -115,14 +116,12 @@ Page({
 
   onShow() {
     if (!this.ensureLoggedIn()) return;
+    syncTabBarSelected(this);
     this.syncAdminCapabilities().finally(() => {
       this.resolveAdminState();
       this.load();
       this.loadCommunityUnreadCount();
     });
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 0 });
-    }
   },
 
   async loadCommunityUnreadCount() {

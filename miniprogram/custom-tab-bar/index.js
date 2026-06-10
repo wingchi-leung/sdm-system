@@ -1,11 +1,18 @@
+const { getTabBarSelectedIndex, getCurrentRoute } = require('../utils/tab-bar');
+
 Component({
   data: {
     selected: 0,
     list: [
       {
         pagePath: '/pages/index/index',
-        iconPath: '/assets/icons/activity-default.png',
-        selectedIconPath: '/assets/icons/activity-active.png'
+        iconPath: '/assets/icons/activities.png',
+        selectedIconPath: '/assets/icons/activities-active.png'
+      },
+      {
+        pagePath: '/pages/community/index',
+        iconPath: '/assets/icons/community.png',
+        selectedIconPath: '/assets/icons/community-active.jpg'
       },
       {
         pagePath: '/pages/mine/mine',
@@ -21,21 +28,23 @@ Component({
     }
   },
 
+  pageLifetimes: {
+    show() {
+      this.updateSelectedFromRoute();
+    }
+  },
+
   methods: {
     updateSelectedFromRoute() {
-      const pages = getCurrentPages();
-      if (!pages || pages.length === 0) {
+      const selected = getTabBarSelectedIndex(getCurrentRoute());
+      if (selected < 0) {
         return;
       }
-      const currentRoute = `/${pages[pages.length - 1].route}`;
-      const selected = this.data.list.findIndex((item) => item.pagePath === currentRoute);
-      this.setData({
-        selected: selected >= 0 ? selected : 0
-      });
+      this.setData({ selected });
     },
 
     switchTab(e) {
-      const index = e.currentTarget.dataset.index;
+      const index = Number(e.currentTarget.dataset.index);
       const item = this.data.list[index];
       if (!item) {
         return;

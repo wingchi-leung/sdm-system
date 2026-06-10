@@ -2,15 +2,6 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
-// AES-GCM 密文经 base64 编码后的特征：仅含字母数字和 +/=_-，长度 >= 20
-// 正常的中文姓名、手机号不会匹配此模式
-const CIPHER_PATTERN = /^[A-Za-z0-9+/=_-]{20,}$/;
-
-function _looksLikeCipher(text) {
-  if (!text) return false;
-  return CIPHER_PATTERN.test(text);
-}
-
 function formatDateTime(value) {
   if (!value) return '-';
   const date = new Date(value);
@@ -21,6 +12,25 @@ function formatDateTime(value) {
   const hour = String(date.getHours()).padStart(2, '0');
   const minute = String(date.getMinutes()).padStart(2, '0');
   return `${year}-${month}-${day} ${hour}:${minute}`;
+}
+
+function decodeDisplayText(value) {
+  const text = value == null ? '' : String(value);
+  if (!text) return '';
+
+  let current = text;
+  for (let i = 0; i < 2; i += 1) {
+    try {
+      const decoded = decodeURIComponent(current);
+      if (decoded === current) {
+        break;
+      }
+      current = decoded;
+    } catch (_) {
+      break;
+    }
+  }
+  return current;
 }
 
 Page({
@@ -113,9 +123,9 @@ Page({
     this.setData({
       statusBarHeight,
       selectionMode,
-      pageTitle: selectionMode ? (options.title || '选择成员') : '用户管理',
-      confirmText: selectionMode ? (options.confirm_text || '确认选择') : '完成',
-      selectionHint: selectionMode ? (options.hint || '请选择要邀请到频道的用户。') : '',
+      pageTitle: selectionMode ? decodeDisplayText(options.title || '选择成员') : '用户管理',
+      confirmText: selectionMode ? decodeDisplayText(options.confirm_text || '确认选择') : '完成',
+      selectionHint: selectionMode ? decodeDisplayText(options.hint || '请选择要邀请到频道的用户。') : '',
       selectedUserIds: selectedIds,
       selectedCount: selectedIds.length,
     });
@@ -186,16 +196,11 @@ Page({
   },
 
   normalizeUserItem(item) {
-    const rawName = String(item && item.name ? item.name : '').trim();
-    const rawPhone = String(item && item.phone ? item.phone : '').trim();
-    const rawEmail = String(item && item.email ? item.email : '').trim();
-    // 过滤可能的密文字符串（base64 编码），解密失败时后端可能返回 None，
-    // 但防御性过滤以防万一
-    const name = _looksLikeCipher(rawName) ? '' : rawName;
-    const phone = _looksLikeCipher(rawPhone) ? '' : rawPhone;
-    const email = _looksLikeCipher(rawEmail) ? '' : rawEmail;
+    const name = String(item && item.name ? item.name : '').trim();
+    const phone = String(item && item.phone ? item.phone : '').trim();
+    const email = String(item && item.email ? item.email : '').trim();
     const displayName = name || phone || email || `用户 #${item.id}`;
-    const contactText = phone || email || '未填写联系方式';
+    const contactText = phone || email || '未填写邮箱';
     const isBlocked = Number(item && item.isblock) === 1;
 
     return {

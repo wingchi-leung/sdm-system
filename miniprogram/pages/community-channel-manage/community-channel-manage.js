@@ -2,14 +2,6 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
-// AES-GCM 密文经 base64 编码后的特征
-const CIPHER_PATTERN = /^[A-Za-z0-9+/=_-]{20,}$/;
-
-function _looksLikeCipher(text) {
-  if (!text) return false;
-  return CIPHER_PATTERN.test(text);
-}
-
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
   if (!text) return '';
@@ -85,12 +77,8 @@ Page({
     const joinedAt = member.joined_at || member.create_time || '';
     const currentUserId = auth.getUserId();
     const isSelf = currentUserId != null && Number(member.user_id) === Number(currentUserId);
-    // 过滤可能的密文字符串，解密失败时后端可能返回 None（前端收为 null），
-    // 但防御性过滤以防万一返回了 base64 编码的原始密文
-    const userName = _looksLikeCipher(member.user_name) ? '用户' : (member.user_name || '用户');
     return {
       ...member,
-      user_name: userName,
       role_label: role === 'admin' ? '管理员' : '成员',
       status_label: status === 'active'
         ? '正常'

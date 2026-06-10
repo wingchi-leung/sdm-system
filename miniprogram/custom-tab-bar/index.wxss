@@ -47,15 +47,15 @@
 }
 
 .tab-activity {
-  width: 92rpx;
-  height: 92rpx;
+  width: 48rpx;
+  height: 48rpx;
   opacity: 1;
 }
 
 .tab-personnel {
-  width: 82rpx;
-  height: 82rpx;
-  opacity: 0.84;
+  width: 40rpx;
+  height: 40rpx;
+  opacity: 1;
 }
 
 .tab-item.active .tab-bubble {
@@ -74,10 +74,12 @@
 }
 
 .tab-item.active .tab-activity {
-  width: 102rpx;
-  height: 102rpx;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .tab-item.active .tab-personnel {
   opacity: 1;
+  width: 46rpx;
+  height: 46rpx;
 }

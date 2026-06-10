@@ -17,6 +17,13 @@ def test_decrypt_pii_invalid_ciphertext_returns_none():
 
 
 @pytest.mark.unit
+def test_decrypt_pii_invalid_unpadded_base64url_ciphertext_returns_none():
+    """无填充符号的疑似密文也应降级为 None。"""
+    invalid_cipher = "bAxZat7moHUALl2abldqr4AM5q8Ql-75LcM7iGtB65DbPVXMrRVE"
+    assert decrypt_pii(invalid_cipher) is None
+
+
+@pytest.mark.unit
 def test_encrypt_then_decrypt_roundtrip():
     """正常加密解密应保持往返一致。"""
     plain = "13800138000"

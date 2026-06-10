@@ -190,7 +190,7 @@ test('首页未登录时会跳转登录页且不会继续加载活动', () => {
   }
 });
 
-test('首页会生成日期导航并默认展示当天活动', async () => {
+test('首页会按开始时间排序活动并保留展示字段', async () => {
   const today = new Date();
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
   const formatDate = (date, hour) => {
@@ -241,10 +241,112 @@ test('首页会生成日期导航并默认展示当天活动', async () => {
   const page = createPageInstance(pageConfig);
   await page.load();
 
-  assert.equal(page.data.dateTabs.length, 2);
-  assert.equal(page.data.dateTabs[0].markerLabel, 'TODAY');
-  assert.equal(page.data.visibleActivities.length, 1);
+  assert.equal(page.data.visibleActivities.length, 2);
   assert.equal(page.data.visibleActivities[0].activity_name, '今天的活动');
   assert.equal(page.data.visibleActivities[0].location_display, '北京');
   assert.equal(page.data.visibleActivities[0].participant_display, '8 人参加');
+  assert.equal(page.data.visibleActivities[1].activity_name, '明天的活动');
+});
+
+test('首页活动接口参数：超级管理员使用管理员视角，其它账号使用用户视角', async () => {
+  const calls = [];
+  const pageConfig = loadIndexPage({
+    api: {
+      getEnrollableActivities: (opts) => {
+        calls.push(opts);
+        return Promise.resolve({ items: [] });
+      },
+    },
+    auth: {
+      isAdmin: () => true,
+      isUser: () => false,
+      isSuperAdmin: () => true,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [],
+      getUserName: () => '超管',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => '',
+    },
+  });
+  const page = createPageInstance(pageConfig);
+  await page.load();
+  assert.deepEqual(calls[0], { asUserView: false });
+
+  calls.length = 0;
+  const pageConfig2 = loadIndexPage({
+    api: {
+      getEnrollableActivities: (opts) => {
+        calls.push(opts);
+        return Promise.resolve({ items: [] });
+      },
+      getMyParticipantActivities: () => Promise.resolve({ items: [] }),
+      getUserProfile: () => Promise.resolve({ avatar_url: '' }),
+    },
+    auth: {
+      isAdmin: () => false,
+      isUser: () => true,
+      isSuperAdmin: () => false,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [],
+      getUserName: () => '普通用户',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => '',
+    },
+  });
+  const page2 = createPageInstance(pageConfig2);
+  await page2.load();
+  assert.deepEqual(calls[0], { asUserView: true });
+});
+
+test('首页会把待支付报名标记为待支付而不是已报名', async () => {
+  const pageConfig = loadIndexPage({
+    api: {
+      getEnrollableActivities: () => Promise.resolve({
+        items: [
+          {
+            id: 1,
+            activity_name: '测试活动',
+            start_time: '2026-05-07T08:00:00.000Z',
+          },
+        ],
+      }),
+      getMyParticipantActivities: () => Promise.resolve({
+        items: [
+          {
+            id: 1,
+            enroll_status: 1,
+            payment_status: 1,
+          },
+        ],
+      }),
+      getUserProfile: () => Promise.resolve({ avatar_url: '' }),
+    },
+    auth: {
+      isAdmin: () => false,
+      isUser: () => true,
+      isSuperAdmin: () => false,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [],
+      getUserName: () => '普通用户',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => '',
+    },
+  });
+  const page = createPageInstance(pageConfig);
+  await page.load();
+
+  assert.equal(page.data.activities[0].has_registered, false);
+  assert.equal(page.data.activities[0].registration_status_text, '待支付');
 });

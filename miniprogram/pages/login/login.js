@@ -2,6 +2,7 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 const privacy = require('../../utils/privacy');
+const { normalizeRuntimeErrorMessage } = require('../../utils/request-error');
 
 const TAB_PAGES = ['/pages/index/index', '/pages/mine/mine'];
 const SAFE_REDIRECT_PAGES = [
@@ -18,6 +19,25 @@ const SAFE_REDIRECT_PAGES = [
   '/pages/activity-statistics/activity-statistics',
   '/pages/user-list/user-list',
 ];
+
+function extractDomainFromUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  const matched = url.match(/^https?:\/\/[^/]+/i);
+  return matched ? matched[0] : '';
+}
+
+function buildDomainListHint(rawMessage) {
+  const message = String(rawMessage || '');
+  if (!message.includes('url not in domain list')) {
+    return '';
+  }
+
+  const runtimeBaseUrl = api.baseUrl || '';
+  const runtimeDomain = extractDomainFromUrl(runtimeBaseUrl);
+  return `当前体验版请求域名：${runtimeDomain || runtimeBaseUrl || '未知'}，请确认它已加入小程序后台 request 合法域名并已发布生效`;
+}
 
 Page({
   data: {
@@ -207,8 +227,15 @@ Page({
   },
 
   handleLoginError(err) {
-    const msg = err && err.message ? err.message : String(err);
+    const msg = normalizeRuntimeErrorMessage(err, '登录失败，请稍后重试');
+    const domainHint = buildDomainListHint(msg);
     this.setData({ error: msg, submitting: false });
+    if (domainHint) {
+      wx.showToast({ title: '请检查域名配置', icon: 'none', duration: 2200 });
+      setTimeout(() => {
+        this.setData({ error: `${msg}。${domainHint}` });
+      }, 80);
+    }
   },
 
   wechatLogin() {

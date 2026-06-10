@@ -4,6 +4,30 @@ const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
 const { formatParticipantActivities } = require('../../utils/mine-data');
 const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
+const { syncTabBarSelected } = require('../../utils/tab-bar');
+
+function getJoinedLabel(profile) {
+  if (!profile || !profile.create_time) {
+    return '';
+  }
+  const createdAt = new Date(profile.create_time);
+  if (!Number.isNaN(createdAt.getTime())) {
+    return `Joined ${createdAt.getFullYear()}`;
+  }
+  return '';
+}
+
+function buildSummaryCards(items = []) {
+  const totalCount = Array.isArray(items) ? items.length : 0;
+  const waitingCount = items.filter((item) => item && item.enroll_status === 2).length;
+  const pendingCount = items.filter((item) => item && item.payment_status === 1).length;
+
+  return [
+    { value: totalCount, label: '参与探索' },
+    { value: waitingCount, label: '笔记与分享' },
+    { value: pendingCount, label: '成长时长 (h)' },
+  ];
+}
 
 Page({
   data: {
@@ -12,18 +36,30 @@ Page({
     adminProfile: null,
     loading: true,
     myActivities: [],
+    summaryCards: [],
+    joinedLabel: '',
+    userName: '',
+    avatarDisplayUrl: '',
   },
 
   onLoad(options) {
     tenant.applyPageOptions(options);
+    this._loadVersion = 0;
     this.checkAuth();
   },
 
   onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 1 });
-    }
+    syncTabBarSelected(this);
     this.checkAuth();
+  },
+
+  bumpLoadVersion() {
+    this._loadVersion = (this._loadVersion || 0) + 1;
+    return this._loadVersion;
+  },
+
+  isCurrentLoad(loadVersion) {
+    return this._loadVersion === loadVersion;
   },
 
   resetPageState(overrides = {}) {
@@ -33,76 +69,109 @@ Page({
       adminProfile: null,
       loading: true,
       myActivities: [],
+      summaryCards: [],
+      joinedLabel: '',
       userName: '',
       avatarDisplayUrl: '',
       ...overrides,
     });
   },
 
-  checkAuth() {
+  async checkAuth() {
+    const loadVersion = this.bumpLoadVersion();
+
     if (auth.isAdmin()) {
-      this.resetPageState({ view: 'admin', loading: true });
-      const profileTask = api.getUserProfile();
-      const snapshotTask = api.getAuthSnapshot().catch(() => null);
-      Promise.all([profileTask, snapshotTask])
-        .then(async ([profile, snapshot]) => {
-          if (snapshot) {
-            auth.updateAdminMeta(snapshot);
-          }
-          const avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
-          this.setData({
-            view: 'admin',
-            profile,
-            userName: profile?.name || auth.getUserName() || '',
-            avatarDisplayUrl,
-            loading: false,
-            adminProfile: this.buildAdminProfile(),
-          });
-        })
-        .catch(() => {
-          this.setData({
-            view: 'admin',
-            profile: null,
-            userName: auth.getUserName() || '',
-            avatarDisplayUrl: '',
-            loading: false,
-            adminProfile: this.buildAdminProfile(),
-          });
+      this.resetPageState({ view: 'admin', loading: true, summaryCards: [] });
+      try {
+        const profileTask = api.getUserProfile();
+        const snapshotTask = api.getAuthSnapshot().catch(() => null);
+        const [profile, snapshot] = await Promise.all([profileTask, snapshotTask]);
+        if (!this.isCurrentLoad(loadVersion)) return;
+
+        if (snapshot) {
+          auth.updateAdminMeta(snapshot);
+        }
+
+        let avatarDisplayUrl = '';
+        try {
+          avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
+        } catch (avatarErr) {
+          avatarDisplayUrl = '';
+        }
+
+        this.setData({
+          view: 'admin',
+          profile,
+          userName: profile?.name || auth.getUserName() || '',
+          avatarDisplayUrl,
+          joinedLabel: getJoinedLabel(profile),
+          loading: false,
+          adminProfile: this.buildAdminProfile(),
         });
+      } catch (err) {
+        if (!this.isCurrentLoad(loadVersion)) return;
+        this.setData({
+          view: 'admin',
+          profile: null,
+          userName: auth.getUserName() || '',
+          avatarDisplayUrl: '',
+          joinedLabel: '',
+          loading: false,
+          adminProfile: this.buildAdminProfile(),
+        });
+        wx.showToast({ title: '管理员资料加载失败', icon: 'none' });
+      }
       return;
     }
+
     if (auth.isUser()) {
       this.resetPageState({
         view: 'user',
         loading: true,
         userName: auth.getUserName() || '',
       });
-      api.getUserProfile()
-        .then(async (profile) => {
-          const avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
-          this.setData({
-            view: 'user',
-            profile,
-            userName: auth.getUserName(),
-            avatarDisplayUrl,
-            adminProfile: null,
-            myActivities: [],
-            loading: false,
-          });
-        })
-        .catch(() => {
-          this.setData({
-            view: 'user',
-            profile: null,
-            userName: auth.getUserName(),
-            avatarDisplayUrl: '',
-            adminProfile: null,
-            myActivities: [],
-            loading: false,
-          });
-        });
+
+      let profile = null;
+      let avatarDisplayUrl = '';
+      let participantItems = [];
+      let displayActivities = [];
+
+      try {
+        profile = await api.getUserProfile();
+      } catch (err) {
+        wx.showToast({ title: '个人资料加载失败', icon: 'none' });
+      }
+
+      try {
+        const activitiesRes = await api.getMyParticipantActivities();
+        participantItems = Array.isArray(activitiesRes && activitiesRes.items) ? activitiesRes.items : [];
+        displayActivities = await this.buildMyActivities(participantItems);
+      } catch (err) {
+        wx.showToast({ title: '报名数据加载失败', icon: 'none' });
+      }
+
+      try {
+        avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
+      } catch (avatarErr) {
+        avatarDisplayUrl = '';
+      }
+
+      if (!this.isCurrentLoad(loadVersion)) return;
+
+      this.setData({
+        view: 'user',
+        profile,
+        userName: profile?.name || auth.getUserName() || '',
+        avatarDisplayUrl,
+        adminProfile: null,
+        myActivities: displayActivities,
+        summaryCards: buildSummaryCards(participantItems),
+        joinedLabel: getJoinedLabel(profile),
+        loading: false,
+      });
       return;
     }
+
     this.resetPageState({ loading: false });
     // 未登录直接跳转登录页
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
@@ -139,10 +208,23 @@ Page({
   },
 
   logout() {
-    auth.logout();
-    this.resetPageState({ loading: false });
-    wx.showToast({ title: '已退出', icon: 'none' });
-    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
+    wx.showModal({
+      title: '确认退出',
+      content: '退出后将返回登录页，是否继续？',
+      confirmText: '退出',
+      cancelText: '取消',
+      success: (res) => {
+        if (!res || !res.confirm) return;
+        this.bumpLoadVersion();
+        auth.logout();
+        this.resetPageState({ loading: false, summaryCards: [] });
+        wx.showToast({ title: '已退出', icon: 'none' });
+        wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
+      },
+      fail: () => {
+        wx.showToast({ title: '无法弹出确认框，请稍后重试', icon: 'none' });
+      },
+    });
   },
 
   goCreateActivity() {
@@ -194,5 +276,9 @@ Page({
       return;
     }
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/user-list/user-list') });
+  },
+
+  goCommunityModeration() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/community-moderation/community-moderation') });
   },
 });

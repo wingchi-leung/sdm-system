@@ -1,3 +1,7 @@
 {
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom",
   "navigationBarTitleText": "动态详情"
 }

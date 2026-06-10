@@ -1,118 +1,92 @@
-<view class="page">
-  <!-- 搜索栏 -->
-  <view class="search-section">
-    <view class="search-main">
+<view class="page" style="--status-bar-height: {{statusBarHeight}}px;">
+  <view class="content">
+    <page-header title="{{pageTitle}}" statusBarHeight="{{statusBarHeight}}" bindback="onBack">
+      <view slot="actions" class="top-pill" bindtap="onPageMenu" aria-label="更多操作">
+        <view class="top-pill-left">
+          <text class="pill-dots">···</text>
+        </view>
+        <view class="top-pill-divider"></view>
+        <view class="top-pill-right">
+          <view class="pill-circle">
+            <view class="pill-circle-inner"></view>
+          </view>
+        </view>
+      </view>
+    </page-header>
+
+    <view class="hero">
+      <text class="hero-label">成员总数</text>
+      <text class="hero-count">{{total}}</text>
+    </view>
+
+    <view class="search-box">
+      <text class="search-icon">⌕</text>
       <input
         class="search-input"
-        placeholder="搜索姓名或手机号"
+        placeholder="搜索成员"
         value="{{keyword}}"
         bindinput="onSearchInput"
         bindconfirm="onSearch"
+        confirm-type="search"
       />
     </view>
-    <view class="search-actions">
-      <text class="search-btn" bindtap="onSearch">搜索</text>
-      <text wx:if="{{keyword}}" class="clear-btn" bindtap="onClearSearch">清除</text>
+
+    <view wx:if="{{selectionMode}}" class="picker-hint">
+      <text class="picker-hint-text">{{selectionHint}}</text>
+      <text class="picker-hint-count">已选 {{selectedCount}} 人</text>
     </view>
-  </view>
 
-  <!-- 统计 -->
-  <view class="toolbar">
-    <view class="stats-header">
-      <text class="stats-label">用户总数</text>
-      <text class="stats-count">{{total}}</text>
+    <view wx:if="{{loading && users.length === 0}}" class="state-wrap">
+      <view class="loading"></view>
+      <text class="state-text">加载成员中…</text>
     </view>
-    <view class="mode-switch">
-      <text
-        class="mode-btn {{viewMode === 'list' ? 'active' : ''}}"
-        data-mode="list"
-        bindtap="onChangeViewMode"
-      >列表</text>
-      <text
-        class="mode-btn {{viewMode === 'detail' ? 'active' : ''}}"
-        data-mode="detail"
-        bindtap="onChangeViewMode"
-      >详情</text>
+
+    <view wx:elif="{{error && users.length === 0}}" class="state-wrap empty">
+      <text class="state-title">暂时无法查看成员</text>
+      <text class="state-text">{{error}}</text>
     </view>
-  </view>
 
-  <!-- 加载中 -->
-  <view wx:if="{{loading && users.length === 0}}" class="state-wrap">
-    <view class="loading"></view>
-  </view>
+    <view wx:elif="{{users.length === 0}}" class="state-wrap empty">
+      <text class="state-title">{{emptyTitle}}</text>
+      <text class="state-text">{{emptyDescription}}</text>
+    </view>
 
-  <!-- 空状态 -->
-  <view wx:elif="{{users.length === 0}}" class="state-wrap empty">
-    <text class="state-title">{{keyword ? '未找到匹配用户' : '暂无用户数据'}}</text>
-  </view>
+    <view wx:else class="list">
+      <view
+        wx:for="{{users}}"
+        wx:key="id"
+        class="user-item {{selectionMode ? 'picker-item' : ''}}"
+        data-user="{{item}}"
+        bindtap="onUserTap"
+      >
+        <view class="user-main">
+          <view wx:if="{{selectionMode}}" class="picker-check {{item.isSelected ? 'is-selected' : ''}}">
+            <text class="picker-check-text">{{item.isSelected ? '✓' : ''}}</text>
+          </view>
+          <view class="user-left">
+            <view class="user-title-row">
+              <text class="user-name">{{item.displayName}}</text>
+              <text class="user-badge {{item.badgeClass}}">{{item.badgeText}}</text>
+            </view>
+            <text class="user-meta">{{item.contactText}}</text>
+          </view>
 
-  <!-- 用户列表 -->
-  <view wx:else class="list">
-    <view wx:for="{{users}}" wx:key="id" class="user-item">
-      <view class="user-main">
-        <view class="user-left">
-          <view class="user-header">
-            <text class="user-name">{{item.name || '未设置姓名'}}</text>
-          </view>
-          <view wx:if="{{viewMode === 'detail'}}" class="user-info">
-            <view class="info-row">
-              <text class="info-label">手机号</text>
-              <text class="info-value">{{item.phone || '-'}}</text>
-            </view>
-            <view class="info-row">
-              <text class="info-label">邮箱</text>
-              <text class="info-value">{{item.email || '-'}}</text>
-            </view>
-            <view class="info-row">
-              <text class="info-label">性别</text>
-              <text class="info-value">{{item.sex === 'M' ? '男' : item.sex === 'F' ? '女' : '-'}}</text>
-            </view>
-            <view class="info-row">
-              <text class="info-label">年龄</text>
-              <text class="info-value">{{item.age || '-'}}</text>
-            </view>
-            <view class="info-row">
-              <text class="info-label">职业</text>
-              <text class="info-value">{{item.occupation || '-'}}</text>
-            </view>
-            <view class="info-row">
-              <text class="info-label">行业</text>
-              <text class="info-value">{{item.industry || '-'}}</text>
-            </view>
-            <view class="info-row">
-              <text class="info-label">注册时间</text>
-              <text class="info-value">{{item.create_time}}</text>
-            </view>
-            <view wx:if="{{item.isblock === 1 && item.block_reason}}" class="info-row">
-              <text class="info-label">拉黑原因</text>
-              <text class="info-value block-reason">{{item.block_reason}}</text>
-            </view>
-          </view>
-          <view wx:else class="user-info compact-info">
-            <text class="compact-text">{{item.phone || '-'}}</text>
-            <text class="compact-dot">·</text>
-            <text class="compact-text">{{item.email || '未填写邮箱'}}</text>
-          </view>
-        </view>
-
-        <view class="user-right">
-          <view class="user-status {{item.isblock === 1 ? 'blocked' : ''}}">
-            <text class="user-status-text">{{item.isblock === 1 ? '已拉黑' : '正常'}}</text>
-          </view>
-          <view class="user-actions">
-            <text wx:if="{{item.isblock === 0}}" class="action-btn block-btn" bindtap="onBlockUser" data-user="{{item}}">拉黑</text>
-            <text wx:else class="action-btn unblock-btn" bindtap="onUnblockUser" data-user="{{item}}">解除拉黑</text>
+          <view wx:if="{{!selectionMode}}" class="user-more" data-user="{{item}}" catchtap="onUserMore">
+            <text class="user-more-text">···</text>
           </view>
         </view>
       </view>
     </view>
+  </view>
 
-    <!-- 加载更多 -->
-    <view wx:if="{{hasMore}}" class="load-more">
-      <text>{{loading ? '加载中...' : '上拉加载更多'}}</text>
-    </view>
-    <view wx:if="{{!hasMore && users.length > 0}}" class="no-more">
-      <text>— 没有更多了 —</text>
+  <view wx:if="{{selectionMode}}" class="bottom-action">
+    <view class="invite-btn" bindtap="onInviteMembers">
+      <view class="invite-icon">
+        <view class="invite-icon-head"></view>
+        <view class="invite-icon-body"></view>
+        <text class="invite-icon-plus">＋</text>
+      </view>
+      <text class="invite-text">{{selectedCount > 0 ? confirmText : '请选择成员'}}</text>
     </view>
   </view>
 </view>

@@ -1,4 +1,7 @@
 {
-  "usingComponents": {},
-  "navigationBarTitleText": "活动详情"
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationBarTitleText": "活动详情",
+  "navigationStyle": "custom"
 }

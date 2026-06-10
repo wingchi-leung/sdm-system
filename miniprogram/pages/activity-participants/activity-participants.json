@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "报名人员"
+  "navigationBarTitleText": "报名人员",
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom"
 }

@@ -1,4 +1,7 @@
 {
   "navigationBarTitleText": "签到记录",
-  "usingComponents": {}
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom"
 }

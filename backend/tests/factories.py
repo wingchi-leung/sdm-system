@@ -180,8 +180,11 @@ class ParticipantFactory(SQLAlchemyModelFactory):
     tenant_id = 1
     user_id = None
     participant_name = factory.LazyAttribute(lambda _: fake.name())
-    phone = factory.Sequence(lambda n: f"139{n:08d}")
-    identity_number = factory.LazyAttribute(lambda _: fake.ssn()[:18])
+    enroll_status = 1
+    payment_status = 0
+    why_join = factory.LazyAttribute(lambda _: fake.sentence(nb_words=3))
+    channel = factory.LazyAttribute(lambda _: fake.word())
+    expectation = factory.LazyAttribute(lambda _: fake.sentence(nb_words=4))
 
 
 class CheckInFactory(SQLAlchemyModelFactory):

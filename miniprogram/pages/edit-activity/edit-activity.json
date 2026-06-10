@@ -1,3 +1,7 @@
 {
-  "navigationBarTitleText": "编辑活动"
+  "navigationBarTitleText": "编辑活动",
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom"
 }

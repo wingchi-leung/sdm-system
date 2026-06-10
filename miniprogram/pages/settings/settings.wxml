@@ -1,4 +1,5 @@
 <view class="page">
+  <page-header title="设置"></page-header>
   <view class="group">
     <view class="item" bindtap="goProfileEdit">
       <text class="item-icon">✎</text>
@@ -20,4 +21,3 @@
     </view>
   </view>
 </view>
-

@@ -1,4 +1,5 @@
 <view class="page">
+  <page-header title="报名人员"></page-header>
   <!-- 统计 -->
   <view class="header">
     <text class="total-label">报名人数</text>

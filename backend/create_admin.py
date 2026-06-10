@@ -1,13 +1,12 @@
-@'
 from app.database import SessionLocal
 from app.schemas import User, Tenant
 from app.crud import crud_credential, crud_rbac
 
-USERNAME = "wechatadmin"      # 改成你想要的用户名
-PASSWORD = "sdm@1234561"      # 改成你想要的密码
+USERNAME = "wechatadmin"
+PASSWORD = "sdm@1234561"
 TENANT_CODE = "default"
 NAME = "超级管理员"
-PHONE = "13900000001"             # 换成未占用手机号
+PHONE = "13900000001"
 
 db = SessionLocal()
 try:
@@ -21,8 +20,6 @@ try:
             tenant_id=tenant.id,
             name=NAME,
             phone=PHONE,
-            identity_type="中国大陆居民身份证",
-            identity_number="110101199001011234",
             sex="M",
         )
         db.add(user)
@@ -37,7 +34,6 @@ try:
         must_reset=False,
     )
 
-    # 角色1 = 超级管理员，scope_type=None 表示全局权限
     try:
         crud_rbac.assign_user_role(
             db=db,
@@ -55,4 +51,5 @@ try:
     print(f"OK: 已创建/更新超级管理员 username={USERNAME}, tenant_code={TENANT_CODE}")
 finally:
     db.close()
-'@ | python -
+EOF
+

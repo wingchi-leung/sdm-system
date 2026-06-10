@@ -5,15 +5,11 @@
   </view>
 
   <view wx:elif="{{activity}}" class="shell">
-    <view class="top-bar">
-      <view class="nav-btn" bindtap="goBack">
-        <text class="nav-icon">‹</text>
-      </view>
-      <view class="nav-spacer"></view>
-      <view class="nav-btn nav-btn-more" bindtap="onMoreTap">
+    <page-header title="报名问卷" statusBarHeight="{{statusBarHeight}}" bindback="goBack">
+      <view slot="actions" class="nav-btn nav-btn-more" bindtap="onMoreTap">
         <text class="nav-icon">···</text>
       </view>
-    </view>
+    </page-header>
 
     <view class="hero">
       <text class="hero-title">加入本次探索</text>
@@ -35,31 +31,31 @@
       <view class="profile-grid">
         <view class="profile-item">
           <text class="profile-name">姓名</text>
-          <text class="profile-value">{{name || '未设置'}}</text>
+          <text class="profile-value">{{name || ''}}</text>
         </view>
         <view class="profile-item">
           <text class="profile-name">性别</text>
-          <text class="profile-value">{{sex || '未设置'}}</text>
+          <text class="profile-value">{{sex || ''}}</text>
         </view>
         <view class="profile-item">
           <text class="profile-name">年龄</text>
-          <text class="profile-value">{{age || '未设置'}}</text>
+          <text class="profile-value">{{age || ''}}</text>
         </view>
         <view class="profile-item">
           <text class="profile-name">职业</text>
-          <text class="profile-value">{{occupation || '未设置'}}</text>
+          <text class="profile-value">{{occupation || ''}}</text>
         </view>
         <view class="profile-item">
           <text class="profile-name">电话</text>
-          <text class="profile-value">{{phone || '未设置'}}</text>
+          <text class="profile-value">{{phone || ''}}</text>
         </view>
         <view class="profile-item">
           <text class="profile-name">邮箱</text>
-          <text class="profile-value">{{email || '未设置'}}</text>
+          <text class="profile-value">{{email || ''}}</text>
         </view>
         <view class="profile-item">
           <text class="profile-name">行业</text>
-          <text class="profile-value">{{industry || '未设置'}}</text>
+          <text class="profile-value">{{industry || ''}}</text>
         </view>
       </view>
     </view>

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, field_serializer
 from datetime import datetime
-from typing import Optional, List
+from typing import Literal, Optional, List
 
 from app.core.pii import mask_name
 
@@ -24,6 +24,8 @@ class ParticipantCreate(ParticipantBase):
 
 class ParticipantResponse(ParticipantBase):
     id: int
+    review_status: Optional[int] = Field(None, description="审核状态：0-待审核 1-通过 2-拒绝")
+    review_reason: Optional[str] = Field(None, description="审核拒绝原因")
     payment_status: Optional[int] = Field(None, description="支付状态：0-无需支付 1-待支付 2-已支付")
     payment_order_id: Optional[int] = Field(None, description="支付订单ID")
     paid_amount: Optional[int] = Field(None, description="实际支付金额（分）")
@@ -64,3 +66,8 @@ class ParticipantActivitySummary(BaseModel):
 class ParticipantActivityListResponse(BaseModel):
     items: List[ParticipantActivitySummary]
     total: int
+
+
+class ParticipantReviewRequest(BaseModel):
+    action: Literal["approve", "reject"]
+    reason: Optional[str] = Field(None, max_length=255)

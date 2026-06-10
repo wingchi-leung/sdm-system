@@ -62,3 +62,18 @@ class PaymentCallbackData(BaseModel):
     success_time: Optional[str] = None
     amount: dict
     payer: dict
+
+
+class RefundCreateRequest(BaseModel):
+    reason: str = Field(..., min_length=1, max_length=255)
+
+
+class RefundDetailResponse(BaseModel):
+    order_no: str
+    refund_status: int
+    refund_amount: int
+    refund_apply_by: Optional[int] = None
+    refund_apply_at: Optional[datetime] = None
+    refund_success_at: Optional[datetime] = None
+    refund_fail_reason: Optional[str] = None
+    out_refund_no: Optional[str] = None

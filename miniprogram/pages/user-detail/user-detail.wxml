@@ -1,0 +1,69 @@
+<view class="page" style="--status-bar-height: {{statusBarHeight}}px;">
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap error">
+    <view class="state-icon">!</view>
+    <text class="state-title">加载失败</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:elif="{{user}}" class="content">
+    <page-header title="用户详情" statusBarHeight="{{statusBarHeight}}" bindback="onBack">
+      <view slot="actions" class="nav-btn nav-btn-right" bindtap="onMore" aria-label="更多">
+        <text class="nav-icon more">···</text>
+      </view>
+    </page-header>
+
+    <view class="hero-card">
+      <view class="avatar-shell">
+        <text class="avatar-text">{{user.shortName}}</text>
+      </view>
+      <view class="hero-copy">
+        <view class="hero-title-row">
+          <text class="hero-name">{{user.displayName}}</text>
+          <text class="status-pill {{user.statusClass}}">{{user.statusText}}</text>
+        </view>
+        <text class="hero-subtitle">{{user.phoneText}}</text>
+      </view>
+    </view>
+
+    <view class="summary-grid">
+      <view class="summary-item" wx:for="{{user.infoRows}}" wx:key="label">
+        <text class="summary-label">{{item.label}}</text>
+        <text class="summary-value">{{item.value}}</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">基础信息</text>
+      <view class="info-card">
+        <view class="info-row" wx:for="{{user.profileRows}}" wx:key="label">
+          <text class="info-label">{{item.label}}</text>
+          <text class="info-value">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <text class="section-title">管理信息</text>
+      <view class="info-card">
+        <view class="info-row" wx:for="{{user.auditRows}}" wx:key="label">
+          <text class="info-label">{{item.label}}</text>
+          <text class="info-value {{item.label === '拉黑原因' && user.isBlocked ? 'is-warning' : ''}}">{{item.value}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="action-section">
+      <view wx:if="{{user.isBlocked}}" class="primary-btn ghost" bindtap="toggleBlockStatus" data-should-block="false">
+        <text>解除拉黑</text>
+      </view>
+      <view wx:else class="primary-btn danger" bindtap="toggleBlockStatus" data-should-block="true">
+        <text>拉黑用户</text>
+      </view>
+    </view>
+  </view>
+</view>

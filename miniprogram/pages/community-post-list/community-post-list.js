@@ -23,11 +23,13 @@ Page({
     channelId: null,
     channelName: '',
     channelRole: 'member',
+    channelMemberCount: 0,
     posts: [],
     loading: true,
     loadingMore: false,
     error: null,
     showCreateButton: true,
+    showManageButton: false,
     hasMorePosts: false,
     total: 0,
     skip: 0,
@@ -36,7 +38,23 @@ Page({
   resolvePageState() {
     this.setData({
       showCreateButton: auth.isUser() || auth.isAdmin(),
+      showManageButton: this.data.channelRole === 'admin',
     });
+  },
+
+  async loadChannelDetail() {
+    if (!this.data.channelId) return;
+    try {
+      const detail = await api.getCommunityChannelDetail(this.data.channelId);
+      this.setData({
+        channelName: detail.name || this.data.channelName,
+        channelRole: detail.role || this.data.channelRole,
+        channelMemberCount: Number(detail.member_count || 0),
+      });
+      this.resolvePageState();
+    } catch (err) {
+      wx.showToast({ title: err.message || '加载频道信息失败', icon: 'none' });
+    }
   },
 
   onLoad(options) {
@@ -52,12 +70,14 @@ Page({
       channelRole: decodeDisplayText(options.channelRole || 'member'),
     });
     this.resolvePageState();
+    this.loadChannelDetail();
     this.loadPosts({ reset: true });
   },
 
   onShow() {
     if (this.data.channelId) {
       this.resolvePageState();
+      this.loadChannelDetail();
       this.loadPosts({ reset: true });
     }
   },
@@ -302,6 +322,20 @@ Page({
   onCreatePost() {
     wx.navigateTo({
       url: tenant.appendTenantToUrl('/pages/community-post-create/community-post-create', {
+        channelId: this.data.channelId,
+        channelName: this.data.channelName,
+        channelRole: this.data.channelRole,
+      }),
+    });
+  },
+
+  onManageMembers() {
+    if (!this.data.showManageButton) {
+      wx.showToast({ title: '仅频道管理员可管理成员', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-channel-manage/community-channel-manage', {
         channelId: this.data.channelId,
         channelName: this.data.channelName,
         channelRole: this.data.channelRole,

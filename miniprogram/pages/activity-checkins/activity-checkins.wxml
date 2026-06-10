@@ -1,4 +1,5 @@
 <view class="page">
+  <page-header title="签到记录"></page-header>
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>

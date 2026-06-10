@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
     DESCRIPTION : str  = "SDM signin system"
+    # 运行环境：development / production。控制启动期是否允许通过 SQLAlchemy 补建表（生产禁用）。
+    ENVIRONMENT: str = "development"
     MYSQL_HOST: str
     MYSQL_USER: str
     MYSQL_PASSWORD: str
@@ -43,6 +45,13 @@ class Settings(BaseSettings):
     # 微信小程序：用于 code 换 openid（微信授权登录）
     WECHAT_APPID: Optional[str] = None
     WECHAT_SECRET: Optional[str] = None
+    WECHAT_CONTENT_SECURITY_ENABLED: bool = False
+    WECHAT_MEDIA_CALLBACK_TOKEN: Optional[str] = None
+    WECHAT_SUBSCRIBE_ENABLED: bool = False
+    WECHAT_SUBSCRIBE_REFUND_SUCCESS_TEMPLATE_ID: Optional[str] = None
+    WECHAT_SUBSCRIBE_REFUND_FAILED_TEMPLATE_ID: Optional[str] = None
+    WECHAT_SUBSCRIBE_ACTIVITY_REMIND_TEMPLATE_ID: Optional[str] = None
+    WECHAT_SUBSCRIBE_RETRY_MAX: int = 5
 
     # 微信支付配置
     WECHAT_PAY_MCH_ID: Optional[str] = None           # 商户号

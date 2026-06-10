@@ -6,20 +6,22 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.orm import Session
 from pydantic import ValidationError
 
 from app.api import deps
 from app.core.config import settings
-from app.crud import crud_credential, crud_participant, crud_payment
+from app.crud import crud_credential, crud_notification, crud_participant, crud_payment, crud_refund
 from app.models.participant import ParticipantCreate
 from app.models.payment import (
+    RefundCreateRequest,
+    RefundDetailResponse,
     PaymentOrderCreate,
     PaymentOrderResponse,
     PaymentOrderDetail,
 )
-from app.schemas import Activity, ActivityParticipant, PaymentOrder, User
+from app.schemas import Activity, ActivityParticipant, PaymentOrder, PaymentRefund, User, UserCredential
 from app.services.wechat_pay import get_wechat_pay_service
 
 router = APIRouter()
@@ -256,6 +258,19 @@ def _build_order_response_from_existing_pending(
         actual_fee=order.actual_fee,
         status=order.status,
         payment_params=payment_params,
+    )
+
+
+def _build_refund_detail(order: PaymentOrder, refund: PaymentRefund | None) -> RefundDetailResponse:
+    return RefundDetailResponse(
+        order_no=order.order_no,
+        refund_status=order.refund_status,
+        refund_amount=order.refund_amount,
+        refund_apply_by=order.refund_apply_by,
+        refund_apply_at=order.refund_apply_at,
+        refund_success_at=order.refund_success_at,
+        refund_fail_reason=order.refund_fail_reason,
+        out_refund_no=refund.out_refund_no if refund else None,
     )
 
 
@@ -561,3 +576,221 @@ def query_payment_order(
             participant_enroll_status = participant.enroll_status
 
     return _build_order_detail(order, participant_enroll_status)
+
+
+@router.post("/{order_no}/refund", response_model=RefundDetailResponse)
+def create_refund(
+    order_no: str,
+    payload: RefundCreateRequest,
+    idempotency_key: str = Header(default="", alias="Idempotency-Key"),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    if not idempotency_key.strip():
+        raise HTTPException(status_code=400, detail="缺少 Idempotency-Key")
+
+    order = db.query(PaymentOrder).filter(
+        PaymentOrder.order_no == order_no,
+        PaymentOrder.tenant_id == ctx.tenant_id,
+    ).with_for_update().first()
+    if not order:
+        raise HTTPException(status_code=404, detail="订单不存在")
+    if order.status != crud_payment.PAYMENT_STATUS_SUCCESS:
+        raise HTTPException(status_code=400, detail="当前订单未支付成功，不能退款")
+    if order.refund_status in (
+        crud_payment.REFUND_STATUS_PROCESSING,
+        crud_payment.REFUND_STATUS_SUCCESS,
+        crud_payment.REFUND_STATUS_CLOSED,
+    ):
+        latest = crud_refund.get_latest_by_order(db, tenant_id=ctx.tenant_id, payment_order_id=order.id)
+        return _build_refund_detail(order, latest)
+    if order.refund_status not in (crud_payment.REFUND_STATUS_PENDING, crud_payment.REFUND_STATUS_FAILED):
+        raise HTTPException(status_code=400, detail="当前订单状态不允许发起退款")
+
+    idem_refund = crud_refund.get_by_idempotency_key(
+        db,
+        tenant_id=ctx.tenant_id,
+        payment_order_id=order.id,
+        idempotency_key=idempotency_key.strip(),
+    )
+    if idem_refund:
+        return _build_refund_detail(order, idem_refund)
+
+    latest = crud_refund.get_latest_by_order(db, tenant_id=ctx.tenant_id, payment_order_id=order.id)
+    seq = 1 if latest is None else latest.id + 1
+    out_refund_no = crud_refund.generate_out_refund_no(
+        tenant_id=ctx.tenant_id,
+        payment_order_id=order.id,
+        seq=seq,
+    )
+    refund = crud_refund.create_refund(
+        db,
+        tenant_id=ctx.tenant_id,
+        payment_order_id=order.id,
+        participant_id=order.participant_id,
+        out_refund_no=out_refund_no,
+        amount=order.actual_fee,
+        idempotency_key=idempotency_key.strip(),
+        operator_id=ctx.user_id,
+        reason=payload.reason.strip(),
+        request_raw={"order_no": order_no, "reason": payload.reason},
+    )
+
+    pay_service = get_wechat_pay_service()
+    try:
+        code, wx_resp = pay_service.create_refund(
+            out_trade_no=order.order_no,
+            out_refund_no=refund.out_refund_no,
+            refund_amount=order.actual_fee,
+            total_amount=order.actual_fee,
+            reason=payload.reason.strip(),
+        )
+    except Exception as exc:
+        crud_refund.mark_failed(db, refund, fail_reason=str(exc))
+        order.refund_status = crud_payment.REFUND_STATUS_FAILED
+        order.refund_fail_reason = str(exc)[:255]
+        db.commit()
+        db.refresh(order)
+        db.refresh(refund)
+        raise HTTPException(status_code=500, detail=f"退款申请失败：{exc}")
+
+    if code >= 400:
+        errmsg = (wx_resp or {}).get("message") or (wx_resp or {}).get("errmsg") or "微信退款返回失败"
+        crud_refund.mark_failed(db, refund, fail_reason=errmsg, callback_raw=wx_resp)
+        order.refund_status = crud_payment.REFUND_STATUS_FAILED
+        order.refund_fail_reason = errmsg[:255]
+        db.commit()
+        db.refresh(order)
+        db.refresh(refund)
+        raise HTTPException(status_code=500, detail=f"退款申请失败：{errmsg}")
+
+    crud_refund.mark_processing(db, refund, request_raw=wx_resp)
+    order.refund_status = crud_payment.REFUND_STATUS_PROCESSING
+    order.refund_apply_by = ctx.user_id
+    order.refund_apply_at = datetime.now()
+    order.refund_amount = order.actual_fee
+    order.refund_fail_reason = None
+    db.commit()
+    db.refresh(order)
+    db.refresh(refund)
+    return _build_refund_detail(order, refund)
+
+
+@router.get("/{order_no}/refund", response_model=RefundDetailResponse)
+def get_refund_detail(
+    order_no: str,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    order = db.query(PaymentOrder).filter(
+        PaymentOrder.order_no == order_no,
+        PaymentOrder.tenant_id == ctx.tenant_id,
+    ).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="订单不存在")
+    refund = crud_refund.get_latest_by_order(db, tenant_id=ctx.tenant_id, payment_order_id=order.id)
+    return _build_refund_detail(order, refund)
+
+
+@router.post("/refund/notify")
+async def refund_notify(
+    request: Request,
+    db: Session = Depends(deps.get_db),
+):
+    try:
+        headers = dict(request.headers)
+        body = await request.body()
+        body_str = body.decode("utf-8")
+        pay_service = get_wechat_pay_service()
+        decrypted_data = pay_service.decrypt_callback(headers, body_str)
+        resource = decrypted_data.get("resource", {})
+
+        out_refund_no = resource.get("out_refund_no")
+        if not out_refund_no:
+            return {"code": "FAIL", "message": "缺少退款单号"}
+
+        refund = db.query(PaymentRefund).filter(
+            PaymentRefund.out_refund_no == out_refund_no,
+        ).with_for_update().first()
+        if not refund:
+            return {"code": "FAIL", "message": "退款单不存在"}
+
+        order = db.query(PaymentOrder).filter(
+            PaymentOrder.id == refund.payment_order_id,
+            PaymentOrder.tenant_id == refund.tenant_id,
+        ).with_for_update().first()
+        if not order:
+            return {"code": "FAIL", "message": "订单不存在"}
+
+        if refund.status == crud_refund.REFUND_STATUS_SUCCESS:
+            return {"code": "SUCCESS", "message": "已处理"}
+
+        refund_status = (resource.get("refund_status") or "").upper()
+        if refund_status == "SUCCESS":
+            crud_refund.mark_success(
+                db,
+                refund,
+                callback_raw=resource,
+                wechat_refund_id=resource.get("refund_id"),
+            )
+            order.refund_status = crud_payment.REFUND_STATUS_SUCCESS
+            order.refund_success_at = datetime.now()
+            order.refund_fail_reason = None
+            if order.user_id and settings.WECHAT_SUBSCRIBE_REFUND_SUCCESS_TEMPLATE_ID:
+                credential = db.query(UserCredential).filter(
+                    UserCredential.user_id == order.user_id,
+                    UserCredential.tenant_id == order.tenant_id,
+                    UserCredential.credential_type == "wechat",
+                    UserCredential.status == 1,
+                ).first()
+                if credential:
+                    crud_notification.enqueue_message_task(
+                        db,
+                        tenant_id=order.tenant_id,
+                        scene="refund_success",
+                        biz_id=order.id,
+                        user_id=order.user_id,
+                        openid=credential.identifier,
+                        template_id=settings.WECHAT_SUBSCRIBE_REFUND_SUCCESS_TEMPLATE_ID,
+                        payload={
+                            "thing1": {"value": f"订单{order.order_no}"[:20]},
+                            "amount2": {"value": f"{order.actual_fee / 100:.2f}元"},
+                            "phrase3": {"value": "退款成功"},
+                        },
+                        max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
+                    )
+        else:
+            reason = resource.get("user_received_account") or resource.get("refund_status") or "退款失败"
+            crud_refund.mark_failed(db, refund, fail_reason=reason, callback_raw=resource)
+            order.refund_status = crud_payment.REFUND_STATUS_FAILED
+            order.refund_fail_reason = reason[:255]
+            if order.user_id and settings.WECHAT_SUBSCRIBE_REFUND_FAILED_TEMPLATE_ID:
+                credential = db.query(UserCredential).filter(
+                    UserCredential.user_id == order.user_id,
+                    UserCredential.tenant_id == order.tenant_id,
+                    UserCredential.credential_type == "wechat",
+                    UserCredential.status == 1,
+                ).first()
+                if credential:
+                    crud_notification.enqueue_message_task(
+                        db,
+                        tenant_id=order.tenant_id,
+                        scene="refund_failed",
+                        biz_id=order.id,
+                        user_id=order.user_id,
+                        openid=credential.identifier,
+                        template_id=settings.WECHAT_SUBSCRIBE_REFUND_FAILED_TEMPLATE_ID,
+                        payload={
+                            "thing1": {"value": f"订单{order.order_no}"[:20]},
+                            "amount2": {"value": f"{order.actual_fee / 100:.2f}元"},
+                            "phrase3": {"value": "退款失败"},
+                        },
+                        max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
+                    )
+
+        db.commit()
+        return {"code": "SUCCESS", "message": "成功"}
+    except Exception as exc:
+        logger.exception("退款回调处理失败: %s", exc)
+        db.rollback()
+        return {"code": "FAIL", "message": "处理失败"}

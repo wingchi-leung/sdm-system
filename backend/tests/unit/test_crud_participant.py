@@ -9,7 +9,8 @@ from app.crud.crud_participant import (
     get_activity_participants,
     get_activity_participants_with_count,
     get_activity_statistics,
-    check_participant_exists,
+    get_participant_by_user,
+    has_user_joined_activity,
 )
 from app.models.participant import ParticipantCreate
 from app.schemas import Activity, ActivityParticipant
@@ -28,8 +29,10 @@ class TestParticipantCRUD:
         participant_data = ParticipantCreate(
             activity_id=activity.id,
             participant_name="测试参与者",
-            phone="13800138000",
-            identity_number="110101199001011234",
+            user_id=1001,
+            why_join="想参加",
+            channel="朋友推荐",
+            expectation="学习交流",
         )
 
         participant = create_participant(db_session, participant_data, tenant_id=1)
@@ -45,8 +48,10 @@ class TestParticipantCRUD:
         participant_data = ParticipantCreate(
             activity_id=activity.id,
             participant_name="参与者",
-            phone="13800138001",
-            identity_number="110101199001011235",
+            user_id=1001,
+            why_join="想参加",
+            channel="朋友推荐",
+            expectation="学习交流",
         )
 
         # 第一次报名
@@ -104,27 +109,25 @@ class TestParticipantCRUD:
         assert len(participants) == 10
         assert total == 15
 
-    def test_check_participant_exists(self, db_session: Session):
-        """测试检查参与者是否存在"""
+    def test_get_participant_by_user(self, db_session: Session):
+        """测试按用户查询参与者"""
         activity = ActivityFactory()
         participant = ParticipantFactory(
             activity_id=activity.id,
-            identity_number="110101199001011236"
+            user_id=1001,
         )
         db_session.add(participant)
         db_session.commit()
 
-        # 存在的参与者
-        exists = check_participant_exists(
-            db_session, activity.id, "110101199001011236", tenant_id=1
+        found = get_participant_by_user(
+            db_session,
+            activity_id=activity.id,
+            user_id=1001,
+            tenant_id=1,
         )
-        assert exists is True
-
-        # 不存在的参与者
-        not_exists = check_participant_exists(
-            db_session, activity.id, "999999999999999999", tenant_id=1
-        )
-        assert not_exists is False
+        assert found is not None
+        assert found.activity_id == activity.id
+        assert found.user_id == 1001
 
     def test_get_activity_statistics(self, db_session: Session):
         """测试获取活动统计"""
@@ -148,9 +151,59 @@ class TestParticipantCRUD:
         participant_data = ParticipantCreate(
             activity_id=99999,
             participant_name="测试",
-            phone="13800138002",
-            identity_number="110101199001011237",
+            user_id=1001,
+            why_join="想参加",
+            channel="朋友推荐",
+            expectation="学习交流",
         )
 
         with pytest.raises(Exception):
             create_participant(db_session, participant_data, tenant_id=1)
+
+    def test_has_user_joined_activity_ignores_pending_payment(
+        self,
+        db_session: Session,
+    ):
+        """测试待支付记录不应被视为已报名"""
+        activity = ActivityFactory()
+        db_session.commit()
+
+        pending_participant = ParticipantFactory(
+            activity_id=activity.id,
+            user_id=1001,
+            payment_status=1,
+            enroll_status=1,
+        )
+        paid_participant = ParticipantFactory(
+            activity_id=activity.id,
+            user_id=1002,
+            payment_status=2,
+            enroll_status=1,
+        )
+        free_participant = ParticipantFactory(
+            activity_id=activity.id,
+            user_id=1003,
+            payment_status=0,
+            enroll_status=2,
+        )
+        db_session.add_all([pending_participant, paid_participant, free_participant])
+        db_session.commit()
+
+        assert has_user_joined_activity(
+            db_session,
+            activity_id=activity.id,
+            user_id=1001,
+            tenant_id=1,
+        ) is False
+        assert has_user_joined_activity(
+            db_session,
+            activity_id=activity.id,
+            user_id=1002,
+            tenant_id=1,
+        ) is True
+        assert has_user_joined_activity(
+            db_session,
+            activity_id=activity.id,
+            user_id=1003,
+            tenant_id=1,
+        ) is True

@@ -17,6 +17,7 @@ function loadMinePage({
   global.wx = {
     navigateTo() {},
     showToast() {},
+    showModal() {},
     ...wxMock,
   };
 
@@ -68,6 +69,10 @@ function createPageInstance(config, initialData = {}) {
   return instance;
 }
 
+function flushTimers() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
 test('普通用户进入我的页面时会先清空管理员残留视图', async () => {
   let resolveProfile;
   let participantActivitiesCalls = 0;
@@ -113,12 +118,70 @@ test('普通用户进入我的页面时会先清空管理员残留视图', async
   assert.equal(page.data.adminProfile, null);
   assert.equal(page.data.userName, '普通用户');
   assert.deepEqual(page.data.myActivities, []);
+  assert.deepEqual(page.data.summaryCards, []);
 
-  resolveProfile({ avatar_url: 'avatar-source' });
-  await Promise.resolve();
-  await Promise.resolve();
+  resolveProfile({ avatar_url: 'avatar-source', create_time: '2025-02-01T10:00:00.000Z' });
+  await flushTimers();
+  await flushTimers();
 
-  assert.equal(participantActivitiesCalls, 0);
+  assert.equal(participantActivitiesCalls, 1);
+  assert.equal(page.data.loading, false);
+  assert.equal(page.data.joinedLabel, 'Joined 2025');
+  assert.deepEqual(page.data.summaryCards, [
+    { value: 0, label: '参与探索' },
+    { value: 0, label: '笔记与分享' },
+    { value: 0, label: '成长时长 (h)' },
+  ]);
+});
+
+test('我的页会根据报名数据展示统计卡片', async () => {
+  let resolveProfile;
+  const profilePromise = new Promise((resolve) => {
+    resolveProfile = resolve;
+  });
+
+  const pageConfig = loadMinePage({
+    api: {
+      getUserProfile: () => profilePromise,
+      getMyParticipantActivities: () => Promise.resolve({
+        items: [
+          { id: 1, enroll_status: 1, payment_status: 0 },
+          { id: 2, enroll_status: 2, payment_status: 0 },
+          { id: 3, enroll_status: 1, payment_status: 1 },
+        ],
+      }),
+    },
+    auth: {
+      isAdmin: () => false,
+      isUser: () => true,
+      getUserName: () => '普通用户',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    tenant: {
+      appendTenantToUrl: (url) => url,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => 'avatar://user',
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+
+  page.checkAuth();
+  resolveProfile({ avatar_url: 'avatar-source', create_time: '2024-05-08T10:00:00.000Z' });
+
+  await flushTimers();
+  await flushTimers();
+
+  assert.deepEqual(page.data.summaryCards, [
+    { value: 3, label: '参与探索' },
+    { value: 1, label: '笔记与分享' },
+    { value: 1, label: '成长时长 (h)' },
+  ]);
+  assert.equal(page.data.joinedLabel, 'Joined 2024');
+  assert.equal(page.data.avatarDisplayUrl, 'avatar://user');
 });
 
 test('退出登录时会立即清空我的页面数据', () => {
@@ -126,6 +189,7 @@ test('退出登录时会立即清空我的页面数据', () => {
     logout: 0,
     navigateTo: 0,
     showToast: 0,
+    showModal: 0,
   };
 
   const pageConfig = loadMinePage({
@@ -138,6 +202,10 @@ test('退出登录时会立即清空我的页面数据', () => {
       appendTenantToUrl: (url) => url,
     },
     wxMock: {
+      showModal(options) {
+        calls.showModal += 1;
+        options.success({ confirm: true, cancel: false });
+      },
       navigateTo() {
         calls.navigateTo += 1;
       },
@@ -161,12 +229,15 @@ test('退出登录时会立即清空我的页面数据', () => {
   assert.equal(calls.logout, 1);
   assert.equal(calls.navigateTo, 1);
   assert.equal(calls.showToast, 1);
+  assert.equal(calls.showModal, 1);
   assert.equal(page.data.view, 'user');
   assert.equal(page.data.loading, false);
   assert.equal(page.data.adminProfile, null);
   assert.equal(page.data.userName, '');
   assert.equal(page.data.avatarDisplayUrl, '');
   assert.deepEqual(page.data.myActivities, []);
+  assert.deepEqual(page.data.summaryCards, []);
+  assert.equal(page.data.joinedLabel, '');
 });
 
 test('我的页可以跳转到设置和协议说明', () => {

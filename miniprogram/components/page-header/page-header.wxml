@@ -1,0 +1,16 @@
+<view class="page-header">
+  <view wx:if="{{resolvedStatusBarHeight}}" class="page-header__spacer" style="height: {{resolvedStatusBarHeight}}px;"></view>
+  <view class="page-header__bar">
+    <view class="page-header__left">
+      <view wx:if="{{showBack}}" class="page-header__back" hover-class="page-header__back--active" bindtap="onBackTap">
+        <text class="page-header__back-icon">‹</text>
+      </view>
+    </view>
+
+    <text wx:if="{{title}}" class="page-header__title">{{title}}</text>
+
+    <view class="page-header__right">
+      <slot name="actions" />
+    </view>
+  </view>
+</view>

@@ -88,7 +88,7 @@
 
 | 规格项 | 描述 | 状态 | 说明 |
 |--------|------|------|------|
-| 社区频道 | 小程序支持频道列表、频道发帖、频道详情、评论与通知 | ⚠️ 部分实现 | 已完成按设计稿纠偏的发帖页与单列帖子流；Web/Flutter 端待补 |
+| 社区频道 | 小程序支持频道列表、频道发帖、频道详情、成员管理、删除频道、评论与通知 | ⚠️ 部分实现 | 已完成按设计稿纠偏的发帖页与单列帖子流，并补齐频道成员管理页与删除频道入口；频道删除会级联清理帖子、评论和成员数据；Web/Flutter 端待补 |
 | 角色：老师/学生 | 平台存在老师、学生两种角色 | ❌ 未实现 | 需单独设计 |
 | 老师发布学习视频 | 老师可创建教导活动，发布学习视频 | ❌ 未实现 | 需内容模型 |
 | 学生跟练与打卡 | 学生跟练并上传打卡 | ❌ 未实现 | 需打卡内容类型 |
@@ -100,6 +100,7 @@
 | 现代 UI | 参考 Teams、即刻、微信风格 | ⚠️ 部分实现 | 小程序首版视觉已完成 |
 | 首页活动列表改版 | 小程序首页活动列表采用探索页极简留白风格，活动封面统一为正方形卡片，列表信息改为左图右文 | ✅ 已实现 | `miniprogram/pages/index/index.wxml`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/index/index.js` |
 | 活动详情页改版 | 小程序活动详情页采用极简海报式排版，统一主色 `#2A4D87`，增加自定义顶部返回/更多、主题标题、大图卡片、信息分栏与底部文字式报名入口 | ✅ 已实现 | `miniprogram/pages/activity-detail/activity-detail.wxml`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `miniprogram/pages/activity-detail/activity-detail.js` |
+| 活动发布页改版 | 小程序发布活动页采用单列极简表单，补齐自定义顶部栏、开始/结束时间选择、公开活动、报名限额、支付设置、地点与介绍区块 | ✅ 已实现 | `miniprogram/pages/create-activity/create-activity.wxml`, `miniprogram/pages/create-activity/create-activity.wxss`, `miniprogram/pages/create-activity/create-activity.js`, `miniprogram/pages/create-activity/create-activity.json` |
 | 我的页重设计 | 小程序“我的”页采用白底极简平铺样式，恢复顶部“我的”标题、铃铛入口、头像信息区、三栏统计和极简服务列表 | ✅ 已实现 | `miniprogram/pages/mine/mine.wxml`, `miniprogram/pages/mine/mine.wxss`, `miniprogram/pages/mine/mine.js`, `miniprogram/pages/mine/mine.json` |
 | 用户头像 | 普通用户可选择默认头像或上传自定义 | ✅ 已实现 | 4 个默认头像 + 自定义上传 |
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
@@ -123,11 +124,14 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
-| 2026-06-10 | 社区频道管理员发帖规则收口：管理员发布动态完全免审，文本与图片都不进入审核队列，帖子直接以 `status=1` 展示；补充管理员免审回归测试 | `docs/specs/社区频道-Phase2-实施spec.md`, `backend/app/api/v1/endpoints/community.py`, `backend/tests/api/test_community_channels.py` |
-| 2026-06-10 | 社区频道按设计稿纠偏：社区发帖页重做为编辑器式发布页，补齐自定义头部、图片上传插入、清空确认和编辑器快照同步，频道动态列表回退为单列信息流，后端补充 `content_format`、作者头像和评论预览字段 | `docs/specs/社区频道-Phase2-实施spec.md`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/community-post-list/*`, `backend/app/crud/crud_community_channel.py`, `backend/app/models/community.py`, `backend/app/schemas.py`, `backend/sql/table.sql` |
+| 2026-06-10 | 小程序频道管理页新增删除频道入口，后端提供 `DELETE /community/channels/{id}`，删除频道时级联清理帖子、评论、成员、邀请通知与审核任务 | `backend/app/api/v1/endpoints/community.py`, `backend/app/crud/crud_community_channel.py`, `backend/tests/api/test_community_channels.py`, `miniprogram/pages/community-channel-manage/*`, `miniprogram/utils/api.js` |
+| 2026-06-10 | 小程序内页自定义顶部栏收口：抽出统一 `page-header` 组件，活动详情、发布活动、报名页、发帖页、用户详情与用户列表统一返回箭头样式与标题布局 | `docs/specs/SPEC-03_小程序-UI重构.md`, `miniprogram/components/page-header/*`, `miniprogram/pages/activity-detail/*`, `miniprogram/pages/create-activity/*`, `miniprogram/pages/register/*`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/user-detail/*`, `miniprogram/pages/user-list/*` |
+| 2026-06-10 | 小程序发布活动页按设计稿重做为单列极简表单：补齐自定义顶部栏、时间选择、公开活动、报名限额、支付设置、地点与介绍区块，视觉与活动详情/我的页统一 | `docs/specs/SPEC-03_小程序-UI重构.md`, `miniprogram/pages/create-activity/*` |
+| 2026-06-10 | 社区频道管理员发帖规则收口：管理员发布动态完全免审，文本与图片都不进入审核队列，帖子直接以 `status=1` 展示；补充管理员免审回归测试 | `docs/specs/SPEC-07_社区-频道Phase2-UI大改.md`, `backend/app/api/v1/endpoints/community.py`, `backend/tests/api/test_community_channels.py` |
+| 2026-06-10 | 社区频道按设计稿纠偏：社区发帖页重做为编辑器式发布页，补齐自定义头部、图片上传插入、清空确认和编辑器快照同步，频道动态列表回退为单列信息流，后端补充 `content_format`、作者头像和评论预览字段 | `docs/specs/SPEC-07_社区-频道Phase2-UI大改.md`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/community-post-list/*`, `backend/app/crud/crud_community_channel.py`, `backend/app/models/community.py`, `backend/app/schemas.py`, `backend/sql/table.sql` |
 | 2026-06-10 | 小程序“我的”页重设计为白底极简平铺样式：恢复顶部“我的”标题与铃铛入口，保留头像信息区、三栏统计和极简服务列表 | `miniprogram/pages/mine/mine.wxml`, `miniprogram/pages/mine/mine.wxss`, `miniprogram/pages/mine/mine.js`, `miniprogram/pages/mine/mine.json` |
 | 2026-06-09 | 小程序活动详情页改版为海报式极简详情页：顶部自定义返回/更多、蓝色主题锚点、海报卡片、信息分栏、底部文字式报名入口 | `miniprogram/pages/activity-detail/activity-detail.wxml`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `miniprogram/pages/activity-detail/activity-detail.js` |
-| 2026-05-27 | 新增小程序订阅消息通知能力底座：支持订阅授权上报、通知任务入队去重、失败重试（最多5次）、活动开始前30分钟提醒（仅审核通过且已支付/免支付人群）；新增退款结果通知入队接口 | `docs/specs/小程序订阅消息通知-spec.md`, `backend/app/api/v1/endpoints/notifications.py`, `backend/app/tasks/scheduler.py`, `backend/app/services/wechat_subscribe.py` |
+| 2026-05-27 | 新增小程序订阅消息通知能力底座：支持订阅授权上报、通知任务入队去重、失败重试（最多5次）、活动开始前30分钟提醒（仅审核通过且已支付/免支付人群）；新增退款结果通知入队接口 | `docs/specs/SPEC-04_小程序-订阅消息通知.md`, `backend/app/api/v1/endpoints/notifications.py`, `backend/app/tasks/scheduler.py`, `backend/app/services/wechat_subscribe.py` |
 | 2026-06-09 | 小程序首页活动列表改版为探索页风格：增加大标题留白区、顶部极简入口、左图右文列表与正方形活动封面 | `miniprogram/pages/index/index.wxml`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/index/index.js` |
 | 2026-06-07 | 统一付费活动报名语义：待支付记录不再视为已报名，小程序活动详情/我的活动/社区可见性同步区分“待支付”与“已报名” | `backend/app/crud/crud_participant.py`, `backend/tests/api/test_community.py`, `backend/tests/unit/test_crud_participant.py`, `miniprogram/pages/activity-detail/*`, `miniprogram/pages/index/*`, `miniprogram/pages/my-activities/*`, `miniprogram/utils/mine-data.js` |
 | 2026-05-19 | 小程序活动报名页重做字体系统与信息节奏，底部提交改为极简文字入口样式 | `miniprogram/pages/register/register.wxml`, `miniprogram/pages/register/register.wxss` |

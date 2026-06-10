@@ -892,3 +892,144 @@ class TestPaymentScheduler:
         refreshed = db_session.get(PaymentOrder, order.id)
         assert refreshed is not None
         assert refreshed.status == crud_payment.PAYMENT_STATUS_CLOSED
+
+
+@pytest.mark.api
+class TestRefundEndpoints:
+    def test_admin_can_create_refund_with_idempotency(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        activity_admin_token,
+        monkeypatch,
+    ):
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_refund")
+
+        participant = ActivityParticipant(
+            tenant_id=sample_user.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name=sample_user.name,
+            payment_status=2,
+        )
+        db_session.add(participant)
+        db_session.commit()
+        db_session.refresh(participant)
+
+        order = crud_payment.create_payment_order(
+            db=db_session,
+            order_no="SDMREFUND001",
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_id=participant.id,
+            openid="wx_openid_refund",
+            suggested_fee=1000,
+            actual_fee=1000,
+            prepay_id="prepay_refund",
+            tenant_id=sample_user.tenant_id,
+            status=crud_payment.PAYMENT_STATUS_SUCCESS,
+        )
+        order.refund_status = crud_payment.REFUND_STATUS_PENDING
+        db_session.commit()
+
+        class FakePayService:
+            def create_refund(self, **kwargs):
+                return 200, {"status": "PROCESSING"}
+
+        monkeypatch.setattr("app.api.v1.endpoints.payments.get_wechat_pay_service", lambda: FakePayService())
+
+        headers = auth_headers(activity_admin_token)
+        headers["Idempotency-Key"] = "idem-refund-001"
+        response = client.post(
+            f"/api/v1/payments/{order.order_no}/refund",
+            headers=headers,
+            json={"reason": "审核拒绝退款"},
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["refund_status"] == crud_payment.REFUND_STATUS_PROCESSING
+
+        replay = client.post(
+            f"/api/v1/payments/{order.order_no}/refund",
+            headers=headers,
+            json={"reason": "审核拒绝退款"},
+        )
+        assert replay.status_code == status.HTTP_200_OK
+        assert replay.json()["refund_status"] == crud_payment.REFUND_STATUS_PROCESSING
+
+    def test_refund_notify_updates_order_success(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        monkeypatch,
+    ):
+        from app.schemas import PaymentRefund
+
+        sample_activity.require_payment = 1
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_refund_notify")
+        participant = ActivityParticipant(
+            tenant_id=sample_user.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name=sample_user.name,
+            payment_status=2,
+        )
+        db_session.add(participant)
+        db_session.commit()
+        db_session.refresh(participant)
+
+        order = crud_payment.create_payment_order(
+            db=db_session,
+            order_no="SDMREFUNDNOTIFY001",
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_id=participant.id,
+            openid="wx_openid_refund_notify",
+            suggested_fee=1000,
+            actual_fee=1000,
+            prepay_id="prepay_refund_notify",
+            tenant_id=sample_user.tenant_id,
+            status=crud_payment.PAYMENT_STATUS_SUCCESS,
+        )
+        order.refund_status = crud_payment.REFUND_STATUS_PROCESSING
+        db_session.add(
+            PaymentRefund(
+                tenant_id=sample_user.tenant_id,
+                payment_order_id=order.id,
+                participant_id=participant.id,
+                out_refund_no="RF11001",
+                amount=1000,
+                status="processing",
+                idempotency_key="idem-refund-notify",
+                operator_id=sample_user.id,
+                reason="测试退款",
+            )
+        )
+        db_session.commit()
+
+        class FakePayService:
+            def decrypt_callback(self, headers, body):
+                return {
+                    "resource": {
+                        "out_refund_no": "RF11001",
+                        "refund_status": "SUCCESS",
+                        "refund_id": "wx_refund_001",
+                    }
+                }
+
+        monkeypatch.setattr("app.api.v1.endpoints.payments.get_wechat_pay_service", lambda: FakePayService())
+
+        notify_resp = client.post(
+            "/api/v1/payments/refund/notify",
+            content=b"{}",
+            headers={"Content-Type": "application/json"},
+        )
+        assert notify_resp.status_code == status.HTTP_200_OK
+        assert notify_resp.json()["code"] == "SUCCESS"
+        db_session.refresh(order)
+        assert order.refund_status == crud_payment.REFUND_STATUS_SUCCESS

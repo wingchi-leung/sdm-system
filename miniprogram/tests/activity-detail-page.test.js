@@ -145,6 +145,9 @@ test('活动管理员在可报名活动中可以看到报名入口', async () =>
           activity_type_code: 'SALON',
         });
       },
+      getActivityPermissions() {
+        return Promise.resolve({ can_manage: true });
+      },
     },
     auth: {
       isLoggedIn: () => true,
@@ -166,4 +169,111 @@ test('活动管理员在可报名活动中可以看到报名入口', async () =>
 
   assert.equal(page.data.canEnroll, true);
   assert.equal(page.data.actionTipText, '');
+});
+
+test('待支付报名在活动详情页会显示待支付并隐藏社区入口', async () => {
+  const calls = {
+    navigateTo: 0,
+  };
+  const pageConfig = loadActivityDetailPage({
+    api: {
+      getActivity() {
+        return Promise.resolve({
+          id: 12,
+          status: 1,
+          activity_type_id: 3,
+          activity_type_name: '沙龙',
+          activity_type_code: 'SALON',
+        });
+      },
+      getActivityPermissions() {
+        return Promise.resolve({ can_manage: false });
+      },
+      getMyParticipantActivities() {
+        return Promise.resolve({
+          items: [
+            {
+              id: 12,
+              enroll_status: 1,
+              payment_status: 1,
+            },
+          ],
+        });
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isAdmin: () => false,
+      isUser: () => true,
+      isSuperAdmin: () => false,
+      canManageActivityType: () => false,
+    },
+    image: {
+      resolveDisplayUrl(url) {
+        return Promise.resolve(url);
+      },
+    },
+    wxMock: {
+      navigateTo() {
+        calls.navigateTo += 1;
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig, { activityId: 12 });
+
+  page.loadActivity(12);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(page.data.hasRegistered, false);
+  assert.equal(page.data.hasPendingPayment, true);
+  assert.equal(page.data.registrationStatusText, '待支付');
+  assert.equal(page.data.canEnroll, false);
+  assert.equal(page.data.actionTipText, '待支付，请前往我的订单继续完成支付');
+  assert.equal(page.data.showCommunitySection, false);
+});
+
+test('活动详情页新版视图模型会补全标题摘要和信息区', async () => {
+  const pageConfig = loadActivityDetailPage({
+    api: {
+      getActivity() {
+        return Promise.resolve({
+          id: 12,
+          status: 2,
+          activity_name: '未来设计',
+          activity_type_name: '主题探索',
+          activity_intro: '重新理解人与技术的关系\n我们将一起思考设计的边界。',
+          start_time: '2026-06-12T19:30:00',
+          end_time: '2026-06-12T21:00:00',
+          location: '上海 · 徐汇滨江',
+          max_participants: 20,
+        });
+      },
+      getActivityPermissions() {
+        return Promise.resolve({ can_manage: false });
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isAdmin: () => false,
+      isUser: () => false,
+      isSuperAdmin: () => false,
+      canManageActivityType: () => false,
+    },
+    image: {
+      resolveDisplayUrl(url) {
+        return Promise.resolve(url);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig, { activityId: 12 });
+
+  page.loadActivity(12);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(page.data.activity.hero_kicker, '主题探索');
+  assert.equal(page.data.activity.hero_summary, '重新理解人与技术的关系');
+  assert.equal(page.data.activity.detail_paragraphs.length, 2);
+  assert.equal(page.data.activity.info_rows[0].value, '06.12 周五 19:30 - 21:00');
+  assert.equal(page.data.activity.info_rows[1].value, '上海 · 徐汇滨江');
+  assert.equal(page.data.activity.info_rows[2].value, '线下参与 ｜ 限定 20 人');
 });

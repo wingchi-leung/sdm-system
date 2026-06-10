@@ -1,8 +1,10 @@
 .page {
   min-height: 100vh;
-  padding: 32rpx;
-  background: #FFFFFF;
+  padding: 24rpx 32rpx;
+  background: #ffffff;
   box-sizing: border-box;
+  color: #111111;
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
 .state-wrap {
@@ -15,7 +17,7 @@
 }
 
 .state-title {
-  color: var(--ink);
+  color: #111111;
   font-size: 32rpx;
   line-height: 44rpx;
   font-weight: 500;
@@ -35,10 +37,10 @@
 }
 
 .preview-card {
-  padding: 40rpx 24rpx 32rpx;
-  background: linear-gradient(180deg, #f7faf8 0%, #ffffff 100%);
-  border: 1rpx solid #E8EEEA;
-  border-radius: 32rpx;
+  padding: 32rpx 24rpx 28rpx;
+  background: #ffffff;
+  border: 1rpx solid var(--border-light);
+  border-radius: 28rpx;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,8 +50,8 @@
   width: 228rpx;
   height: 228rpx;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.96), rgba(233, 241, 236, 0.92));
-  border: 1rpx solid #E6EEE9;
+  background: #f7f7f5;
+  border: 1rpx solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,19 +62,18 @@
   height: 188rpx;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.10);
 }
 
 .preview-avatar {
   width: 100%;
   height: 100%;
-  background: #F7F7F7;
+  background: #f7f7f7;
 }
 
 .section-title {
   display: block;
   margin-bottom: 16rpx;
-  color: var(--ink);
+  color: #111111;
   font-size: 28rpx;
   line-height: 40rpx;
   font-weight: 500;
@@ -86,22 +87,21 @@
 
 .avatar-option {
   padding: 10rpx;
-  border: 2rpx solid #ECECEC;
+  border: 1rpx solid var(--border-light);
   border-radius: 999rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  background: #ffffff;
+  transition: transform 0.2s ease, border-color 0.2s ease;
 }
 
 .avatar-option.active {
-  border-color: #000000;
-  box-shadow: 0 0 0 6rpx rgba(0, 0, 0, 0.08);
+  border-color: #111111;
 }
 
 .avatar-option:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 .avatar-image {
@@ -112,13 +112,13 @@
 
 .upload-card {
   padding: 22rpx 24rpx;
-  border: 1rpx solid #ECECEC;
+  border: 1rpx solid var(--border-light);
   border-radius: 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16rpx;
-  background: #FFFFFF;
+  background: #ffffff;
 }
 
 .upload-copy {
@@ -128,7 +128,7 @@
 
 .upload-title {
   display: block;
-  color: var(--ink);
+  color: #111111;
   font-size: 26rpx;
   line-height: 38rpx;
   font-weight: 500;
@@ -146,7 +146,7 @@
 .save-btn {
   border: 0;
   border-radius: 999rpx;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 28rpx;
   overflow: hidden;
 }
@@ -159,9 +159,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
-  border: 1rpx solid #D7E2DC;
-  box-shadow: none;
+  background: #111111;
 }
 
 .upload-btn::after,
@@ -180,21 +178,16 @@
   font-size: 24rpx;
   line-height: 1;
   font-weight: 500;
-  letter-spacing: 0.03em;
-}
-
-.upload-btn-label {
-  color: #000000;
 }
 
 .error-box {
-  padding: 20rpx 24rpx;
+  padding: 16rpx 18rpx;
   border-radius: 16rpx;
-  background: #FEF3F2;
+  background: var(--error-bg);
 }
 
 .error-text {
-  color: #B42318;
+  color: var(--error);
   font-size: 24rpx;
   line-height: 34rpx;
 }
@@ -208,9 +201,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
-  border: 1rpx solid #29453D;
-  box-shadow: 0 10rpx 24rpx rgba(0, 0, 0, 0.12);
+  background: #111111;
 }
 
 .save-btn[disabled] {

@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom",
+  "navigationBarTitleText": "内容审核",
+  "enablePullDownRefresh": true
+}

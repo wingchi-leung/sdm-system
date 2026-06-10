@@ -1,70 +1,81 @@
 .page {
   min-height: 100vh;
-  padding: 24rpx;
+  padding: 24rpx 32rpx;
   box-sizing: border-box;
-  background: var(--background);
+  background: #ffffff;
+  color: #111111;
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
 .form-card {
-  background: #fff;
-  border: 1px solid var(--border-light);
-  border-radius: 24rpx;
-  padding: 24rpx;
+  background: transparent;
 }
 
 .field {
-  margin-bottom: 22rpx;
+  margin-bottom: 24rpx;
 }
 
 .field-label {
   display: block;
   margin-bottom: 12rpx;
-  color: var(--text-secondary);
+  color: #666666;
   font-size: 24rpx;
+  line-height: 34rpx;
 }
 
 .input {
   width: 100%;
-  height: 84rpx;
-  padding: 0 22rpx;
+  height: 88rpx;
+  padding: 0 24rpx;
   box-sizing: border-box;
-  border-radius: 14rpx;
-  border: 1px solid var(--border);
-  background: #fff;
+  border-radius: 20rpx;
+  border: 1rpx solid rgba(17, 17, 17, 0.08);
+  background: #ffffff;
   font-size: 28rpx;
+  color: #111111;
+}
+
+.input-placeholder {
+  color: #bbbbbb;
 }
 
 .picker-row {
-  height: 84rpx;
-  border: 1px solid var(--border);
-  border-radius: 14rpx;
-  padding: 0 22rpx;
+  height: 88rpx;
+  border: 1rpx solid rgba(17, 17, 17, 0.08);
+  border-radius: 20rpx;
+  padding: 0 24rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: #ffffff;
+  box-sizing: border-box;
 }
 
 .row-arrow {
-  color: var(--text-tertiary);
+  color: #999999;
 }
 
 .error-box {
   margin-bottom: 16rpx;
-  padding: 12rpx 16rpx;
-  border-radius: 12rpx;
+  padding: 16rpx 18rpx;
+  border-radius: 16rpx;
   background: var(--error-bg);
 }
 
 .error-text {
   color: var(--error);
   font-size: 24rpx;
+  line-height: 34rpx;
 }
 
 .save-btn {
   margin-top: 8rpx;
-  background: var(--primary);
-  color: #fff;
-  border-radius: 999rpx;
+  width: 100%;
+  height: 88rpx;
+  background: #111111;
+  color: #ffffff;
+  border-radius: 16rpx;
+  border: none;
 }
 
 .save-btn::after {

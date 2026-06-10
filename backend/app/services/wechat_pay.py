@@ -179,6 +179,33 @@ class WeChatPayService:
         result = json.loads(response_text) if response_text else {}
         return code, result
 
+    def create_refund(
+        self,
+        *,
+        out_trade_no: str,
+        out_refund_no: str,
+        refund_amount: int,
+        total_amount: int,
+        reason: str,
+        notify_url: str | None = None,
+    ) -> tuple[int, dict[str, Any]]:
+        """申请微信退款。"""
+        if hasattr(self._client, "refund"):
+            code, response_text = self._client.refund(
+                out_trade_no=out_trade_no,
+                out_refund_no=out_refund_no,
+                amount={
+                    "refund": refund_amount,
+                    "total": total_amount,
+                    "currency": "CNY",
+                },
+                reason=reason,
+                notify_url=notify_url or settings.WECHAT_PAY_NOTIFY_URL or "",
+            )
+            result = json.loads(response_text) if response_text else {}
+            return code, result
+        raise NotImplementedError("当前微信支付SDK未提供 refund 方法，请升级SDK或补充实现")
+
     def decrypt_callback(
         self,
         headers: dict[str, str],

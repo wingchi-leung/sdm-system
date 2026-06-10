@@ -6,7 +6,9 @@ from app.core.security import hash_password
 from app.services.wechat_content_security import ContentSecurityResult
 from app.schemas import (
     CommunityChannel,
+    CommunityChannelComment,
     CommunityChannelMember,
+    CommunityChannelPost,
     CommunityMediaModerationTask,
     CommunityNotification,
     User,
@@ -489,3 +491,63 @@ class TestCommunityChannels:
             CommunityMediaModerationTask.item_id == data["id"],
         ).all()
         assert tasks == []
+
+    def test_admin_can_delete_channel_and_related_posts_comments(self, client, db_session, super_admin_token):
+        create_resp = client.post(
+            "/api/v1/community/channels",
+            headers=auth_headers(super_admin_token),
+            json={"name": "待删除频道"},
+        )
+        assert create_resp.status_code == status.HTTP_200_OK
+        channel_id = create_resp.json()["id"]
+
+        post_resp = client.post(
+            f"/api/v1/community/channels/{channel_id}/posts",
+            headers=auth_headers(super_admin_token),
+            json={"title": "待删除动态", "content": "<p>删除测试</p>", "content_format": "html", "images": []},
+        )
+        assert post_resp.status_code == status.HTTP_200_OK
+        post_id = post_resp.json()["id"]
+
+        comment_resp = client.post(
+            f"/api/v1/community/channels/{channel_id}/posts/{post_id}/comments",
+            headers=auth_headers(super_admin_token),
+            json={"content": "待删除评论", "images": []},
+        )
+        assert comment_resp.status_code == status.HTTP_200_OK
+
+        member_count_before = db_session.query(CommunityChannelMember).filter(
+            CommunityChannelMember.channel_id == channel_id
+        ).count()
+        post_count_before = db_session.query(CommunityChannelPost).filter(
+            CommunityChannelPost.channel_id == channel_id
+        ).count()
+        comment_count_before = db_session.query(CommunityChannelComment).filter(
+            CommunityChannelComment.channel_id == channel_id
+        ).count()
+        assert member_count_before >= 1
+        assert post_count_before == 1
+        assert comment_count_before == 1
+
+        delete_resp = client.delete(
+            f"/api/v1/community/channels/{channel_id}",
+            headers=auth_headers(super_admin_token),
+        )
+        assert delete_resp.status_code == status.HTTP_200_OK
+        assert delete_resp.json()["success"] is True
+        assert delete_resp.json()["deleted_posts"] == 1
+        assert delete_resp.json()["deleted_comments"] == 1
+
+        channel_row = db_session.query(CommunityChannel).filter(
+            CommunityChannel.id == channel_id
+        ).first()
+        assert channel_row is None
+        assert db_session.query(CommunityChannelMember).filter(
+            CommunityChannelMember.channel_id == channel_id
+        ).count() == 0
+        assert db_session.query(CommunityChannelPost).filter(
+            CommunityChannelPost.channel_id == channel_id
+        ).count() == 0
+        assert db_session.query(CommunityChannelComment).filter(
+            CommunityChannelComment.channel_id == channel_id
+        ).count() == 0

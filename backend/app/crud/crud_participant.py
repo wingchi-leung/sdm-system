@@ -218,9 +218,14 @@ def has_user_joined_activity(
     user_id: int,
     tenant_id: int,
 ) -> bool:
-    """判断用户是否已报名指定活动（含候补）。"""
+    """判断用户是否已完成报名。
+
+    待支付记录不视为已报名，避免未付款用户误入“已报名/可评论/可签到”状态。
+    """
     participant = get_participant_by_user(db, activity_id, user_id, tenant_id)
-    return participant is not None and participant.enroll_status in (1, 2)
+    if participant is None:
+        return False
+    return participant.enroll_status in (1, 2) and participant.payment_status in (0, 2)
 
 
 def get_user_participant_activities(

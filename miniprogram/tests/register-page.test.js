@@ -360,3 +360,56 @@ test('报名页不会恢复其他活动的待支付订单', () => {
   assert.equal(page.data.recoverPendingPayment, false);
   assert.equal(page.data.paymentOrderNo, '');
 });
+
+test('报名页会自动清理已关闭的待支付订单', async () => {
+  const calls = {
+    removeStorageSync: [],
+  };
+  const pageConfig = loadRegisterPage({
+    api: {
+      queryPaymentOrder() {
+        return Promise.resolve({
+          activity_id: 12,
+          status: 3,
+        });
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isSuperAdmin: () => false,
+      getUserId: () => 1001,
+    },
+    tenant: {
+      applyPageOptions() {},
+      getTenantCode: () => 'demo',
+    },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'pending-order-key',
+      buildOrderHistoryStorageKey: () => 'history-order-key',
+      upsertOrderRecord: (current) => current,
+    },
+    wxMock: {
+      getStorageSync() {
+        return {
+          activityId: 12,
+          orderNo: 'ORDER-CLOSED-1',
+        };
+      },
+      removeStorageSync(key) {
+        calls.removeStorageSync.push(key);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+  page.setData({
+    activityId: 12,
+    paymentOrderNo: 'ORDER-CLOSED-1',
+    recoverPendingPayment: true,
+  });
+
+  await page.refreshPendingPaymentStatus(12);
+
+  assert.equal(page.data.recoverPendingPayment, false);
+  assert.equal(page.data.paymentOrderNo, '');
+  assert.equal(calls.removeStorageSync.length, 1);
+});

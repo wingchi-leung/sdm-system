@@ -1,7 +1,7 @@
 <view class="page">
+  <page-header title="完善信息"></page-header>
   <!-- 头部 -->
   <view class="header">
-    <text class="header-title">完善信息</text>
     <text class="header-subtitle">首次登录需要绑定以下信息</text>
   </view>
 

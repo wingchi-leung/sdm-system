@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.api import deps
 from app.core.config import settings
-from app.core.pii import mask_name, mask_phone
+from app.core.pii import mask_phone
 from app.crud import crud_credential, crud_user, crud_tenant, crud_rbac
 from app.core.security import create_access_token, BCRYPT_MAX_BYTES
 from app.models.auth import (
@@ -75,7 +75,7 @@ def _clear_auth_cookie(response: Response, request: Request) -> None:
 def _masked_user_info(db_user: User) -> UserInfo:
     return UserInfo(
         id=db_user.id,
-        name=mask_name(db_user.name),
+        name=db_user.name,
         phone=mask_phone(db_user.phone),
     )
 

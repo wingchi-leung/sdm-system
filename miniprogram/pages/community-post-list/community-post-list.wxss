@@ -1,12 +1,13 @@
 .page {
   min-height: 100vh;
-  background: #FFFFFF;
-  padding: 24rpx 32rpx 48rpx;
+  padding: 28rpx 36rpx 72rpx;
+  box-sizing: border-box;
+  background: #ffffff;
 }
 
 .state-wrap,
 .empty-box {
-  min-height: 50vh;
+  min-height: 56vh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -15,227 +16,332 @@
 }
 
 .state-title,
-.empty-title,
-.page-title {
-  color: var(--ink);
+.empty-title {
+  color: #101828;
   font-size: 38rpx;
   line-height: 1.35;
   font-weight: 500;
 }
 
 .state-text,
-.empty-text,
-.page-subtitle,
-.post-meta,
-.post-comments,
-.page-caption {
-  color: var(--text-soft);
-  font-size: 24rpx;
-  line-height: 1.6;
-}
-
-.page-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24rpx;
-  margin-bottom: 32rpx;
-}
-
-.page-head-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.page-caption {
-  display: block;
-  margin-bottom: 8rpx;
-  letter-spacing: 0.12em;
-}
-
-.page-subtitle {
-  display: block;
-  margin-top: 10rpx;
+.empty-text {
+  margin-top: 14rpx;
+  color: #667085;
   font-size: 25rpx;
   line-height: 1.7;
 }
 
-.create-btn {
-  min-width: 176rpx;
-  height: 72rpx;
-  margin: 0;
-  border: 0;
-  border-radius: 16rpx;
-  background: #000000;
-  color: #FFFFFF;
-  font-size: 24rpx;
-  line-height: 72rpx;
-}
-
-.create-btn::after {
-  border: 0;
-}
-
-.post-list {
+.page-head {
   display: flex;
-  flex-direction: column;
-  gap: 24rpx;
-}
-
-.post-card {
-  overflow: hidden;
-  border: 1px solid var(--form-border);
-  border-radius: 24rpx;
-  background: #FFFFFF;
-  box-shadow: var(--form-shadow);
-}
-
-.post-card:active {
-  opacity: 0.86;
-}
-
-.post-body {
-  padding: 24rpx 24rpx 28rpx;
-}
-
-.post-meta-row {
-  display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16rpx;
 }
 
-.post-title {
+.head-actions {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  flex-shrink: 0;
+}
+
+.page-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.page-channel {
   display: block;
-  margin-top: 14rpx;
-  color: var(--ink);
-  font-size: 32rpx;
-  line-height: 1.45;
+  color: #2f6fe8;
+  font-size: 28rpx;
+  line-height: 1.5;
   font-weight: 500;
 }
 
-.post-summary {
-  display: -webkit-box;
-  margin-top: 16rpx;
-  color: var(--ink);
-  font-size: 25rpx;
-  line-height: 1.9;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-}
-
-.post-inline-image {
-  width: 100%;
-  height: 260rpx;
-  margin-top: 16rpx;
-  border-radius: 16rpx;
-}
-
-.post-comments,
-.post-link {
+.page-title {
   display: block;
-  margin-top: 16rpx;
+  margin-top: 10rpx;
+  color: #101828;
+  font-size: 62rpx;
+  line-height: 1.14;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
-.post-comments {
+.create-btn {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #101828;
+  font-size: 68rpx;
+  line-height: 1;
+  font-weight: 300;
+}
+
+.manage-btn {
+  min-width: 128rpx;
+  height: 72rpx;
+  padding: 0 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: #f2f4f7;
+}
+
+.manage-btn-text {
+  color: #101828;
+  font-size: 24rpx;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.head-accent {
+  width: 66rpx;
+  height: 6rpx;
+  margin: 28rpx 0 18rpx;
+  border-radius: 999rpx;
+  background: #2f6fe8;
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.feed-thread {
+  padding: 22rpx 0 34rpx;
+  border-bottom: 2rpx solid #eaecf0;
+}
+
+.feed-thread + .feed-thread {
+  margin-top: 6rpx;
+}
+
+.feed-author-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.avatar,
+.comment-avatar {
   flex-shrink: 0;
-  text-align: right;
+  border-radius: 50%;
+  background: #f2f4f7;
 }
 
-.post-link {
-  color: var(--link);
+.avatar {
+  width: 54rpx;
+  height: 54rpx;
+}
+
+.author-meta {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
+.author-name {
+  color: #101828;
+  font-size: 24rpx;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.author-date {
+  color: #98a2b3;
+  font-size: 22rpx;
+  line-height: 1.5;
+}
+
+.feed-title {
+  display: block;
+  margin-top: 22rpx;
+  color: #101828;
+  font-size: 48rpx;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.feed-summary {
+  display: block;
+  margin-top: 14rpx;
+  color: #1d2939;
+  font-size: 28rpx;
+  line-height: 1.85;
+}
+
+.feed-content-expanded {
+  margin-top: 14rpx;
+}
+
+.feed-html {
+  color: #1d2939;
+  font-size: 28rpx;
+  line-height: 1.85;
+}
+
+.feed-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 14rpx;
+}
+
+.feed-cover-wrap {
+  position: relative;
+  margin-top: 22rpx;
+  overflow: hidden;
+  border-radius: 18rpx;
+}
+
+.feed-cover {
+  width: 100%;
+  height: 246rpx;
+  display: block;
+  background: #eef2f6;
+}
+
+.feed-cover-badge {
+  position: absolute;
+  right: 18rpx;
+  bottom: 18rpx;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(15, 23, 42, 0.72);
+  color: #ffffff;
+  font-size: 22rpx;
+  line-height: 1.2;
+}
+
+.feed-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
+  margin-top: 10rpx;
+}
+
+.feed-inline-image {
+  width: 100%;
+  height: 180rpx;
+  border-radius: 14rpx;
+  background: #f2f4f7;
+}
+
+.feed-actions {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-top: 18rpx;
+}
+
+.action-link {
+  color: #2f6fe8;
   font-size: 24rpx;
   line-height: 1.6;
 }
 
-/* ===== Phase 2 批次 3: 2 列瀑布流 ===== */
-.waterfall {
-  display: flex;
-  flex-direction: row;
-  gap: var(--space-sm);
-  padding: 0 var(--space-md);
-  align-items: flex-start; /* 两列独立高度,矮列向上对齐 */
+.feed-footnote {
+  margin-top: 10rpx;
 }
 
-.waterfall-col {
-  flex: 1 1 0;
+.feed-time {
+  display: block;
+  color: #98a2b3;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.comment-preview-list {
+  margin-top: 10rpx;
+}
+
+.comment-preview {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
+  gap: 18rpx;
+  align-items: flex-start;
+  padding: 22rpx 0 18rpx;
+  border-top: 2rpx solid #f2f4f7;
+}
+
+.comment-avatar {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.comment-main {
+  flex: 1;
   min-width: 0;
 }
 
-.waterfall-col .post-card {
-  margin: 0; /* 瀑布流用 gap,去掉卡片自身 margin */
-  width: 100%;
-}
-
-.waterfall-col .post-cover {
-  width: 100%;
-  background: var(--background);
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  position: relative;
-}
-
-.waterfall-col .post-cover-image {
-  width: 100%;
+.comment-user {
   display: block;
-}
-
-.waterfall-col .post-cover-count {
-  position: absolute;
-  right: 12rpx;
-  bottom: 12rpx;
-  padding: 4rpx 12rpx;
-  background: rgba(17, 17, 17, 0.55);
-  color: #ffffff;
-  font-size: 20rpx;
-  border-radius: var(--radius-md);
-}
-
-.waterfall-col .post-body {
-  padding: 0 8rpx;
-}
-
-.waterfall-col .post-title {
-  display: block;
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin: 16rpx 0 8rpx;
-  line-height: 1.4;
-}
-
-.waterfall-col .post-summary {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-  font-size: 26rpx;
-  color: var(--text-secondary);
+  color: #101828;
+  font-size: 24rpx;
   line-height: 1.5;
-  margin-bottom: 12rpx;
-  word-break: break-all;
+  font-weight: 500;
 }
 
-.waterfall-col .post-meta-row {
+.comment-content {
+  display: block;
+  margin-top: 6rpx;
+  color: #1d2939;
+  font-size: 28rpx;
+  line-height: 1.7;
+}
+
+.comment-image-grid {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 8rpx 16rpx;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
 }
 
-.waterfall-col .post-meta {
+.comment-image {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 14rpx;
+  background: #f2f4f7;
+}
+
+.comment-time {
+  display: block;
+  margin-top: 8rpx;
+  color: #98a2b3;
   font-size: 22rpx;
-  color: var(--text-tertiary);
+  line-height: 1.5;
 }
 
-.waterfall-col .post-comments {
+.comment-mark {
+  flex-shrink: 0;
+  padding-top: 8rpx;
+  color: #667085;
   font-size: 22rpx;
-  color: var(--text-tertiary);
+  line-height: 1.6;
 }
 
+.comment-empty-line {
+  margin-top: 10rpx;
+  padding-top: 18rpx;
+  border-top: 2rpx solid #f2f4f7;
+}
 
+.comment-empty-text {
+  color: #98a2b3;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.comment-loadmore,
+.post-loadmore {
+  padding-top: 20rpx;
+}
+
+.post-loadmore {
+  display: flex;
+  justify-content: center;
+}

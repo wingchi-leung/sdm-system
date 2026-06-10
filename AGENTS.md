@@ -51,7 +51,11 @@ SDM System是一个包含后端，web前端，flutter，小程序的一个管理
 
 ## 任务执行
 - 任务执行过程不必确认，每完成一阶段任务自动 commit 并继续下一个任务
-- 完成重大调整和改动后，写到`产品规格说明-spec`文档，保证此文档的说明和工程的真实实现符合
+- 完成重大调整和改动后，写到`docs/specs/SPEC-01_产品总规格.md`文档，保证此文档的说明和工程的真实实现符合
+- 数据库表结构变更必须同步更新 `backend/sql/table.sql`
+- table.sql 如果已经有建表语句时， 变更的sql不要改已经create table了的表结构，要做update或者alter 
+- 禁止再通过 `backend/app/db_migrations.py` 补新增字段
+
 
 ## 权限模块强制规则（必须遵守）
 

@@ -1,4 +1,8 @@
 {
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom",
   "navigationBarTitleText": "完善信息",
   "navigationBarBackgroundColor": "#FAFAF8",
   "navigationBarTextStyle": "black"

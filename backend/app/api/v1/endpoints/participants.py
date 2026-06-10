@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from pydantic import ValidationError
 
-from app.crud import crud_participant, crud_user
+from app.crud import crud_participant, crud_payment, crud_user
 from app.models import participant
 from app.api import deps
-from app.schemas import Activity
+from app.schemas import Activity, ActivityParticipant, PaymentOrder
 
 router = APIRouter()
 
@@ -145,3 +145,46 @@ def get_my_participant_activities(
         activity_id=activity_id,
     )
     return {"items": items, "total": total}
+
+
+@router.post("/{participant_id}/review", response_model=participant.ParticipantResponse)
+def review_participant(
+    participant_id: int,
+    payload: participant.ParticipantReviewRequest,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    """管理员审核报名记录。"""
+    record = db.query(ActivityParticipant).filter(
+        ActivityParticipant.id == participant_id,
+        ActivityParticipant.tenant_id == ctx.tenant_id,
+    ).with_for_update().first()
+    if not record:
+        raise HTTPException(status_code=404, detail="报名记录不存在")
+
+    if payload.action == "reject" and not (payload.reason and payload.reason.strip()):
+        raise HTTPException(status_code=400, detail="审核拒绝时必须填写原因")
+
+    if payload.action == "approve":
+        record.review_status = 1
+        record.review_reason = None
+    else:
+        record.review_status = 2
+        record.review_reason = payload.reason.strip()
+        if record.payment_status == 2 and record.payment_order_id:
+            order = db.query(PaymentOrder).filter(
+                PaymentOrder.id == record.payment_order_id,
+                PaymentOrder.tenant_id == ctx.tenant_id,
+            ).with_for_update().first()
+            if order and order.status == crud_payment.PAYMENT_STATUS_SUCCESS:
+                order.refund_status = crud_payment.REFUND_STATUS_PENDING
+                order.refund_apply_by = ctx.user_id
+                order.refund_apply_at = datetime.now()
+                order.refund_amount = order.actual_fee
+                order.refund_fail_reason = None
+
+    record.reviewed_by = ctx.user_id
+    record.reviewed_at = datetime.now()
+    db.commit()
+    db.refresh(record)
+    return record

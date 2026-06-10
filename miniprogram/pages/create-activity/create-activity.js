@@ -9,14 +9,12 @@ function getDefaultTagFromType(activityTypeName) {
   return (activityTypeName || '').trim();
 }
 
-Page({
-  data: {
+function createEditableDefaults() {
+  return {
     activityName: '',
+    activityNameCount: 0,
     activityTypeName: '',
     activityTypeIndex: -1,
-    activityTypeOptions: [],
-    isSuperAdmin: false,
-    isTypeAdmin: false,
     tag: '',
     startDate: '',
     startTime: '',
@@ -24,49 +22,36 @@ Page({
     endTime: '',
     submitting: false,
     error: null,
-    // 支付相关
     requirePayment: true,
     suggestedFeeYuan: '',
     suggestedFee: 0,
-    // 海报和地点
     posterUrl: '',
     posterLocalPath: '',
     location: '',
     uploading: false,
-    // 报名限额
     maxParticipants: '',
-    // 活动介绍
     activityIntro: '',
     introCount: 0,
-    // 公开设置
     isPublic: false,
+  };
+}
+
+Page({
+  data: {
+    ...createEditableDefaults(),
+    activityTypeOptions: [],
+    isSuperAdmin: false,
+    isTypeAdmin: false,
+    statusBarHeight: 0,
   },
 
   resetFormState() {
     this.setData({
-      activityName: '',
-      activityTypeName: '',
-      activityTypeIndex: -1,
+      ...createEditableDefaults(),
       activityTypeOptions: [],
       isSuperAdmin: false,
       isTypeAdmin: false,
-      tag: '',
-      startDate: '',
-      startTime: '',
-      endDate: '',
-      endTime: '',
-      submitting: false,
       error: null,
-      suggestedFeeYuan: '',
-      suggestedFee: 0,
-      posterUrl: '',
-      posterLocalPath: '',
-      location: '',
-      uploading: false,
-      maxParticipants: '',
-      activityIntro: '',
-      introCount: 0,
-      isPublic: false,
     });
   },
 
@@ -82,6 +67,10 @@ Page({
     this.tagTouched = false;
     tenant.applyPageOptions(options);
     if (!this.ensureAdminAccess()) return;
+    const systemInfo = typeof wx.getSystemInfoSync === 'function' ? wx.getSystemInfoSync() : {};
+    this.setData({
+      statusBarHeight: Number(systemInfo.statusBarHeight || 0),
+    });
     this.syncAdminCapabilitiesAndInit();
   },
 
@@ -104,13 +93,11 @@ Page({
       isSuperAdmin,
       isTypeAdmin,
       activityTypeOptions: allowedTypes,
-      activityTypeIndex: -1,
-      activityTypeName: '',
     });
     if (isTypeAdmin && allowedTypes.length > 0) {
       this.applyActivityTypeOptions(allowedTypes);
     }
-    this.loadAvailableActivityTypes();
+    await this.loadAvailableActivityTypes();
   },
 
   normalizeActivityTypeOptions(list) {
@@ -166,8 +153,58 @@ Page({
     }
   },
 
+  clearFormWithConfirm() {
+    wx.showModal({
+      title: '清空内容',
+      content: '确定要清空当前填写的内容吗？',
+      confirmText: '清空',
+      cancelText: '取消',
+      success: (res) => {
+        if (!res.confirm) return;
+        this.setData({
+          ...createEditableDefaults(),
+          error: null,
+        });
+        this.tagTouched = false;
+        wx.showToast({ title: '已清空', icon: 'none' });
+      },
+    });
+  },
+
+  onBackTap() {
+    if (typeof wx.navigateBack === 'function') {
+      wx.navigateBack({
+        fail: () => {
+          wx.switchTab({ url: '/pages/mine/mine' });
+        },
+      });
+    }
+  },
+
+  onMoreTap() {
+    const posterLabel = this.data.posterLocalPath || this.data.posterUrl ? '更换海报' : '选择海报';
+    wx.showActionSheet({
+      itemList: [posterLabel, '清空当前内容'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          this.onChoosePoster();
+          return;
+        }
+        if (res.tapIndex === 1) {
+          this.clearFormWithConfirm();
+        }
+      },
+      fail: () => {},
+    });
+  },
+
   onNameInput(e) {
-    this.setData({ activityName: e.detail.value, error: null });
+    const activityName = (e.detail.value || '').slice(0, 50);
+    this.setData({
+      activityName,
+      activityNameCount: activityName.length,
+      error: null,
+    });
   },
 
   onTagInput(e) {

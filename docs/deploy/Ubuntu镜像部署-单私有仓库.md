@@ -29,7 +29,7 @@ chmod +x scripts/release-images.sh
 示例：
 
 ```bash
-./scripts/release-images.sh wingchileung 2026.05.18.1
+./scripts/release-images.sh wingchileung 2026.05.19.1
 ```
 
 ## 3. Ubuntu 服务器部署（仅拉镜像）
@@ -48,6 +48,13 @@ FRONTEND_IMAGE=docker.io/wingchileung/sdm:frontend-2026.05.15.1
 ```
 
 3. 启动/更新服务
+
+# 只拉镜像，不动服务
+./scripts/deploy-from-registry.sh --pull-only
+
+# 确认没问题后再启动
+./scripts/deploy-from-registry.sh --no-pull
+
 
 ```bash
 chmod +x scripts/deploy-from-registry.sh

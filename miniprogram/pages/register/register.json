@@ -1,5 +1,7 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
   "navigationBarTitleText": "报名",
   "navigationStyle": "custom"
 }

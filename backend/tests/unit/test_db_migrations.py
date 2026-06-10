@@ -57,3 +57,39 @@ def test_ensure_runtime_schema_creates_missing_tables_from_metadata() -> None:
     ensure_runtime_schema(engine, metadata)
 
     assert inspect(engine).has_table("runtime_created")
+
+
+def test_ensure_runtime_schema_creates_media_moderation_task_table() -> None:
+    engine = create_engine("sqlite:///:memory:")
+    metadata = MetaData()
+    Table(
+        "user",
+        metadata,
+        Column("id", Integer, primary_key=True),
+        Column("industry", String(100), nullable=True),
+        Column("avatar_url", String(500), nullable=True),
+    )
+    metadata.create_all(engine)
+
+    ensure_runtime_schema(engine)
+
+    assert inspect(engine).has_table("community_media_moderation_task")
+
+
+def test_ensure_runtime_schema_creates_notification_tables() -> None:
+    engine = create_engine("sqlite:///:memory:")
+    metadata = MetaData()
+    Table(
+        "user",
+        metadata,
+        Column("id", Integer, primary_key=True),
+        Column("industry", String(100), nullable=True),
+        Column("avatar_url", String(500), nullable=True),
+    )
+    metadata.create_all(engine)
+
+    ensure_runtime_schema(engine)
+    db_inspector = inspect(engine)
+    assert db_inspector.has_table("message_task")
+    assert db_inspector.has_table("subscribe_consent")
+    assert db_inspector.has_table("payment_refund")

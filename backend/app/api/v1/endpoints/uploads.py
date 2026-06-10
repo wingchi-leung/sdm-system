@@ -21,6 +21,14 @@ AVATAR_MAX_SIDE = 512
 AVATAR_JPEG_QUALITY = 82
 
 
+def _build_dated_folder(*segments: str) -> str:
+    """按年月构造分层目录，避免单目录文件过多。"""
+    now = datetime.now()
+    safe_segments = [segment.strip("/") for segment in segments if segment and segment.strip("/")]
+    safe_segments.extend([now.strftime("%Y"), now.strftime("%m")])
+    return "/".join(safe_segments)
+
+
 def _validate_image(file: UploadFile) -> None:
     """验证图片文件。
 
@@ -138,7 +146,7 @@ async def upload_poster(
 
     # 使用存储服务上传文件
     # 存储服务会根据配置自动选择本地存储或云存储
-    folder = "posters"
+    folder = _build_dated_folder("posters")
     file_url = await storage.upload(content, filename, folder=folder)
     if settings.STORAGE_TYPE == "local":
         file_url = f"/uploads/{folder}/{filename}"
@@ -171,7 +179,7 @@ async def upload_avatar(
         optimized_ext = original_ext
 
     filename = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex[:8]}{optimized_ext}"
-    folder = "avatars"
+    folder = _build_dated_folder("avatars")
     file_url = await storage.upload(optimized_content, filename, folder=folder)
     if settings.STORAGE_TYPE == "local":
         file_url = f"/uploads/{folder}/{filename}"
@@ -180,4 +188,36 @@ async def upload_avatar(
         "url": file_url,
         "filename": filename,
         "size": len(optimized_content),
+    }
+
+
+@router.post("/community-image")
+async def upload_community_image(
+    file: UploadFile = File(...),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """上传社区图片（频道封面、动态配图、评论配图）。"""
+    _validate_image(file)
+
+    content = await file.read()
+    if len(content) > settings.MAX_POSTER_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=f"文件过大，最大允许 {settings.MAX_POSTER_SIZE // (1024 * 1024)}MB"
+        )
+
+    ext = os.path.splitext(file.filename or "image.jpg")[1].lower()
+    if ext not in [".png", ".jpg", ".jpeg"]:
+        ext = ".jpg"
+
+    filename = f"{datetime.now().strftime('%Y%m%d')}_{uuid.uuid4().hex[:8]}{ext}"
+    folder = _build_dated_folder("community", "posts")
+    file_url = await storage.upload(content, filename, folder=folder)
+    if settings.STORAGE_TYPE == "local":
+        file_url = f"/uploads/{folder}/{filename}"
+
+    return {
+        "url": file_url,
+        "filename": filename,
+        "size": len(content),
     }

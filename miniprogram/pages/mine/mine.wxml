@@ -4,82 +4,128 @@
   </view>
 
   <view wx:else class="content">
+    <view class="hero-space">
+      <floating-bell top="82rpx" right="18rpx" size="58rpx" />
+    </view>
 
     <view class="profile-row" bindtap="goAvatarPicker">
       <view class="avatar-wrap">
         <image wx:if="{{avatarDisplayUrl}}" class="avatar-image" src="{{avatarDisplayUrl}}" mode="aspectFill" />
         <text wx:else class="avatar-fallback">{{userName ? userName[0] : (view === 'admin' ? '管' : '用')}}</text>
       </view>
+
       <view class="profile-copy">
-        <text class="profile-name">{{userName || (view === 'admin' ? '管理员' : '用户')}}</text>
-        <text class="profile-role" wx:if="{{view === 'admin'}}">{{adminProfile.levelText || '活动管理员'}}</text>
-        <text class="profile-role" wx:if="{{view === 'user'}}">普通用户</text>
-        <text class="profile-meta" wx:if="{{view === 'admin' && adminProfile && adminProfile.typeNamesText}}">{{adminProfile.typeNamesText}}</text>
+        <text class="profile-name">{{userName || (view === 'admin' ? '管理员' : '探索者')}}</text>
+        <text class="profile-role">{{view === 'admin' ? (adminProfile.levelText || '活动管理员') : 'Welcome back'}}</text>
+        <view class="profile-underline"></view>
       </view>
       <text class="row-arrow">›</text>
     </view>
 
-    <view class="group" wx:if="{{view === 'admin'}}">
-      <text class="group-title">管理功能</text>
-      <view class="item {{!(adminProfile && adminProfile.canCreateActivity) ? 'disabled' : ''}}" bindtap="goCreateActivity">
-        <text class="item-icon">＋</text>
-        <view class="item-copy">
-          <text class="item-title">发布活动</text>
-          <text class="item-desc">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
-        </view>
-        <text class="row-arrow">›</text>
-      </view>
-      <view class="item" bindtap="goActivityManage">
-        <text class="item-icon">≡</text>
-        <view class="item-copy">
-          <text class="item-title">活动管理</text>
-          <text class="item-desc">编辑、删除活动</text>
-        </view>
-        <text class="row-arrow">›</text>
-      </view>
-      <view class="item" wx:if="{{adminProfile && adminProfile.canViewUsers}}" bindtap="goUserList">
-        <text class="item-icon">◉</text>
-        <view class="item-copy">
-          <text class="item-title">用户管理</text>
-          <text class="item-desc">查看平台所有用户</text>
-        </view>
-        <text class="row-arrow">›</text>
+    <view class="stats-row" wx:if="{{view === 'user'}}">
+      <view class="stat-item" wx:for="{{summaryCards}}" wx:key="label">
+        <text class="stat-value">{{item.value}}</text>
+        <text class="stat-label">{{item.label}}</text>
       </view>
     </view>
 
-    <view class="group">
+    <view class="service-section">
       <text class="group-title">我的服务</text>
-      <view class="item" bindtap="goMyActivities">
-        <text class="item-icon">◫</text>
-        <view class="item-copy">
-          <text class="item-title">报名活动</text>
-          <text class="item-desc">查看已报名和候补中的活动</text>
+
+      <view class="service-list">
+        <view class="service-item" bindtap="goMyActivities">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">☑</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">报名活动</text>
+            <text class="service-desc">查看已报名和候补中的活动</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
         </view>
-        <text class="row-arrow">›</text>
+
+        <view class="service-item" bindtap="goMyOrders">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">▤</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">我的订单</text>
+            <text class="service-desc">查看订单与状态</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
+        </view>
+
+        <view class="service-item" bindtap="goSettings">
+          <view class="service-icon">
+            <image class="service-icon-image" src="/assets/icons/setting.png" mode="aspectFit" />
+          </view>
+          <view class="service-copy">
+            <text class="service-title">设置</text>
+            <text class="service-desc">修改个人信息、注销账号</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
+        </view>
+
+        <view class="service-item" bindtap="goAgreementNotes">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">🛡</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">协议和说明</text>
+            <text class="service-desc">查看隐私政策与平台说明</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
+        </view>
       </view>
-      <view class="item" bindtap="goMyOrders">
-        <text class="item-icon">▤</text>
-        <view class="item-copy">
-          <text class="item-title">我的订单</text>
-          <text class="item-desc">查看订单与状态</text>
+    </view>
+
+    <view class="service-section" wx:if="{{view === 'admin'}}">
+      <text class="group-title">管理功能</text>
+
+      <view class="service-list">
+        <view class="service-item {{!(adminProfile && adminProfile.canCreateActivity) ? 'is-disabled' : ''}}" bindtap="goCreateActivity">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">＋</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">发布活动</text>
+            <text class="service-desc">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
         </view>
-        <text class="row-arrow">›</text>
-      </view>
-      <view class="item" bindtap="goSettings">
-        <image class="item-icon-image" src="/assets/icons/setting.png" mode="aspectFit" />
-        <view class="item-copy">
-          <text class="item-title">设置</text>
-          <text class="item-desc">修改个人信息、注销账号</text>
+
+        <view class="service-item" bindtap="goActivityManage">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">≡</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">活动管理</text>
+            <text class="service-desc">编辑、删除活动</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
         </view>
-        <text class="row-arrow">›</text>
-      </view>
-      <view class="item" bindtap="goAgreementNotes">
-        <text class="item-icon">☰</text>
-        <view class="item-copy">
-          <text class="item-title">协议和说明</text>
-          <text class="item-desc">查看隐私政策与平台说明</text>
+
+        <view class="service-item" wx:if="{{adminProfile && adminProfile.canViewUsers}}" bindtap="goUserList">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">◉</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">用户管理</text>
+            <text class="service-desc">查看平台所有用户</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
         </view>
-        <text class="row-arrow">›</text>
+
+        <view class="service-item" bindtap="goCommunityModeration">
+          <view class="service-icon">
+            <text class="service-icon-text service-icon-text-blue">☑</text>
+          </view>
+          <view class="service-copy">
+            <text class="service-title">内容审核</text>
+            <text class="service-desc">审核普通用户待处理的社区内容</text>
+          </view>
+          <text class="row-arrow row-arrow-dark">›</text>
+        </view>
       </view>
     </view>
 

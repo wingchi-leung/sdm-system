@@ -4,7 +4,7 @@
 
 ## 社区 UI 改造(Phase 2)| 2026-06-10
 
-调研阶段 7 份方案,后续已收口为 `docs/specs/社区频道-Phase2-实施spec.md`,原过程文档归档:
+调研阶段 7 份方案,后续已收口为 `docs/specs/SPEC-07_社区-频道Phase2-UI大改.md`,原过程文档归档:
 
 - `社区UI改造-00-现状摸底.md` (25 KB) — 摸底报告
 - `社区UI改造-01-架构蓝图.md` (37 KB) — 架构师方案
@@ -14,7 +14,7 @@
 - `社区UI改造-总方案.md` (55 KB) — 总方案(§7 冲突仲裁)
 - `社区UI改造-需求基线.md` (6.5 KB) — 需求基线
 
-**新追踪 spec**: `docs/specs/社区频道-Phase2-实施spec.md`
+**新追踪 spec**: `docs/specs/SPEC-07_社区-频道Phase2-UI大改.md`
 
 **保留理由**: git history 需要 + 后续 AI 想知道"为什么选 A 方案"时回看。代码改动在 main 分支的 3 个 commit(4a8884d / 7fa0156 / 1a0f9fb / 6a862de)。
 

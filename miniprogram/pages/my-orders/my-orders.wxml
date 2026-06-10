@@ -1,7 +1,8 @@
 <view class="page">
+  <page-header title="我的订单"></page-header>
   <view class="hero" wx:if="{{!loading && !error}}">
     <text class="hero-title">我的订单</text>
-    <text class="hero-text">{{orders.length ? summaryText : '付费报名后，订单会在这里展示并自动刷新状态'}}</text>
+    <text class="hero-text">{{orders.length ? summaryText : '这里只展示订单记录，活动页可以直接继续支付'}}</text>
   </view>
 
   <view wx:if="{{loading}}" class="state-wrap">
@@ -28,6 +29,6 @@
 
   <view wx:else class="state-wrap">
     <text class="state-title">暂无订单</text>
-    <text class="state-text">付费报名后，订单会在这里展示</text>
+    <text class="state-text">活动页已支持继续支付，这里仅作为订单记录</text>
   </view>
 </view>

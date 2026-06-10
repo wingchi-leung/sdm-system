@@ -597,13 +597,17 @@ function getCommunityComments(postId, opts = {}) {
 }
 
 /** 发表评论 */
-function createCommunityComment(postId, content) {
+function createCommunityComment(postId, payload) {
+  const data = {
+    content: (payload && payload.content) || '',
+    images: (payload && payload.images) || [],
+  };
   return new Promise((resolve, reject) => {
     wx.request({
       url: `${baseUrl}/community/posts/${postId}/comments`,
       method: 'POST',
       header: getHeader(true),
-      data: { content },
+      data,
       success: (res) => {
         if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
@@ -913,6 +917,396 @@ function uploadPoster(filePath) {
   });
 }
 
+function getCommunityChannels(opts = {}) {
+  const { skip = 0, limit = 20 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelDetail(channelId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelMembers(channelId, opts = {}) {
+  const { skip = 0, limit = 100 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/members?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function createCommunityChannel(payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels`,
+      method: 'POST',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function deleteCommunityChannel(channelId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}`,
+      method: 'DELETE',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function inviteCommunityChannelMembers(channelId, userIds) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/invite`,
+      method: 'POST',
+      header: getHeader(true),
+      data: { user_ids: userIds },
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function kickCommunityChannelMember(channelId, userId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/members/${userId}/kick`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function banCommunityChannelMember(channelId, userId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/members/${userId}/ban`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function unbanCommunityChannelMember(channelId, userId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/members/${userId}/unban`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelPosts(channelId, opts = {}) {
+  const { skip = 0, limit = 20 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/posts?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function createCommunityChannelPost(channelId, payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/posts`,
+      method: 'POST',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelPostDetail(channelId, postId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/posts/${postId}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelComments(channelId, postId, opts = {}) {
+  const { skip = 0, limit = 50 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/posts/${postId}/comments?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function createCommunityChannelComment(channelId, postId, payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/posts/${postId}/comments`,
+      method: 'POST',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function generateCommunityInviteCode(channelId) {
+  return Promise.reject(new ApiError(410, '邀请码加入功能已关闭'));
+}
+
+function joinCommunityChannelByCode(inviteCode) {
+  return Promise.reject(new ApiError(410, '邀请码加入功能已关闭'));
+}
+
+function getCommunityNotifications(opts = {}) {
+  const { skip = 0, limit = 20 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/notifications?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function markCommunityNotificationRead(notificationId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/notifications/${notificationId}/read`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function markCommunityNotificationsReadAll() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/notifications/read-all`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityNotificationUnreadCount() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/notifications/unread-count`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function acceptCommunityInvite(notificationId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/invites/${notificationId}/accept`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function rejectCommunityInvite(notificationId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/invites/${notificationId}/reject`,
+      method: 'POST',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取社区待审核队列（管理员） */
+function getCommunityModerationPending(opts = {}) {
+  const { skip = 0, limit = 20 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/moderation/pending?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 社区内容人工审核（管理员） */
+function reviewCommunityModerationItem(itemType, itemId, action) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/moderation/${encodeURIComponent(itemType)}/${encodeURIComponent(itemId)}`,
+      method: 'POST',
+      header: getHeader(true),
+      data: { action },
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 上传社区图片 */
+function uploadCommunityImage(filePath) {
+  return new Promise((resolve, reject) => {
+    const token = getToken();
+    if (!token) {
+      reject(new ApiError(401, '请先登录'));
+      return;
+    }
+    wx.uploadFile({
+      url: `${baseUrl}/uploads/community-image`,
+      filePath: filePath,
+      name: 'file',
+      header: {
+        'Authorization': `Bearer ${token}`,
+      },
+      success: (res) => {
+        let data = null;
+        if (typeof res.data === 'string') {
+          try {
+            data = JSON.parse(res.data);
+          } catch (e) {
+            reject(new ApiError(res.statusCode, '服务器返回格式异常'));
+            return;
+          }
+        } else {
+          data = res.data;
+        }
+
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(data);
+        } else {
+          reject(new ApiError(res.statusCode, data?.detail || data?.message || '上传失败'));
+        }
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 上传用户头像 */
 function uploadAvatar(filePath) {
   return new Promise((resolve, reject) => {
@@ -1016,10 +1410,34 @@ module.exports = {
   getEnrollmentInfo,
   getMyParticipantActivities,
   getCommunityPosts,
+  getCommunityChannels,
+  getCommunityChannelDetail,
+  getCommunityChannelMembers,
+  getCommunityChannelPosts,
+  createCommunityChannelPost,
+  getCommunityChannelPostDetail,
+  getCommunityChannelComments,
+  createCommunityChannelComment,
+  generateCommunityInviteCode,
+  joinCommunityChannelByCode,
+  createCommunityChannel,
+  deleteCommunityChannel,
   getCommunityPostDetail,
   createCommunityPost,
   getCommunityComments,
   createCommunityComment,
+  getCommunityNotifications,
+  markCommunityNotificationRead,
+  markCommunityNotificationsReadAll,
+  getCommunityNotificationUnreadCount,
+  acceptCommunityInvite,
+  rejectCommunityInvite,
+  inviteCommunityChannelMembers,
+  kickCommunityChannelMember,
+  banCommunityChannelMember,
+  unbanCommunityChannelMember,
+  getCommunityModerationPending,
+  reviewCommunityModerationItem,
   updateActivity,
   deleteActivity,
   getActivityParticipants,
@@ -1034,6 +1452,7 @@ module.exports = {
   createPaymentOrder,
   queryPaymentOrder,
   uploadPoster,
+  uploadCommunityImage,
   uploadAvatar,
   blockUser,
   unblockUser,

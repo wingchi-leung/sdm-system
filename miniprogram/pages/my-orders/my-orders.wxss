@@ -1,23 +1,23 @@
 .page {
   min-height: 100vh;
-  padding: 32rpx;
-  background: #FFFFFF;
+  padding: 24rpx 32rpx 120rpx;
+  background: #ffffff;
   box-sizing: border-box;
+  color: #111111;
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
 .hero {
   margin-bottom: 24rpx;
-  padding: 28rpx;
-  background: #F7FAF8;
-  border: 1rpx solid #E8EEEA;
-  border-radius: 24rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid var(--divider);
 }
 
 .hero-title {
   display: block;
-  color: var(--ink);
-  font-size: 36rpx;
-  line-height: 48rpx;
+  color: #111111;
+  font-size: 44rpx;
+  line-height: 56rpx;
   font-weight: 500;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .state-title {
-  color: var(--ink);
+  color: #111111;
   font-size: 30rpx;
   line-height: 42rpx;
   font-weight: 500;
@@ -55,14 +55,17 @@
 .list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
 }
 
 .order-card {
-  padding: 24rpx;
-  background: #FFFFFF;
-  border: 1rpx solid #ECECEC;
-  border-radius: 24rpx;
+  padding: 0 0 20rpx;
+  margin-bottom: 20rpx;
+  border-bottom: 1rpx solid var(--divider);
+}
+
+.order-card:last-child {
+  margin-bottom: 0;
+  border-bottom: none;
 }
 
 .order-head {
@@ -74,37 +77,32 @@
 
 .order-title {
   flex: 1;
-  color: var(--ink);
-  font-size: 30rpx;
-  line-height: 42rpx;
+  color: #111111;
+  font-size: 32rpx;
+  line-height: 44rpx;
   font-weight: 500;
 }
 
 .order-status {
   flex-shrink: 0;
-  padding: 8rpx 14rpx;
-  color: var(--green);
+  padding: 6rpx 12rpx;
+  color: #111111;
   font-size: 22rpx;
-  line-height: 1;
-  background: #F4F8F6;
+  line-height: 32rpx;
+  background: rgba(17, 17, 17, 0.05);
   border-radius: 999rpx;
 }
 
-.order-status.is-pending {
-  color: #9A6700;
-  background: #FFF7E6;
-}
-
+.order-status.is-pending,
 .order-status.is-failed,
 .order-status.is-closed {
-  color: #B42318;
-  background: #FEF3F2;
+  background: rgba(17, 17, 17, 0.05);
 }
 
 .order-amount {
   display: block;
-  margin-top: 18rpx;
-  color: var(--ink);
+  margin-top: 16rpx;
+  color: #111111;
   font-size: 34rpx;
   line-height: 46rpx;
   font-weight: 500;

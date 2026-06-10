@@ -131,8 +131,15 @@ def get_or_create_phone_credential(
     phone: str,
 ) -> UserCredential:
     """确保手机号凭证存在，不存在则创建"""
-    cred = get_credential(db, tenant_id, "phone_code", phone)
+    cred = db.query(UserCredential).filter(
+        UserCredential.tenant_id == tenant_id,
+        UserCredential.credential_type == "phone_code",
+        UserCredential.identifier == phone,
+    ).first()
     if cred:
+        cred.user_id = user_id
+        cred.status = 1
+        db.flush()
         return cred
     cred = UserCredential(
         user_id=user_id,

@@ -78,9 +78,41 @@ function normalizeApiErrorMessage(statusCode, payload) {
   return directMessage || '请求失败，请稍后重试';
 }
 
+/**
+ * 兜底规范化运行时错误（wx.request fail / Promise reject object 等）。
+ */
+function normalizeRuntimeErrorMessage(error, fallbackMessage = '请求失败，请稍后重试') {
+  if (error == null) {
+    return fallbackMessage;
+  }
+
+  if (typeof error === 'string') {
+    const trimmed = error.trim();
+    return trimmed || fallbackMessage;
+  }
+
+  const fromMessage = typeof error.message === 'string' ? error.message.trim() : '';
+  if (fromMessage && fromMessage !== '[object Object]') {
+    return fromMessage;
+  }
+
+  const extracted = extractErrorMessage(error);
+  if (extracted && extracted !== '[object Object]') {
+    return extracted;
+  }
+
+  const fromErrMsg = typeof error.errMsg === 'string' ? error.errMsg.trim() : '';
+  if (fromErrMsg) {
+    return fromErrMsg;
+  }
+
+  return fallbackMessage;
+}
+
 module.exports = {
   extractErrorMessage,
   looksLikeHtmlPayload,
   isCloudflareTunnelError,
   normalizeApiErrorMessage,
+  normalizeRuntimeErrorMessage,
 };

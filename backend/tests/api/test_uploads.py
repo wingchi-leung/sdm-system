@@ -2,6 +2,7 @@
 文件上传 API 测试
 """
 from io import BytesIO
+from datetime import datetime
 
 import pytest
 from fastapi import status
@@ -118,3 +119,29 @@ class TestAvatarUpload:
 
         assert static_response.status_code == status.HTTP_200_OK
         assert static_response.headers["cache-control"] == "public, max-age=31536000, immutable"
+
+
+@pytest.mark.api
+class TestCommunityImageUpload:
+    """社区图片上传测试"""
+
+    def test_upload_community_image_success(
+        self,
+        client,
+        user_token,
+    ):
+        response = client.post(
+            "/api/v1/uploads/community-image",
+            headers=auth_headers(user_token),
+            files={
+                "file": ("community.jpg", BytesIO(b"fake-image-bytes"), "application/octet-stream"),
+            },
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["url"].startswith("/uploads/community/posts/")
+        assert data["filename"].endswith(".jpg")
+
+        now = datetime.now()
+        assert f"/{now.strftime('%Y')}/{now.strftime('%m')}/" in data["url"]

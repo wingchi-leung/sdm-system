@@ -1,57 +1,58 @@
 .page {
   min-height: 100vh;
-  padding: 24rpx;
+  padding: 24rpx 32rpx;
   box-sizing: border-box;
-  background: var(--background);
+  background: #ffffff;
+  color: #111111;
+  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
 .card {
-  background: #fff;
-  border: 1px solid var(--border-light);
-  border-radius: 20rpx;
-  padding: 26rpx;
   margin-bottom: 24rpx;
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid var(--divider);
 }
 
 .title {
   display: block;
   font-size: 32rpx;
-  color: var(--text-primary);
+  line-height: 44rpx;
+  color: #111111;
 }
 
 .desc {
   display: block;
   margin-top: 10rpx;
-  color: var(--text-secondary);
+  color: #999999;
   font-size: 24rpx;
   line-height: 34rpx;
 }
 
 .list {
-  background: #fff;
-  border: 1px solid var(--border-light);
-  border-radius: 20rpx;
-  overflow: hidden;
+  border-top: 1rpx solid var(--divider);
 }
 
 .item {
-  padding: 24rpx;
+  padding: 22rpx 0;
+  border-bottom: 1rpx solid var(--divider);
 }
 
-.item + .item {
-  border-top: 1px solid var(--border-light);
+.item:last-child {
+  border-bottom: none;
 }
 
 .item-title {
   display: block;
   font-size: 30rpx;
-  color: var(--text-primary);
+  line-height: 42rpx;
+  color: #111111;
 }
 
 .item-desc {
   display: block;
   margin-top: 6rpx;
-  color: var(--text-tertiary);
+  color: #999999;
   font-size: 24rpx;
+  line-height: 34rpx;
 }
 

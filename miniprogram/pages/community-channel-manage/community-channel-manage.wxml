@@ -1,4 +1,5 @@
 <view class="page">
+  <page-header title="频道管理"></page-header>
   <view class="hero">
     <text class="hero-caption">CHANNEL MANAGEMENT</text>
     <text class="hero-title">{{channelName || '频道管理'}}</text>

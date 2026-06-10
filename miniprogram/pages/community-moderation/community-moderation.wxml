@@ -1,0 +1,47 @@
+<view class="page">
+  <page-header title="内容审核"></page-header>
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中...</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <block wx:for="{{groups}}" wx:key="key" wx:for-item="group">
+      <view class="group">
+        <view class="group-head">
+          <text class="group-title">{{group.title}}</text>
+          <text class="group-count">{{group.total}} 条</text>
+        </view>
+
+        <view wx:if="{{!group.items || group.items.length === 0}}" class="group-empty">暂无待审核内容</view>
+
+        <block wx:for="{{group.items}}" wx:key="id" wx:for-item="moderationItem">
+          <view class="card">
+            <text class="card-title">{{moderationItem.title || '评论内容'}}</text>
+            <text class="card-content">{{moderationItem.content}}</text>
+            <text class="card-meta">ID: {{moderationItem.id}} · 用户: {{moderationItem.author_name || moderationItem.user_name || '未知'}}</text>
+            <view class="actions">
+              <button
+                class="btn pass"
+                size="mini"
+                data-item-id="{{moderationItem.id}}"
+                data-item-type="{{group.itemType}}"
+                bindtap="onApprove"
+              >通过</button>
+              <button
+                class="btn reject"
+                size="mini"
+                data-item-id="{{moderationItem.id}}"
+                data-item-type="{{group.itemType}}"
+                bindtap="onReject"
+              >驳回</button>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+  </view>
+</view>

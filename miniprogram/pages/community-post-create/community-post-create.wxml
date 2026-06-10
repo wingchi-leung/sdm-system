@@ -1,18 +1,12 @@
 <view class="page">
-  <view class="status-spacer" style="height: {{statusBarHeight}}px;"></view>
-
-  <view class="header">
-    <view class="header-action header-action-back" bindtap="onBackTap" hover-class="header-action--active">
-      <text class="header-back-icon">‹</text>
-    </view>
-    <text class="header-title">发布动态</text>
-    <view class="header-actions">
+  <page-header title="发布动态" statusBarHeight="{{statusBarHeight}}" bindback="onBackTap">
+    <view slot="actions" class="header-actions">
       <view class="header-action header-action-plus" bindtap="onAddTap" hover-class="header-action--active">
         <text class="header-plus-icon">+</text>
       </view>
       <image class="header-bell" src="/assets/icons/bell.png" mode="aspectFit" bindtap="onBellTap" />
     </view>
-  </view>
+  </page-header>
 
   <view class="composer-shell">
     <text wx:if="{{channelName}}" class="channel-name">{{channelName}}</text>
@@ -57,7 +51,7 @@
             <view class="tool-btn" data-action="list-bullet" bindtap="onToolbarAction">•</view>
             <view class="tool-btn" data-action="list-ordered" bindtap="onToolbarAction">1.</view>
             <view class="tool-btn tool-btn-quote" data-action="blockquote" bindtap="onToolbarAction">“ ”</view>
-            <view class="tool-btn tool-btn-image" data-action="insert-image" bindtap="onToolbarAction">🖼</view>
+            <view class="tool-btn tool-btn-image" data-action="insert-image" bindtap="onToolbarAction">图片</view>
             <view class="tool-btn tool-btn-clear" data-action="clear" bindtap="onToolbarAction">清空</view>
           </view>
         </scroll-view>
@@ -72,6 +66,16 @@
           bindinput="onEditorInput"
           bindblur="onEditorBlur"
         />
+
+        <view class="editor-actions">
+          <view class="editor-action-btn editor-action-btn-primary" bindtap="onInsertImage">
+            <text class="editor-action-icon">＋</text>
+            <text class="editor-action-text">插入图片</text>
+          </view>
+          <view class="editor-action-btn" data-action="clear" bindtap="onToolbarAction">
+            <text class="editor-action-text">清空正文</text>
+          </view>
+        </view>
 
         <view class="editor-footer">
           <text class="editor-tip">支持图文混排，最多插入 9 张图片</text>

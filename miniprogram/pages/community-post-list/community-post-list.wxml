@@ -1,61 +1,128 @@
 <view class="page">
+  <page-header title="活动动态"></page-header>
   <view wx:if="{{loading}}" class="state-wrap">
     <text class="state-text">加载中…</text>
   </view>
 
   <view wx:elif="{{error}}" class="state-wrap">
-    <text class="state-title">暂时无法查看活动动态</text>
+    <text class="state-title">暂时无法查看频道动态</text>
     <text class="state-text">{{error}}</text>
   </view>
 
   <view wx:else class="content">
     <view class="page-head">
-      <view class="page-head-main">
-        <text class="page-caption">社区频道</text>
+      <view class="page-copy">
+        <text wx:if="{{channelName}}" class="page-channel">{{channelName}}</text>
         <text class="page-title">频道动态</text>
-        <text wx:if="{{channelName}}" class="page-subtitle">{{channelName}}</text>
       </view>
-      <button wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">发布动态</button>
-    </view>
-
-    <!-- 2 列瀑布流(矮列优先分列) -->
-    <view wx:if="{{colA.length > 0 || colB.length > 0}}" class="waterfall">
-      <view class="waterfall-col">
-        <view wx:for="{{colA}}" wx:key="id" class="post-card" data-id="{{item.id}}" bindtap="onOpenPost">
-          <view wx:if="{{item.images && item.images.length > 0}}" class="post-cover">
-            <image class="post-cover-image" src="{{item.images[0]}}" mode="widthFix" />
-            <text wx:if="{{item.images.length > 1}}" class="post-cover-count">+{{item.images.length - 1}}</text>
-          </view>
-          <view class="post-body">
-            <text class="post-title">{{item.title}}</text>
-            <text wx:if="{{item.content_summary}}" class="post-summary">{{item.content_summary}}</text>
-            <view class="post-meta-row">
-              <text class="post-meta">{{item.author_name}} · {{item.create_time_display}}</text>
-              <text class="post-comments">💬 {{item.comment_count}}</text>
-            </view>
-          </view>
+      <view class="head-actions">
+        <view wx:if="{{showManageButton}}" class="manage-btn" bindtap="onManageMembers">
+          <text class="manage-btn-text">成员管理</text>
         </view>
-      </view>
-      <view class="waterfall-col">
-        <view wx:for="{{colB}}" wx:key="id" class="post-card" data-id="{{item.id}}" bindtap="onOpenPost">
-          <view wx:if="{{item.images && item.images.length > 0}}" class="post-cover">
-            <image class="post-cover-image" src="{{item.images[0]}}" mode="widthFix" />
-            <text wx:if="{{item.images.length > 1}}" class="post-cover-count">+{{item.images.length - 1}}</text>
-          </view>
-          <view class="post-body">
-            <text class="post-title">{{item.title}}</text>
-            <text wx:if="{{item.content_summary}}" class="post-summary">{{item.content_summary}}</text>
-            <view class="post-meta-row">
-              <text class="post-meta">{{item.author_name}} · {{item.create_time_display}}</text>
-              <text class="post-comments">💬 {{item.comment_count}}</text>
-            </view>
-          </view>
-        </view>
+        <view wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">+</view>
       </view>
     </view>
 
-    <view wx:elif="{{posts.length === 0}}" class="empty-box">
-      <text class="empty-title">还没有活动动态</text>
+    <view class="head-accent"></view>
+
+    <view wx:if="{{posts.length > 0}}" class="feed-list">
+      <view wx:for="{{posts}}" wx:key="id" class="feed-thread">
+        <view class="feed-author-row">
+          <image class="avatar" src="{{item.author_avatar_display_url}}" mode="aspectFill" />
+          <view class="author-meta">
+            <text class="author-name">{{item.author_name}}</text>
+            <text class="author-date">· {{item.create_time_display}}</text>
+          </view>
+        </view>
+
+        <text class="feed-title">{{item.title}}</text>
+        <view wx:if="{{item.content_expanded}}" class="feed-content-expanded">
+          <view wx:if="{{item.parsed.isHtml}}" class="feed-html">
+            <rich-text nodes="{{item.parsed.html}}" />
+          </view>
+          <view wx:else class="feed-blocks">
+            <view wx:for="{{item.parsed.blocks}}" wx:for-item="block" wx:key="index">
+              <text wx:if="{{block.type === 'text'}}" class="feed-summary">{{block.text}}</text>
+              <view wx:elif="{{block.type === 'images'}}" class="feed-inline-grid">
+                <image
+                  wx:for="{{block.images}}"
+                  wx:for-item="imageUrl"
+                  wx:key="imageUrl"
+                  class="feed-inline-image"
+                  src="{{imageUrl}}"
+                  mode="aspectFill"
+                  data-id="{{item.id}}"
+                  data-url="{{imageUrl}}"
+                  bindtap="onPreviewPostImage"
+                />
+              </view>
+            </view>
+          </view>
+        </view>
+        <text wx:elif="{{item.content_summary}}" class="feed-summary">{{item.content_summary}}<text wx:if="{{item.parsed.text.length > item.content_summary.length}}"> …</text></text>
+
+        <view wx:if="{{item.cover_image}}" class="feed-cover-wrap">
+          <image class="feed-cover" src="{{item.cover_image}}" mode="aspectFill" data-id="{{item.id}}" data-url="{{item.cover_image}}" bindtap="onPreviewPostImage" />
+          <text wx:if="{{item.extra_image_count > 0}}" class="feed-cover-badge">+{{item.extra_image_count}}</text>
+        </view>
+
+        <view class="feed-actions">
+          <text class="action-link" data-id="{{item.id}}" bindtap="onToggleContent">
+            {{item.content_expanded ? '收起全文' : '加载更多'}}
+          </text>
+          <text wx:if="{{item.comment_count > 0}}" class="action-link" data-id="{{item.id}}" bindtap="onToggleComments">
+            {{item.comments_collapsed ? '展开评论' : '折叠评论'}}
+          </text>
+        </view>
+
+        <view class="feed-footnote">
+          <text class="feed-time">{{item.publish_time_ago}}</text>
+        </view>
+
+        <view wx:if="{{!item.comments_collapsed && item.comments.length > 0}}" class="comment-preview-list">
+          <view wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id" class="comment-preview">
+            <image class="comment-avatar" src="{{comment.user_avatar_display_url}}" mode="aspectFill" />
+            <view class="comment-main">
+              <text class="comment-user">{{comment.user_name}}</text>
+              <text class="comment-content">{{comment.content}}</text>
+              <view wx:if="{{comment.images && comment.images.length > 0}}" class="comment-image-grid">
+                <image
+                  wx:for="{{comment.images}}"
+                  wx:for-item="commentImage"
+                  wx:key="commentImage"
+                  class="comment-image"
+                  src="{{commentImage}}"
+                  mode="aspectFill"
+                  data-post-id="{{item.id}}"
+                  data-comment-id="{{comment.id}}"
+                  data-url="{{commentImage}}"
+                  bindtap="onPreviewCommentImage"
+                />
+              </view>
+              <text class="comment-time">{{comment.create_time_display}}</text>
+            </view>
+            <text class="comment-mark">{{item.comment_count}}</text>
+          </view>
+        </view>
+
+        <view wx:elif="{{item.comment_count > 0}}" class="comment-empty-line">
+          <text class="comment-empty-text">评论 {{item.comment_count}}</text>
+        </view>
+
+        <view wx:if="{{!item.comments_collapsed && !item.comments_loaded_all}}" class="comment-loadmore">
+          <text class="action-link" data-id="{{item.id}}" bindtap="onLoadMoreComments">
+            {{item.comments_loading ? '加载中…' : '加载更多评论'}}
+          </text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasMorePosts}}" class="post-loadmore">
+      <text class="action-link" bindtap="onLoadMorePosts">{{loadingMore ? '加载中…' : '加载更多动态'}}</text>
+    </view>
+
+    <view wx:else class="empty-box">
+      <text class="empty-title">还没有频道动态</text>
       <text class="empty-text">频道成员发布后，会在这里展示。</text>
     </view>
   </view>

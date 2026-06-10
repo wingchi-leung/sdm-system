@@ -259,6 +259,7 @@ class CommunityChannelPostResponse(BaseModel):
     channel_id: int
     author_user_id: int
     author_name: str
+    author_avatar_url: Optional[str] = None
     title: str
     content: str
     # content_format:Phase 2 新增,响应体透传
@@ -268,6 +269,7 @@ class CommunityChannelPostResponse(BaseModel):
     is_pinned: int = 0
     status: int
     comment_count: int = 0
+    preview_comments: List["CommunityChannelCommentResponse"] = Field(default_factory=list)
     create_time: datetime
     update_time: datetime
 
@@ -298,6 +300,7 @@ class CommunityChannelCommentResponse(BaseModel):
     post_id: int
     user_id: int
     user_name: str
+    user_avatar_url: Optional[str] = None
     content: str
     images: List[str] = Field(default_factory=list)
     status: int
@@ -315,4 +318,3 @@ class CommunityModerationQueueResponse(BaseModel):
     activity_comments: CommunityCommentListResponse
     channel_posts: CommunityChannelPostListResponse
     channel_comments: CommunityChannelCommentListResponse
-

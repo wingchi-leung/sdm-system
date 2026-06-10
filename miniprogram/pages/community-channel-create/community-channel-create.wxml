@@ -1,79 +1,83 @@
 <view class="page">
-  <page-hero eyebrow="社区" title="创建频道" />
+  <page-header title="创建频道"></page-header>
+  <view class="hero">
+    <text class="hero-title">创建社区</text>
+    <view class="hero-accent"></view>
+  </view>
 
-  <view class="page-body">
-    <!-- 头像选择区 -->
-    <surface-card padding="md">
-      <view class="avatar-section">
-        <view class="avatar-label">频道头像</view>
+  <view class="form-shell">
+    <view class="field field-avatar">
+      <view class="field-head">
+        <text class="field-label">社区封面</text>
+      </view>
+
+      <view class="avatar-row">
         <view class="avatar-picker" bindtap="onChooseAvatar">
           <block wx:if="{{uploading}}">
             <view class="avatar-loading">
               <view class="loading-spin"></view>
+              <text class="avatar-loading-text">上传中</text>
             </view>
           </block>
           <block wx:elif="{{avatarTemp}}">
             <image class="avatar-preview" src="{{avatarTemp}}" mode="aspectFill" />
-            <view class="avatar-badge">换</view>
+            <view class="avatar-badge">更换</view>
           </block>
           <block wx:else>
             <view class="avatar-placeholder">
-              <text class="avatar-plus">+</text>
-              <text class="avatar-hint">添加头像</text>
+              <text class="avatar-plus">＋</text>
             </view>
           </block>
         </view>
-        <view class="avatar-tip">选填，支持 JPG / PNG / WebP，最大 5MB</view>
       </view>
-    </surface-card>
-
-    <!-- 基本信息 -->
-    <surface-card padding="md">
-      <view class="field-group">
-        <!-- 频道名称 -->
-        <view class="field">
-          <view class="field-label">
-            <text>频道名称</text>
-            <text class="field-required">*</text>
-          </view>
-          <input
-            class="field-input {{nameError ? 'field-input--error' : ''}}"
-            placeholder="请输入频道名称（最多 32 字）"
-            maxlength="32"
-            value="{{name}}"
-            bindinput="onNameInput"
-          />
-          <view wx:if="{{nameError}}" class="field-error">{{nameError}}</view>
-          <view class="field-count">{{name.length}}/32</view>
-        </view>
-
-        <view class="field-divider"></view>
-
-        <!-- 频道描述 -->
-        <view class="field">
-          <view class="field-label">频道描述</view>
-          <textarea
-            class="field-textarea"
-            placeholder="简单介绍一下这个频道…（选填，最多 200 字）"
-            maxlength="200"
-            value="{{description}}"
-            bindinput="onDescriptionInput"
-            auto-height
-          />
-          <view class="field-count">{{description.length}}/200</view>
-        </view>
-      </view>
-    </surface-card>
-
-    <!-- 提交按钮 -->
-    <view class="btn-wrap">
-      <button
-        class="btn-primary {{submitting || uploading ? 'btn-disabled' : ''}}"
-        disabled="{{submitting || uploading}}"
-        bindtap="onSubmit"
-      >
-        {{submitting ? '创建中…' : uploading ? '头像上传中…' : '创建频道'}}
-      </button>
     </view>
+
+    <view class="field field-name">
+      <view class="field-head">
+        <text class="field-label">频道名称</text>
+        <text class="field-required">*</text>
+      </view>
+      <view class="line-input-row">
+        <input
+          class="line-input {{nameError ? 'line-input-error' : ''}}"
+          placeholder-class="input-placeholder"
+          maxlength="32"
+          value="{{name}}"
+          bindinput="onNameInput"
+        />
+        <text class="field-count">{{name.length}}/32</text>
+      </view>
+      <text wx:if="{{nameError}}" class="field-error">{{nameError}}</text>
+    </view>
+
+    <view class="field field-description">
+      <view class="field-head">
+        <text class="field-label">频道描述</text>
+      </view>
+
+      <view class="description-box">
+        <textarea
+          class="description-input"
+          placeholder-class="input-placeholder"
+          maxlength="200"
+          value="{{description}}"
+          bindinput="onDescriptionInput"
+          auto-height
+        />
+        <view class="description-footer">
+          <text class="field-count">{{description.length}}/200</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer-bar">
+    <button
+      class="submit-btn"
+      disabled="{{submitting || uploading}}"
+      bindtap="onSubmit"
+    >
+      {{submitting ? '创建中…' : uploading ? '头像上传中…' : '创建频道'}}
+    </button>
   </view>
 </view>

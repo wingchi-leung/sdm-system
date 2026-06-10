@@ -1,0 +1,52 @@
+<view class="page">
+  <view class="header">
+    <view class="header-copy">
+      <text class="eyebrow">COMMUNITY INBOX</text>
+      <text class="title">站内信</text>
+      <text class="subtitle">频道邀请、更新提醒都会聚在这里，优先处理未读内容。</text>
+    </view>
+    <view class="header-actions">
+      <view wx:if="{{unreadCount > 0}}" class="count-pill">未读 {{unreadCount}}</view>
+      <button wx:if="{{unreadCount > 0}}" class="read-all-btn" bindtap="onReadAll">全部已读</button>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">加载中...</view>
+  <view wx:elif="{{error}}" class="state">{{error}}</view>
+  <view wx:elif="{{items.length === 0}}" class="state">暂无消息</view>
+
+  <view wx:else class="list">
+    <view
+      wx:for="{{items}}"
+      wx:key="id"
+      class="item {{item.is_unread ? 'unread' : ''}}"
+      data-item="{{item}}"
+      bindtap="onOpenNotification"
+    >
+      <view class="item-top">
+        <view class="item-title-wrap">
+          <view wx:if="{{item.is_unread}}" class="unread-dot"></view>
+          <text class="item-title">{{item.title}}</text>
+        </view>
+        <view class="item-labels">
+          <text class="type-pill">{{item.type_label}}</text>
+          <text wx:if="{{item.status_label}}" class="state-pill {{item.status_class}}">{{item.status_label}}</text>
+        </view>
+      </view>
+
+      <text wx:if="{{item.content}}" class="item-content">{{item.content}}</text>
+
+      <view class="meta-row">
+        <text wx:if="{{item.time_display}}" class="meta-text">{{item.time_display}}</text>
+        <text wx:if="{{item.channel_name}}" class="meta-text">{{item.channel_name}}</text>
+        <text wx:elif="{{item.inviter_name}}" class="meta-text">{{item.inviter_name}}</text>
+      </view>
+
+      <view class="row">
+        <button wx:if="{{item.can_respond}}" class="btn primary" data-id="{{item.id}}" catchtap="onAccept">接受邀请</button>
+        <button wx:if="{{item.can_respond}}" class="btn ghost" data-id="{{item.id}}" catchtap="onReject">拒绝</button>
+        <button wx:elif="{{item.has_channel}}" class="btn ghost" data-item="{{item}}" catchtap="onOpenNotification">查看频道</button>
+      </view>
+    </view>
+  </view>
+</view>

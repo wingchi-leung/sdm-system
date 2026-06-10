@@ -37,7 +37,7 @@
 | **D10** | 铃铛抽公共 `<floating-bell>` | props 化 size/top/right/unreadCount |
 | **D11** | 组件库 4 个 P0 | state-view / surface-card / page-hero / image-grid |
 | **D12** | 评论富文本本期不做 | 评论仍走纯文本+图片 |
-| **D13** | 不实现:转让管理员 / 置顶 / 官方标签 / DELETE | 等后续 |
+| **D13** | 不实现:转让管理员 / 置顶 / 官方标签；频道删除采用后端级联硬删 | 当前先把高风险删除链路收口 |
 | **D14** | 富文本审核:后端用 `bleach` 清洗 + BeautifulSoup 提图 | 复用 `media_check_async` |
 | **D15** | 头像审核:写 `community_media_moderation_task(item_type='channel_avatar')` | 状态流转:0-审核中 / 1-通过 / -1-驳回 |
 | **D16** | 上线节奏:灰度租户 → 全量 | 不 AB(瀑布流/富文本是强视觉,AB 难以得出结论) |
@@ -66,6 +66,7 @@
 - [x] FE-4  新增 pages/community-channel-create/(名称/描述/头像三字段,admin 拦截)
 - [x] FE-4  community/index.js: onCreateChannel 改 navigateTo(替换 wx.showModal)
 - [x] FE-4  app.json 注册新路由
+- [x] FE-4  community-channel-manage 新增删除频道入口,删除后级联清理帖子/评论/成员
 ```
 
 ### ✅ 批次 2(commit `7fa0156`)| 富文本编辑器
@@ -92,7 +93,7 @@
 - [ ] ⏸ community-moderation token 化(目前全硬编码色值)
 - [ ] ⏸ community-notifications token 化
 - [ ] ⏸ tabBar 新增 channel.png 专属图标
-- [ ] ⏸ 同步 docs/specs/产品规格说明-spec.md 实现状态表
+- [ ] ⏸ 同步 docs/specs/SPEC-01_产品总规格.md 实现状态表
 ```
 
 ### ⏸ 后续(Phase 3+)| 留给后续 AI/下一期
@@ -203,6 +204,7 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
 真机需要你跑的:
 - [ ] **小程 IDE**: 打开 `/pages/community-channel-create` 模拟创建频道(带头像)
 - [ ] **小程 IDE**: 在某频道点"发布动态",验证 `<editor>` 能输入文字+插入图片,并贴近 `sendpost.png`
+- [ ] **小程 IDE**: 频道动态页管理员点"成员管理",验证能进入 `/pages/community-channel-manage` 并看到成员列表
 - [ ] **小程 IDE**: 发布后跳回 `/pages/community-post-list`,验证单列信息流而不是 2 列瀑布流
 - [ ] **小程 IDE**: 列表页验证帖子正文、作者、时间、图片和评论预览的层级与 `channel-message.png` 一致
 - [ ] **小程 IDE**: 点击卡片跳详情,验证 `<rich-text>` 渲染 HTML 正确
@@ -250,9 +252,9 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
   - `docs/handover/权限系统架构文档.md`
   - `docs/handover/权限系统设计原则.md`
 - 原始 spec(本 spec 的源头,反向更新用):
-  - `docs/specs/社区频道功能-spec.md`
+  - `docs/specs/SPEC-05_社区-频道功能.md`
 - 产品规格总表(批次 4 时同步更新):
-  - `docs/specs/产品规格说明-spec.md`
+  - `docs/specs/SPEC-01_产品总规格.md`
 
 ---
 

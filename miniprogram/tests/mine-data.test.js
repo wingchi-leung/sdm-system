@@ -15,6 +15,7 @@ test('报名活动列表补充展示字段', () => {
     [
       { id: 1, start_time: '2026-05-07T08:00:00.000Z', enroll_status: 1 },
       { id: 2, start_time: '2026-05-08T08:00:00.000Z', enroll_status: 2 },
+      { id: 3, start_time: '2026-05-09T08:00:00.000Z', enroll_status: 1, payment_status: 1 },
     ],
     (value) => `格式化:${value}`
   );
@@ -24,6 +25,8 @@ test('报名活动列表补充展示字段', () => {
   assert.equal(items[0].enroll_status_class, 'is-registered');
   assert.equal(items[1].enroll_status_text, '候补中');
   assert.equal(items[1].enroll_status_class, 'is-waiting');
+  assert.equal(items[2].enroll_status_text, '待支付');
+  assert.equal(items[2].enroll_status_class, 'is-pending');
 });
 
 test('订单状态文案映射正确', () => {

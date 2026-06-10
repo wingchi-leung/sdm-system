@@ -5,3 +5,4 @@ from .participant import *
 from .checkin import *
 from .payment import *
 from .community import *
+from .notification import *

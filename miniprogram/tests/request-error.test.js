@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   isCloudflareTunnelError,
   normalizeApiErrorMessage,
+  normalizeRuntimeErrorMessage,
 } = require('../utils/request-error');
 
 test('识别 Cloudflare Tunnel HTML 错页', () => {
@@ -23,5 +24,12 @@ test('普通后端 detail 错误继续保留原文', () => {
   assert.equal(
     normalizeApiErrorMessage(400, { detail: '手机号不能为空' }),
     '手机号不能为空'
+  );
+});
+
+test('运行时对象错误可提取 message，避免显示 [object Object]', () => {
+  assert.equal(
+    normalizeRuntimeErrorMessage({ message: '[object Object]', detail: '登录凭证失效' }, '登录失败'),
+    '登录凭证失效'
   );
 });

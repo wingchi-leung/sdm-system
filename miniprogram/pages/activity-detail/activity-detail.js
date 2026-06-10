@@ -2,14 +2,17 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
 const tenant = require('../../utils/tenant');
+const contentUtils = require('../../utils/community-content');
 
 Page({
   data: {
     activityId: null,
     activity: null,
+    statusBarHeight: 0,
     posterLoadFailed: false,
     canEnroll: false,
     hasRegistered: false,
+    hasPendingPayment: false,
     registrationStatusText: '',
     actionTipText: '',
     isAdmin: false,
@@ -43,6 +46,7 @@ Page({
       activity: null,
       canEnroll: false,
       hasRegistered: false,
+      hasPendingPayment: false,
       registrationStatusText: '',
       actionTipText: '',
       showAdminPanel: false,
@@ -79,8 +83,19 @@ Page({
       return;
     }
 
+    let statusBarHeight = 0;
+    try {
+      const systemInfo = typeof wx.getSystemInfoSync === 'function'
+        ? wx.getSystemInfoSync()
+        : null;
+      statusBarHeight = systemInfo && systemInfo.statusBarHeight ? systemInfo.statusBarHeight : 0;
+    } catch (_) {
+      statusBarHeight = 0;
+    }
+
     this.setData({
-      activityId: activityId,
+      activityId,
+      statusBarHeight,
     });
     if (!this.ensureLoggedIn(activityId)) return;
     this.setData({ isAdmin: auth.isAdmin() });
@@ -100,6 +115,33 @@ Page({
     }
   },
 
+  onBack() {
+    wx.navigateBack();
+  },
+
+  onMore() {
+    const activity = this.data.activity || {};
+    const sharePath = tenant.appendTenantToUrl('/pages/activity-detail/activity-detail', {
+      id: this.data.activityId,
+    });
+    wx.showActionSheet({
+      itemList: ['复制活动链接', '分享活动标题'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          wx.setClipboardData({
+            data: sharePath,
+            success: () => wx.showToast({ title: '链接已复制', icon: 'none' }),
+          });
+          return;
+        }
+        wx.showToast({
+          title: activity.activity_name ? '请使用右上角分享' : '可通过分享功能转发',
+          icon: 'none',
+        });
+      },
+    });
+  },
+
   loadActivity(activityId) {
     this.setData({ loading: true, error: null, posterLoadFailed: false });
     const tasks = [api.getActivity(activityId), api.getActivityPermissions(activityId)];
@@ -112,7 +154,8 @@ Page({
         const registration = registrationRes && registrationRes.items && registrationRes.items[0]
           ? registrationRes.items[0]
           : null;
-        const hasRegistered = !!registration;
+        const isPendingPayment = !!registration && Number(registration.payment_status) === 1;
+        const hasRegistered = !!registration && !isPendingPayment;
         const canEnroll = activity.status === 1 || activity.status === 2;
         const showAdminPanel = !!(permissions && permissions.can_manage);
         const showCommunitySection = showAdminPanel || hasRegistered;
@@ -121,7 +164,9 @@ Page({
         const endDisplay = activity.end_time ? this.formatTime(activity.end_time) : '';
         const joinMethodDisplay = this.resolveJoinMethod(activity);
         let actionTipText = '';
-        if (hasRegistered) {
+        if (isPendingPayment) {
+          actionTipText = '待支付，请前往我的订单继续完成支付';
+        } else if (hasRegistered) {
           actionTipText = registration.enroll_status === 2 ? '您已在候补中' : '您已报名该活动';
         } else if (auth.isSuperAdmin()) {
           actionTipText = '超级管理员账号不可直接报名';
@@ -130,6 +175,10 @@ Page({
         }
 
         const posterUrl = await image.resolveDisplayUrl(activity.poster_url);
+        const detailParagraphs = this.buildDetailParagraphs(activity.activity_intro);
+        const infoRows = this.buildInfoRows(activity, startDisplay, endDisplay, joinMethodDisplay);
+        const heroKicker = this.resolveHeroKicker(activity);
+        const heroSummary = this.resolveHeroSummary(activity);
 
         this.setData({
           activity: {
@@ -139,12 +188,19 @@ Page({
             start_display: startDisplay,
             end_display: endDisplay,
             join_method_display: joinMethodDisplay,
+            hero_kicker: heroKicker,
+            hero_summary: heroSummary,
+            poster_fallback_title: 'FUTURE DESIGN',
+            poster_fallback_summary: heroSummary,
+            detail_paragraphs: detailParagraphs,
+            info_rows: infoRows,
           },
-          canEnroll: canEnroll && !hasRegistered && !auth.isSuperAdmin(),
+          hasPendingPayment: isPendingPayment,
+          canEnroll: canEnroll && !hasRegistered && !isPendingPayment && !auth.isSuperAdmin(),
           hasRegistered,
           registrationStatusText: hasRegistered
             ? (registration.enroll_status === 2 ? '候补中' : '已报名')
-            : '',
+            : (isPendingPayment ? '待支付' : ''),
           actionTipText,
           showCommunitySection,
           showAdminPanel,
@@ -161,7 +217,7 @@ Page({
           });
         }
       })
-      .catch((err) => {
+      .catch(() => {
         this.setData({
           error: '加载失败',
           loading: false,
@@ -176,7 +232,7 @@ Page({
     }
   },
 
-  onPosterError(e) {
+  onPosterError() {
     this.setData({ posterLoadFailed: true });
     wx.showToast({
       title: '海报加载失败，请检查图片域名配置',
@@ -184,6 +240,7 @@ Page({
       duration: 2500,
     });
   },
+
   async loadCommunityPreview(activityId) {
     this.setData({ communityLoading: true, communityError: null });
     try {
@@ -191,7 +248,14 @@ Page({
       this.setData({
         communityPosts: (result.items || []).map((item) => ({
           ...item,
-          cover_url: api.getImageUrl(item.cover_url),
+          images: (() => {
+            const parsed = contentUtils.parsePostContent(item.content);
+            const blockImages = (parsed.blocks || [])
+              .filter((block) => block.type === 'images')
+              .flatMap((block) => block.images || []);
+            const mergedImages = blockImages.length ? blockImages : (item.images || []);
+            return mergedImages.map((url) => api.getImageUrl(url));
+          })(),
           create_time_display: this.formatDate(item.create_time),
         })),
         communityLoading: false,
@@ -203,14 +267,80 @@ Page({
       });
     }
   },
+
+  buildDetailParagraphs(activityIntro) {
+    const fallback = [
+      '当人工智能不断创造，设计的边界正在被重新定义。',
+      '我们将一起思考：在未来，设计师的价值是什么？我们应该创造什么？',
+    ];
+    const rawLines = String(activityIntro || '')
+      .split(/\r?\n+/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (!rawLines.length) {
+      return fallback;
+    }
+    return rawLines;
+  },
+
+  buildInfoRows(activity, startDisplay, endDisplay, joinMethodDisplay) {
+    const scheduleText = this.formatScheduleDisplay(startDisplay, endDisplay);
+    const locationText = activity.location || '线上活动';
+    const capacityText = activity.max_participants && Number(activity.max_participants) > 0
+      ? `限定 ${activity.max_participants} 人`
+      : '';
+    return [
+      { label: '时间', value: scheduleText || '--' },
+      { label: '地点', value: locationText },
+      {
+        label: '参与方式',
+        value: capacityText ? `${joinMethodDisplay} ｜ ${capacityText}` : joinMethodDisplay,
+      },
+    ];
+  },
+
+  resolveHeroKicker(activity) {
+    return activity.activity_type_name || activity.tag || '';
+  },
+
+  resolveHeroSummary(activity) {
+    const intro = String(activity.activity_intro || '').trim();
+    if (!intro) {
+      return '重新理解人与技术的关系';
+    }
+    const lines = intro.split(/\r?\n+/).map((line) => line.trim()).filter(Boolean);
+    if (lines.length > 0) {
+      const firstLine = lines[0];
+      if (firstLine.length <= 28) {
+        return firstLine;
+      }
+      return `${firstLine.slice(0, 28)}…`;
+    }
+    return '重新理解人与技术的关系';
+  },
+
+  formatScheduleDisplay(startDisplay, endDisplay) {
+    if (!startDisplay) return '';
+    if (!endDisplay) return startDisplay;
+    const startDay = startDisplay.split(' ')[0];
+    const endDay = endDisplay.split(' ')[0];
+    const endTime = endDisplay.split(' ')[2] || '';
+    if (startDay && endDay && startDay === endDay && endTime) {
+      return `${startDisplay} - ${endTime}`;
+    }
+    return `${startDisplay} - ${endDisplay}`;
+  },
+
   formatTime(iso) {
     if (!iso) return '';
     const d = new Date(iso);
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
+    const weekMap = ['日', '一', '二', '三', '四', '五', '六'];
+    const week = weekMap[d.getDay()];
     const h = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
-    return `${m}.${day} ${h}:${min}`;
+    return `${m}.${day} 周${week} ${h}:${min}`;
   },
 
   formatDate(iso) {
@@ -232,11 +362,15 @@ Page({
 
   goRegister() {
     const activity = this.data.activity;
-    if (!activity || !this.data.canEnroll) return;
+    if (!activity || (!this.data.canEnroll && !this.data.hasPendingPayment)) return;
     // 只传递活动 ID，避免 URL 过长
     wx.navigateTo({
       url: tenant.appendTenantToUrl('/pages/register/register', { id: activity.id }),
     });
+  },
+
+  onPrimaryAction() {
+    this.goRegister();
   },
 
   onBackFromRegister() {
@@ -280,7 +414,7 @@ Page({
       return;
     }
     const currentStatus = this.data.activity.status;
-    const items = this.data.statusOptions.map(s => s.label);
+    const items = this.data.statusOptions.map((s) => s.label);
 
     wx.showActionSheet({
       itemList: items,

@@ -1,7 +1,8 @@
 <view class="page">
+  <page-header title="报名活动"></page-header>
   <view class="hero" wx:if="{{!loading && !error}}">
     <text class="hero-title">报名活动</text>
-    <text class="hero-text">{{activities.length ? summaryText : '这里会展示你已经报名或候补中的活动'}}</text>
+    <text class="hero-text">{{activities.length ? summaryText : '这里会展示你已经报名、候补中或待支付的活动'}}</text>
   </view>
 
   <view wx:if="{{loading}}" class="state-wrap">
@@ -40,6 +41,6 @@
 
   <view wx:else class="state-wrap">
     <text class="state-title">还没有报名活动</text>
-    <text class="state-text">报名成功后会在这里看到全部历史活动</text>
+    <text class="state-text">报名、支付成功后会在这里看到全部历史活动</text>
   </view>
 </view>

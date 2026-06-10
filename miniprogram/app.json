@@ -15,11 +15,13 @@
     "pages/activity-checkins/activity-checkins",
     "pages/activity-statistics/activity-statistics",
     "pages/user-list/user-list",
+    "pages/user-detail/user-detail",
     "pages/community-post-list/community-post-list",
     "pages/community-post-detail/community-post-detail",
     "pages/community-post-create/community-post-create",
     "pages/community-moderation/community-moderation",
     "pages/community-channel-create/community-channel-create",
+    "pages/community-channel-manage/community-channel-manage",
     "pages/my-activities/my-activities",
     "pages/my-orders/my-orders",
     "pages/avatar-picker/avatar-picker",
@@ -44,14 +46,14 @@
     "list": [
       {
         "pagePath": "pages/index/index",
-        "iconPath": "assets/icons/activity-default.png",
-        "selectedIconPath": "assets/icons/activity-active.png",
+        "iconPath": "assets/icons/activities.png",
+        "selectedIconPath": "assets/icons/activities-active.png",
         "text": ""
       },
       {
         "pagePath": "pages/community/index",
-        "iconPath": "assets/icons/activity-default.png",
-        "selectedIconPath": "assets/icons/activity-active.png",
+        "iconPath": "assets/icons/community.png",
+        "selectedIconPath": "assets/icons/community-active.jpg",
         "text": ""
       },
       {

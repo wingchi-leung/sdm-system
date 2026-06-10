@@ -440,6 +440,7 @@ class CommunityChannelPost(BaseModel):
     author_user_id = Column(Integer, nullable=False, index=True)
     title = Column(String(120), nullable=False)
     content = Column(Text, nullable=False)
+    content_format = Column(String(16), nullable=False, default="html")
     images = Column(Text, nullable=True)
     is_official = Column(SmallInteger, default=0, nullable=False)
     is_pinned = Column(SmallInteger, default=0, nullable=False)

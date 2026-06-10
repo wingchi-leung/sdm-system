@@ -7,9 +7,10 @@
 ```
 docs/
 ├── CLAUDE.md              # 本文件
-├── ARCHITECTURE.md        # 技术架构总览
-├── 产品规格说明-spec.md    # 当前生效的产品规格（动态维护）
-├── archive/               # 历史归档
+├── ARCHITECTURE.md              # 技术架构总览
+├── specs/                       # 产品规格目录（SPEC-NN_模块-专项.md）
+│   └── SPEC-01_产品总规格.md     # 当前生效的产品总规格（动态维护）
+├── archive/                     # 历史归档
 │   └── *.md               # 历史的旧规格、审查报告
 ├── handover/             # 技术交接文档（按功能）
 │   └── *.md
@@ -31,7 +32,7 @@ docs/
 ## 文档同步
 
 完成重大调整后必须：
-1. 更新 `产品规格说明-spec.md` 的实现状态表格
+1. 更新 `specs/SPEC-01_产品总规格.md` 的实现状态表格
 2. 如涉及技术细节，创建 `docs/handover/<feature>.md`
 3. 如涉及产品思考，创建 `docs/insights/<feature>.md`
  

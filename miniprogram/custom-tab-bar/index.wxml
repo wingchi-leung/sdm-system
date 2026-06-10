@@ -21,4 +21,15 @@
       </view>
     </view>
   </view>
+  <view class="tab-item {{selected === 2 ? 'active' : ''}}" data-index="2" bindtap="switchTab">
+    <view class="tab-bubble">
+      <view class="tab-icon">
+        <image
+          class="tab-personnel"
+          src="{{selected === 2 ? list[2].selectedIconPath : list[2].iconPath}}"
+          mode="aspectFit"
+        />
+      </view>
+    </view>
+  </view>
 </view>

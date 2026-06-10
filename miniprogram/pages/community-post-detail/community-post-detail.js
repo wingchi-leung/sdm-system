@@ -121,7 +121,7 @@ Page({
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
       .trim();
-  },,
+  },
 
   onCommentInput(e) {
     this.setData({ commentContent: e.detail.value });

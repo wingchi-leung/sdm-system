@@ -1,4 +1,7 @@
 {
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  },
+  "navigationStyle": "custom",
   "navigationBarTitleText": "协议和说明"
 }
-
