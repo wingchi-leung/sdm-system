@@ -44,11 +44,11 @@ Page({
         cover_url: resolveChannelCover(item.avatar_url),
         cover_theme: FALLBACK_THEMES[index % FALLBACK_THEMES.length],
         role_label: item.role === 'admin' ? '管理员' : '成员',
-        short_name: String(item.name || '频道').slice(0, 2),
+        short_name: String(item.name || '社区').slice(0, 2),
       }));
       this.setData({ channels, loading: false });
     } catch (err) {
-      this.setData({ loading: false, error: err.message || '加载频道失败' });
+      this.setData({ loading: false, error: err.message || '加载社区失败' });
     }
   },
 
@@ -79,7 +79,7 @@ Page({
 
   onCreateChannel() {
     if (!this.data.isAdmin) {
-      wx.showToast({ title: '仅管理员可创建频道', icon: 'none' });
+      wx.showToast({ title: '仅管理员可创建社区', icon: 'none' });
       return;
     }
     wx.navigateTo({ url: '/pages/community-channel-create/community-channel-create' });
