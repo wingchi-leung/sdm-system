@@ -123,6 +123,7 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-06-10 | 社区频道管理员发帖规则收口：管理员发布动态完全免审，文本与图片都不进入审核队列，帖子直接以 `status=1` 展示；补充管理员免审回归测试 | `docs/specs/社区频道-Phase2-实施spec.md`, `backend/app/api/v1/endpoints/community.py`, `backend/tests/api/test_community_channels.py` |
 | 2026-06-10 | 社区频道按设计稿纠偏：社区发帖页重做为编辑器式发布页，补齐自定义头部、图片上传插入、清空确认和编辑器快照同步，频道动态列表回退为单列信息流，后端补充 `content_format`、作者头像和评论预览字段 | `docs/specs/社区频道-Phase2-实施spec.md`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/community-post-list/*`, `backend/app/crud/crud_community_channel.py`, `backend/app/models/community.py`, `backend/app/schemas.py`, `backend/sql/table.sql` |
 | 2026-06-10 | 小程序“我的”页重设计为白底极简平铺样式：恢复顶部“我的”标题与铃铛入口，保留头像信息区、三栏统计和极简服务列表 | `miniprogram/pages/mine/mine.wxml`, `miniprogram/pages/mine/mine.wxss`, `miniprogram/pages/mine/mine.js`, `miniprogram/pages/mine/mine.json` |
 | 2026-06-09 | 小程序活动详情页改版为海报式极简详情页：顶部自定义返回/更多、蓝色主题锚点、海报卡片、信息分栏、底部文字式报名入口 | `miniprogram/pages/activity-detail/activity-detail.wxml`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `miniprogram/pages/activity-detail/activity-detail.js` |

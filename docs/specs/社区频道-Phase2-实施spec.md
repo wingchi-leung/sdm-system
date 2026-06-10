@@ -41,6 +41,7 @@
 | **D14** | 富文本审核:后端用 `bleach` 清洗 + BeautifulSoup 提图 | 复用 `media_check_async` |
 | **D15** | 头像审核:写 `community_media_moderation_task(item_type='channel_avatar')` | 状态流转:0-审核中 / 1-通过 / -1-驳回 |
 | **D16** | 上线节奏:灰度租户 → 全量 | 不 AB(瀑布流/富文本是强视觉,AB 难以得出结论) |
+| **D17** | 管理员发布动态完全免审 | 文本与图片都不进入审核队列,帖子直接 `status=1` |
 
 ---
 

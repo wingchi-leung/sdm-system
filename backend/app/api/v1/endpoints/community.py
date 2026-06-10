@@ -793,10 +793,14 @@ def create_channel_post(
         user_id=ctx.user_id,
     )
     is_official = body.is_official if member.role == "admin" else 0
-    channel_post_status, _ = _resolve_review_status(
-        text=f"{body.title}\n{body.content}",
-        bypass=_should_bypass_security_check(db, ctx=ctx, channel_member_role=member.role),
-    )
+    is_admin_publish = member.role == "admin" or ctx.has_any_role(db)
+    if is_admin_publish:
+        channel_post_status = 1
+    else:
+        channel_post_status, _ = _resolve_review_status(
+            text=f"{body.title}\n{body.content}",
+            bypass=False,
+        )
     post = crud_community_channel.create_channel_post(
         db,
         tenant_id=ctx.tenant_id,
@@ -804,15 +808,17 @@ def create_channel_post(
         author_user_id=ctx.user_id,
         title=body.title,
         content=body.content,
+        content_format=body.content_format or "html",
         images=body.images,
         is_official=is_official,
         status=channel_post_status,
     )
     if (
+        not is_admin_publish
+        and
         channel_post_status == 1
         and settings.WECHAT_CONTENT_SECURITY_ENABLED
         and body.images
-        and not _should_bypass_security_check(db, ctx=ctx, channel_member_role=member.role)
     ):
         crud_community_channel.update_channel_post_status(
             db, tenant_id=ctx.tenant_id, post_id=post.id, status=0
