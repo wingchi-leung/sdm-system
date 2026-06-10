@@ -1,34 +1,52 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const { syncTabBarSelected } = require('../../utils/tab-bar');
+
+const FALLBACK_THEMES = ['theme-ocean', 'theme-mist', 'theme-sand', 'theme-forest'];
+
+function resolveChannelCover(avatarUrl) {
+  const text = avatarUrl == null ? '' : String(avatarUrl).trim();
+  if (!text) return '';
+  if (/^https?:\/\//i.test(text)) return text;
+  return api.getImageUrl(text);
+}
 
 Page({
   data: {
     channels: [],
     loading: false,
-    creating: false,
     error: null,
     unreadCount: 0,
     isAdmin: false,
   },
 
   onShow() {
+    syncTabBarSelected(this);
     this.setData({ isAdmin: auth.isAdmin() });
-    this.loadChannels();
     this.loadUnreadCount();
-    // 若频道创建页通知了脏标记，刷新列表
     const app = getApp();
-    if (app.globalData?.channelListDirty) {
+    const channelListDirty = Boolean(app.globalData?.channelListDirty);
+    if (channelListDirty && app.globalData) {
       app.globalData.channelListDirty = false;
-      this.loadChannels();
     }
+    this.loadChannels({ clearCurrent: channelListDirty });
   },
 
-  async loadChannels() {
-    this.setData({ loading: true, error: null });
+  async loadChannels({ clearCurrent = false } = {}) {
+    this.setData(clearCurrent
+      ? { channels: [], loading: true, error: null }
+      : { loading: true, error: null });
     try {
       const res = await api.getCommunityChannels({ limit: 100 });
-      this.setData({ channels: res.items || [], loading: false });
+      const channels = (res.items || []).map((item, index) => ({
+        ...item,
+        cover_url: resolveChannelCover(item.avatar_url),
+        cover_theme: FALLBACK_THEMES[index % FALLBACK_THEMES.length],
+        role_label: item.role === 'admin' ? '管理员' : '成员',
+        short_name: String(item.name || '频道').slice(0, 2),
+      }));
+      this.setData({ channels, loading: false });
     } catch (err) {
       this.setData({ loading: false, error: err.message || '加载频道失败' });
     }

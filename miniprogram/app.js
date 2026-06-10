@@ -11,5 +11,7 @@ App({
   onShow(options) {
     tenant.applyLaunchOptions(options);
   },
-  globalData: {}
+  globalData: {
+    channelListDirty: false,
+  }
 });

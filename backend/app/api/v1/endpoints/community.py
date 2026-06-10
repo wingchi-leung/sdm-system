@@ -576,6 +576,30 @@ def invite_channel_members(
     return {"success": True, "invited_count": invited_count}
 
 
+@router.delete("/channels/{channel_id}")
+def delete_channel(
+    channel_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    _ensure_tenant_admin(ctx)
+    _ensure_channel_admin(
+        db,
+        channel_id=channel_id,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+    )
+    deleted = crud_community_channel.delete_channel(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+    )
+    if deleted is None:
+        raise HTTPException(status_code=404, detail="频道不存在")
+    return {"success": True, **deleted}
+
+
 @router.get("/notifications", response_model=CommunityNotificationListResponse)
 def list_notifications(
     skip: int = Query(0, ge=0),
