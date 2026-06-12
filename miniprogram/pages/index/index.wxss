@@ -107,11 +107,13 @@
   font-size: 24rpx;
   line-height: 1.45;
   letter-spacing: 0.08em;
+  
 }
 
 .hero-divider {
   width: 2rpx;
   align-self: stretch;
+  margin-left: 10rpx;
   background: rgba(17, 17, 17, 0.2);
 }
 
