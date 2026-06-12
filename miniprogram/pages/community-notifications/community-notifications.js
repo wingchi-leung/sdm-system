@@ -41,6 +41,12 @@ Page({
     this.loadNotifications();
   },
 
+  onBack() {
+    if (typeof wx.navigateBack === 'function') {
+      wx.navigateBack({ delta: 1 });
+    }
+  },
+
   async loadNotifications() {
     this.setData({ loading: true, error: null });
     try {

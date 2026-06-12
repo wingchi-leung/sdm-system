@@ -1,19 +1,52 @@
 <view class="page">
-  <view class="header">
-    <view class="header-copy">
-      <text class="eyebrow">COMMUNITY INBOX</text>
-      <text class="title">站内信</text>
-      <text class="subtitle">频道邀请、更新提醒都会聚在这里，优先处理未读内容。</text>
+  <view class="topbar">
+    <view class="topbar-left" bindtap="onBack">
+      <text class="back-icon">‹</text>
     </view>
-    <view class="header-actions">
-      <view wx:if="{{unreadCount > 0}}" class="count-pill">未读 {{unreadCount}}</view>
-      <button wx:if="{{unreadCount > 0}}" class="read-all-btn" bindtap="onReadAll">全部已读</button>
+    <text class="topbar-title">消息</text>
+    <view class="topbar-actions">
+      <view wx:if="{{unreadCount > 0}}" class="topbar-pill" bindtap="onReadAll">
+        <text class="topbar-pill-text">已读 {{unreadCount}}</text>
+      </view>
+      <view class="topbar-menu">
+        <text class="topbar-menu-dots">•••</text>
+        <view class="topbar-menu-ring"></view>
+      </view>
     </view>
   </view>
 
-  <view wx:if="{{loading}}" class="state">加载中...</view>
-  <view wx:elif="{{error}}" class="state">{{error}}</view>
-  <view wx:elif="{{items.length === 0}}" class="state">暂无消息</view>
+  <view class="hero">
+    <image class="hero-bg" src="/assets/bubbles.png" mode="aspectFill" />
+    <view class="hero-mask"></view>
+
+    <view class="hero-copy">
+      <text class="hero-title">收件箱</text>
+      <text class="hero-subtitle">Inbox.</text>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state state-loading">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state state-error">
+    <text class="state-empty-title">暂时无法查看消息</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:elif="{{items.length === 0}}" class="empty-state">
+    <view class="empty-orbit">
+      <view class="empty-orbit-dot empty-orbit-dot-big"></view>
+      <view class="empty-orbit-dot empty-orbit-dot-outline"></view>
+      <view class="empty-orbit-dot empty-orbit-dot-solid"></view>
+      <view class="empty-orbit-dot empty-orbit-dot-small"></view>
+      <view class="empty-orbit-dot empty-orbit-dot-tiny"></view>
+    </view>
+    <text class="empty-title">Nothing here yet.</text>
+    <view class="empty-divider"></view>
+    <text class="empty-hint">新的邀请与提醒</text>
+    <text class="empty-hint">将在这里出现</text>
+  </view>
 
   <view wx:else class="list">
     <view
@@ -23,7 +56,7 @@
       data-item="{{item}}"
       bindtap="onOpenNotification"
     >
-      <view class="item-top">
+      <view class="item-head">
         <view class="item-title-wrap">
           <view wx:if="{{item.is_unread}}" class="unread-dot"></view>
           <text class="item-title">{{item.title}}</text>
@@ -42,10 +75,10 @@
         <text wx:elif="{{item.inviter_name}}" class="meta-text">{{item.inviter_name}}</text>
       </view>
 
-      <view class="row">
-        <button wx:if="{{item.can_respond}}" class="btn primary" data-id="{{item.id}}" catchtap="onAccept">接受邀请</button>
-        <button wx:if="{{item.can_respond}}" class="btn ghost" data-id="{{item.id}}" catchtap="onReject">拒绝</button>
-        <button wx:elif="{{item.has_channel}}" class="btn ghost" data-item="{{item}}" catchtap="onOpenNotification">查看频道</button>
+      <view class="item-actions">
+        <button wx:if="{{item.can_respond}}" class="btn btn-primary" data-id="{{item.id}}" catchtap="onAccept">接受邀请</button>
+        <button wx:if="{{item.can_respond}}" class="btn btn-ghost" data-id="{{item.id}}" catchtap="onReject">拒绝</button>
+        <button wx:elif="{{item.has_channel}}" class="btn btn-ghost" data-item="{{item}}" catchtap="onOpenNotification">查看频道</button>
       </view>
     </view>
   </view>
