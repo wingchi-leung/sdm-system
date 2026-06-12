@@ -7,7 +7,7 @@
 
 .hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 72vh;
   padding: 24rpx 34rpx 48rpx;
   overflow: hidden;
 }
@@ -27,62 +27,15 @@
   z-index: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-end;
   min-height: 72rpx;
   padding: 4rpx 0 0;
 }
 
-.hero-top-title {
-  color: #111111;
-  font-size: 30rpx;
-  line-height: 1.3;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-}
-
-.hero-capsule {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 142rpx;
-  height: 58rpx;
-  border: 1rpx solid rgba(17, 17, 17, 0.14);
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(10rpx);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18rpx 0 20rpx;
-  box-sizing: border-box;
-}
-
-.hero-capsule-dots {
-  display: flex;
-  align-items: center;
-  gap: 7rpx;
-}
-
-.hero-capsule-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #111111;
-  display: block;
-}
-
-.hero-capsule-ring {
-  width: 20rpx;
-  height: 20rpx;
-  border: 4rpx solid #111111;
-  border-radius: 50%;
-  box-sizing: border-box;
-}
-
 .hero-bell-wrap {
-  position: absolute;
-  right: 42rpx;
-  top: 152rpx;
+  position: relative;
+  right: 0;
+  top: 0;
   z-index: 1;
   width: 52rpx;
   height: 52rpx;
@@ -126,7 +79,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 24rpx;
-  margin-top: 168rpx;
+  margin-top: 72rpx;
   padding: 0 8rpx;
 }
 
@@ -141,7 +94,7 @@
 .hero-mark-cn {
   color: #111111;
   font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 146rpx;
+  font-size: 132rpx;
   line-height: 0.9;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -151,7 +104,7 @@
   margin-top: 8rpx;
   color: #9b9b9b;
   font-family: "Times New Roman", Georgia, serif;
-  font-size: 25rpx;
+  font-size: 24rpx;
   line-height: 1.45;
   letter-spacing: 0.08em;
 }
@@ -163,7 +116,7 @@
 }
 
 .hero-mark-right {
-  width: 210rpx;
+  width: 190rpx;
   padding-left: 18rpx;
   display: flex;
   flex-direction: column;
@@ -174,7 +127,7 @@
 .hero-mark-vertical {
   color: #111111;
   font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 146rpx;
+  font-size: 132rpx;
   line-height: 0.9;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -246,7 +199,7 @@
 }
 
 .list-shell {
-  padding: 34rpx 40rpx 0;
+  padding: 16rpx 40rpx 0;
 }
 
 .activity-groups {
