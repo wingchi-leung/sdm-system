@@ -248,6 +248,58 @@ test('首页会按开始时间排序活动并保留展示字段', async () => {
   assert.equal(page.data.visibleActivities[1].activity_name, '明天的活动');
 });
 
+test('首页会按日期分组展示活动标题，便于滚动时定位当前日期', async () => {
+  const pageConfig = loadIndexPage({
+    api: {
+      getEnrollableActivities: () => Promise.resolve({
+        items: [
+          {
+            id: 1,
+            activity_name: '六月九号活动A',
+            start_time: '2026-06-09T09:00:00',
+            end_time: '2026-06-09T11:00:00',
+          },
+          {
+            id: 2,
+            activity_name: '六月九号活动B',
+            start_time: '2026-06-09T14:00:00',
+            end_time: '2026-06-09T16:00:00',
+          },
+          {
+            id: 3,
+            activity_name: '六月十号活动',
+            start_time: '2026-06-10T10:00:00',
+            end_time: '2026-06-10T12:00:00',
+          },
+        ],
+      }),
+    },
+    auth: {
+      isAdmin: () => false,
+      isUser: () => false,
+      isSuperAdmin: () => false,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [],
+      getUserName: () => '',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => '',
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+  await page.load();
+
+  assert.equal(page.data.dateGroups.length, 2);
+  assert.equal(page.data.dateGroups[0].date_label, '6月9日');
+  assert.equal(page.data.dateGroups[0].activities.length, 2);
+  assert.equal(page.data.dateGroups[1].date_label, '6月10日');
+  assert.equal(page.data.dateGroups[1].activities.length, 1);
+});
+
 test('首页活动接口参数：超级管理员使用管理员视角，其它账号使用用户视角', async () => {
   const calls = [];
   const pageConfig = loadIndexPage({

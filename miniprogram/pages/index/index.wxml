@@ -37,45 +37,50 @@
   </view>
 
   <view wx:else class="list-shell">
-    <view class="section-header">
-      <text class="section-title">即将开始</text>
-    </view>
-
-    <view class="activity-list">
-      <view
-        class="activity-card"
-        wx:for="{{visibleActivities}}"
-        wx:key="id"
-        data-activity="{{item}}"
-        bindtap="goDetail"
-      >
-        <view class="activity-cover">
-          <image
-            wx:if="{{item.poster_url}}"
-            class="activity-cover-image"
-            src="{{item.poster_url}}"
-            mode="aspectFill"
-            lazy-load
-          />
-          <view wx:else class="activity-cover-placeholder">
-            <text class="activity-cover-placeholder-text">SDM</text>
-          </view>
+    <view class="activity-groups">
+      <view wx:for="{{dateGroups}}" wx:key="key" class="activity-group">
+        <view class="activity-group-header">
+          <text class="activity-group-date">{{item.date_label}}</text>
+          <text wx:if="{{item.weekday_label}}" class="activity-group-weekday">{{item.weekday_label}}</text>
         </view>
+        <view class="activity-list">
+          <view
+            class="activity-card"
+            wx:for="{{item.activities}}"
+            wx:for-item="activity"
+            wx:key="id"
+            data-activity="{{activity}}"
+            bindtap="goDetail"
+          >
+            <view class="activity-cover">
+              <image
+                wx:if="{{activity.poster_url}}"
+                class="activity-cover-image"
+                src="{{activity.poster_url}}"
+                mode="aspectFill"
+                lazy-load
+              />
+              <view wx:else class="activity-cover-placeholder">
+                <text class="activity-cover-placeholder-text">SDM</text>
+              </view>
+            </view>
 
-        <view class="activity-content">
-          <view class="activity-head">
-            <text class="activity-title-text">{{item.activity_name}}</text>
-            <text class="activity-arrow">→</text>
-          </view>
+            <view class="activity-content">
+              <view class="activity-head">
+                <text class="activity-title-text">{{activity.activity_name}}</text>
+                <text class="activity-arrow">→</text>
+              </view>
 
-          <text wx:if="{{item.summary_text}}" class="activity-summary">{{item.summary_text}}</text>
-          <text wx:else class="activity-summary muted">探索更多活动细节</text>
+              <text wx:if="{{activity.summary_text}}" class="activity-summary">{{activity.summary_text}}</text>
+              <text wx:else class="activity-summary muted">探索更多活动细节</text>
 
-          <view class="activity-meta">
-            <text wx:if="{{item.date_label}}" class="activity-meta-text">{{item.date_label}}</text>
-            <text wx:if="{{item.weekday_label}}" class="activity-meta-text">{{item.weekday_label}}</text>
-            <text wx:if="{{item.time_range_display}}" class="activity-meta-text">{{item.time_range_display}}</text>
-            <text class="activity-meta-text">{{item.location_display}}</text>
+              <view class="activity-meta">
+                <text wx:if="{{activity.date_label}}" class="activity-meta-text">{{activity.date_label}}</text>
+                <text wx:if="{{activity.weekday_label}}" class="activity-meta-text">{{activity.weekday_label}}</text>
+                <text wx:if="{{activity.time_range_display}}" class="activity-meta-text">{{activity.time_range_display}}</text>
+                <text class="activity-meta-text">{{activity.location_display}}</text>
+              </view>
+            </view>
           </view>
         </view>
       </view>

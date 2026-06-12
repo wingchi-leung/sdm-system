@@ -22,6 +22,7 @@ Page({
   data: {
     activities: [],
     visibleActivities: [],
+    dateGroups: [],
     loading: true,
     error: null,
     isAdmin: false,
@@ -44,6 +45,7 @@ Page({
       error: null,
       activities: [],
       visibleActivities: [],
+      dateGroups: [],
       headerAvatarUrl: '',
       todayLabel: '探索',
       weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
@@ -168,6 +170,7 @@ Page({
             date_day: dateDisplay.day,
             date_month: dateDisplay.month,
             date_key: dateDisplay.key,
+            date_group_label: dateDisplay.groupLabel,
             weekday_label: dateDisplay.weekdayLabel,
             date_label: dateDisplay.dateLabel,
             is_today: dateDisplay.isToday,
@@ -189,6 +192,7 @@ Page({
           const bTime = b.start_time ? new Date(b.start_time).getTime() : 0;
           return aTime - bTime;
         });
+        const dateGroups = this.buildDateGroups(items);
 
         const headerAvatarUrl = auth.isUser()
           ? await resolveAvatarDisplayUrl(profile && profile.avatar_url)
@@ -196,6 +200,7 @@ Page({
         this.setData({
           activities: items,
           visibleActivities: items,
+          dateGroups,
           loading: false,
           headerAvatarUrl,
           weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
@@ -210,6 +215,7 @@ Page({
           loading: false,
           activities: [],
           visibleActivities: [],
+          dateGroups: [],
           headerAvatarUrl: '',
           weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
           weekdayLabelEn: this.getWeekdayLabelEn(new Date()),
@@ -329,6 +335,7 @@ Page({
         key: '',
         weekdayLabel: '',
         dateLabel: '--.--',
+        groupLabel: '未设置日期',
         isToday: false,
       };
     }
@@ -346,36 +353,29 @@ Page({
       key,
       weekdayLabel: weekdays[d.getDay()],
       dateLabel: `${String(d.getMonth() + 1).padStart(2, '0')}.${String(day).padStart(2, '0')}`,
+      groupLabel: `${d.getMonth() + 1}月${day}日`,
       isToday: key === todayKey,
     };
   },
 
-  buildDateTabs(items) {
-    const tabMap = new Map();
+  buildDateGroups(items) {
+    const groupMap = new Map();
+    const groups = [];
     items.forEach((item) => {
-      if (!item.date_key || tabMap.has(item.date_key)) return;
-      tabMap.set(item.date_key, {
-        key: item.date_key,
-        dateLabel: item.date_label,
-        weekdayLabel: item.weekday_label,
-        markerLabel: item.is_today ? 'TODAY' : '',
-      });
+      const key = item.date_key || `unknown-${groups.length}`;
+      if (!groupMap.has(key)) {
+        const group = {
+          key,
+          date_label: item.date_group_label || item.date_label || '未设置日期',
+          weekday_label: item.weekday_label || '',
+          activities: [],
+        };
+        groupMap.set(key, group);
+        groups.push(group);
+      }
+      groupMap.get(key).activities.push(item);
     });
-    return Array.from(tabMap.values());
-  },
-
-  resolveSelectedDateKey(dateTabs) {
-    if (!dateTabs.length) return '';
-    if (this.data.selectedDateKey && dateTabs.some((tab) => tab.key === this.data.selectedDateKey)) {
-      return this.data.selectedDateKey;
-    }
-    const todayTab = dateTabs.find((tab) => tab.markerLabel === 'TODAY');
-    return todayTab ? todayTab.key : dateTabs[0].key;
-  },
-
-  filterActivitiesByDate(items, dateKey) {
-    if (!dateKey) return items;
-    return items.filter((item) => item.date_key === dateKey);
+    return groups;
   },
 
   getWeekdayLabelCn(date) {
