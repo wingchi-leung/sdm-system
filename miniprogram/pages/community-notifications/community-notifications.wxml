@@ -1,23 +1,19 @@
 <view class="page">
-  <view class="topbar">
-    <view class="topbar-left" bindtap="onBack">
-      <text class="back-icon">‹</text>
-    </view>
-    <text class="topbar-title">消息</text>
-    <view class="topbar-actions">
-      <view wx:if="{{unreadCount > 0}}" class="topbar-pill" bindtap="onReadAll">
-        <text class="topbar-pill-text">已读 {{unreadCount}}</text>
-      </view>
-      <view class="topbar-menu">
-        <text class="topbar-menu-dots">•••</text>
-        <view class="topbar-menu-ring"></view>
-      </view>
-    </view>
-  </view>
+  <page-header title="消息"></page-header>
 
   <view class="hero">
     <image class="hero-bg" src="/assets/bubbles.png" mode="aspectFill" />
     <view class="hero-mask"></view>
+
+    <view class="hero-actions">
+      <view wx:if="{{unreadCount > 0}}" class="count-pill" bindtap="onReadAll">
+        <text class="count-pill-text">全部已读</text>
+      </view>
+      <view class="menu-pill">
+        <text class="menu-pill-dots">•••</text>
+        <view class="menu-pill-ring"></view>
+      </view>
+    </view>
 
     <view class="hero-copy">
       <text class="hero-title">收件箱</text>
