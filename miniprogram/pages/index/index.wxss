@@ -7,8 +7,8 @@
 
 .hero {
   position: relative;
-  min-height: 72vh;
-  padding: 24rpx 34rpx 48rpx;
+  min-height: 58vh;
+  padding: 12rpx 34rpx 28rpx;
   overflow: hidden;
 }
 
@@ -79,7 +79,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 24rpx;
-  margin-top: 72rpx;
+  margin-top: 28rpx;
   padding: 0 8rpx;
 }
 
@@ -94,7 +94,7 @@
 .hero-mark-cn {
   color: #111111;
   font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 132rpx;
+  font-size: 126rpx;
   line-height: 0.9;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -117,7 +117,7 @@
 
 .hero-mark-right {
   width: 190rpx;
-  padding-left: 18rpx;
+  padding-left: 12rpx;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -127,7 +127,7 @@
 .hero-mark-vertical {
   color: #111111;
   font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 132rpx;
+  font-size: 126rpx;
   line-height: 0.9;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -199,7 +199,8 @@
 }
 
 .list-shell {
-  padding: 16rpx 40rpx 0;
+  margin-top: -18rpx;
+  padding: 0 40rpx 0;
 }
 
 .activity-groups {
@@ -352,5 +353,5 @@
 }
 
 .footer-space {
-  height: 132rpx;
+  height: 88rpx;
 }
