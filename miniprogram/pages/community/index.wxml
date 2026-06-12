@@ -14,7 +14,7 @@
     </view>
 
     <view class="hero-copy">
-      <text class="hero-title">好奇｜连接</text>
+      <text class="hero-title">好奇｜视野</text>
       <view class="hero-subtitle">
         <text class="hero-subtitle-line">Curious minds</text>
         <text class="hero-subtitle-line">gather here.</text>
@@ -55,6 +55,9 @@
         <view class="channel-main">
           <text class="channel-name">{{item.name}}</text>
           <text wx:if="{{item.description}}" class="channel-desc">{{item.description}}</text>
+          <view wx:if="{{item.role === 'admin'}}" class="channel-actions">
+            <text class="channel-manage" data-channel="{{item}}" catchtap="onManageChannelMembers">成员管理</text>
+          </view>
         </view>
 
         <text class="channel-arrow">→</text>

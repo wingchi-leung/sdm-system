@@ -72,6 +72,22 @@ Page({
     });
   },
 
+  onManageChannelMembers(e) {
+    const channel = e.currentTarget.dataset.channel;
+    if (!channel || !channel.id) return;
+    if (channel.role !== 'admin') {
+      wx.showToast({ title: '仅管理员可管理成员', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-channel-manage/community-channel-manage', {
+        channelId: channel.id,
+        channelName: channel.name || '',
+        channelRole: channel.role || 'member',
+      }),
+    });
+  },
+
   onOpenNotifications() {
     wx.navigateTo({ url: '/pages/community-notifications/community-notifications' });
   },
