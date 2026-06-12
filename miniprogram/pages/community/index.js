@@ -43,7 +43,6 @@ Page({
         ...item,
         cover_url: resolveChannelCover(item.avatar_url),
         cover_theme: FALLBACK_THEMES[index % FALLBACK_THEMES.length],
-        role_label: item.role === 'admin' ? '管理员' : '成员',
         short_name: String(item.name || '社区').slice(0, 2),
       }));
       this.setData({ channels, loading: false });
