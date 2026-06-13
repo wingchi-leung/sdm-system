@@ -8,7 +8,7 @@
 
 .hero {
   position: relative;
-  min-height: 500rpx;
+  height: 500rpx;
   overflow: hidden;
   border-radius: 34rpx;
   background: #ffffff;
@@ -33,7 +33,7 @@
 
 .hero-actions {
   position: absolute;
-  top: 178rpx;
+  top: 28rpx;
   right: 26rpx;
   z-index: 2;
   display: flex;
