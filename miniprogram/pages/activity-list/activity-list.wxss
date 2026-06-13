@@ -1,17 +1,10 @@
-@font-face {
-  font-family: 'GenRyuMinJP';
-  src: url('../../assets/fonts/GenRyuMinJP-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-}
-
 page,
 .page,
 text,
 button,
 input,
 textarea {
-  font-family: "LorchinSansP0", 'GenRyuMinJP', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "LorchinSansP0", 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .page {

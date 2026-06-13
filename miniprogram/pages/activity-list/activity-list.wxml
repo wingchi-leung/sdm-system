@@ -1,5 +1,8 @@
 <view class="page">
-  <page-header title="活动管理"></page-header>
+  <page-header
+    title="活动管理"
+    titleStyle="font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;"
+  ></page-header>
   <!-- 加载状态 -->
   <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>
