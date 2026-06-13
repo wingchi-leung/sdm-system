@@ -14,7 +14,10 @@
     </view>
 
     <view class="hero-copy">
-      <text class="hero-title">好奇｜视野</text>
+      <view class="hero-copy-row">
+        <text class="hero-word hero-word-left">好奇</text>
+        <text class="hero-word hero-word-right">视野</text>
+      </view>
       <view class="hero-subtitle">
         <text class="hero-subtitle-line">Curious minds</text>
         <text class="hero-subtitle-line">gather here.</text>
@@ -33,12 +36,12 @@
 
   <view wx:elif="{{channels.length === 0}}" class="state-wrap state-wrap-empty">
     <text class="state-title">还没有加入任何社区</text>
-    <text class="state-text">等待管理员邀请你加入新的频道。</text>
+    <text class="state-text">等待管理员邀请你加入新的社区。</text>
   </view>
 
   <view wx:else class="channel-section">
     <view class="section-head">
-      <text class="section-title">我的频道</text>
+      <text class="section-title">我的社区</text>
     </view>
 
     <view class="channel-list">
@@ -55,12 +58,9 @@
         <view class="channel-main">
           <text class="channel-name">{{item.name}}</text>
           <text wx:if="{{item.description}}" class="channel-desc">{{item.description}}</text>
-          <view wx:if="{{item.role === 'admin'}}" class="channel-actions">
-            <text class="channel-manage" data-channel="{{item}}" catchtap="onManageChannelMembers">成员管理</text>
-          </view>
         </view>
 
-        <text class="channel-arrow">→</text>
+        <text class="channel-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
       </view>
     </view>
   </view>

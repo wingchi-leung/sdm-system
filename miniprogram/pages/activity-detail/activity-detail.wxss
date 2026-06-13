@@ -349,6 +349,17 @@
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
+  color: #2a4d87;
+}
+
+.cta-wrap.pending {
+  color: #8a6500;
+}
+
+.cta-text-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
 }
 
 .cta-wrap.pending .cta-text {
@@ -360,7 +371,7 @@
 }
 
 .cta-text {
-  color: #2a4d87;
+  color: inherit;
   font-size: 30rpx;
   line-height: 1.35;
   font-weight: 500;
@@ -368,9 +379,7 @@
 }
 
 .cta-arrow {
-  margin-left: 8rpx;
-  font-size: 26rpx;
-  font-weight: 400;
+  color: inherit;
 }
 
 .cta-line {

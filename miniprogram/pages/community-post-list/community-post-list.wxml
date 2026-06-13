@@ -19,7 +19,7 @@
         <view class="head-actions">
         <view wx:if="{{showManageButton}}" class="manage-btn" bindtap="onManageMembers">
           <text class="manage-btn-text">成员管理</text>
-          <text class="manage-btn-arrow">→</text>
+          <text class="manage-btn-arrow ui-chevron ui-chevron--sm ui-chevron--right"></text>
         </view>
         <view wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">+</view>
       </view>
@@ -158,7 +158,7 @@
       <text class="action-link" bindtap="onLoadMorePosts">{{loadingMore ? '加载中…' : '加载更多动态'}}</text>
     </view>
 
-    <view wx:else class="empty-box">
+    <view wx:elif="{{showEmptyState}}" class="empty-box">
       <text class="empty-title">还没有社区动态</text>
       <text class="empty-text">社区成员发布后，会在这里展示。</text>
     </view>

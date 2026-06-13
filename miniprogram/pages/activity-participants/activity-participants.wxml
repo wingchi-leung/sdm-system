@@ -35,9 +35,13 @@
 
     <!-- 分页 -->
     <view class="pagination">
-      <view class="page-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="onPrevPage">←</view>
+      <view class="page-btn {{currentPage === 0 ? 'disabled' : ''}}" bindtap="onPrevPage">
+        <text class="page-btn-arrow ui-chevron ui-chevron--md ui-chevron--left"></text>
+      </view>
       <text class="page-info">{{currentPage + 1}} / {{totalPages}}</text>
-      <view class="page-btn {{currentPage >= totalPages - 1 ? 'disabled' : ''}}" bindtap="onNextPage">→</view>
+      <view class="page-btn {{currentPage >= totalPages - 1 ? 'disabled' : ''}}" bindtap="onNextPage">
+        <text class="page-btn-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+      </view>
     </view>
   </view>
 </view>

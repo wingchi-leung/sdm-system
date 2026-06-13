@@ -4,7 +4,6 @@
       <view class="hero-bell-wrap" bindtap="goCommunityNotifications" aria-label="站内信">
         <image class="hero-bell" src="/assets/icons/bell.png" mode="aspectFit" aria-hidden="true" />
         <view wx:if="{{communityUnreadCount > 0}}" class="hero-bell-badge">
-          <text class="hero-bell-badge-text">{{communityUnreadCount > 99 ? '99+' : communityUnreadCount}}</text>
         </view>
       </view>
     </view>
@@ -73,9 +72,7 @@
               <view class="activity-head">
                 <text class="activity-title-text">{{activity.activity_name}}</text>
               </view>
-
-              <text wx:if="{{activity.summary_text}}" class="activity-summary">{{activity.summary_text}}</text>
-              <text wx:else class="activity-summary muted">探索更多活动细节</text>
+ 
 
               <view class="activity-meta">
                 <text wx:if="{{activity.date_label}}" class="activity-meta-text">{{activity.date_label}}</text>
@@ -84,7 +81,7 @@
                 <text class="activity-meta-text">{{activity.location_display}}</text>
               </view>
 
-              <text class="activity-arrow">→</text>
+              <text class="activity-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
             </view>
           </view>
         </view>

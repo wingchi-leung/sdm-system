@@ -4,7 +4,7 @@
   background: #ffffff;
   box-sizing: border-box;
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
 }
 
 .hero {
@@ -134,10 +134,19 @@
   line-height: 34rpx;
 }
 
-.activity-arrow {
-  display: block;
+.activity-arrow-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
   margin-top: 14rpx;
   color: #111111;
+}
+
+.activity-arrow-text {
   font-size: 24rpx;
   line-height: 34rpx;
+}
+
+.activity-arrow {
+  color: inherit;
 }

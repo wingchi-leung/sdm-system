@@ -34,7 +34,10 @@
           <text class="activity-time">{{item.start_time_display}}</text>
           <text class="activity-location">{{item.location_display}}</text>
         </view>
-        <text class="activity-arrow">查看详情 →</text>
+        <view class="activity-arrow-row">
+          <text class="activity-arrow-text">查看详情</text>
+          <text class="activity-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+        </view>
       </view>
     </view>
   </view>

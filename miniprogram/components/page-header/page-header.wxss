@@ -1,5 +1,6 @@
 .page-header {
-  width: 100%;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
   box-sizing: border-box;
 }
 
@@ -10,7 +11,7 @@
 .page-header__bar {
   position: relative;
   min-height: 92rpx;
-  padding: 12rpx 40rpx 10rpx;
+  padding: 15rpx 28rpx 16rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -22,7 +23,7 @@
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  width: 80rpx;
+  width: 68rpx;
   position: relative;
   z-index: 1;
 }
@@ -35,7 +36,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  max-width: calc(100% - 240rpx);
+  max-width: calc(100% - 200rpx);
   overflow: hidden;
   transform: translate(-50%, -50%);
   color: #111111;
@@ -50,8 +51,8 @@
 }
 
 .page-header__back {
-  width: 68rpx;
-  height: 68rpx;
+  width: 60rpx;
+  height: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -65,8 +66,4 @@
 
 .page-header__back-icon {
   color: #111111;
-  font-size: 64rpx;
-  line-height: 1;
-  font-weight: 300;
-  margin-top: -6rpx;
 }
