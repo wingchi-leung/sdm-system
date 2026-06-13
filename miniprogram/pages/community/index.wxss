@@ -8,7 +8,7 @@
 
 .hero {
   position: relative;
-  height: 500rpx;
+  height: 380rpx;
   overflow: hidden;
   border-radius: 34rpx;
   background: #ffffff;
