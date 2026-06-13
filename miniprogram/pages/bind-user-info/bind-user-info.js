@@ -44,8 +44,12 @@ Page({
     this.setData({ 'formData.phone': e.detail.value.replace(/\D/g, '').slice(0, 11), error: null });
   },
   onSexChange(e) {
-    const index = parseInt(e.detail.value, 10);
-    this.setData({ sexIndex: index, 'formData.sex': this.data.sexOptions[index].value, error: null });
+    const fromPicker = e && e.detail && typeof e.detail.value !== 'undefined' && !e.currentTarget;
+    const value = fromPicker
+      ? this.data.sexOptions[parseInt(e.detail.value, 10)].value
+      : e.currentTarget.dataset.value;
+    const index = this.data.sexOptions.findIndex((opt) => opt.value === value);
+    this.setData({ sexIndex: index < 0 ? 0 : index, 'formData.sex': value, error: null });
   },
 
   validateForm() {

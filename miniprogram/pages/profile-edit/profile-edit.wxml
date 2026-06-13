@@ -8,12 +8,24 @@
 
     <view class="field">
       <text class="field-label">性别</text>
-      <picker mode="selector" range="{{sexOptions}}" range-key="label" value="{{sexIndex}}" bindchange="onSexChange">
-        <view class="picker-row">
-          <text>{{sexOptions[sexIndex].label}}</text>
-          <text class="row-arrow">›</text>
+      <view class="sex-picker">
+        <view
+          class="sex-option {{form.sex === 'male' ? 'is-active' : ''}}"
+          data-value="male"
+          bindtap="onSexChange"
+        >
+          <image class="sex-option-image" src="/assets/icons/man.png" mode="aspectFit" />
+          <text class="sex-option-label">男</text>
         </view>
-      </picker>
+        <view
+          class="sex-option {{form.sex === 'female' ? 'is-active' : ''}}"
+          data-value="female"
+          bindtap="onSexChange"
+        >
+          <image class="sex-option-image" src="/assets/icons/woman.png" mode="aspectFit" />
+          <text class="sex-option-label">女</text>
+        </view>
+      </view>
     </view>
 
     <view class="field">

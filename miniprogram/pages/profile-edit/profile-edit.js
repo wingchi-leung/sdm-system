@@ -57,9 +57,12 @@ Page({
   onIndustryInput(e) { this.setData({ 'form.industry': e.detail.value, error: '' }); },
   onEmailInput(e) { this.setData({ 'form.email': e.detail.value, error: '' }); },
   onSexChange(e) {
-    const idx = Number(e.detail.value);
-    const option = this.data.sexOptions[idx] || this.data.sexOptions[0];
-    this.setData({ sexIndex: idx, 'form.sex': option.value, error: '' });
+    const fromPicker = e && e.detail && typeof e.detail.value !== 'undefined' && !e.currentTarget;
+    const value = fromPicker
+      ? (this.data.sexOptions[Number(e.detail.value)] || this.data.sexOptions[0]).value
+      : e.currentTarget.dataset.value;
+    const idx = this.data.sexOptions.findIndex((opt) => opt.value === value);
+    this.setData({ sexIndex: idx < 0 ? 0 : idx, 'form.sex': value, error: '' });
   },
 
   validateForm() {
