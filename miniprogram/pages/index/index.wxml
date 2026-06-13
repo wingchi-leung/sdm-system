@@ -1,29 +1,18 @@
 <view class="page">
   <view class="hero">
     <view class="hero-top">
-      <text class="hero-top-title">探索列表</text>
-      <view class="hero-capsule" bindtap="goCommunityNotifications" aria-label="站内信">
-        <view class="hero-capsule-dots" aria-hidden="true">
-          <text class="hero-capsule-dot"></text>
-          <text class="hero-capsule-dot"></text>
-          <text class="hero-capsule-dot"></text>
+      <view class="hero-bell-wrap" bindtap="goCommunityNotifications" aria-label="站内信">
+        <image class="hero-bell" src="/assets/icons/bell.png" mode="aspectFit" aria-hidden="true" />
+        <view wx:if="{{communityUnreadCount > 0}}" class="hero-bell-badge">
+          <text class="hero-bell-badge-text">{{communityUnreadCount > 99 ? '99+' : communityUnreadCount}}</text>
         </view>
-        <view class="hero-capsule-ring" aria-hidden="true"></view>
-      </view>
-    </view>
-
-    <view class="hero-bell-wrap" bindtap="goCommunityNotifications" aria-label="站内信">
-      <image class="hero-bell" src="/assets/icons/bell.png" mode="aspectFit" aria-hidden="true" />
-      <view wx:if="{{communityUnreadCount > 0}}" class="hero-bell-badge">
-        <text class="hero-bell-badge-text">{{communityUnreadCount > 99 ? '99+' : communityUnreadCount}}</text>
       </view>
     </view>
 
     <view class="hero-mark">
       <view class="hero-mark-left">
         <text class="hero-mark-cn">参悟</text>
-        <text class="hero-mark-en">Explore the</text>
-        <text class="hero-mark-en">Unexplored.</text>
+
       </view>
       <view class="hero-divider"></view>
       <view class="hero-mark-right">
@@ -83,7 +72,6 @@
             <view class="activity-content">
               <view class="activity-head">
                 <text class="activity-title-text">{{activity.activity_name}}</text>
-                <text class="activity-arrow">→</text>
               </view>
 
               <text wx:if="{{activity.summary_text}}" class="activity-summary">{{activity.summary_text}}</text>
@@ -95,6 +83,8 @@
                 <text wx:if="{{activity.time_range_display}}" class="activity-meta-text">{{activity.time_range_display}}</text>
                 <text class="activity-meta-text">{{activity.location_display}}</text>
               </view>
+
+              <text class="activity-arrow">→</text>
             </view>
           </view>
         </view>
