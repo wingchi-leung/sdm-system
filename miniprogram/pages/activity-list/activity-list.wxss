@@ -11,7 +11,7 @@ text,
 button,
 input,
 textarea {
-  font-family: 'GenRyuMinJP', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: "LorchinSansP0", 'GenRyuMinJP', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 .page {

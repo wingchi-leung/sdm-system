@@ -6,6 +6,14 @@
  * ═══════════════════════════════════════════════════════════════
  */
 
+/* 落尘无衬 P0 —— 由 app.js 在 onLaunch 里通过 wx.loadFontFace 动态注册,
+ * 此处仅声明 font-family 占位,实际 src 走运行时 staticBaseUrl,
+ * 字体未到位时活动页会按 fallback 链回落到 PingFang SC */
+@font-face {
+  font-family: "LorchinSansP0";
+  src: local("LorchinSansP0");
+}
+
 page {
   /* ─────────────────────────────────────────────────────────────
    * 色彩系统 - 极简奢华

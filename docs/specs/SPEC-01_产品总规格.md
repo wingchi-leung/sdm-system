@@ -88,7 +88,7 @@
 
 | 规格项 | 描述 | 状态 | 说明 |
 |--------|------|------|------|
-| 社区频道 | 小程序支持频道列表、频道发帖、频道详情、成员管理、删除频道、评论与通知 | ⚠️ 部分实现 | 已完成按设计稿纠偏的发帖页与单列帖子流，并补齐频道成员管理页与删除频道入口；频道删除会级联清理帖子、评论和成员数据；Web/Flutter 端待补 |
+| 社区频道 | 小程序支持频道列表、频道发帖、频道详情、成员管理、删除频道、评论与通知 | ⚠️ 部分实现 | 已完成按设计稿纠偏的发帖页与单列帖子流，并将频道管理内页重做为 iPhone 风格的极简成员页；频道删除会级联清理帖子、评论和成员数据；Flutter 端待补 |
 | 角色：老师/学生 | 平台存在老师、学生两种角色 | ❌ 未实现 | 需单独设计 |
 | 老师发布学习视频 | 老师可创建教导活动，发布学习视频 | ❌ 未实现 | 需内容模型 |
 | 学生跟练与打卡 | 学生跟练并上传打卡 | ❌ 未实现 | 需打卡内容类型 |
@@ -101,11 +101,13 @@
 | 首页活动列表改版 | 小程序首页活动列表采用探索页极简留白风格，活动封面统一为正方形卡片，列表信息改为左图右文 | ✅ 已实现 | `miniprogram/pages/index/index.wxml`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/index/index.js` |
 | 活动详情页改版 | 小程序活动详情页采用极简海报式排版，统一主色 `#2A4D87`，增加自定义顶部返回/更多、主题标题、大图卡片、信息分栏与底部文字式报名入口 | ✅ 已实现 | `miniprogram/pages/activity-detail/activity-detail.wxml`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `miniprogram/pages/activity-detail/activity-detail.js` |
 | 活动发布页改版 | 小程序发布活动页采用单列极简表单，补齐自定义顶部栏、开始/结束时间选择、公开活动、报名限额、支付设置、地点与介绍区块 | ✅ 已实现 | `miniprogram/pages/create-activity/create-activity.wxml`, `miniprogram/pages/create-activity/create-activity.wxss`, `miniprogram/pages/create-activity/create-activity.js`, `miniprogram/pages/create-activity/create-activity.json` |
+| 管理员用户详情页收敛 | 小程序管理员用户详情页收敛为白底轻卡片风格，统一信息概览、基础信息、管理信息与底部操作区的留白节奏 | ✅ 已实现 | `miniprogram/pages/user-detail/user-detail.wxml`, `miniprogram/pages/user-detail/user-detail.wxss` |
 | 我的页重设计 | 小程序“我的”页采用白底极简平铺样式，恢复顶部“我的”标题、铃铛入口、头像信息区、三栏统计和极简服务列表 | ✅ 已实现 | `miniprogram/pages/mine/mine.wxml`, `miniprogram/pages/mine/mine.wxss`, `miniprogram/pages/mine/mine.js`, `miniprogram/pages/mine/mine.json` |
 | 用户头像 | 普通用户可选择默认头像或上传自定义 | ✅ 已实现 | 4 个默认头像 + 自定义上传 |
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
 | 我的页信息架构 | 一级菜单包含「设置」「协议和说明」 | ✅ 已实现 | 设置承载账号操作，协议页承载文档入口 |
 | 报名页极简重排版 | 小程序活动报名页采用克制的高级字体层级与文字入口式提交 | ✅ 已实现 | 保留原版式结构，统一为 PingFang SC / SF Pro 字体系统与极细分隔线 |
+| 活动展示页字体升级 | 小程序首页/活动列表/活动详情三页接入落尘无衬 P0 (Lorchin Sans P0) | ✅ 已实现 | 走 `wx.loadFontFace` + 后端 `/uploads/fonts/LorchinSansP0.woff2` 网络字体，hero 大字保留宋体衬线 |
 
 ---
 
@@ -124,6 +126,10 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-06-13 | 小程序活动展示页（首页/活动列表/活动详情）接入落尘无衬 P0 字体：`backend/uploads/fonts/LorchinSansP0.woff2` + `wx.loadFontFace` 动态注册，hero 大字保留宋体衬线 | `miniprogram/app.js`, `miniprogram/app.wxss`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/activity-list/activity-list.wxss`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `backend/uploads/fonts/LorchinSansP0.woff2` |
+| 2026-06-13 | 小程序频道管理内页按设计稿重做为 iPhone 风格极简页面：补齐状态栏、手势胶囊、频道标题、成员头图与邀请按钮的视觉层级 | `miniprogram/pages/community-channel-manage/community-channel-manage.wxml`, `miniprogram/pages/community-channel-manage/community-channel-manage.wxss`, `miniprogram/pages/community-channel-manage/community-channel-manage.js` |
+| 2026-06-12 | 小程序频道动态页补回评论入口：频道动态列表支持展开评论、上传图片并提交评论，复用后端 `POST /community/channels/{channel_id}/posts/{post_id}/comments` 及评论预览链路 | `miniprogram/pages/community-post-list/*`, `miniprogram/tests/community-post-list-page.test.js`, `backend/app/api/v1/endpoints/community.py` |
+| 2026-06-12 | 小程序管理员用户详情页与发布活动页继续收敛到统一留白基线：用户详情页移除渐变与重阴影，发布活动页统一输入/选择控件的线性节奏与底部操作区 | `docs/specs/SPEC-09_小程序UI留白与间距规范.md`, `miniprogram/pages/user-detail/*`, `miniprogram/pages/create-activity/*` |
 | 2026-06-10 | 小程序频道管理页新增删除频道入口，后端提供 `DELETE /community/channels/{id}`，删除频道时级联清理帖子、评论、成员、邀请通知与审核任务 | `backend/app/api/v1/endpoints/community.py`, `backend/app/crud/crud_community_channel.py`, `backend/tests/api/test_community_channels.py`, `miniprogram/pages/community-channel-manage/*`, `miniprogram/utils/api.js` |
 | 2026-06-10 | 小程序内页自定义顶部栏收口：抽出统一 `page-header` 组件，活动详情、发布活动、报名页、发帖页、用户详情与用户列表统一返回箭头样式与标题布局 | `docs/specs/SPEC-03_小程序-UI重构.md`, `miniprogram/components/page-header/*`, `miniprogram/pages/activity-detail/*`, `miniprogram/pages/create-activity/*`, `miniprogram/pages/register/*`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/user-detail/*`, `miniprogram/pages/user-list/*` |
 | 2026-06-10 | 小程序发布活动页按设计稿重做为单列极简表单：补齐自定义顶部栏、时间选择、公开活动、报名限额、支付设置、地点与介绍区块，视觉与活动详情/我的页统一 | `docs/specs/SPEC-03_小程序-UI重构.md`, `miniprogram/pages/create-activity/*` |

@@ -4,7 +4,7 @@
   box-sizing: border-box;
   background: linear-gradient(180deg, rgba(42, 77, 135, 0.06) 0%, #ffffff 20%, #ffffff 100%);
   color: #111827;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
 .content {
