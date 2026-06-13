@@ -235,19 +235,21 @@
 
 .activity-group-date {
   color: #111111;
-  font-family: "Times New Roman", "Songti SC", "STSong", serif;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 32rpx;
   line-height: 1.3;
   font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
 }
 
 .activity-group-weekday {
   color: #8b8b8b;
-  font-family: "Times New Roman", "Songti SC", "STSong", serif;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 22rpx;
   line-height: 1.4;
   letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
 }
 
 .activity-card {
@@ -323,12 +325,12 @@
 .activity-arrow {
   position: absolute;
   right: 0;
-  bottom: 40rpx;
+  bottom: 42rpx;
   color: #111111;
-  font-size: 40rpx;
+  font-size: 34rpx;
   line-height: 1;
   font-weight: 200;
-  opacity: 0.72;
+  opacity: 0.62;
 }
 
 .activity-summary {
@@ -354,9 +356,11 @@
 .activity-meta-text {
   margin-right: 20rpx;
   color: #6d6d6d;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 24rpx;
   line-height: 1.55;
   letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .footer-space {
