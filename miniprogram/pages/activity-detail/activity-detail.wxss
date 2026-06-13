@@ -47,11 +47,11 @@
   display: block;
   margin-top: 76rpx;
   color: #111111;
-  font-family: "Songti SC", "STSong", "PingFang SC", serif;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   font-size: 74rpx;
   line-height: 1.16;
   font-weight: 400;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   word-break: break-word;
 }
 
@@ -101,11 +101,11 @@
 
 .poster-fallback-title {
   color: #3e4653;
-  font-family: "Times New Roman", Georgia, serif;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   font-size: 42rpx;
   line-height: 1.1;
   font-weight: 400;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
 }
 
 .poster-fallback-cn {

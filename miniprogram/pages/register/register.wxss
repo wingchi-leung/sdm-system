@@ -4,7 +4,14 @@
   box-sizing: border-box;
   background: #ffffff;
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+}
+
+text,
+input,
+textarea,
+button {
+  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
 }
 
 .shell {
