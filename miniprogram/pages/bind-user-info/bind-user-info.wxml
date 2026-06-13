@@ -109,7 +109,7 @@
         </view>
 
         <view class="field">
-          <text class="field-label optional">邮箱</text>
+          <text class="field-label required">邮箱</text>
           <view class="field-control">
             <input
               class="input"

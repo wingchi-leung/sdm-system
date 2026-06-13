@@ -56,7 +56,8 @@ Page({
     if (!formData.industry || !formData.industry.trim()) return '请输入行业';
     if (!formData.phone) return '请输入有效的手机号';
     if (!this.data.phoneReadonly && !PHONE_PATTERN.test(formData.phone)) return '请输入有效的手机号';
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return '邮箱格式不正确';
+    if (!formData.email || !formData.email.trim()) return '请输入邮箱';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return '邮箱格式不正确';
     return null;
   },
 
@@ -74,7 +75,7 @@ Page({
       sex: formData.sex,
       age: parseInt(formData.age, 10),
       occupation: formData.occupation.trim(),
-      email: formData.email || null,
+      email: formData.email.trim(),
       industry: formData.industry.trim(),
     };
     if (PHONE_PATTERN.test(formData.phone)) {

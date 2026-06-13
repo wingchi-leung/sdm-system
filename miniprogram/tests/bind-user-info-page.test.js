@@ -72,12 +72,29 @@ test('绑定资料页基础信息可通过校验（无证件信息）', () => {
       age: '30',
       occupation: '设计师',
       phone: '13800138000',
-      email: '',
+      email: 'demo@example.com',
       industry: '教育',
     },
   });
 
   assert.equal(page.validateForm(), null);
+});
+
+test('绑定资料页邮箱不能为空', () => {
+  const pageConfig = loadBindUserInfoPage();
+  const page = createPageInstance(pageConfig, {
+    formData: {
+      name: '测试用户',
+      sex: 'male',
+      age: '30',
+      occupation: '设计师',
+      phone: '13800138000',
+      email: '',
+      industry: '教育',
+    },
+  });
+
+  assert.equal(page.validateForm(), '请输入邮箱');
 });
 
 test('绑定资料页遇到脱敏手机号时应锁定手机号输入框并展示脱敏值', () => {
