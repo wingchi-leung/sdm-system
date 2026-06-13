@@ -284,13 +284,16 @@ Page({
   },
 
   buildInfoRows(activity, startDisplay, endDisplay, joinMethodDisplay) {
-    const scheduleText = this.formatScheduleDisplay(startDisplay, endDisplay);
     const locationText = activity.location || '线上活动';
     const capacityText = activity.max_participants && Number(activity.max_participants) > 0
       ? `限定 ${activity.max_participants} 人`
       : '';
     return [
-      { label: '时间', value: scheduleText || '--' },
+      {
+        label: '时间',
+        start_value: startDisplay || '--',
+        end_value: endDisplay || '--',
+      },
       { label: '地点', value: locationText },
       {
         label: '参与方式',
@@ -317,18 +320,6 @@ Page({
       return `${firstLine.slice(0, 28)}…`;
     }
     return '重新理解人与技术的关系';
-  },
-
-  formatScheduleDisplay(startDisplay, endDisplay) {
-    if (!startDisplay) return '';
-    if (!endDisplay) return startDisplay;
-    const startDay = startDisplay.split(' ')[0];
-    const endDay = endDisplay.split(' ')[0];
-    const endTime = endDisplay.split(' ')[2] || '';
-    if (startDay && endDay && startDay === endDay && endTime) {
-      return `${startDisplay} - ${endTime}`;
-    }
-    return `${startDisplay} - ${endDisplay}`;
   },
 
   formatTime(iso) {

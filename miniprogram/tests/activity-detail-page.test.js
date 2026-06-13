@@ -273,7 +273,8 @@ test('活动详情页新版视图模型会补全标题摘要和信息区', async
   assert.equal(page.data.activity.hero_kicker, '主题探索');
   assert.equal(page.data.activity.hero_summary, '重新理解人与技术的关系');
   assert.equal(page.data.activity.detail_paragraphs.length, 2);
-  assert.equal(page.data.activity.info_rows[0].value, '06.12 周五 19:30 - 21:00');
+  assert.equal(page.data.activity.info_rows[0].start_value, '06.12 周五 19:30');
+  assert.equal(page.data.activity.info_rows[0].end_value, '06.12 周五 21:00');
   assert.equal(page.data.activity.info_rows[1].value, '上海 · 徐汇滨江');
   assert.equal(page.data.activity.info_rows[2].value, '线下参与 ｜ 限定 20 人');
 });

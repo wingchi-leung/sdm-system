@@ -11,7 +11,7 @@
   </view>
 
   <view wx:elif="{{activity}}">
-    <page-header statusBarHeight="{{statusBarHeight}}" bindback="onBack">
+    <page-header statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBack">
       <view slot="actions" class="nav-btn" bindtap="onMore" aria-label="更多">
         <text class="nav-icon more">···</text>
       </view>
@@ -47,9 +47,18 @@
       </view>
 
       <view class="info-card">
-        <view class="info-row">
+        <view class="info-row info-row-schedule">
           <text class="info-label">时间</text>
-          <text class="info-value">{{activity.info_rows[0].value}}</text>
+          <view class="info-schedule">
+            <view class="info-schedule-line">
+              <text class="info-schedule-tag">开始</text>
+              <text class="info-value">{{activity.info_rows[0].start_value}}</text>
+            </view>
+            <view class="info-schedule-line">
+              <text class="info-schedule-tag">结束</text>
+              <text class="info-value">{{activity.info_rows[0].end_value}}</text>
+            </view>
+          </view>
         </view>
         <view class="info-row">
           <text class="info-label">地点</text>
