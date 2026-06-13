@@ -70,7 +70,7 @@
 |---|---|---|---|
 | 登录页 | `pages/login/login` | 待补充 | 登录入口，UI 可重做，逻辑不变 |
 | 普通注册页 | `pages/register/register` | 待补充 | 用户注册页 |
-| 用户信息绑定页 | `pages/bind-user-info/bind-user-info` | 待补充 | 绑定/补全用户信息 |
+| 用户信息绑定页 | `pages/bind-user-info/bind-user-info` | 已完成 | 绑定/补全用户信息，UI 已统一为与报名页一致的极简单列风格 |
 | 用户资料编辑页 | `pages/profile-edit/profile-edit` | 待补充 | 编辑个人资料 |
 | 头像选择页 | `pages/avatar-picker/avatar-picker` | 待补充 | 头像选择与预览 |
 | 设置页 | `pages/settings/settings` | 待补充 | 设置入口与账号相关操作 |

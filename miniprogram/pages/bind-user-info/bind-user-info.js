@@ -19,6 +19,7 @@ Page({
     sexIndex: 0,
     submitting: false,
     error: null,
+    loading: false,
     phoneReadonly: false,
   },
 
