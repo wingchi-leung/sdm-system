@@ -58,11 +58,11 @@ Page({
     } catch (_) {
       statusBarHeight = 0;
     }
-    // 状态栏 + 系统导航栏(44px) + 顶部留白(约 30rpx)
+    // 状态栏 + 系统导航栏(44px) + 顶部留白(约 20rpx)
     const navBarHeight = 44; // px
     const topPx = statusBarHeight + navBarHeight;
     // rpx: 1px = 2rpx (iPhone 6/7/8 标准 750rpx 屏宽)
-    const topRpx = Math.round(topPx * 2) + 30;
+    const topRpx = Math.round(topPx * 2) + 20;
     this.setData({ floatingBellTop: `${topRpx}rpx` });
   },
 
