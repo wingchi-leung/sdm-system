@@ -5,7 +5,7 @@
 
   <view wx:else class="content">
     <view class="hero-space">
-      <floating-bell top="82rpx" right="18rpx" size="58rpx" />
+      <floating-bell top="{{floatingBellTop}}" right="18rpx" size="58rpx" />
     </view>
 
     <view class="profile-row" bindtap="goAvatarPicker">

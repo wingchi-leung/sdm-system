@@ -40,12 +40,30 @@ Page({
     joinedLabel: '',
     userName: '',
     avatarDisplayUrl: '',
+    floatingBellTop: '180rpx',
   },
 
   onLoad(options) {
     tenant.applyPageOptions(options);
     this._loadVersion = 0;
+    this.computeFloatingBellTop();
     this.checkAuth();
+  },
+
+  computeFloatingBellTop() {
+    let statusBarHeight = 0;
+    try {
+      const sys = typeof wx.getSystemInfoSync === 'function' ? wx.getSystemInfoSync() : null;
+      statusBarHeight = Number(sys && sys.statusBarHeight) || 0;
+    } catch (_) {
+      statusBarHeight = 0;
+    }
+    // 状态栏 + 系统导航栏(44px) + 顶部留白(约 30rpx)
+    const navBarHeight = 44; // px
+    const topPx = statusBarHeight + navBarHeight;
+    // rpx: 1px = 2rpx (iPhone 6/7/8 标准 750rpx 屏宽)
+    const topRpx = Math.round(topPx * 2) + 30;
+    this.setData({ floatingBellTop: `${topRpx}rpx` });
   },
 
   onShow() {

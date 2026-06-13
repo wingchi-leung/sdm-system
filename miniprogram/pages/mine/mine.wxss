@@ -1,7 +1,8 @@
 .page {
   min-height: 100vh;
   background: #ffffff;
-  padding: 24rpx 32rpx calc(120rpx + env(safe-area-inset-bottom));
+  /* 系统导航栏：状态栏 + 44px 导航栏 + 顶部留白 */
+  padding: calc(env(safe-area-inset-top) + 44px + 24rpx) 32rpx calc(120rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   color: #111111;
   font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;

@@ -2,5 +2,5 @@
   "usingComponents": {
     "floating-bell": "../../components/floating-bell/floating-bell"
   },
-  "navigationStyle": "custom"
+  "navigationBarTitleText": "我的"
 }
