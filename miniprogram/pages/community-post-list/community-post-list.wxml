@@ -1,5 +1,7 @@
 <view class="page">
-  <page-header title="活动动态"></page-header>
+  <view class="page-header-sticky">
+    <page-header title=""></page-header>
+  </view>
   <view wx:if="{{loading}}" class="state-wrap">
     <text class="state-text">加载中…</text>
   </view>
@@ -12,8 +14,7 @@
   <view wx:else class="content">
     <view class="page-head">
       <view class="page-copy">
-        <text wx:if="{{channelName}}" class="page-channel">{{channelName}}</text>
-        <text class="page-title">频道动态</text>
+        <text class="page-title">社区动态</text>
       </view>
       <view class="head-actions">
         <view wx:if="{{showManageButton}}" class="manage-btn" bindtap="onManageMembers">
@@ -37,10 +38,7 @@
 
         <text class="feed-title">{{item.title}}</text>
         <view wx:if="{{item.content_expanded}}" class="feed-content-expanded">
-          <view wx:if="{{item.parsed.isHtml}}" class="feed-html">
-            <rich-text nodes="{{item.parsed.html}}" />
-          </view>
-          <view wx:else class="feed-blocks">
+          <view class="feed-blocks">
             <view wx:for="{{item.parsed.blocks}}" wx:for-item="block" wx:key="index">
               <text wx:if="{{block.type === 'text'}}" class="feed-summary">{{block.text}}</text>
               <view wx:elif="{{block.type === 'images'}}" class="feed-inline-grid">
@@ -61,9 +59,18 @@
         </view>
         <text wx:elif="{{item.content_summary}}" class="feed-summary">{{item.content_summary}}<text wx:if="{{item.parsed.text.length > item.content_summary.length}}"> …</text></text>
 
-        <view wx:if="{{item.cover_image}}" class="feed-cover-wrap">
-          <image class="feed-cover" src="{{item.cover_image}}" mode="aspectFill" data-id="{{item.id}}" data-url="{{item.cover_image}}" bindtap="onPreviewPostImage" />
-          <text wx:if="{{item.extra_image_count > 0}}" class="feed-cover-badge">+{{item.extra_image_count}}</text>
+        <view wx:if="{{!item.content_expanded && item.parsed.images && item.parsed.images.length > 0}}" class="feed-grid">
+          <image
+            wx:for="{{item.parsed.images}}"
+            wx:for-item="imageUrl"
+            wx:key="imageUrl"
+            class="feed-grid-image"
+            src="{{imageUrl}}"
+            mode="aspectFill"
+            data-id="{{item.id}}"
+            data-url="{{imageUrl}}"
+            bindtap="onPreviewPostImage"
+          />
         </view>
 
         <view class="feed-actions">
@@ -72,6 +79,9 @@
           </text>
           <text wx:if="{{item.comment_count > 0}}" class="action-link" data-id="{{item.id}}" bindtap="onToggleComments">
             {{item.comments_collapsed ? '展开评论' : '折叠评论'}}
+          </text>
+          <text wx:if="{{canComment}}" class="action-link" data-id="{{item.id}}" bindtap="onToggleCommentComposer">
+            {{item.comment_compose_open ? '收起评论' : '写评论'}}
           </text>
         </view>
 
@@ -101,7 +111,6 @@
               </view>
               <text class="comment-time">{{comment.create_time_display}}</text>
             </view>
-            <text class="comment-mark">{{item.comment_count}}</text>
           </view>
         </view>
 
@@ -113,6 +122,33 @@
           <text class="action-link" data-id="{{item.id}}" bindtap="onLoadMoreComments">
             {{item.comments_loading ? '加载中…' : '加载更多评论'}}
           </text>
+        </view>
+
+        <view wx:if="{{canComment && item.comment_compose_open}}" class="comment-composer">
+          <view wx:if="{{item.commentImageLocalPaths.length > 0}}" class="comment-upload-grid">
+            <view wx:for="{{item.commentImageLocalPaths}}" wx:for-item="imgUrl" wx:for-index="imgIndex" wx:key="imgUrl" class="comment-upload-item">
+              <image class="comment-upload-preview" src="{{imgUrl}}" mode="aspectFill" />
+              <view class="comment-upload-remove" data-post-id="{{item.id}}" data-index="{{imgIndex}}" bindtap="onRemoveCommentImage">×</view>
+            </view>
+          </view>
+          <view class="comment-tool-row">
+            <view class="comment-add-image" data-id="{{item.id}}" bindtap="onChooseCommentImages">+ 图片 {{item.commentImageLocalPaths.length}}/9</view>
+          </view>
+          <view class="comment-action-row">
+            <textarea
+              class="comment-input"
+              placeholder="写下你的评论"
+              placeholder-class="comment-placeholder"
+              value="{{item.commentContent}}"
+              maxlength="1000"
+              auto-height
+              data-id="{{item.id}}"
+              bindinput="onCommentInput"
+            ></textarea>
+            <button class="comment-btn" data-id="{{item.id}}" disabled="{{item.commentSubmitting}}" bindtap="onSubmitComment">
+              {{item.commentSubmitting ? '提交中' : '发送'}}
+            </button>
+          </view>
         </view>
       </view>
     </view>

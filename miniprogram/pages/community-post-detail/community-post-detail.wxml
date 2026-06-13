@@ -1,5 +1,7 @@
 <view class="page">
-  <page-header title="动态详情"></page-header>
+  <view class="page-header-sticky">
+    <page-header title="动态详情"></page-header>
+  </view>
   <view wx:if="{{loading}}" class="state-wrap">
     <text class="state-text">加载中…</text>
   </view>
@@ -14,16 +16,10 @@
       <text class="post-caption">活动动态</text>
       <text class="post-title">{{post.title}}</text>
       <text class="post-meta">{{post.author_name}} · {{post.create_time_display}}</text>
-      <!-- Phase 2 A 方案: 新帖子是 HTML, 用 rich-text 渲染; 老 block JSON 走原循环 -->
-      <view wx:if="{{post.parsed.isHtml}}" class="post-html">
-        <rich-text nodes="{{post.parsed.html}}" />
-      </view>
-      <view wx:else>
-        <view wx:for="{{post.parsed.blocks}}" wx:for-item="block" wx:for-index="blockIndex" wx:key="blockIndex" class="post-block">
-          <text wx:if="{{block.type === 'text'}}" class="post-content">{{block.text}}</text>
-          <view wx:elif="{{block.type === 'images'}}" class="post-image-grid">
-            <image wx:for="{{block.images}}" wx:key="*this" class="post-image" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="onPreviewPostImage" />
-          </view>
+      <view wx:for="{{post.parsed.blocks}}" wx:for-item="block" wx:for-index="blockIndex" wx:key="blockIndex" class="post-block">
+        <text wx:if="{{block.type === 'text'}}" class="post-content">{{block.text}}</text>
+        <view wx:elif="{{block.type === 'images'}}" class="post-image-grid">
+          <image wx:for="{{block.images}}" wx:key="*this" class="post-image" src="{{item}}" mode="aspectFill" data-url="{{item}}" bindtap="onPreviewPostImage" />
         </view>
       </view>
     </view>
