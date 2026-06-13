@@ -91,20 +91,30 @@
 
 .manage-btn {
   min-width: 128rpx;
-  height: 72rpx;
-  padding: 0 20rpx;
+  height: 64rpx;
+  padding: 0 18rpx 0 20rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 20rpx;
-  background: #f2f4f7;
+  gap: 8rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%);
+  border: 1rpx solid rgba(16, 24, 40, 0.08);
+  box-shadow: 0 8rpx 22rpx rgba(16, 24, 40, 0.06);
 }
 
 .manage-btn-text {
-  color: #101828;
+  color: #1d2939;
   font-size: 24rpx;
   line-height: 1;
   font-weight: 500;
+}
+
+.manage-btn-arrow {
+  color: #98a2b3;
+  font-size: 22rpx;
+  line-height: 1;
+  font-weight: 300;
 }
 
 .head-accent {

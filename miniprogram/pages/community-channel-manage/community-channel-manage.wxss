@@ -1,163 +1,139 @@
 .page {
   min-height: 100vh;
-  padding: 28rpx 36rpx 72rpx;
+  background: #f7f6f2;
+}
+
+.shell {
+  min-height: 100vh;
+  padding: 44rpx 48rpx calc(48rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  background: #ffffff;
+  background: radial-gradient(circle at top, #ffffff 0%, #ffffff 45%, #ffffff 100%);
+}
+
+.content {
+  padding-top: 40rpx;
+  padding-bottom: 32rpx;
 }
 
 .hero {
-  margin-bottom: 36rpx;
-}
-
-.hero-caption {
-  display: block;
-  color: #667085;
-  font-size: 24rpx;
-  line-height: 1.5;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  margin-top: 8rpx;
 }
 
 .hero-title {
   display: block;
-  margin-top: 12rpx;
-  color: #101828;
-  font-size: 58rpx;
-  line-height: 1.16;
+  color: #111111;
+  font-size: 74rpx;
+  line-height: 1.05;
+  letter-spacing: -0.06em;
   font-weight: 500;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .hero-subtitle {
   display: block;
-  margin-top: 14rpx;
-  color: #667085;
-  font-size: 26rpx;
-  line-height: 1.7;
-}
-
-.hero-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12rpx;
-  margin-top: 18rpx;
-}
-
-.hero-actions {
-  display: flex;
-  gap: 14rpx;
-  margin-top: 24rpx;
-}
-
-.meta-pill,
-.badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10rpx 16rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  line-height: 1.2;
-  font-weight: 500;
-}
-
-.meta-pill {
-  color: #2f6fe8;
-  background: rgba(47, 111, 232, 0.1);
-}
-
-.primary-btn,
-.secondary-btn,
-.danger-btn {
-  height: 72rpx;
-  padding: 0 24rpx;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 20rpx;
-  font-size: 26rpx;
-  line-height: 1;
-  font-weight: 500;
-}
-
-.primary-btn {
-  color: #ffffff;
-  background: #101828;
-}
-
-.secondary-btn {
-  color: #101828;
-  background: #f2f4f7;
-}
-
-.danger-btn {
-  color: #b42318;
-  background: rgba(180, 35, 24, 0.12);
-}
-
-.state-wrap,
-.empty-box {
-  min-height: 44vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.state-title,
-.empty-title {
-  color: #101828;
-  font-size: 36rpx;
+  margin-top: 22rpx;
+  color: #7c7c7c;
+  font-size: 31rpx;
   line-height: 1.35;
-  font-weight: 500;
+  font-family: Georgia, "Times New Roman", serif;
 }
 
-.state-text,
-.empty-text {
-  margin-top: 14rpx;
-  color: #667085;
-  font-size: 25rpx;
-  line-height: 1.7;
+.channel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  margin-top: 104rpx;
+}
+
+.channel-copy {
+  min-width: 0;
+}
+
+.channel-name {
+  display: block;
+  color: #111111;
+  font-size: 48rpx;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+  font-weight: 500;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.channel-meta {
+  display: block;
+  margin-top: 16rpx;
+  color: #8d8d8d;
+  font-size: 30rpx;
+  line-height: 1;
+}
+
+.invite-btn {
+  position: relative;
+  width: 80rpx;
+  height: 80rpx;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #e9eafd;
+  box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.invite-btn--active {
+  opacity: 0.75;
+}
+
+.invite-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.divider {
+  margin-top: 54rpx;
+  height: 1rpx;
+  background: rgba(17, 17, 17, 0.09);
 }
 
 .member-list {
-  display: flex;
-  flex-direction: column;
-  gap: 18rpx;
+  margin-top: 50rpx;
 }
 
-.member-card {
-  padding: 22rpx 24rpx;
-  border: 2rpx solid #eaecf0;
-  border-radius: 26rpx;
-  background: #ffffff;
-}
-
-.member-main {
+.member-row {
   display: flex;
-  align-items: flex-start;
-  gap: 18rpx;
+  align-items: center;
+  gap: 24rpx;
+  padding: 18rpx 0 22rpx;
 }
 
 .member-avatar {
-  width: 68rpx;
-  height: 68rpx;
+  position: relative;
+  width: 124rpx;
+  height: 124rpx;
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 22rpx;
-  background: linear-gradient(180deg, #eef2ff 0%, #dbeafe 100%);
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.38), 0 10rpx 24rpx rgba(17, 17, 17, 0.08);
+}
+
+.member-avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .member-avatar-text {
-  color: #2f6fe8;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  color: rgba(255, 255, 255, 0.98);
   font-size: 28rpx;
   line-height: 1;
-  font-weight: 600;
+  transform: translate(-50%, -50%);
 }
 
-.member-copy {
+.member-main {
   flex: 1;
   min-width: 0;
 }
@@ -165,62 +141,182 @@
 .member-title-row {
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  gap: 16rpx;
   flex-wrap: wrap;
 }
 
 .member-name {
-  color: #101828;
-  font-size: 30rpx;
-  line-height: 1.4;
+  color: #111111;
+  font-size: 38rpx;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
   font-weight: 500;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.member-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #f4f2ef;
+  color: #555555;
+  font-size: 24rpx;
+  line-height: 1;
+  box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, 0.9);
 }
 
 .member-meta {
   display: block;
-  margin-top: 8rpx;
-  color: #667085;
-  font-size: 24rpx;
-  line-height: 1.6;
-}
-
-.member-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14rpx;
   margin-top: 18rpx;
+  color: #8a8a8a;
+  font-size: 28rpx;
+  line-height: 1.2;
+  font-family: Georgia, "Times New Roman", serif;
 }
 
-.member-actions {
+.member-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 14rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 1;
+}
+
+.member-state--muted {
+  color: #666666;
+  background: #f3f2f0;
+}
+
+.member-more {
+  flex-shrink: 0;
+  width: 70rpx;
+  height: 70rpx;
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+}
+
+.member-more-dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: #777777;
+}
+
+.state-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-top: 40rpx;
+}
+
+.state-wrap--loading {
   gap: 18rpx;
 }
 
-.action-link {
-  color: #2f6fe8;
-  font-size: 24rpx;
-  line-height: 1.6;
+.state-wrap--error {
+  gap: 18rpx;
+}
+
+.loading-card {
+  border-radius: 999rpx;
+  background: rgba(17, 17, 17, 0.06);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.loading-card--headline {
+  width: 68%;
+  height: 96rpx;
+}
+
+.loading-card--sub {
+  width: 56%;
+  height: 34rpx;
+}
+
+.loading-card--line {
+  width: 100%;
+  height: 1rpx;
+  margin-top: 36rpx;
+  border-radius: 0;
+}
+
+.state-title {
+  color: #111111;
+  font-size: 38rpx;
+  line-height: 1.4;
   font-weight: 500;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
-.role-badge {
-  color: #101828;
-  background: #f2f4f7;
+.state-text {
+  color: #777777;
+  font-size: 28rpx;
+  line-height: 1.7;
+  font-family: Georgia, "Times New Roman", serif;
 }
 
-.status-badge.success {
-  color: #027a48;
-  background: rgba(2, 122, 72, 0.1);
+.state-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 10rpx;
 }
 
-.status-badge.warning {
-  color: #b54708;
-  background: rgba(181, 71, 8, 0.1);
+.state-btn {
+  height: 70rpx;
+  padding: 0 24rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20rpx;
+  background: #111111;
+  color: #ffffff;
+  font-size: 26rpx;
+  line-height: 1;
 }
 
-.status-badge.muted {
-  color: #667085;
-  background: #f2f4f7;
+.state-btn--ghost {
+  background: #f0efec;
+  color: #111111;
+}
+
+.empty-box {
+  min-height: 40vh;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 88rpx;
+}
+
+.empty-title {
+  color: #111111;
+  font-size: 36rpx;
+  line-height: 1.35;
+  font-weight: 500;
+  font-family: "Songti SC", "STSong", "SimSun", serif;
+}
+
+.empty-text {
+  margin-top: 12rpx;
+  color: #7a7a7a;
+  font-size: 26rpx;
+  line-height: 1.7;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.75;
+  }
+
+  50% {
+    opacity: 0.42;
+  }
 }

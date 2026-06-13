@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const { resolveAvatarDisplayUrl, getDefaultAvatarPath } = require('../../utils/avatar');
 
 function formatDateTime(value) {
   if (!value) return '-';
@@ -125,7 +126,7 @@ Page({
       selectionMode,
       pageTitle: selectionMode ? decodeDisplayText(options.title || '选择成员') : '用户管理',
       confirmText: selectionMode ? decodeDisplayText(options.confirm_text || '确认选择') : '完成',
-      selectionHint: selectionMode ? decodeDisplayText(options.hint || '请选择要邀请到频道的用户。') : '',
+      selectionHint: selectionMode ? decodeDisplayText(options.hint || '请选择要邀请到社区的用户。') : '',
       selectedUserIds: selectedIds,
       selectedCount: selectedIds.length,
     });
@@ -207,6 +208,8 @@ Page({
       ...item,
       displayName,
       contactText,
+      avatarDisplayUrl: item && item.avatarDisplayUrl ? item.avatarDisplayUrl : getDefaultAvatarPath(),
+      avatarText: displayName ? String(displayName).slice(0, 1) : '用',
       badgeText: isBlocked ? '黑名单' : '成员',
       badgeClass: isBlocked ? 'is-blocked' : '',
       statusText: isBlocked ? '已拉黑' : '正常',
@@ -214,6 +217,14 @@ Page({
       normalizedContact: phone || email || '',
       isBlocked,
     };
+  },
+
+  async resolveAvatar(avatarUrl) {
+    try {
+      return await resolveAvatarDisplayUrl(avatarUrl);
+    } catch (_) {
+      return getDefaultAvatarPath();
+    }
   },
 
   buildUserMenuItems(user) {
@@ -313,7 +324,13 @@ Page({
         keyword: keyword || undefined,
       });
 
-      const incomingUsers = this.setUserSelection((result.items || []).map((item) => this.normalizeUserItem(item)));
+      const incomingUsers = this.setUserSelection(await Promise.all((result.items || []).map(async (item) => {
+        const avatarDisplayUrl = await this.resolveAvatar(item.avatar_url);
+        return this.normalizeUserItem({
+          ...item,
+          avatarDisplayUrl,
+        });
+      })));
       const users = append ? [...this.data.users, ...incomingUsers] : incomingUsers;
       const total = Number(result.total || 0);
       const hasMore = users.length < total;

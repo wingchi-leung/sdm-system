@@ -7,18 +7,19 @@
   </view>
 
   <view wx:elif="{{error}}" class="state-wrap">
-    <text class="state-title">暂时无法查看频道动态</text>
+    <text class="state-title">暂时无法查看社区动态</text>
     <text class="state-text">{{error}}</text>
   </view>
 
   <view wx:else class="content">
-    <view class="page-head">
-      <view class="page-copy">
-        <text class="page-title">社区动态</text>
-      </view>
-      <view class="head-actions">
+      <view class="page-head">
+        <view class="page-copy">
+          <text class="page-title">社区动态</text>
+        </view>
+        <view class="head-actions">
         <view wx:if="{{showManageButton}}" class="manage-btn" bindtap="onManageMembers">
           <text class="manage-btn-text">成员管理</text>
+          <text class="manage-btn-arrow">→</text>
         </view>
         <view wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">+</view>
       </view>
@@ -158,8 +159,8 @@
     </view>
 
     <view wx:else class="empty-box">
-      <text class="empty-title">还没有频道动态</text>
-      <text class="empty-text">频道成员发布后，会在这里展示。</text>
+      <text class="empty-title">还没有社区动态</text>
+      <text class="empty-text">社区成员发布后，会在这里展示。</text>
     </view>
   </view>
 </view>

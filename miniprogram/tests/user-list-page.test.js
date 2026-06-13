@@ -116,6 +116,8 @@ test('用户管理页会把接口数据转换为设计稿所需的展示字段',
     create_time: '2025-06-01T08:09:00.000Z',
     displayName: '张三',
     contactText: '13068281239',
+    avatarDisplayUrl: '/assets/avatars/avatar-1.svg',
+    avatarText: '张',
     badgeText: '成员',
     badgeClass: '',
     statusText: '正常',
@@ -312,11 +314,11 @@ test('用户列表在选择模式下会正确解码标题和提示文案', async
     mode: 'picker',
     title: encodeURIComponent('选择邀请成员'),
     confirm_text: encodeURIComponent('邀请并发送'),
-    hint: encodeURIComponent('从用户列表中勾选要邀请到当前频道的成员。'),
+    hint: encodeURIComponent('从用户列表中勾选要邀请到当前社区的成员。'),
   });
   await flush();
 
   assert.equal(page.data.pageTitle, '选择邀请成员');
   assert.equal(page.data.confirmText, '邀请并发送');
-  assert.equal(page.data.selectionHint, '从用户列表中勾选要邀请到当前频道的成员。');
+  assert.equal(page.data.selectionHint, '从用户列表中勾选要邀请到当前社区的成员。');
 });

@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const { resolveAvatarDisplayUrl, getDefaultAvatarPath } = require('../../utils/avatar');
 
 function formatDateTime(value) {
   if (!value) return '-';
@@ -97,6 +98,7 @@ Page({
       ...user,
       displayName,
       shortName: getInitial(displayName),
+      avatarDisplayUrl: user && user.avatarDisplayUrl ? user.avatarDisplayUrl : getDefaultAvatarPath(),
       phoneText: phone || '-',
       emailText: email || '-',
       statusText: isBlocked ? '已拉黑' : '正常',
@@ -112,6 +114,14 @@ Page({
       identityTypeText: user && user.identity_type ? String(user.identity_type) : '未填写',
       isBlocked,
     };
+  },
+
+  async resolveAvatar(avatarUrl) {
+    try {
+      return await resolveAvatarDisplayUrl(avatarUrl);
+    } catch (_) {
+      return getDefaultAvatarPath();
+    }
   },
 
   buildInfoRows(user) {
@@ -148,7 +158,10 @@ Page({
     this.setData({ loading: true, error: null });
     try {
       const user = await api.getUserDetail(userId);
-      const normalized = this.normalizeUser(user);
+      const normalized = this.normalizeUser({
+        ...user,
+        avatarDisplayUrl: await this.resolveAvatar(user.avatar_url),
+      });
       this.setData({
         user: {
           ...normalized,

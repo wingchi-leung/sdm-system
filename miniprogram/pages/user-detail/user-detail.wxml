@@ -11,7 +11,7 @@
   </view>
 
   <view wx:elif="{{user}}" class="content">
-    <page-header title="用户详情" statusBarHeight="{{statusBarHeight}}" bindback="onBack">
+    <page-header title="用户详情" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBack">
       <view slot="actions" class="nav-btn nav-btn-right" bindtap="onMore" aria-label="更多">
         <text class="nav-icon more">···</text>
       </view>
@@ -19,7 +19,8 @@
 
     <view class="hero-card">
       <view class="avatar-shell">
-        <text class="avatar-text">{{user.shortName}}</text>
+        <image wx:if="{{user.avatarDisplayUrl}}" class="avatar-image" src="{{user.avatarDisplayUrl}}" mode="aspectFill" />
+        <text wx:else class="avatar-text">{{user.shortName}}</text>
       </view>
       <view class="hero-copy">
         <view class="hero-title-row">
