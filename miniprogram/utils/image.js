@@ -11,10 +11,6 @@ function isLocalPath(url) {
   );
 }
 
-function isAvatarPath(url) {
-  return !!url && String(url).includes('/uploads/avatars/');
-}
-
 function resolveDisplayUrl(url) {
   if (url && String(url).startsWith('/assets/')) {
     return Promise.resolve(String(url));
@@ -28,7 +24,7 @@ function resolveDisplayUrl(url) {
     return Promise.resolve(fullUrl);
   }
 
-  if (!isAvatarPath(fullUrl) && imageCache[fullUrl]) {
+  if (imageCache[fullUrl]) {
     return Promise.resolve(imageCache[fullUrl]);
   }
 
@@ -38,9 +34,7 @@ function resolveDisplayUrl(url) {
         src: fullUrl,
         success: (res) => {
           const displayUrl = res && res.path ? res.path : fullUrl;
-          if (!isAvatarPath(fullUrl)) {
-            imageCache[fullUrl] = displayUrl;
-          }
+          imageCache[fullUrl] = displayUrl;
           resolve(displayUrl);
         },
         fail: () => {

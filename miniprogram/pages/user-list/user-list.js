@@ -219,9 +219,9 @@ Page({
     };
   },
 
-  async resolveAvatar(avatarUrl) {
+  async resolveAvatar(avatarUrl, cacheVersion) {
     try {
-      return await resolveAvatarDisplayUrl(avatarUrl);
+      return await resolveAvatarDisplayUrl(avatarUrl, cacheVersion);
     } catch (_) {
       return getDefaultAvatarPath();
     }
@@ -325,7 +325,7 @@ Page({
       });
 
       const incomingUsers = this.setUserSelection(await Promise.all((result.items || []).map(async (item) => {
-        const avatarDisplayUrl = await this.resolveAvatar(item.avatar_url);
+        const avatarDisplayUrl = await this.resolveAvatar(item.avatar_url, item.update_time);
         return this.normalizeUserItem({
           ...item,
           avatarDisplayUrl,

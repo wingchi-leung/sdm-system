@@ -186,6 +186,8 @@ class CommunityChannelMemberResponse(BaseModel):
     channel_id: int
     user_id: int
     user_name: str
+    user_avatar_url: Optional[str] = None
+    user_update_time: Optional[datetime] = None
     role: str
     status: str
     joined_at: Optional[datetime] = None
@@ -260,6 +262,7 @@ class CommunityChannelPostResponse(BaseModel):
     author_user_id: int
     author_name: str
     author_avatar_url: Optional[str] = None
+    author_update_time: Optional[datetime] = None
     title: str
     content: str
     # content_format:Phase 2 新增,响应体透传
@@ -301,6 +304,7 @@ class CommunityChannelCommentResponse(BaseModel):
     user_id: int
     user_name: str
     user_avatar_url: Optional[str] = None
+    user_update_time: Optional[datetime] = None
     content: str
     images: List[str] = Field(default_factory=list)
     status: int

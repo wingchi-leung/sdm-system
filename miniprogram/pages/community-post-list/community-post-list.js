@@ -6,7 +6,6 @@ const { resolveAvatarDisplayUrl, getDefaultAvatarPath } = require('../../utils/a
 
 const PAGE_SIZE = 10;
 const COMMENT_PAGE_SIZE = 20;
-const HTML_TAG_PATTERN = /<\/?(p|div|span|img|br|strong|em|h[1-6]|ul|ol|li|blockquote|a)\b/i;
 
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
@@ -30,6 +29,7 @@ Page({
     error: null,
     showCreateButton: true,
     showManageButton: false,
+    canComment: false,
     hasMorePosts: false,
     total: 0,
     skip: 0,
@@ -39,6 +39,7 @@ Page({
     this.setData({
       showCreateButton: auth.isUser() || auth.isAdmin(),
       showManageButton: this.data.channelRole === 'admin',
+      canComment: auth.isUser() || auth.isAdmin(),
     });
   },
 
@@ -53,7 +54,7 @@ Page({
       });
       this.resolvePageState();
     } catch (err) {
-      wx.showToast({ title: err.message || '加载频道信息失败', icon: 'none' });
+      wx.showToast({ title: err.message || '加载社区信息失败', icon: 'none' });
     }
   },
 
@@ -61,7 +62,7 @@ Page({
     tenant.applyPageOptions(options);
     const channelId = Number(options.channelId || 0);
     if (!channelId) {
-      this.setData({ loading: false, error: '缺少频道参数' });
+      this.setData({ loading: false, error: '缺少社区参数' });
       return;
     }
     this.setData({
@@ -109,7 +110,7 @@ Page({
       this.setData({
         loading: false,
         loadingMore: false,
-        error: err.message || '加载频道动态失败',
+        error: err.message || '加载社区动态失败',
       });
     }
   },
@@ -123,7 +124,7 @@ Page({
     return {
       ...item,
       parsed,
-      author_avatar_display_url: await this.resolveAvatar(item.author_avatar_url),
+      author_avatar_display_url: await this.resolveAvatar(item.author_avatar_url, item.author_update_time),
       cover_image: parsed.images[0] || '',
       extra_image_count: Math.max(0, parsed.images.length - 1),
       create_time_display: this.formatDate(item.create_time),
@@ -134,6 +135,10 @@ Page({
       comments_loading: false,
       comments: previewComments,
       comments_loaded_all: previewComments.length >= Number(item.comment_count || 0),
+      comment_compose_open: false,
+      commentContent: '',
+      commentImageLocalPaths: [],
+      commentSubmitting: false,
     };
   },
 
@@ -141,7 +146,7 @@ Page({
     return {
       ...comment,
       images: (comment.images || []).map((url) => api.getImageUrl(url)),
-      user_avatar_display_url: await this.resolveAvatar(comment.user_avatar_url),
+      user_avatar_display_url: await this.resolveAvatar(comment.user_avatar_url, comment.user_update_time),
       create_time_display: this.formatRelativeTime(comment.create_time),
     };
   },
@@ -149,17 +154,6 @@ Page({
   parsePostContent(rawContent, rawImages) {
     const raw = rawContent || '';
     const imageList = (rawImages || []).map((url) => api.getImageUrl(url));
-    if (HTML_TAG_PATTERN.test(raw)) {
-      const htmlImages = this.extractImageUrls(raw).map((url) => api.getImageUrl(url));
-      return {
-        isHtml: true,
-        html: raw,
-        text: this.htmlToText(raw),
-        blocks: [],
-        images: htmlImages.length ? htmlImages : imageList,
-      };
-    }
-
     const parsed = contentUtils.parsePostContent(raw);
     const blocks = (parsed.blocks || []).map((block) => {
       if (block.type !== 'images') return block;
@@ -172,41 +166,38 @@ Page({
       .filter((block) => block.type === 'images')
       .flatMap((block) => block.images || []);
 
+    // 合并内容块里的图片与 rawImages，去重，避免重复渲染
+    const seen = new Set();
+    const merged = [];
+    for (const url of [...blockImages, ...imageList]) {
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        merged.push(url);
+      }
+    }
+
+    const normalizedBlocks = [...blocks];
+    const hasImageBlock = normalizedBlocks.some((block) => block.type === 'images');
+    if (merged.length && hasImageBlock) {
+      for (let index = 0; index < normalizedBlocks.length; index += 1) {
+        const block = normalizedBlocks[index];
+        if (block.type === 'images') {
+          normalizedBlocks[index] = { ...block, images: merged };
+          break;
+        }
+      }
+    } else if (merged.length) {
+      normalizedBlocks.push({ type: 'images', images: merged });
+    }
+    if (!normalizedBlocks.length && (parsed.text || raw)) {
+      normalizedBlocks.push({ type: 'text', text: (parsed.text || raw).trim() });
+    }
+
     return {
-      isHtml: false,
-      html: '',
       text: (parsed.text || '').trim() || raw,
-      blocks,
-      images: blockImages.length ? blockImages : imageList,
+      blocks: normalizedBlocks,
+      images: merged,
     };
-  },
-
-  extractImageUrls(html) {
-    if (!html) return [];
-    const matches = html.match(/<img[^>]+src=["']([^"']+)["']/gi) || [];
-    return matches
-      .map((item) => {
-        const result = item.match(/src=["']([^"']+)["']/i);
-        return result ? result[1] : null;
-      })
-      .filter(Boolean);
-  },
-
-  htmlToText(html) {
-    if (!html) return '';
-    return String(html)
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/\n{2,}/g, '\n')
-      .trim();
   },
 
   formatDate(iso) {
@@ -232,9 +223,9 @@ Page({
     return this.formatDate(iso);
   },
 
-  async resolveAvatar(avatarUrl) {
+  async resolveAvatar(avatarUrl, cacheVersion) {
     try {
-      return await resolveAvatarDisplayUrl(avatarUrl);
+      return await resolveAvatarDisplayUrl(avatarUrl, cacheVersion);
     } catch (_) {
       return getDefaultAvatarPath();
     }
@@ -263,6 +254,160 @@ Page({
       ...post,
       comments_collapsed: !post.comments_collapsed,
     }));
+  },
+
+  onToggleCommentComposer(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    this.updatePostById(postId, (post) => ({
+      ...post,
+      comment_compose_open: !post.comment_compose_open,
+    }));
+  },
+
+  onCommentInput(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    this.updatePostById(postId, (post) => ({
+      ...post,
+      commentContent: e.detail.value,
+    }));
+  },
+
+  onChooseCommentImages(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    const post = (this.data.posts || []).find((item) => item.id === postId);
+    if (!post) return;
+
+    const currentCount = (post.commentImageLocalPaths || []).length;
+    const remain = 9 - currentCount;
+    if (remain <= 0) {
+      wx.showToast({ title: '最多上传9张图片', icon: 'none' });
+      return;
+    }
+
+    wx.chooseMedia({
+      count: remain,
+      mediaType: ['image'],
+      sourceType: ['album'],
+      sizeType: ['compressed'],
+      success: (res) => {
+        const selected = (res.tempFiles || [])
+          .filter((file) => {
+            if (file.size > 5 * 1024 * 1024) {
+              wx.showToast({ title: '单张图片不能超过5MB', icon: 'none' });
+              return false;
+            }
+            return true;
+          })
+          .map((file) => file.tempFilePath);
+        if (!selected.length) return;
+        this.updatePostById(postId, (item) => ({
+          ...item,
+          comment_compose_open: true,
+          commentImageLocalPaths: [...(item.commentImageLocalPaths || []), ...selected].slice(0, 9),
+        }));
+      },
+      fail: () => wx.showToast({ title: '选择图片失败', icon: 'none' }),
+    });
+  },
+
+  onRemoveCommentImage(e) {
+    const postId = Number(e.currentTarget.dataset.postId);
+    const index = Number(e.currentTarget.dataset.index);
+    if (!postId || Number.isNaN(index)) return;
+    this.updatePostById(postId, (post) => {
+      const nextPaths = [...(post.commentImageLocalPaths || [])];
+      nextPaths.splice(index, 1);
+      return {
+        ...post,
+        commentImageLocalPaths: nextPaths,
+      };
+    });
+  },
+
+  async onSubmitComment(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    const target = (this.data.posts || []).find((post) => post.id === postId);
+    if (!target) return;
+
+    const content = String(target.commentContent || '').trim();
+    if (!content) {
+      wx.showToast({ title: '请输入评论内容', icon: 'none' });
+      return;
+    }
+    if (!(auth.isUser() || auth.isAdmin())) {
+      wx.showToast({ title: '当前账号不可发表评论', icon: 'none' });
+      return;
+    }
+    if (target.commentSubmitting) return;
+
+    this.updatePostById(postId, (post) => ({
+      ...post,
+      commentSubmitting: true,
+    }));
+
+    try {
+      const localPaths = target.commentImageLocalPaths || [];
+      const uploadedUrls = [];
+      for (let index = 0; index < localPaths.length; index += 1) {
+        try {
+          wx.showLoading({ title: `上传图片 ${index + 1}/${localPaths.length}`, mask: true });
+          const uploadResult = await api.uploadCommunityImage(localPaths[index]);
+          uploadedUrls.push(uploadResult.url);
+        } catch (uploadErr) {
+          wx.hideLoading();
+          const retry = await new Promise((resolve) => {
+            wx.showModal({
+              title: '上传失败',
+              content: `第 ${index + 1} 张图片上传失败，是否重试？`,
+              confirmText: '重试',
+              cancelText: '取消',
+              success: (res) => resolve(Boolean(res.confirm)),
+              fail: () => resolve(false),
+            });
+          });
+          if (retry) {
+            index -= 1;
+            continue;
+          }
+          throw uploadErr;
+        }
+      }
+      if (localPaths.length > 0) {
+        wx.hideLoading();
+      }
+
+      const comment = await api.createCommunityChannelComment(this.data.channelId, postId, {
+        content,
+        images: uploadedUrls,
+      });
+      const normalizedComment = await this.normalizeComment(comment);
+      const nextCommentCount = Number(target.comment_count || 0) + 1;
+      this.updatePostById(postId, (post) => {
+        const nextComments = [...(post.comments || []), normalizedComment];
+        return {
+          ...post,
+          comments: nextComments,
+          comment_count: nextCommentCount,
+          comments_loaded_all: Boolean(post.comments_loaded_all),
+          comment_compose_open: false,
+          commentContent: '',
+          commentImageLocalPaths: [],
+          commentSubmitting: false,
+        };
+      });
+      wx.showToast({ title: '评论成功', icon: 'success' });
+    } catch (err) {
+      wx.hideLoading();
+      this.updatePostById(postId, (post) => ({
+        ...post,
+        commentSubmitting: false,
+      }));
+      wx.showToast({ title: err.message || '评论失败', icon: 'none' });
+    }
   },
 
   async onLoadMoreComments(e) {
@@ -331,7 +476,7 @@ Page({
 
   onManageMembers() {
     if (!this.data.showManageButton) {
-      wx.showToast({ title: '仅频道管理员可管理成员', icon: 'none' });
+      wx.showToast({ title: '仅社区管理员可管理成员', icon: 'none' });
       return;
     }
     wx.navigateTo({

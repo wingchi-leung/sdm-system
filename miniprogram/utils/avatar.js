@@ -56,7 +56,20 @@ function normalizeAvatarValue(avatarUrl) {
   return getDefaultAvatarKey();
 }
 
-async function resolveAvatarDisplayUrl(avatarUrl) {
+function buildAvatarCacheBustedUrl(avatarUrl, cacheVersion) {
+  const text = normalizeAvatarValue(avatarUrl);
+  if (!text || isBuiltinAvatarKey(text) || text.startsWith('/assets/')) {
+    return text;
+  }
+  const version = cacheVersion == null ? '' : String(cacheVersion).trim();
+  if (!version) {
+    return text;
+  }
+  const separator = text.includes('?') ? '&' : '?';
+  return `${text}${separator}v=${encodeURIComponent(version)}`;
+}
+
+async function resolveAvatarDisplayUrl(avatarUrl, cacheVersion) {
   const text = normalizeAvatarValue(avatarUrl);
   if (!text) {
     return getDefaultAvatarPath();
@@ -67,7 +80,7 @@ async function resolveAvatarDisplayUrl(avatarUrl) {
   if (text.startsWith('/assets/')) {
     return text;
   }
-  return image.resolveDisplayUrl(text);
+  return image.resolveDisplayUrl(buildAvatarCacheBustedUrl(text, cacheVersion));
 }
 
 module.exports = {
@@ -79,5 +92,6 @@ module.exports = {
   getBuiltinAvatarPath,
   isSupportedCustomAvatarUrl,
   normalizeAvatarValue,
+  buildAvatarCacheBustedUrl,
   resolveAvatarDisplayUrl,
 };

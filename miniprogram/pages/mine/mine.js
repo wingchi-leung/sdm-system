@@ -112,7 +112,7 @@ Page({
 
         let avatarDisplayUrl = '';
         try {
-          avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
+          avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url, profile && profile.update_time);
         } catch (avatarErr) {
           avatarDisplayUrl = '';
         }
@@ -169,7 +169,7 @@ Page({
       }
 
       try {
-        avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url);
+        avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url, profile && profile.update_time);
       } catch (avatarErr) {
         avatarDisplayUrl = '';
       }

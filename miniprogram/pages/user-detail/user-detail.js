@@ -116,9 +116,9 @@ Page({
     };
   },
 
-  async resolveAvatar(avatarUrl) {
+  async resolveAvatar(avatarUrl, cacheVersion) {
     try {
-      return await resolveAvatarDisplayUrl(avatarUrl);
+      return await resolveAvatarDisplayUrl(avatarUrl, cacheVersion);
     } catch (_) {
       return getDefaultAvatarPath();
     }
@@ -160,7 +160,7 @@ Page({
       const user = await api.getUserDetail(userId);
       const normalized = this.normalizeUser({
         ...user,
-        avatarDisplayUrl: await this.resolveAvatar(user.avatar_url),
+        avatarDisplayUrl: await this.resolveAvatar(user.avatar_url, user.update_time),
       });
       this.setData({
         user: {

@@ -30,14 +30,16 @@ function loadImageUtil({ getImageUrl } = {}) {
   return { image, calls };
 }
 
-test('头像图片会跳过缓存，便于更换后立即刷新', async () => {
+test('头像版本变化时会重新解析，便于更换后立即刷新', async () => {
   const { image, calls } = loadImageUtil();
 
-  const first = await image.resolveDisplayUrl('/uploads/avatars/user-a.jpg');
-  const second = await image.resolveDisplayUrl('/uploads/avatars/user-a.jpg');
+  const first = await image.resolveDisplayUrl('https://static.example.com/uploads/avatars/user-a.jpg?v=1');
+  const second = await image.resolveDisplayUrl('https://static.example.com/uploads/avatars/user-a.jpg?v=1');
+  const third = await image.resolveDisplayUrl('https://static.example.com/uploads/avatars/user-a.jpg?v=2');
 
   assert.equal(first, '/tmp/image-1.jpg');
-  assert.equal(second, '/tmp/image-2.jpg');
+  assert.equal(second, '/tmp/image-1.jpg');
+  assert.equal(third, '/tmp/image-2.jpg');
   assert.equal(calls.length, 2);
 });
 

@@ -103,7 +103,7 @@ Page({
     try {
       const result = await api.getCommunityChannelMembers(this.data.channelId, { limit: 200 });
       const members = await Promise.all((result.items || []).map(async (item) => {
-        const avatarDisplayUrl = await this.resolveAvatar(item.avatar_url);
+        const avatarDisplayUrl = await this.resolveAvatar(item.user_avatar_url || item.avatar_url, item.user_update_time);
         return this.normalizeMember({
           ...item,
           avatarDisplayUrl,
@@ -128,9 +128,9 @@ Page({
     }
   },
 
-  async resolveAvatar(avatarUrl) {
+  async resolveAvatar(avatarUrl, cacheVersion) {
     try {
-      return await resolveAvatarDisplayUrl(avatarUrl);
+      return await resolveAvatarDisplayUrl(avatarUrl, cacheVersion);
     } catch (_) {
       return getDefaultAvatarPath();
     }

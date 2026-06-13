@@ -50,7 +50,7 @@ Page({
       const profile = await api.getUserProfile();
       const avatarOptions = getBuiltinAvatarList();
       const currentAvatarUrl = normalizeAvatarValue(profile.avatar_url || avatarOptions[0].key);
-      const displayUrl = await resolveAvatarDisplayUrl(currentAvatarUrl);
+      const displayUrl = await resolveAvatarDisplayUrl(currentAvatarUrl, profile.update_time);
       this.setData({
         loading: false,
         uploading: false,

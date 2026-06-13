@@ -195,7 +195,7 @@ Page({
         const dateGroups = this.buildDateGroups(items);
 
         const headerAvatarUrl = auth.isUser()
-          ? await resolveAvatarDisplayUrl(profile && profile.avatar_url)
+          ? await resolveAvatarDisplayUrl(profile && profile.avatar_url, profile && profile.update_time)
           : '';
         this.setData({
           activities: items,

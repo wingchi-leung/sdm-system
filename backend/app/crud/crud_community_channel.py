@@ -52,6 +52,7 @@ def _build_comment_preview(comment: CommunityChannelComment, user: User) -> dict
         "user_id": comment.user_id,
         "user_name": user.name or "用户",
         "user_avatar_url": user.avatar_url,
+        "user_update_time": user.update_time,
         "content": comment.content,
         "images": _normalize_images(comment.images),
         "status": comment.status,
@@ -118,11 +119,60 @@ def get_user_member_record(
 def list_user_channels(
     db: Session,
     *,
+    ctx,
     tenant_id: int,
     user_id: int,
     skip: int,
     limit: int,
 ) -> tuple[list[dict], int]:
+    is_admin = ctx.has_any_role(db) or ctx.is_platform_admin
+
+    if is_admin:
+        total = db.query(func.count(CommunityChannel.id)).filter(
+            CommunityChannel.tenant_id == tenant_id,
+            CommunityChannel.status == 1,
+        ).scalar() or 0
+
+        rows = db.query(CommunityChannel).filter(
+            CommunityChannel.tenant_id == tenant_id,
+            CommunityChannel.status == 1,
+        ).order_by(CommunityChannel.update_time.desc()).offset(skip).limit(limit).all()
+
+        channel_ids = [channel.id for channel in rows]
+        count_rows = db.query(
+            CommunityChannelMember.channel_id,
+            func.count(CommunityChannelMember.id).label("member_count"),
+        ).filter(
+            CommunityChannelMember.tenant_id == tenant_id,
+            CommunityChannelMember.channel_id.in_(channel_ids),
+            CommunityChannelMember.status == "active",
+        ).group_by(CommunityChannelMember.channel_id).all() if channel_ids else []
+        count_map = {channel_id: int(member_count or 0) for channel_id, member_count in count_rows}
+
+        member_rows = db.query(CommunityChannelMember).filter(
+            CommunityChannelMember.tenant_id == tenant_id,
+            CommunityChannelMember.user_id == user_id,
+            CommunityChannelMember.status.in_(["active", "banned"]),
+            CommunityChannelMember.channel_id.in_(channel_ids),
+        ).all() if channel_ids else []
+        role_map = {row.channel_id: row.role for row in member_rows}
+
+        items = []
+        for channel in rows:
+            items.append({
+                "id": channel.id,
+                "tenant_id": channel.tenant_id,
+                "name": channel.name,
+                "description": channel.description,
+                "avatar_url": channel.avatar_url,
+                "admin_user_id": channel.admin_user_id,
+                "member_count": count_map.get(channel.id, 0),
+                "role": role_map.get(channel.id, "admin"),
+                "create_time": channel.create_time,
+                "update_time": channel.update_time,
+            })
+        return items, int(total)
+
     member_rows = db.query(CommunityChannelMember).filter(
         CommunityChannelMember.tenant_id == tenant_id,
         CommunityChannelMember.user_id == user_id,
@@ -202,6 +252,8 @@ def list_channel_members(
             "channel_id": member.channel_id,
             "user_id": member.user_id,
             "user_name": user.name or "用户",
+            "user_avatar_url": user.avatar_url,
+            "user_update_time": user.update_time,
             "role": member.role,
             "status": member.status,
             "joined_at": member.joined_at,
@@ -682,6 +734,7 @@ def list_channel_posts(
             "author_user_id": post.author_user_id,
             "author_name": user.name or "用户",
             "author_avatar_url": user.avatar_url,
+            "author_update_time": user.update_time,
             "title": post.title,
             "content": post.content,
             "content_format": post.content_format,
@@ -737,6 +790,7 @@ def get_channel_post_detail(
         "author_user_id": post.author_user_id,
         "author_name": user.name or "用户",
         "author_avatar_url": user.avatar_url,
+        "author_update_time": user.update_time,
         "title": post.title,
         "content": post.content,
         "content_format": post.content_format,
