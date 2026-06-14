@@ -30,9 +30,12 @@ function waitForNextTick() {
 
 Page({
   data: {
+    mode: '',                  // 'channel' | 'activity'
     channelId: null,
     channelName: '',
     channelRole: 'member',
+    activityId: null,
+    activityName: '',
     statusBarHeight: 0,
     title: '',
     titleLength: 0,
@@ -66,19 +69,38 @@ Page({
   onLoad(options) {
     tenant.applyPageOptions(options);
     const channelId = Number(options.channelId || 0);
-    if (!channelId) {
-      this.setData({ error: '缺少频道参数' });
+    const activityId = Number(options.activityId || 0);
+
+    // 优先 channel 模式：community-post-list.js:469-477 走这条
+    if (channelId) {
+      if (!this.ensurePublisherAccess()) return;
+      const systemInfo = typeof wx.getSystemInfoSync === 'function' ? wx.getSystemInfoSync() : {};
+      this.setData({
+        mode: 'channel',
+        channelId,
+        channelName: decodeDisplayText(options.channelName),
+        channelRole: decodeDisplayText(options.channelRole || 'member'),
+        statusBarHeight: Number(systemInfo.statusBarHeight || 0),
+      });
       return;
     }
-    if (!this.ensurePublisherAccess()) return;
 
-    const systemInfo = typeof wx.getSystemInfoSync === 'function' ? wx.getSystemInfoSync() : {};
-    this.setData({
-      channelId,
-      channelName: decodeDisplayText(options.channelName),
-      channelRole: decodeDisplayText(options.channelRole || 'member'),
-      statusBarHeight: Number(systemInfo.statusBarHeight || 0),
-    });
+    // activity 模式：activity-detail.js:455-463 走这条
+    if (activityId) {
+      if (!this.ensurePublisherAccess()) return;
+      const systemInfo = typeof wx.getSystemInfoSync === 'function' ? wx.getSystemInfoSync() : {};
+      this.setData({
+        mode: 'activity',
+        activityId,
+        activityName: decodeDisplayText(options.activityName),
+        statusBarHeight: Number(systemInfo.statusBarHeight || 0),
+      });
+      return;
+    }
+
+    // 缺参数兜底：toast + 自动返回，替代原 setData error 后卡死导致 422
+    wx.showToast({ title: '缺少发布上下文', icon: 'none' });
+    setTimeout(() => this.onBackTap(), 1500);
   },
 
   onBackTap() {
@@ -91,14 +113,6 @@ Page({
         },
       });
     }
-  },
-
-  onAddTap() {
-    this.onInsertImage();
-  },
-
-  onBellTap() {
-    wx.showToast({ title: '通知中心暂未开放', icon: 'none' });
   },
 
   onEditorReady() {
@@ -425,12 +439,23 @@ Page({
     const images = this._extractImageUrls(html);
     this.setData({ submitting: true, error: null });
     try {
-      await api.createCommunityChannelPost(this.data.channelId, {
-        title,
-        content: html,
-        content_format: 'html',
-        images,
-      });
+      if (this.data.mode === 'channel') {
+        await api.createCommunityChannelPost(this.data.channelId, {
+          title,
+          content: html,
+          content_format: 'html',
+          images,
+        });
+      } else if (this.data.mode === 'activity') {
+        await api.createCommunityPost({
+          activity_id: this.data.activityId,
+          title,
+          content: html,
+          images,
+        });
+      } else {
+        throw new Error('发布模式无效');
+      }
       wx.showToast({ title: '发布成功', icon: 'success' });
       setTimeout(() => this.onBackTap(), 1000);
     } catch (err) {

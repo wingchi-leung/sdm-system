@@ -3,7 +3,7 @@
   </page-header>
 
   <view class="composer-shell">
-    <text wx:if="{{channelName}}" class="channel-name">{{channelName}}</text>
+    <text wx:if="{{mode === 'channel' && channelName}}" class="channel-name">{{channelName}}</text>
 
     <view class="field field-title">
       <view class="field-head">

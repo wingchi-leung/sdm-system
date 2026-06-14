@@ -103,11 +103,12 @@
 | 活动发布页改版 | 小程序发布活动页采用单列极简表单，补齐自定义顶部栏、开始/结束时间选择、公开活动、报名限额、支付设置、地点与介绍区块 | ✅ 已实现 | `miniprogram/pages/create-activity/create-activity.wxml`, `miniprogram/pages/create-activity/create-activity.wxss`, `miniprogram/pages/create-activity/create-activity.js`, `miniprogram/pages/create-activity/create-activity.json` |
 | 管理员用户详情页收敛 | 小程序管理员用户详情页收敛为白底轻卡片风格，统一信息概览、基础信息、管理信息与底部操作区的留白节奏 | ✅ 已实现 | `miniprogram/pages/user-detail/user-detail.wxml`, `miniprogram/pages/user-detail/user-detail.wxss` |
 | 我的页重设计 | 小程序“我的”页采用白底极简平铺样式，恢复顶部“我的”标题、铃铛入口、头像信息区、三栏统计和极简服务列表 | ✅ 已实现 | `miniprogram/pages/mine/mine.wxml`, `miniprogram/pages/mine/mine.wxss`, `miniprogram/pages/mine/mine.js`, `miniprogram/pages/mine/mine.json` |
+| 小程序字体系统统一 | 小程序全局字体统一为 `LorchinSansP0` + `PingFang SC` 回退链，业务正文移除宋体/Georgia/Times 混用，首页品牌主视觉保留衬线展示字 | ✅ 已实现 | `miniprogram/app.wxss`, `docs/specs/SPEC-10_小程序字体规范.md`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/community/*`, `miniprogram/pages/community-*/*.wxss` |
 | 用户头像 | 普通用户可选择默认头像或上传自定义 | ✅ 已实现 | 4 个默认头像 + 自定义上传 |
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
 | 我的页信息架构 | 一级菜单包含「设置」「协议和说明」 | ✅ 已实现 | 设置承载账号操作，协议页承载文档入口 |
 | 报名页极简重排版 | 小程序活动报名页采用克制的高级字体层级与文字入口式提交 | ✅ 已实现 | 保留原版式结构，统一为 PingFang SC / SF Pro 字体系统与极细分隔线 |
-| 活动展示页字体升级 | 小程序首页/活动列表/活动详情三页接入落尘无衬 P0 (Lorchin Sans P0) | ✅ 已实现 | 走 `wx.loadFontFace` + 后端 `/uploads/fonts/LorchinSansP0.woff2` 网络字体，hero 大字保留宋体衬线 |
+| 活动展示页字体升级 | 小程序首页/活动列表/活动详情三页接入落尘无衬 P0 (Lorchin Sans P0) | ✅ 已实现 | 走 `wx.loadFontFace` + 后端 `/uploads/fonts/LorchinSansP0.woff2` 网络字体，统一收口为同一字体系统 |
 
 ---
 
@@ -126,7 +127,9 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
-| 2026-06-13 | 小程序活动展示页（首页/活动列表/活动详情）接入落尘无衬 P0 字体：`backend/uploads/fonts/LorchinSansP0.woff2` + `wx.loadFontFace` 动态注册，hero 大字保留宋体衬线 | `miniprogram/app.js`, `miniprogram/app.wxss`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/activity-list/activity-list.wxss`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `backend/uploads/fonts/LorchinSansP0.woff2` |
+| 2026-06-14 | 修复活动详情页"发布动态"报 422：`community-post-create` 页面双模式化，按 query 自动识别 `activity` / `channel` 模式分别调 `POST /community/posts` 与 `POST /community/channels/{id}/posts`；缺参数时 toast + 自动返回，替代原"按钮仍可点"导致 URL 出现 `/channels/null/posts` 的旧行为 | `miniprogram/pages/community-post-create/community-post-create.js`, `miniprogram/pages/community-post-create/community-post-create.wxml` |
+| 2026-06-13 | 小程序字体系统统一：全局字体收口为 `LorchinSansP0` + `PingFang SC`，社区内页移除宋体/Georgia/Times 混用，首页品牌主视觉保留衬线展示字，并补充 `SPEC-10_小程序字体规范.md` | `miniprogram/app.wxss`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/community/*`, `docs/specs/SPEC-10_小程序字体规范.md` |
+| 2026-06-13 | 小程序活动展示页（首页/活动列表/活动详情）接入落尘无衬 P0 字体：`backend/uploads/fonts/LorchinSansP0.woff2` + `wx.loadFontFace` 动态注册，并统一收口字体族 | `miniprogram/app.js`, `miniprogram/app.wxss`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/activity-list/activity-list.wxss`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `backend/uploads/fonts/LorchinSansP0.woff2` |
 | 2026-06-13 | 小程序频道管理内页按设计稿重做为 iPhone 风格极简页面：补齐状态栏、手势胶囊、频道标题、成员头图与邀请按钮的视觉层级 | `miniprogram/pages/community-channel-manage/community-channel-manage.wxml`, `miniprogram/pages/community-channel-manage/community-channel-manage.wxss`, `miniprogram/pages/community-channel-manage/community-channel-manage.js` |
 | 2026-06-12 | 小程序频道动态页补回评论入口：频道动态列表支持展开评论、上传图片并提交评论，复用后端 `POST /community/channels/{channel_id}/posts/{post_id}/comments` 及评论预览链路 | `miniprogram/pages/community-post-list/*`, `miniprogram/tests/community-post-list-page.test.js`, `backend/app/api/v1/endpoints/community.py` |
 | 2026-06-12 | 小程序管理员用户详情页与发布活动页继续收敛到统一留白基线：用户详情页移除渐变与重阴影，发布活动页统一输入/选择控件的线性节奏与底部操作区 | `docs/specs/SPEC-09_小程序UI留白与间距规范.md`, `miniprogram/pages/user-detail/*`, `miniprogram/pages/create-activity/*` |
