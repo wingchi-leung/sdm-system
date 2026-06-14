@@ -1,0 +1,36 @@
+<view class="page">
+  <view class="page-header-sticky">
+    <page-header title="公告详情"></page-header>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">暂时无法查看公告</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <view class="ann-card">
+      <text class="ann-caption">频道公告</text>
+      <text class="ann-title">{{announcement.title}}</text>
+      <view class="ann-meta">
+        <image class="ann-meta-avatar" src="{{announcement.author_avatar_display_url}}" mode="aspectFill" />
+        <text class="ann-meta-name">{{announcement.author_name}}</text>
+        <text class="ann-meta-dot">·</text>
+        <text class="ann-meta-time">{{announcement.create_time_display}}</text>
+      </view>
+
+      <view wx:if="{{announcement.content_format === 'html'}}" class="ann-html">
+        <rich-text nodes="{{announcement.content}}" />
+      </view>
+      <text wx:else class="ann-text">{{announcement.plain_text}}</text>
+    </view>
+
+    <view wx:if="{{canDelete}}" class="ann-actions">
+      <view class="ann-delete" bindtap="onDelete">删除</view>
+    </view>
+  </view>
+</view>

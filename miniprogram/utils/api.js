@@ -1167,6 +1167,83 @@ function createCommunityChannelComment(channelId, postId, payload) {
   });
 }
 
+function getCommunityChannelAnnouncements(channelId, opts = {}) {
+  const { skip = 0, limit = 20 } = opts;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/announcements?skip=${skip}&limit=${limit}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function createCommunityChannelAnnouncement(channelId, payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/announcements`,
+      method: 'POST',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelAnnouncementDetail(channelId, announcementId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/announcements/${announcementId}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function deleteCommunityChannelAnnouncement(channelId, announcementId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/announcements/${announcementId}`,
+      method: 'DELETE',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelAnnouncementSummary(channelId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/announcements/summary`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 function generateCommunityInviteCode(channelId) {
   return Promise.reject(new ApiError(410, '邀请码加入功能已关闭'));
 }
@@ -1450,6 +1527,11 @@ module.exports = {
   getCommunityChannelPostDetail,
   getCommunityChannelComments,
   createCommunityChannelComment,
+  getCommunityChannelAnnouncements,
+  createCommunityChannelAnnouncement,
+  getCommunityChannelAnnouncementDetail,
+  deleteCommunityChannelAnnouncement,
+  getCommunityChannelAnnouncementSummary,
   generateCommunityInviteCode,
   joinCommunityChannelByCode,
   createCommunityChannel,

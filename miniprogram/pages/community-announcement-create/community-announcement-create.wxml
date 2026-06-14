@@ -1,0 +1,148 @@
+<view class="page">
+  <page-header title="发布公告" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBackTap">
+  </page-header>
+
+  <view class="composer-shell">
+    <text wx:if="{{mode === 'channel' && channelName}}" class="channel-name">{{channelName}}</text>
+
+    <view class="field field-title">
+      <view class="field-head">
+        <text class="field-label">标题</text>
+        <text class="field-required">*</text>
+      </view>
+      <view class="title-row">
+        <input
+          class="title-input"
+          placeholder="输入动态标题"
+          placeholder-class="input-placeholder"
+          value="{{title}}"
+          maxlength="50"
+          bindinput="onTitleInput"
+        />
+        <text class="field-counter">{{titleLength}}/50</text>
+      </view>
+    </view>
+
+    <view class="field field-editor">
+      <view class="field-head">
+        <text class="field-label">正文</text>
+        <text class="field-required">*</text>
+      </view>
+
+      <view class="editor-panel">
+        <scroll-view class="toolbar-scroll" scroll-x="{{true}}" enable-flex="{{true}}" show-scrollbar="{{false}}">
+          <view class="toolbar">
+            <view class="tool-btn tool-btn-text" data-action="paragraph" bindtap="onToolbarAction">
+              <text>正文</text>
+              <text class="tool-caret ui-chevron ui-chevron--sm">⌄</text>
+            </view>
+            <view class="tool-btn tool-btn-icon tool-btn-strong" data-action="bold" bindtap="onToolbarAction">
+              <text class="tool-text-icon">B</text>
+            </view>
+            <view class="tool-btn tool-btn-icon tool-btn-italic" data-action="italic" bindtap="onToolbarAction">
+              <text class="tool-text-icon">I</text>
+            </view>
+            <view class="tool-btn tool-btn-icon tool-btn-underline" data-action="underline" bindtap="onToolbarAction">
+              <text class="tool-text-icon">U</text>
+            </view>
+            <view class="tool-btn tool-btn-icon tool-btn-strike" data-action="strike" bindtap="onToolbarAction">
+              <text class="tool-text-icon">S</text>
+            </view>
+            <view class="tool-divider"></view>
+            <view class="tool-btn tool-btn-icon" data-action="align-left" bindtap="onToolbarAction">
+              <view class="tool-icon tool-icon-align">
+                <view class="tool-icon-align__line tool-icon-align__line--wide"></view>
+                <view class="tool-icon-align__line"></view>
+                <view class="tool-icon-align__line tool-icon-align__line--wide"></view>
+              </view>
+            </view>
+            <view class="tool-btn tool-btn-icon" data-action="list-bullet" bindtap="onToolbarAction">
+              <view class="tool-icon tool-icon-bullet">
+                <view class="tool-icon-bullet__rows">
+                  <view class="tool-icon-bullet__row">
+                    <view class="tool-icon-bullet__dot"></view>
+                    <view class="tool-icon-bullet__line"></view>
+                  </view>
+                  <view class="tool-icon-bullet__row">
+                    <view class="tool-icon-bullet__dot"></view>
+                    <view class="tool-icon-bullet__line"></view>
+                  </view>
+                  <view class="tool-icon-bullet__row">
+                    <view class="tool-icon-bullet__dot"></view>
+                    <view class="tool-icon-bullet__line"></view>
+                  </view>
+                </view>
+              </view>
+            </view>
+            <view class="tool-btn tool-btn-icon tool-btn-ordered" data-action="list-ordered" bindtap="onToolbarAction">
+              <view class="tool-icon tool-icon-ordered">
+                <view class="tool-icon-ordered__num">
+                  <text class="tool-icon-ordered__num-text">1</text>
+                  <text class="tool-icon-ordered__num-text">2</text>
+                  <text class="tool-icon-ordered__num-text">3</text>
+                </view>
+                <view class="tool-icon-ordered__lines">
+                  <view class="tool-icon-ordered__line"></view>
+                  <view class="tool-icon-ordered__line"></view>
+                  <view class="tool-icon-ordered__line"></view>
+                </view>
+              </view>
+            </view>
+            <view class="tool-divider"></view>
+            <view class="tool-btn tool-btn-icon" data-action="insert-image" bindtap="onToolbarAction">
+              <view class="tool-icon tool-icon-image">
+                <view class="tool-icon-image__frame"></view>
+                <view class="tool-icon-image__sun"></view>
+                <view class="tool-icon-image__mountain"></view>
+              </view>
+            </view>
+            <view class="tool-btn tool-btn-icon" data-action="more" bindtap="onToolbarAction">
+              <view class="tool-icon tool-icon-more">
+                <view class="tool-icon-more__dot"></view>
+                <view class="tool-icon-more__dot"></view>
+                <view class="tool-icon-more__dot"></view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+
+        <editor
+          id="richEditor"
+          class="rich-editor"
+          placeholder="输入正文内容"
+          placeholder-style="color:#98a2b3;font-size:28rpx;line-height:1.75;font-style:italic;"
+          show-img-toolbar="{{false}}"
+          show-img-resize="{{true}}"
+          bindready="onEditorReady"
+          bindinput="onEditorInput"
+          bindblur="onEditorBlur"
+        />
+
+        <view class="editor-actions">
+          <view class="editor-action-btn editor-action-btn-primary" bindtap="onInsertImage">
+            <text class="editor-action-icon">＋</text>
+            <text class="editor-action-text">插入图片</text>
+          </view>
+          <view class="editor-action-btn" data-action="clear" bindtap="onToolbarAction">
+            <text class="editor-action-text">清空正文</text>
+          </view>
+        </view>
+
+        <view class="editor-footer">
+          <text class="editor-tip">支持图文混排，最多插入 9 张图片</text>
+          <text class="field-counter">{{contentLength}} 字</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{error}}" class="error-box">
+      <text class="error-text">{{error}}</text>
+    </view>
+  </view>
+
+  <view class="footer-bar">
+    <button class="submit-btn" disabled="{{submitting}}" bindtap="onSubmit">
+      {{submitting ? '发布中…' : '发布'}}
+    </button>
+  </view>
+</view>

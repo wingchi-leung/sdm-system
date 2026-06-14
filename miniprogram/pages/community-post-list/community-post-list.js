@@ -34,13 +34,17 @@ Page({
     showEmptyState: false,
     total: 0,
     skip: 0,
+    announcementCount: 0,
   },
 
   resolvePageState() {
     this.setData({
+      // 公告发布按钮：仅频道管理员可见（不是 RBAC 的 isAdmin）
       showCreateButton: auth.isUser() || auth.isAdmin(),
       showManageButton: this.data.channelRole === 'admin',
       canComment: auth.isUser() || auth.isAdmin(),
+      showAnnouncementEntry: this.data.announcementCount > 0,
+      showAnnouncementCreate: this.data.channelRole === 'admin',
     });
   },
 
@@ -56,6 +60,19 @@ Page({
       this.resolvePageState();
     } catch (err) {
       wx.showToast({ title: err.message || '加载社区信息失败', icon: 'none' });
+    }
+  },
+
+  async loadAnnouncementSummary() {
+    if (!this.data.channelId) return;
+    try {
+      const summary = await api.getCommunityChannelAnnouncementSummary(this.data.channelId);
+      const count = Number(summary.total || 0);
+      this.setData({ announcementCount: count });
+      this.resolvePageState();
+    } catch (_) {
+      this.setData({ announcementCount: 0 });
+      this.resolvePageState();
     }
   },
 
@@ -80,6 +97,7 @@ Page({
     if (this.data.channelId) {
       this.resolvePageState();
       this.loadChannelDetail();
+      this.loadAnnouncementSummary();
       this.loadPosts({ reset: true });
     }
   },
@@ -469,6 +487,29 @@ Page({
   onCreatePost() {
     wx.navigateTo({
       url: tenant.appendTenantToUrl('/pages/community-post-create/community-post-create', {
+        channelId: this.data.channelId,
+        channelName: this.data.channelName,
+        channelRole: this.data.channelRole,
+      }),
+    });
+  },
+
+  onCreateAnnouncement() {
+    if (this.data.channelRole !== 'admin') {
+      wx.showToast({ title: '仅频道管理员可发布公告', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-announcement-create/community-announcement-create', {
+        channelId: this.data.channelId,
+        channelName: this.data.channelName,
+      }),
+    });
+  },
+
+  onOpenAnnouncementList() {
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-announcement-list/community-announcement-list', {
         channelId: this.data.channelId,
         channelName: this.data.channelName,
         channelRole: this.data.channelRole,

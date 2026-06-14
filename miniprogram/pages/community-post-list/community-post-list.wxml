@@ -21,11 +21,23 @@
           <text class="manage-btn-text">社区管理</text>
           <text class="manage-btn-arrow ui-chevron ui-chevron--sm">›</text>
         </view>
+        <view wx:if="{{showAnnouncementCreate}}" class="ann-create-btn" bindtap="onCreateAnnouncement">+ 公告</view>
         <view wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">+</view>
       </view>
     </view>
 
     <view class="head-accent"></view>
+
+    <view wx:if="{{showAnnouncementEntry}}" class="ann-entry" bindtap="onOpenAnnouncementList">
+      <view class="ann-entry-icon">
+        <text class="ann-entry-emoji">📢</text>
+      </view>
+      <view class="ann-entry-body">
+        <text class="ann-entry-title">公告</text>
+        <text class="ann-entry-subtitle">共 {{announcementCount}} 条</text>
+      </view>
+      <text class="ann-entry-arrow ui-chevron ui-chevron--md">›</text>
+    </view>
 
     <view wx:if="{{posts.length > 0}}" class="feed-list">
       <view wx:for="{{posts}}" wx:key="id" class="feed-thread">
