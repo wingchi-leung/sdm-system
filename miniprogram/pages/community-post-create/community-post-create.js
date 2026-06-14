@@ -47,6 +47,7 @@ Page({
   },
 
   resetSensitiveData() {
+    if (this._uploadedUrlMap) this._uploadedUrlMap.clear();
     this.setData({
       title: '',
       titleLength: 0,
@@ -129,23 +130,23 @@ Page({
   },
 
   onEditorInput(e) {
-    const html = e && e.detail && typeof e.detail.html === 'string' ? e.detail.html : '';
+    const rawHtml = e && e.detail && typeof e.detail.html === 'string' ? e.detail.html : '';
     const text = e && e.detail && typeof e.detail.text === 'string' ? e.detail.text : '';
-    this.data._editorHtml = html;
+    this.data._editorHtml = this._normalizeImageSrcsToRelative(rawHtml);
     this.setData({
-      contentLength: getPlainTextLength(text || html),
+      contentLength: getPlainTextLength(text || rawHtml),
       error: null,
     });
   },
 
   onEditorBlur(e) {
-    const html = e && e.detail && typeof e.detail.html === 'string' ? e.detail.html : '';
+    const rawHtml = e && e.detail && typeof e.detail.html === 'string' ? e.detail.html : '';
     const text = e && e.detail && typeof e.detail.text === 'string' ? e.detail.text : '';
-    if (html || text) {
-      this.data._editorHtml = html;
+    if (rawHtml || text) {
+      this.data._editorHtml = this._normalizeImageSrcsToRelative(rawHtml);
     }
     this.setData({
-      contentLength: getPlainTextLength(text || html),
+      contentLength: getPlainTextLength(text || rawHtml),
     });
   },
 
@@ -196,8 +197,11 @@ Page({
       return null;
     }
 
-    const html = typeof snapshot.html === 'string' ? snapshot.html : '';
+    const rawHtml = typeof snapshot.html === 'string' ? snapshot.html : '';
     const text = typeof snapshot.text === 'string' ? snapshot.text : '';
+    // 编辑器返回的 HTML 中图片 src 是完整 URL（我们 insertImage 时传的 displayUrl），
+    // 还原为相对路径以保证后续 _extractImageUrls 提取到的是相对路径
+    const html = this._normalizeImageSrcsToRelative(rawHtml);
     this.data._editorHtml = html;
     this.setData({
       contentLength: getPlainTextLength(text || html),
@@ -352,19 +356,29 @@ Page({
 
         wx.showLoading({ title: `上传图片 ${index + 1}/${files.length}` });
         const uploadResult = await api.uploadCommunityImage(file.tempFilePath);
-        const imageUrl = api.getImageUrl(uploadResult && uploadResult.url);
-        if (!imageUrl) {
+        // 相对路径是后端约定的存储形式；提交与编辑器 HTML 字符串统一用相对路径
+        const imageRelativeUrl = (uploadResult && uploadResult.url) || '';
+        // 编辑器内显示需要完整 URL（编辑器是本地 webview 直接加载）
+        const imageDisplayUrl = api.getImageUrl(imageRelativeUrl);
+        if (!imageRelativeUrl) {
           throw new Error('图片地址无效');
         }
         if (!editorCtx || typeof editorCtx.insertImage !== 'function') {
           throw new Error('编辑器图片插入不可用');
         }
 
+        // 记录本会话的"完整 → 相对"映射，供后续 _normalizeImageSrcsToRelative 反向使用
+        if (!this._uploadedUrlMap) this._uploadedUrlMap = new Map();
+        this._uploadedUrlMap.set(imageDisplayUrl, imageRelativeUrl);
+
         editorCtx.insertImage({
-          src: imageUrl,
+          src: imageDisplayUrl,
           width: '100%',
           success: () => {
-            this.data._editorHtml = `${this.data._editorHtml || ''}<img src="${imageUrl}" />`;
+            // 字符串快照用相对路径，与后端存储/列表展示链路一致
+            this.data._editorHtml = `${this.data._editorHtml || ''}<img src="${imageRelativeUrl}" />`;
+            // 触发编辑器快照，重新读取 text（同步字数），
+            // 路径上的 HTML 会被 _normalizeImageSrcsToRelative 还原为相对路径
             setTimeout(() => {
               this._captureEditorSnapshot(editorCtx).catch(() => {});
             }, 0);
@@ -381,6 +395,21 @@ Page({
     } finally {
       wx.hideLoading();
     }
+  },
+
+  // 把编辑器返回的 HTML 中"完整 URL"形式的 <img src> 还原为本会话上传的"相对路径"
+  // 这样不论 HTML 来源（onEditorInput / onEditorBlur / getContents），写入的 _editorHtml 都是相对路径
+  // 后端存储 / 列表展示 / 详情展示链路统一以相对路径为约定
+  _normalizeImageSrcsToRelative(html) {
+    if (!html || !this._uploadedUrlMap || !this._uploadedUrlMap.size) return html || '';
+    let normalized = html;
+    this._uploadedUrlMap.forEach((relativeUrl, displayUrl) => {
+      if (!displayUrl || !relativeUrl) return;
+      const escaped = displayUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(<img[^>]+src=["'])${escaped}(["'])`, 'gi');
+      normalized = normalized.replace(re, `$1${relativeUrl}$2`);
+    });
+    return normalized;
   },
 
   _extractImageUrls(html) {

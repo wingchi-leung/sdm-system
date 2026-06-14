@@ -126,14 +126,15 @@ test('发布页插入图片后会上传并回写编辑器快照', async () => {
     title: '测试标题',
   });
 
-  page.onLoad({ channelId: '12', channelName: encodeURIComponent('测试频道') });
+  page.onLoad({ channelId: '12', channelName: encodeURIComponent('测试社区') });
   await page.onEditorReady();
   await page.onInsertImage();
   await new Promise((resolve) => setTimeout(resolve, 10));
 
   assert.equal(uploadedPath, 'tmp://image-1.jpg');
   assert.equal(insertedImageUrl, 'https://static.example.com/uploads/community/1.jpg');
-  assert.equal(page.data._editorHtml.includes('https://static.example.com/uploads/community/1.jpg'), true);
+  // 字符串快照改存相对路径（与后端存储/列表展示链路一致）
+  assert.equal(page.data._editorHtml.includes('/uploads/community/1.jpg'), true);
   assert.equal(page.data.contentLength, 2);
 });
 
@@ -148,8 +149,9 @@ test('发布页提交时会发送 HTML 内容和图片列表', async () => {
     insertImage() {},
     getContents(options) {
       if (options && typeof options.success === 'function') {
+        // 模拟编辑器真实返回的"完整 URL 形态"
         options.success({
-          html: '<p>第一段</p><img src="https://cdn.example.com/community/1.jpg" />',
+          html: '<p>第一段</p><img src="https://static.example.com/uploads/community/1.jpg" />',
           text: '第一段',
         });
       }
@@ -158,7 +160,8 @@ test('发布页提交时会发送 HTML 内容和图片列表', async () => {
 
   const pageConfig = loadPage('../pages/community-post-create/community-post-create.js', [
     ['../../utils/api.js', {
-      uploadCommunityImage: async () => ({ url: 'https://cdn.example.com/community/1.jpg' }),
+      uploadCommunityImage: async () => ({ url: '/uploads/community/1.jpg' }),
+      getImageUrl: (url) => `https://static.example.com${url}`,
       createCommunityChannelPost: async (_channelId, payload) => {
         createdPayload = payload;
         return { id: 1 };
@@ -179,14 +182,18 @@ test('发布页提交时会发送 HTML 内容和图片列表', async () => {
     title: '测试标题',
   });
 
-  page.onLoad({ channelId: '12', channelName: encodeURIComponent('测试频道') });
+  page.onLoad({ channelId: '12', channelName: encodeURIComponent('测试社区') });
   await page.onEditorReady();
+  // 模拟 onInsertImage 已记录"完整 URL → 相对路径"映射
+  page._uploadedUrlMap = new Map([
+    ['https://static.example.com/uploads/community/1.jpg', '/uploads/community/1.jpg'],
+  ]);
   await page.onSubmit();
 
   assert.deepEqual(createdPayload, {
     title: '测试标题',
-    content: '<p>第一段</p><img src="https://cdn.example.com/community/1.jpg" />',
+    content: '<p>第一段</p><img src="/uploads/community/1.jpg" />',
     content_format: 'html',
-    images: ['https://cdn.example.com/community/1.jpg'],
+    images: ['/uploads/community/1.jpg'],
   });
 });

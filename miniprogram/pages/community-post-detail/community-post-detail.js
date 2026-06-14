@@ -7,6 +7,7 @@ const MAX_IMAGE_COUNT = 9;
 
 Page({
   data: {
+    mode: 'channel',          // 'channel' | 'activity'
     channelId: null,
     postId: null,
     post: null,
@@ -23,12 +24,15 @@ Page({
     tenant.applyPageOptions(options);
     const channelId = Number(options.channelId || 0);
     const postId = Number(options.id || 0);
-    if (!channelId || !postId) {
-      this.setData({ loading: false, error: '缺少频道或文章参数' });
+    if (!postId) {
+      this.setData({ loading: false, error: '缺少文章 ID' });
       return;
     }
+    // 双模式：有 channelId 走 channel 版 API；否则走 activity 版 API（活动文章）
+    const mode = channelId ? 'channel' : 'activity';
     this.setData({
-      channelId,
+      mode,
+      channelId: channelId || null,
       postId,
       canComment: auth.isUser() || auth.isAdmin(),
     });
@@ -41,44 +45,27 @@ Page({
 
   async loadPageData() {
     this.setData({ loading: true, error: null });
+    const { mode, channelId, postId } = this.data;
     try {
-      const [post, commentRes] = await Promise.all([
-        api.getCommunityChannelPostDetail(this.data.channelId, this.data.postId),
-        api.getCommunityChannelComments(this.data.channelId, this.data.postId, { limit: 200 }),
-      ]);
+      let post;
+      let commentRes;
+      if (mode === 'channel') {
+        [post, commentRes] = await Promise.all([
+          api.getCommunityChannelPostDetail(channelId, postId),
+          api.getCommunityChannelComments(channelId, postId, { limit: 200 }),
+        ]);
+      } else {
+        // activity 模式（活动文章）：channelId 为 null
+        [post, commentRes] = await Promise.all([
+          api.getCommunityPostDetail(postId),
+          api.getCommunityComments(postId, { limit: 200 }),
+        ]);
+      }
+      const parsed = this.parsePostContent(post.content || '', post.images || []);
       this.setData({
         post: {
           ...post,
-          parsed: (() => {
-            // Phase 2 A 方案: 新帖子 content 是 HTML 字符串(微信 <editor> 输出);
-            // 老帖子 content 是 JSON 字符串(块编辑器输出)
-            const raw = post.content || '';
-            const isHtml = /<\/?(p|div|span|img|br|strong|em|h[1-6]|ul|ol|li|blockquote|a)\b/i.test(raw);
-            if (isHtml) {
-              // HTML 内容: 直接喂给 <rich-text> 渲染
-              return { isHtml: true, html: raw, text: this._htmlToText(raw) };
-            }
-            // 兼容老 block JSON
-            const parsed = contentUtils.parsePostContent(raw);
-            const blocks = (parsed.blocks || []).map((block) => {
-              if (block.type === 'text') return block;
-              return {
-                ...block,
-                images: (block.images || []).map((url) => api.getImageUrl(url)),
-              };
-            });
-            const fallbackImages = (post.images || []).map((url) => api.getImageUrl(url));
-            return {
-              isHtml: false,
-              html: '',
-              text: parsed.text,
-              blocks: blocks.length ? blocks : (
-                fallbackImages.length
-                  ? [{ type: 'text', text: parsed.text || '' }, { type: 'images', images: fallbackImages }].filter((b) => b.type !== 'text' || b.text)
-                  : [{ type: 'text', text: parsed.text || post.content || '' }]
-              ),
-            };
-          })(),
+          parsed,
           create_time_display: this.formatTime(post.create_time),
         },
         comments: (commentRes.items || []).map((item) => ({
@@ -96,6 +83,54 @@ Page({
     }
   },
 
+  parsePostContent(rawContent, rawImages) {
+    const raw = rawContent || '';
+    const imageList = (rawImages || []).map((url) => api.getImageUrl(url));
+    const parsed = contentUtils.parsePostContent(raw);
+    const blocks = (parsed.blocks || []).map((block) => {
+      if (block.type !== 'images') return block;
+      return {
+        ...block,
+        images: (block.images || []).map((url) => api.getImageUrl(url)),
+      };
+    });
+    const blockImages = blocks
+      .filter((block) => block.type === 'images')
+      .flatMap((block) => block.images || []);
+
+    const seen = new Set();
+    const merged = [];
+    for (const url of [...blockImages, ...imageList]) {
+      if (url && !seen.has(url)) {
+        seen.add(url);
+        merged.push(url);
+      }
+    }
+
+    const normalizedBlocks = [...blocks];
+    const hasImageBlock = normalizedBlocks.some((block) => block.type === 'images');
+    if (merged.length && hasImageBlock) {
+      for (let index = 0; index < normalizedBlocks.length; index += 1) {
+        const block = normalizedBlocks[index];
+        if (block.type === 'images') {
+          normalizedBlocks[index] = { ...block, images: merged };
+          break;
+        }
+      }
+    } else if (merged.length) {
+      normalizedBlocks.push({ type: 'images', images: merged });
+    }
+    if (!normalizedBlocks.length && (parsed.text || raw)) {
+      normalizedBlocks.push({ type: 'text', text: (parsed.text || raw).trim() });
+    }
+
+    return {
+      text: (parsed.text || '').trim() || raw,
+      blocks: normalizedBlocks,
+      images: merged,
+    };
+  },
+
   formatTime(iso) {
     if (!iso) return '';
     const d = new Date(iso);
@@ -105,22 +140,6 @@ Page({
     const h = String(d.getHours()).padStart(2, '0');
     const min = String(d.getMinutes()).padStart(2, '0');
     return `${y}-${m}-${day} ${h}:${min}`;
-  },
-
-  _htmlToText(html) {
-    if (!html) return '';
-    return html
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>/gi, '\n')
-      .replace(/<[^>]+>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .trim();
   },
 
   onCommentInput(e) {
@@ -226,10 +245,20 @@ Page({
         }
       }
       wx.hideLoading();
-      const comment = await api.createCommunityChannelComment(this.data.channelId, this.data.postId, {
-        content,
-        images: uploadedUrls,
-      });
+      const { mode, channelId, postId } = this.data;
+      let comment;
+      if (mode === 'channel') {
+        comment = await api.createCommunityChannelComment(channelId, postId, {
+          content,
+          images: uploadedUrls,
+        });
+      } else {
+        // activity 模式（活动文章）：channelId 为 null
+        comment = await api.createCommunityComment(postId, {
+          content,
+          images: uploadedUrls,
+        });
+      }
       this.setData({
         comments: [...this.data.comments, {
           ...comment,
