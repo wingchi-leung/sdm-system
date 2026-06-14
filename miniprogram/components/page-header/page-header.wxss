@@ -66,4 +66,8 @@
 
 .page-header__back-icon {
   color: #111111;
+  font-size: 70rpx;
+  line-height: 1;
+  font-weight: 300;
+  margin-top: -20rpx;
 }

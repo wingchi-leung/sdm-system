@@ -3,7 +3,7 @@
   <view class="page-header__bar">
     <view class="page-header__left">
       <view wx:if="{{showBack}}" class="page-header__back" hover-class="page-header__back--active" bindtap="onBackTap">
-        <view class="page-header__back-icon ui-chevron ui-chevron--xl ui-chevron--left"></view>
+        <text class="page-header__back-icon ui-chevron ui-chevron--xl">‹</text>
       </view>
     </view>
 

@@ -81,7 +81,7 @@
                 <text class="activity-meta-text">{{activity.location_display}}</text>
               </view>
 
-              <view class="activity-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
+              <text class="activity-arrow ui-chevron ui-chevron--md">›</text>
             </view>
           </view>
         </view>

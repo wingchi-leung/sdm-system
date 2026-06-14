@@ -23,7 +23,7 @@
       <text class="profile-toggle-label">个人资料</text>
       <view class="profile-toggle-meta">
         <text class="profile-toggle-text">{{basicInfoExpanded ? '收起' : '展开'}}</text>
-        <view class="profile-toggle-arrow ui-chevron ui-chevron--sm ui-chevron--right {{basicInfoExpanded ? 'expanded' : ''}}"></view>
+        <text class="profile-toggle-arrow ui-chevron ui-chevron--sm {{basicInfoExpanded ? 'expanded' : ''}}">›</text>
       </view>
     </view>
 
@@ -186,7 +186,7 @@
   <view wx:if="{{activity}}" class="bottom-bar">
     <button class="next-btn" disabled="{{submitting}}" bindtap="submit">
       <text class="next-btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : '下一步')}}</text>
-      <view class="next-btn-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
+      <text class="next-btn-arrow ui-chevron ui-chevron--md">›</text>
     </button>
   </view>
 </view>

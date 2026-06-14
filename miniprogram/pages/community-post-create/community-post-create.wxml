@@ -34,7 +34,7 @@
           <view class="toolbar">
             <view class="tool-btn tool-btn-text" data-action="paragraph" bindtap="onToolbarAction">
               <text>正文</text>
-              <view class="tool-caret ui-chevron ui-chevron--sm ui-chevron--down"></view>
+              <text class="tool-caret ui-chevron ui-chevron--sm">⌄</text>
             </view>
             <view class="tool-btn tool-btn-icon tool-btn-strong" data-action="bold" bindtap="onToolbarAction">
               <text class="tool-text-icon">B</text>

@@ -36,7 +36,7 @@
         </view>
         <view class="activity-arrow-row">
           <text class="activity-arrow-text">查看详情</text>
-          <view class="activity-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
+          <text class="activity-arrow ui-chevron ui-chevron--md">›</text>
         </view>
       </view>
     </view>
