@@ -41,7 +41,7 @@
   </view>
 
   <view wx:else class="list-shell">
-    <image class="list-divider" src="/assets/explore_spilt.png" mode="widthFix" aria-hidden="true" />
+    <image class="list-divider" src="/assets/explore_spilt.png" mode="aspectFill" aria-hidden="true" />
     <view class="activity-groups">
       <view wx:for="{{dateGroups}}" wx:key="key" class="activity-group">
         <view class="activity-group-header">
