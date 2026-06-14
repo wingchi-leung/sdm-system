@@ -1,6 +1,8 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const privacy = require('../../utils/privacy');
+const { normalizeRuntimeErrorMessage } = require('../../utils/request-error');
 
 const TAB_PAGES = ['/pages/index/index', '/pages/mine/mine'];
 const SAFE_REDIRECT_PAGES = [
@@ -17,6 +19,25 @@ const SAFE_REDIRECT_PAGES = [
   '/pages/activity-statistics/activity-statistics',
   '/pages/user-list/user-list',
 ];
+
+function extractDomainFromUrl(url) {
+  if (!url || typeof url !== 'string') {
+    return '';
+  }
+  const matched = url.match(/^https?:\/\/[^/]+/i);
+  return matched ? matched[0] : '';
+}
+
+function buildDomainListHint(rawMessage) {
+  const message = String(rawMessage || '');
+  if (!message.includes('url not in domain list')) {
+    return '';
+  }
+
+  const runtimeBaseUrl = api.baseUrl || '';
+  const runtimeDomain = extractDomainFromUrl(runtimeBaseUrl);
+  return `当前体验版请求域名：${runtimeDomain || runtimeBaseUrl || '未知'}，请确认它已加入小程序后台 request 合法域名并已发布生效`;
+}
 
 Page({
   data: {
@@ -154,6 +175,17 @@ Page({
   },
 
   handleUserLoginSuccess(data) {
+    // 检查是否具有管理员身份（活动管理员或超级管理员通过微信登录）
+    const authInfo = data.auth || {};
+    if (authInfo.is_admin || authInfo.is_platform_admin) {
+      // 管理员微信登录
+      auth.saveAdminToken(data.access_token, data);
+      wx.showToast({ title: `登录成功 `, icon: 'success' });
+      setTimeout(() => this.navigateAfterLogin('admin'), 800);
+      return;
+    }
+
+    // 普通用户微信登录
     auth.saveUserToken({
       accessToken: data.access_token,
       userId: data.user?.id || data.user_id,
@@ -187,8 +219,15 @@ Page({
   },
 
   handleLoginError(err) {
-    const msg = err && err.message ? err.message : String(err);
+    const msg = normalizeRuntimeErrorMessage(err, '登录失败，请稍后重试');
+    const domainHint = buildDomainListHint(msg);
     this.setData({ error: msg, submitting: false });
+    if (domainHint) {
+      wx.showToast({ title: '请检查域名配置', icon: 'none', duration: 2200 });
+      setTimeout(() => {
+        this.setData({ error: `${msg}。${domainHint}` });
+      }, 80);
+    }
   },
 
   wechatLogin() {
@@ -251,6 +290,12 @@ Page({
             this.handleLoginError(err);
           });
       },
+    });
+  },
+
+  onPhoneAuthTap() {
+    privacy.ensurePrivacyAuthorization().catch(() => {
+      wx.showToast({ title: '请先同意隐私政策后再继续', icon: 'none' });
     });
   },
 });
