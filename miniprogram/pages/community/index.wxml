@@ -1,6 +1,6 @@
 <view class="page">
   <view class="hero">
-    <image class="hero-bg" src="/assets/communtiy_banner.webp" mode="aspectFill" />
+    <image class="hero-bg" src="/assets/communtiy_banner.png" mode="aspectFill" />
     <view class="hero-mask"></view>
 
     <view class="hero-actions">

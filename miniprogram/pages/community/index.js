@@ -7,7 +7,7 @@ const FALLBACK_THEMES = ['theme-ocean', 'theme-mist', 'theme-sand', 'theme-fores
 
 function resolveChannelCover(avatarUrl) {
   const text = avatarUrl == null ? '' : String(avatarUrl).trim();
-  if (!text) return '/assets/defaultbg.webp';
+  if (!text) return '/assets/defaultbg.jpg';
   if (/^https?:\/\//i.test(text)) return text;
   return api.getImageUrl(text);
 }

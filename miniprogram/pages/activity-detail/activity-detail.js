@@ -174,7 +174,7 @@ Page({
           actionTipText = '活动已结束，无法报名';
         }
 
-        const posterUrl = await image.resolveDisplayUrl(activity.poster_url) || '/assets/defaultbg.webp';
+        const posterUrl = await image.resolveDisplayUrl(activity.poster_url) || '/assets/defaultbg.jpg';
         const detailParagraphs = this.buildDetailParagraphs(activity.activity_intro);
         const infoRows = this.buildInfoRows(activity, startDisplay, endDisplay, joinMethodDisplay);
         const heroKicker = this.resolveHeroKicker(activity);

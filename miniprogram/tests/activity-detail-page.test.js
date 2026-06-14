@@ -312,5 +312,5 @@ test('活动详情页海报为空时会回退到默认背景图', async () => {
   page.loadActivity(12);
   await new Promise((resolve) => setTimeout(resolve, 0));
 
-  assert.equal(page.data.activity.poster_url, '/assets/defaultbg.webp');
+  assert.equal(page.data.activity.poster_url, '/assets/defaultbg.jpg');
 });
