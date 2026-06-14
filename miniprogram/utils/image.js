@@ -1,7 +1,7 @@
 const api = require('./api');
 
 const imageCache = {};
-const DEFAULT_POSTER_PATH = '/assets/defaultbg.jpg';
+const DEFAULT_POSTER_PATH = '/assets/defaultbg.webp';
 
 function isLocalPath(url) {
   return !!url && (

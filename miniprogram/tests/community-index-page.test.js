@@ -177,5 +177,5 @@ test('社区首页默认社区封面会回退到默认背景图', async () => {
   const page = createPageInstance(pageConfig);
   await page.loadChannels();
 
-  assert.equal(page.data.channels[0].cover_url, '/assets/defaultbg.jpg');
+  assert.equal(page.data.channels[0].cover_url, '/assets/defaultbg.webp');
 });

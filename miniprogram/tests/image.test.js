@@ -64,6 +64,6 @@ test('活动海报为空时会回退到默认背景图', async () => {
     { id: 2, poster_url: null },
   ]);
 
-  assert.equal(items[0].poster_url, '/assets/defaultbg.jpg');
-  assert.equal(items[1].poster_url, '/assets/defaultbg.jpg');
+  assert.equal(items[0].poster_url, '/assets/defaultbg.webp');
+  assert.equal(items[1].poster_url, '/assets/defaultbg.webp');
 });
