@@ -2,9 +2,8 @@
   <view class="poster-page safe-area-bottom">
     <image
       class="poster-background"
-      src="{{usePngBackground ? '/assets/login.png' : '/assets/login.webp'}}"
+      src="/assets/login.webp"
       mode="aspectFit"
-      binderror="onBackgroundLoadError"
     />
     <block wx:if="{{isAdminMode}}">
       <view class="admin-page">

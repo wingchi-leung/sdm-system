@@ -1,6 +1,6 @@
 <view class="page">
   <view class="hero">
-    <image class="hero-banner" src="/assets/explore_banner.png" mode="widthFix" aria-hidden="true" />
+    <image class="hero-banner" src="/assets/explore_banner.webp" mode="widthFix" aria-hidden="true" />
     <view class="hero-top">
       <view class="hero-bell-wrap" bindtap="goCommunityNotifications" aria-label="站内信">
         <image class="hero-bell" src="/assets/icons/bell.png" mode="aspectFit" aria-hidden="true" />
@@ -41,7 +41,7 @@
   </view>
 
   <view wx:else class="list-shell">
-    <image class="list-divider" src="/assets/explore_spilt.png" mode="aspectFill" aria-hidden="true" />
+    <image class="list-divider" src="" mode="aspectFill" aria-hidden="true" />
     <view class="activity-groups">
       <view wx:for="{{dateGroups}}" wx:key="key" class="activity-group">
         <view class="activity-group-header">

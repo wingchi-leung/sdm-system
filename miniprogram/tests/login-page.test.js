@@ -149,3 +149,4 @@ test('手机号授权点击前会触发隐私授权检查', async () => {
 
   assert.equal(called, 1);
 });
+
