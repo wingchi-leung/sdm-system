@@ -980,6 +980,22 @@ function createCommunityChannel(payload) {
   });
 }
 
+function updateCommunityChannel(channelId, payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}`,
+      method: 'PUT',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 function deleteCommunityChannel(channelId) {
   return new Promise((resolve, reject) => {
     wx.request({
@@ -1421,6 +1437,7 @@ module.exports = {
   generateCommunityInviteCode,
   joinCommunityChannelByCode,
   createCommunityChannel,
+  updateCommunityChannel,
   deleteCommunityChannel,
   getCommunityPostDetail,
   createCommunityPost,

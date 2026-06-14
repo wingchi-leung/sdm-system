@@ -5,6 +5,7 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from app.models.community import CommunityChannelCreate
+from app.models.community import CommunityChannelUpdate
 from app.schemas import (
     CommunityChannel,
     CommunityChannelComment,
@@ -89,6 +90,33 @@ def create_channel(
             joined_at=datetime.utcnow(),
         )
     )
+    db.commit()
+    db.refresh(channel)
+    return channel
+
+
+def update_channel(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    body: CommunityChannelUpdate,
+) -> CommunityChannel | None:
+    channel = db.query(CommunityChannel).filter(
+        CommunityChannel.id == channel_id,
+        CommunityChannel.tenant_id == tenant_id,
+        CommunityChannel.status == 1,
+    ).first()
+    if not channel:
+        return None
+
+    if body.name is not None:
+        channel.name = body.name
+    if body.description is not None:
+        channel.description = body.description
+    if body.avatar_url is not None:
+        channel.avatar_url = body.avatar_url
+
     db.commit()
     db.refresh(channel)
     return channel

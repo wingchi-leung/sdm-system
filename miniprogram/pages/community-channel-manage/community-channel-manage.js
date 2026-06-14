@@ -42,6 +42,7 @@ Page({
     deleting: false,
     refreshing: false,
     showInviteButton: false,
+    showEditButton: false,
     showDeleteButton: false,
   },
 
@@ -49,6 +50,7 @@ Page({
     const canManage = this.data.channelRole === 'admin';
     this.setData({
       showInviteButton: canManage,
+      showEditButton: canManage,
       showDeleteButton: canManage,
     });
   },
@@ -234,6 +236,20 @@ Page({
           this.setData({ deleting: false });
         }
       },
+    });
+  },
+
+  onEditChannel() {
+    if (!this.data.showEditButton) {
+      wx.showToast({ title: '仅社区管理员可编辑社区', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-channel-create/community-channel-create', {
+        channelId: this.data.channelId,
+        channelName: this.data.channelName,
+        channelRole: this.data.channelRole,
+      }),
     });
   },
 

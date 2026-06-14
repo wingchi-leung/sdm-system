@@ -163,6 +163,39 @@ class CommunityChannelCreate(BaseModel):
         return text or None
 
 
+class CommunityChannelUpdate(BaseModel):
+    name: Optional[str] = Field(None, max_length=64)
+    description: Optional[str] = Field(None, max_length=500)
+    avatar_url: Optional[str] = Field(None, max_length=500)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return _normalize_required_text(value, "频道名称", 64)
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 500:
+            raise ValueError("频道描述不能超过500个字符")
+        return text
+
+    @field_validator("avatar_url")
+    @classmethod
+    def validate_avatar_url(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        return text or None
+
+
 class CommunityChannelResponse(BaseModel):
     id: int
     tenant_id: int

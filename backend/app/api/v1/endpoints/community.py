@@ -33,6 +33,7 @@ from app.models.community import (
     CommunityChannelListResponse,
     CommunityChannelMemberListResponse,
     CommunityModerationActionRequest,
+    CommunityChannelUpdate,
     CommunityModerationQueueResponse,
     CommunityChannelResponse,
     CommunityCommentCreate,
@@ -434,6 +435,7 @@ def list_channels(
 ):
     items, total = crud_community_channel.list_user_channels(
         db,
+        ctx=ctx,
         tenant_id=ctx.tenant_id,
         user_id=ctx.user_id,
         skip=skip,
@@ -471,6 +473,7 @@ def create_channel(
 
     items, _ = crud_community_channel.list_user_channels(
         db,
+        ctx=ctx,
         tenant_id=ctx.tenant_id,
         user_id=ctx.user_id,
         skip=0,
@@ -486,6 +489,51 @@ def create_channel(
         "avatar_url": channel.avatar_url,
         "admin_user_id": channel.admin_user_id,
         "member_count": 1,
+        "role": "admin",
+        "create_time": channel.create_time,
+        "update_time": channel.update_time,
+    }
+
+
+@router.put("/channels/{channel_id}", response_model=CommunityChannelResponse)
+def update_channel(
+    channel_id: int,
+    body: CommunityChannelUpdate,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    _ensure_tenant_admin(ctx)
+    _ensure_channel_admin(
+        db,
+        channel_id=channel_id,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+    )
+    channel = crud_community_channel.update_channel(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        body=body,
+    )
+    if not channel:
+        raise HTTPException(status_code=404, detail="频道不存在")
+
+    members, _ = crud_community_channel.list_channel_members(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        skip=0,
+        limit=1000,
+    )
+    return {
+        "id": channel.id,
+        "tenant_id": channel.tenant_id,
+        "name": channel.name,
+        "description": channel.description,
+        "avatar_url": channel.avatar_url,
+        "admin_user_id": channel.admin_user_id,
+        "member_count": len(members),
         "role": "admin",
         "create_time": channel.create_time,
         "update_time": channel.update_time,

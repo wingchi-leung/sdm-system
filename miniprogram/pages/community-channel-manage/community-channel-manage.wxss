@@ -22,20 +22,18 @@
 .hero-title {
   display: block;
   color: #111111;
-  font-size: 74rpx;
+  font-size: 42rpx;
   line-height: 1.05;
-  letter-spacing: -0.06em;
+  letter-spacing: 0.02em;
   font-weight: 500;
-  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .hero-subtitle {
   display: block;
   margin-top: 22rpx;
   color: #7c7c7c;
-  font-size: 31rpx;
+  font-size: 24rpx;
   line-height: 1.35;
-  font-family: Georgia, "Times New Roman", serif;
 }
 
 .channel-head {
@@ -46,6 +44,13 @@
   margin-top: 104rpx;
 }
 
+.channel-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  flex-shrink: 0;
+}
+
 .channel-copy {
   min-width: 0;
 }
@@ -53,18 +58,17 @@
 .channel-name {
   display: block;
   color: #111111;
-  font-size: 48rpx;
+  font-size: 34rpx;
   line-height: 1.2;
-  letter-spacing: -0.04em;
+  letter-spacing: 0.01em;
   font-weight: 500;
-  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .channel-meta {
   display: block;
   margin-top: 16rpx;
   color: #8d8d8d;
-  font-size: 30rpx;
+  font-size: 24rpx;
   line-height: 1;
 }
 
@@ -88,6 +92,25 @@
 .invite-icon {
   width: 40rpx;
   height: 40rpx;
+}
+
+.action-btn {
+  min-width: 92rpx;
+  height: 80rpx;
+  padding: 0 24rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  background: #111111;
+  color: #ffffff;
+  font-size: 26rpx;
+  line-height: 1;
+}
+
+.action-btn--ghost {
+  background: #f0efec;
+  color: #111111;
 }
 
 .divider {
@@ -147,11 +170,10 @@
 
 .member-name {
   color: #111111;
-  font-size: 38rpx;
+  font-size: 32rpx;
   line-height: 1.15;
-  letter-spacing: -0.04em;
+  letter-spacing: 0.01em;
   font-weight: 500;
-  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .member-badge {
@@ -171,9 +193,8 @@
   display: block;
   margin-top: 18rpx;
   color: #8a8a8a;
-  font-size: 28rpx;
+  font-size: 24rpx;
   line-height: 1.2;
-  font-family: Georgia, "Times New Roman", serif;
 }
 
 .member-state {
@@ -249,17 +270,15 @@
 
 .state-title {
   color: #111111;
-  font-size: 38rpx;
+  font-size: 34rpx;
   line-height: 1.4;
   font-weight: 500;
-  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .state-text {
   color: #777777;
-  font-size: 28rpx;
+  font-size: 24rpx;
   line-height: 1.7;
-  font-family: Georgia, "Times New Roman", serif;
 }
 
 .state-actions {
@@ -297,18 +316,16 @@
 
 .empty-title {
   color: #111111;
-  font-size: 36rpx;
+  font-size: 32rpx;
   line-height: 1.35;
   font-weight: 500;
-  font-family: "Songti SC", "STSong", "SimSun", serif;
 }
 
 .empty-text {
   margin-top: 12rpx;
   color: #7a7a7a;
-  font-size: 26rpx;
+  font-size: 24rpx;
   line-height: 1.7;
-  font-family: Georgia, "Times New Roman", serif;
 }
 
 @keyframes pulse {

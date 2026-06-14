@@ -30,8 +30,13 @@
           <text class="channel-meta">{{channelMemberCount}} 位成员</text>
         </view>
 
-        <view class="invite-btn" hover-class="invite-btn--active" bindtap="onInviteMembers">
-          <image class="invite-icon" src="/assets/icons/invite.png" mode="aspectFit"></image>
+        <view class="channel-actions">
+          <view wx:if="{{showEditButton}}" class="action-btn action-btn--ghost" bindtap="onEditChannel">
+            <text>编辑</text>
+          </view>
+          <view class="invite-btn" hover-class="invite-btn--active" bindtap="onInviteMembers">
+            <image class="invite-icon" src="/assets/icons/invite.png" mode="aspectFit"></image>
+          </view>
         </view>
       </view>
 

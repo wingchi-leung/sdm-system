@@ -58,6 +58,31 @@ class TestCommunityChannels:
         assert data["name"] == "产品讨论"
         assert data["role"] == "admin"
 
+    def test_admin_can_update_channel(self, client, super_admin_token):
+        create_resp = client.post(
+            "/api/v1/community/channels",
+            headers=auth_headers(super_admin_token),
+            json={"name": "旧社区名称", "description": "旧描述"},
+        )
+        assert create_resp.status_code == status.HTTP_200_OK
+        channel_id = create_resp.json()["id"]
+
+        update_resp = client.put(
+            f"/api/v1/community/channels/{channel_id}",
+            headers=auth_headers(super_admin_token),
+            json={
+                "name": "新社区名称",
+                "description": "新描述",
+                "avatar_url": "/uploads/community/channels/new-avatar.png",
+            },
+        )
+        assert update_resp.status_code == status.HTTP_200_OK
+        data = update_resp.json()
+        assert data["id"] == channel_id
+        assert data["name"] == "新社区名称"
+        assert data["description"] == "新描述"
+        assert data["avatar_url"] == "/uploads/community/channels/new-avatar.png"
+
     def test_user_cannot_create_channel(self, client, user_token):
         response = client.post(
             "/api/v1/community/channels",

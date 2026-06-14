@@ -1,11 +1,15 @@
 <view class="page">
-  <page-header title="创建频道"></page-header>
+  <page-header title="{{pageTitle}}"></page-header>
   <view class="hero">
-    <text class="hero-title">创建社区</text>
+    <text class="hero-title">{{heroTitle}}</text>
     <view class="hero-accent"></view>
   </view>
 
-  <view class="form-shell">
+  <view wx:if="{{loadingDetail}}" class="state-wrap">
+    <text class="state-text">加载社区信息中…</text>
+  </view>
+
+  <view wx:else class="form-shell">
     <view class="field field-avatar">
       <view class="field-head">
         <text class="field-label">社区封面</text>
@@ -34,7 +38,7 @@
 
     <view class="field field-name">
       <view class="field-head">
-        <text class="field-label">频道名称</text>
+        <text class="field-label">社区名称</text>
         <text class="field-required">*</text>
       </view>
       <view class="line-input-row">
@@ -52,7 +56,7 @@
 
     <view class="field field-description">
       <view class="field-head">
-        <text class="field-label">频道描述</text>
+        <text class="field-label">社区描述</text>
       </view>
 
       <view class="description-box">
@@ -74,10 +78,10 @@
   <view class="footer-bar">
     <button
       class="submit-btn"
-      disabled="{{submitting || uploading}}"
+      disabled="{{submitting || uploading || loadingDetail}}"
       bindtap="onSubmit"
     >
-      {{submitting ? '创建中…' : uploading ? '头像上传中…' : '创建频道'}}
+      {{submitting ? (editMode ? '保存中…' : '创建中…') : uploading ? '头像上传中…' : submitText}}
     </button>
   </view>
 </view>

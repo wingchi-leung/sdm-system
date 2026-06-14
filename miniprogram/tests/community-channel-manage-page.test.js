@@ -54,15 +54,18 @@ function createPageInstance(config, initialData = {}) {
   return instance;
 }
 
-test('频道管理页会加载成员列表并允许管理员邀请成员', async () => {
+test('社区管理页会加载成员列表并允许管理员邀请成员', async () => {
   let invitedPayload = null;
   let pickerUrl = '';
   let pickerHandler = null;
+  let actionSheetItems = [];
+  let kickedMemberId = null;
+  let editUrl = '';
   const pageConfig = loadPage('../pages/community-channel-manage/community-channel-manage.js', [
     ['../../utils/api.js', {
       getCommunityChannelDetail: async () => ({
         id: 7,
-        name: '测试频道',
+        name: '测试社区',
         role: 'admin',
         member_count: 2,
       }),
@@ -91,9 +94,10 @@ test('频道管理页会加载成员列表并允许管理员邀请成员', async
         invitedPayload = userIds;
         return { invited_count: userIds.length };
       },
-      kickCommunityChannelMember: async () => ({ success: true }),
-      banCommunityChannelMember: async () => ({ success: true }),
-      unbanCommunityChannelMember: async () => ({ success: true }),
+      kickCommunityChannelMember: async (_channelId, userId) => {
+        kickedMemberId = userId;
+        return { success: true };
+      },
     }],
     ['../../utils/auth.js', {
       getUserId: () => 9000,
@@ -109,21 +113,35 @@ test('频道管理页会加载成员列表并允许管理员邀请成员', async
     }],
   ], {
     navigateTo({ url, success }) {
-      pickerUrl = url;
-      success({
-        eventChannel: {
-          on(eventName, handler) {
-            if (eventName === 'selected-users') {
-              pickerHandler = handler;
-            }
+      if (url.includes('/pages/user-list/user-list')) {
+        pickerUrl = url;
+      }
+      if (url.includes('/pages/community-channel-create/community-channel-create')) {
+        editUrl = url;
+      }
+      if (typeof success === 'function') {
+        success({
+          eventChannel: {
+            on(eventName, handler) {
+              if (eventName === 'selected-users') {
+                pickerHandler = handler;
+              }
+            },
           },
-        },
-      });
+        });
+      }
+    },
+    showActionSheet({ itemList, success }) {
+      actionSheetItems = itemList;
+      success({ tapIndex: 0 });
+    },
+    showModal({ success }) {
+      success({ confirm: true });
     },
   });
 
   const page = createPageInstance(pageConfig);
-  page.onLoad({ channelId: '7', channelName: encodeURIComponent('测试频道'), channelRole: 'member' });
+  page.onLoad({ channelId: '7', channelName: encodeURIComponent('测试社区'), channelRole: 'member' });
   await new Promise((resolve) => setTimeout(resolve, 20));
 
   assert.equal(page.data.showInviteButton, true);
@@ -137,17 +155,30 @@ test('频道管理页会加载成员列表并允许管理员邀请成员', async
   await pickerHandler({ user_ids: [1003, 1004, 1003] });
   await new Promise((resolve) => setTimeout(resolve, 20));
 
-  assert.deepEqual(invitedPayload, [1003, 1004]);
+      assert.deepEqual(invitedPayload, [1003, 1004]);
+
+  page.onEditChannel();
+  assert.match(editUrl, /\/pages\/community-channel-create\/community-channel-create\?channelId=7/);
+
+  await page.onMemberMore({
+    currentTarget: {
+      dataset: {
+        member: page.data.members[0],
+      },
+    },
+  });
+  assert.deepEqual(actionSheetItems, ['删除成员']);
+  assert.equal(kickedMemberId, 1001);
 });
 
-test('频道管理页支持管理员删除频道并回到上一页', async () => {
+test('社区管理页支持管理员删除社区并回到上一页', async () => {
   let deletedChannelId = null;
   let navigateBackCount = 0;
   const pageConfig = loadPage('../pages/community-channel-manage/community-channel-manage.js', [
     ['../../utils/api.js', {
       getCommunityChannelDetail: async () => ({
         id: 7,
-        name: '测试频道',
+        name: '测试社区',
         role: 'admin',
         member_count: 2,
       }),
@@ -182,7 +213,7 @@ test('频道管理页支持管理员删除频道并回到上一页', async () =>
   });
 
   const page = createPageInstance(pageConfig);
-  page.onLoad({ channelId: '7', channelName: encodeURIComponent('测试频道'), channelRole: 'admin' });
+  page.onLoad({ channelId: '7', channelName: encodeURIComponent('测试社区'), channelRole: 'admin' });
   await new Promise((resolve) => setTimeout(resolve, 20));
 
   assert.equal(page.data.showDeleteButton, true);
