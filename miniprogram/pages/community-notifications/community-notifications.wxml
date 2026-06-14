@@ -74,7 +74,7 @@
       <view class="item-actions">
         <button wx:if="{{item.can_respond}}" class="btn btn-primary" data-id="{{item.id}}" catchtap="onAccept">接受邀请</button>
         <button wx:if="{{item.can_respond}}" class="btn btn-ghost" data-id="{{item.id}}" catchtap="onReject">拒绝</button>
-        <button wx:elif="{{item.has_channel}}" class="btn btn-ghost" data-item="{{item}}" catchtap="onOpenNotification">查看频道</button>
+        <button wx:elif="{{item.has_channel}}" class="btn btn-ghost" data-item="{{item}}" catchtap="onOpenNotification">查看社区</button>
       </view>
     </view>
   </view>

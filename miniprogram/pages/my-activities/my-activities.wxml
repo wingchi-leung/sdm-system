@@ -2,7 +2,7 @@
   <page-header title="报名活动"></page-header>
   <view class="hero" wx:if="{{!loading && !error}}">
     <text class="hero-title">报名活动</text>
-    <text class="hero-text">{{activities.length ? summaryText : '这里会展示你已经报名、候补中或待支付的活动'}}</text>
+    <text class="hero-text">{{activities.length ? summaryText : '这里会展示你已经报名、候补中或报名处理中的活动'}}</text>
   </view>
 
   <view wx:if="{{loading}}" class="state-wrap">

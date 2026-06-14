@@ -61,12 +61,12 @@ test('站内信页会正确映射邀请消息并统计未读数', async () => {
             {
               id: 1,
               type: 'channel_invite',
-              title: '邀请你加入频道',
+              title: '邀请你加入社区',
               content: '欢迎加入',
               data: {
                 action: 'channel_invite',
                 channel_id: 88,
-                channel_name: '测试频道',
+                channel_name: '测试社区',
                 inviter_name: '管理员',
               },
               is_read: 0,
@@ -87,7 +87,7 @@ test('站内信页会正确映射邀请消息并统计未读数', async () => {
   assert.equal(page.data.error, null);
   assert.equal(page.data.items.length, 1);
   assert.equal(page.data.unreadCount, 1);
-  assert.equal(page.data.items[0].type_label, '频道邀请');
+  assert.equal(page.data.items[0].type_label, '社区邀请');
   assert.equal(page.data.items[0].status_label, '待处理');
   assert.equal(page.data.items[0].can_respond, true);
   assert.equal(page.data.items[0].has_channel, true);

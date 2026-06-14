@@ -75,6 +75,18 @@ function upsertOrderRecord(records = [], nextRecord = {}) {
   });
 }
 
+function removeOrderRecord(records = [], orderNo = '') {
+  const targetOrderNo = String(orderNo || '').trim();
+  if (!targetOrderNo) {
+    return Array.isArray(records) ? records.slice() : [];
+  }
+
+  return (Array.isArray(records) ? records : []).filter((record) => {
+    const normalized = normalizeOrderRecord(record);
+    return normalized.order_no !== targetOrderNo;
+  });
+}
+
 function formatOrderList(records = []) {
   return (Array.isArray(records) ? records : []).map((record) => {
     const item = normalizeOrderRecord(record);
@@ -97,5 +109,6 @@ module.exports = {
   getOrderStatusClass,
   normalizeOrderRecord,
   upsertOrderRecord,
+  removeOrderRecord,
   formatOrderList,
 };

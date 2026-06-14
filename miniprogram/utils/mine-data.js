@@ -3,7 +3,7 @@ function formatParticipantActivities(items = [], formatTime) {
     ...item,
     start_time_display: typeof formatTime === 'function' ? formatTime(item.start_time) : '',
     enroll_status_text: item.payment_status === 1
-      ? '待支付'
+      ? '报名处理中'
       : (item.enroll_status === 2 ? '候补中' : '已报名'),
     enroll_status_class: item.payment_status === 1
       ? 'is-pending'

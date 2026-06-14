@@ -165,7 +165,7 @@ Page({
         const joinMethodDisplay = this.resolveJoinMethod(activity);
         let actionTipText = '';
         if (isPendingPayment) {
-          actionTipText = '待支付，请前往我的订单继续完成支付';
+          actionTipText = '报名处理中，请稍后刷新';
         } else if (hasRegistered) {
           actionTipText = registration.enroll_status === 2 ? '您已在候补中' : '您已报名该活动';
         } else if (auth.isSuperAdmin()) {
@@ -174,7 +174,7 @@ Page({
           actionTipText = '活动已结束，无法报名';
         }
 
-        const posterUrl = await image.resolveDisplayUrl(activity.poster_url);
+        const posterUrl = await image.resolveDisplayUrl(activity.poster_url) || '/assets/defaultbg.jpg';
         const detailParagraphs = this.buildDetailParagraphs(activity.activity_intro);
         const infoRows = this.buildInfoRows(activity, startDisplay, endDisplay, joinMethodDisplay);
         const heroKicker = this.resolveHeroKicker(activity);
@@ -200,7 +200,7 @@ Page({
           hasRegistered,
           registrationStatusText: hasRegistered
             ? (registration.enroll_status === 2 ? '候补中' : '已报名')
-            : (isPendingPayment ? '待支付' : ''),
+            : (isPendingPayment ? '报名处理中' : ''),
           actionTipText,
           showCommunitySection,
           showAdminPanel,

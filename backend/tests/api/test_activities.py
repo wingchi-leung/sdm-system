@@ -93,6 +93,7 @@ class TestActivityCreation:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["activity_name"] == "全天活动"
+        assert data["end_time"] == "2026-06-01T18:00:00"
 
     def test_create_activity_with_intro(self, client, super_admin_token, sample_activity_type):
         """测试创建活动支持活动介绍"""

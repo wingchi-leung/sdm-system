@@ -26,6 +26,7 @@ class ActivityCreate(BaseModel):
     activity_name: str
     tag: Optional[str] = ""
     start_time: datetime
+    end_time: Optional[datetime] = None
     participants: list[ParticipantBase] = []
     activity_type_id: Optional[int] = None
     activity_type_name: Optional[str] = Field(None, max_length=50)

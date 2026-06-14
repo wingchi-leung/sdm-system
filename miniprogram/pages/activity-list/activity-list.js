@@ -46,12 +46,20 @@ Page({
     return image.resolveActivityPosters(items || []);
   },
 
+  sortActivitiesDesc(items) {
+    return [...(items || [])].sort((a, b) => {
+      const aTime = a.start_time ? new Date(a.start_time).getTime() : 0;
+      const bTime = b.start_time ? new Date(b.start_time).getTime() : 0;
+      return bTime - aTime;
+    });
+  },
+
   // 刷新列表
   async refreshList() {
     this._isLoaded = true;
     try {
       const result = await api.getActivities({ skip: 0, limit: PAGE_SIZE, asUserView: false });
-      const activities = await this.processActivities(result.items);
+      const activities = this.sortActivitiesDesc(await this.processActivities(result.items));
       this.setData({
         activities: activities,
         hasMore: (result.items || []).length >= PAGE_SIZE,
@@ -79,7 +87,7 @@ Page({
     this.setData({ loadingMore: true });
     try {
       const result = await api.getActivities({ skip: this.data.skip, limit: PAGE_SIZE, asUserView: false });
-      const newItems = await this.processActivities(result.items);
+      const newItems = this.sortActivitiesDesc(await this.processActivities(result.items));
       this.setData({
         activities: [...this.data.activities, ...newItems],
         hasMore: newItems.length >= PAGE_SIZE,

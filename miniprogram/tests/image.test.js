@@ -53,3 +53,17 @@ test('普通图片仍然保持缓存命中', async () => {
   assert.equal(second, '/tmp/image-1.jpg');
   assert.equal(calls.length, 1);
 });
+
+test('活动海报为空时会回退到默认背景图', async () => {
+  const { image } = loadImageUtil({
+    getImageUrl: (url) => url,
+  });
+
+  const items = await image.resolveActivityPosters([
+    { id: 1, poster_url: '' },
+    { id: 2, poster_url: null },
+  ]);
+
+  assert.equal(items[0].poster_url, '/assets/defaultbg.jpg');
+  assert.equal(items[1].poster_url, '/assets/defaultbg.jpg');
+});

@@ -46,8 +46,15 @@ function getEnv() {
 
 function isDevtools() {
   try {
-    const systemInfo = wx.getSystemInfoSync();
-    return systemInfo.platform === 'devtools';
+    if (typeof wx.getDeviceInfo === 'function') {
+      const deviceInfo = wx.getDeviceInfo();
+      return deviceInfo && deviceInfo.platform === 'devtools';
+    }
+    if (typeof wx.getSystemInfoSync === 'function') {
+      const systemInfo = wx.getSystemInfoSync();
+      return systemInfo.platform === 'devtools';
+    }
+    return false;
   } catch (err) {
     return false;
   }

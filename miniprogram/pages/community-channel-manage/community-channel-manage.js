@@ -35,6 +35,7 @@ Page({
     channelName: '',
     channelRole: 'member',
     channelMemberCount: 0,
+    statusBarHeight: 0,
     members: [],
     loading: true,
     error: null,
@@ -141,9 +142,22 @@ Page({
   onLoad(options) {
     tenant.applyPageOptions(options);
 
+    let statusBarHeight = 0;
+    try {
+      if (typeof wx.getWindowInfo === 'function') {
+        const windowInfo = wx.getWindowInfo();
+        statusBarHeight = Number(windowInfo && windowInfo.statusBarHeight) || 0;
+      } else if (typeof wx.getSystemInfoSync === 'function') {
+        const systemInfo = wx.getSystemInfoSync();
+        statusBarHeight = Number(systemInfo && systemInfo.statusBarHeight) || 0;
+      }
+    } catch (_) {
+      statusBarHeight = 0;
+    }
+
     const channelId = Number(options.channelId || 0);
     if (!channelId) {
-      this.setData({ loading: false, error: '缺少社区参数' });
+      this.setData({ loading: false, error: '缺少社区参数', statusBarHeight });
       return;
     }
 
@@ -151,6 +165,7 @@ Page({
       channelId,
       channelName: decodeDisplayText(options.channelName),
       channelRole: decodeDisplayText(options.channelRole || 'member'),
+      statusBarHeight,
     });
     this.resolvePageState();
     this.loadChannelDetail();

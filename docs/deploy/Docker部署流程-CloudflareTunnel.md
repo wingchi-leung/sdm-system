@@ -236,6 +236,9 @@ production: {
    docker compose up -d
    ```
 
+   编译 
+    docker compose up --build -d 
+
 5. **复制支付证书**
    ```bash
    # 将旧机器项目根目录下的 secrets/wechat_pay 整个目录复制到新机器同一路径

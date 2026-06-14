@@ -5,7 +5,7 @@
   box-sizing: border-box;
   overflow: hidden;
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
 }
 
 .page-admin {
@@ -29,15 +29,30 @@
   left: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 .poster-admin-hotspot {
   position: absolute;
+  top: 408rpx;
+  right: 0;
+  width: 360rpx;
+  height: 450rpx;
+  z-index: 6;
+}
+
+.login-page {
+  position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 1260rpx;
-  z-index: 2;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0 0 calc(24rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 }
 
 .admin-page {
@@ -68,15 +83,12 @@
 }
 
 .poster-message-stack {
-  position: absolute;
-  left: 32rpx;
-  right: 32rpx;
-  bottom: 220rpx;
-  z-index: 4;
+  margin: 0 40rpx 18rpx;
+  max-width: 78%;
 }
 
 .poster-message {
-  margin-top: 16rpx;
+  margin-top: 14rpx;
   padding: 18rpx 20rpx;
   border: 1rpx solid rgba(17, 17, 17, 0.08);
   border-radius: 16rpx;
@@ -96,22 +108,29 @@
   line-height: 34rpx;
 }
 
-.poster-login-trigger {
+.poster-login-action {
   position: absolute;
-  left: 320rpx;
-  bottom: 220rpx;
-  width: 260rpx;
-  height: 170rpx;
-  min-height: 170rpx;
+  right: 0rpx;
+  bottom: calc(380rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  z-index: 4;
+}
+
+.poster-login-trigger {
+  width: 274rpx;
+  height: 64rpx;
+  min-height: 64rpx;
   padding: 0;
   margin: 0;
-  background: rgba(255, 255, 255, 0.01);
+  background: transparent;
   border: 0;
-  display: block;
-  z-index: 5;
-  opacity: 0.01;
-  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+  gap: 18rpx;
 }
 
 .poster-login-trigger::after {
@@ -119,42 +138,29 @@
 }
 
 .poster-login-trigger-text {
-  font-size: 0;
-  line-height: 0;
-  color: transparent;
+  color: #123d97;
+  font-size: 26rpx;
+  line-height: 42rpx;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+}
+
+.poster-login-trigger-arrow {
+  color: #123d97;
+  font-size: 36rpx;
+  line-height: 42rpx;
+  font-weight: 300;
+  transform: translateY(-2rpx);
 }
 
 .poster-login-trigger[disabled] {
-  opacity: 0.01;
+  opacity: 0.46;
 }
 
 .poster-loading-tip {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 146rpx;
-  z-index: 6;
+  margin-top: 14rpx;
   text-align: center;
   pointer-events: none;
-}
-
-.poster-privacy-note {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 184rpx;
-  z-index: 6;
-  text-align: center;
-}
-
-.poster-privacy-note-text {
-  display: inline-block;
-  padding: 8rpx 18rpx;
-  border-radius: 999rpx;
-  background: rgba(255, 255, 255, 0.7);
-  color: rgba(17, 17, 17, 0.64);
-  font-size: 20rpx;
-  line-height: 28rpx;
 }
 
 .poster-loading-text {

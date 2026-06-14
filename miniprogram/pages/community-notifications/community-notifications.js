@@ -14,7 +14,7 @@ function formatNotificationTime(iso) {
 function resolveNotificationTypeLabel(item) {
   const type = String(item?.type || '').toLowerCase();
   const action = String(item?.data?.action || '').toLowerCase();
-  if (type === 'channel_invite' || action === 'channel_invite') return '频道邀请';
+  if (type === 'channel_invite' || action === 'channel_invite') return '社区邀请';
   return '社区消息';
 }
 

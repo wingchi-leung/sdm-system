@@ -298,6 +298,9 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
         raise HTTPException(status_code=400, detail="该手机号已被使用")
 
     old_phone = user.phone
+    avatar_url = (bind_info.avatar_url or "").strip()
+    if avatar_url and not _is_valid_avatar_url(avatar_url):
+        raise HTTPException(status_code=400, detail="头像地址不合法")
 
     # 更新字段
     user.name = bind_info.name
@@ -307,6 +310,8 @@ def update_user_bind_info(db: Session, user_id: int, tenant_id: int, bind_info: 
     user.phone = bind_phone
     user.email = bind_info.email
     user.industry = bind_info.industry
+    if avatar_url:
+        user.avatar_url = avatar_url
 
     crud_credential.sync_phone_identifiers(db, user_id, tenant_id, old_phone, bind_phone)
     db.commit()

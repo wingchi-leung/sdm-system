@@ -4,7 +4,7 @@
   background: #ffffff;
   box-sizing: border-box;
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
 }
 
 .state-wrap {
@@ -207,4 +207,3 @@
 .save-btn[disabled] {
   opacity: 0.6;
 }
-

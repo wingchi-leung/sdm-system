@@ -64,7 +64,7 @@ def _lock_user_for_payment(db: Session, user_id: int, tenant_id: int) -> User:
 
 
 def _ensure_user_can_pay(user: User) -> None:
-    """校验当前登录用户是否允许继续支付报名"""
+    """校验当前登录用户是否允许发起支付报名"""
     if user.isblock == 1:
         reason = user.block_reason or "您已被限制报名"
         raise HTTPException(status_code=403, detail=f"无法报名：{reason}")
@@ -246,9 +246,9 @@ def _build_order_response_from_existing_pending(
     order: PaymentOrder,
     pay_service: Any,
 ) -> PaymentOrderResponse:
-    """将未过期待支付订单转换为可恢复支付的响应"""
+    """将待支付订单转换为支付响应。"""
     if order.status != crud_payment.PAYMENT_STATUS_PENDING or not order.prepay_id:
-        raise HTTPException(status_code=400, detail="当前订单暂不可继续支付，请稍后再试")
+        raise HTTPException(status_code=400, detail="当前订单暂不可操作，请稍后再试")
 
     payment_params = pay_service.get_mini_program_payment_params(order.prepay_id)
     return PaymentOrderResponse(
@@ -271,6 +271,24 @@ def _build_refund_detail(order: PaymentOrder, refund: PaymentRefund | None) -> R
         refund_success_at=order.refund_success_at,
         refund_fail_reason=order.refund_fail_reason,
         out_refund_no=refund.out_refund_no if refund else None,
+    )
+
+
+def _close_remote_order_if_needed(pay_service: Any, order_no: str) -> None:
+    """在取消未支付订单前，尽量关闭微信侧订单。"""
+    try:
+        pay_service.close_order(order_no)
+    except Exception as close_error:
+        logger.warning("取消订单 %s 时关闭微信侧订单失败: %s", order_no, close_error)
+
+
+def _is_cancelable_order(order: PaymentOrder) -> bool:
+    """判断订单是否可以取消并删除。"""
+    return order.status in (
+        crud_payment.PAYMENT_STATUS_CREATING,
+        crud_payment.PAYMENT_STATUS_PENDING,
+        crud_payment.PAYMENT_STATUS_FAILED,
+        crud_payment.PAYMENT_STATUS_CLOSED,
     )
 
 
@@ -332,25 +350,18 @@ async def create_payment_order(
     current_user = _lock_user_for_payment(db, user_id, tenant_id)
     _ensure_user_can_pay(current_user)
     normalized_order = _merge_profile_fields(order_in, current_user)
+    pending_order = crud_payment.get_pending_payment_order_for_user_activity(
+        db, normalized_order.activity_id, user_id, tenant_id
+    )
+    if pending_order:
+        raise HTTPException(status_code=409, detail="当前存在未取消的支付订单，请先取消后再重新报名")
+
     participant = _prepare_pending_participant(
         db,
         order_in=normalized_order,
         tenant_id=tenant_id,
         user_id=user_id,
     )
-
-    pending_order = crud_payment.get_pending_payment_order_for_user_activity(
-        db, normalized_order.activity_id, user_id, tenant_id
-    )
-    if pending_order:
-        if pending_order.status == crud_payment.PAYMENT_STATUS_PENDING and pending_order.prepay_id:
-            pay_service = get_wechat_pay_service()
-            return _build_order_response_from_existing_pending(pending_order, pay_service)
-        # 清理卡住的 CREATING 订单（上次下单失败留下的），重新创建
-        if pending_order.status == crud_payment.PAYMENT_STATUS_CREATING:
-            crud_payment.mark_payment_order_failed(db, pending_order)
-        else:
-            raise HTTPException(status_code=400, detail="订单创建中，请稍后再试")
 
     # 4. 获取用户 openid
     openid = _get_user_openid(db, user_id, tenant_id)
@@ -576,6 +587,58 @@ def query_payment_order(
             participant_enroll_status = participant.enroll_status
 
     return _build_order_detail(order, participant_enroll_status)
+
+
+@router.delete("/order/{order_no}")
+def cancel_payment_order(
+    order_no: str,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_user),
+):
+    """取消未支付订单，并删除对应的报名记录。"""
+    order = db.query(PaymentOrder).filter(
+        PaymentOrder.order_no == order_no,
+        PaymentOrder.tenant_id == ctx.tenant_id,
+    ).with_for_update().first()
+    if not order:
+        raise HTTPException(status_code=404, detail="订单不存在")
+    if order.user_id != ctx.user_id:
+        raise HTTPException(status_code=403, detail="无权操作此订单")
+    if order.status == crud_payment.PAYMENT_STATUS_SUCCESS:
+        raise HTTPException(status_code=400, detail="订单已支付成功，不能取消")
+    if not _is_cancelable_order(order):
+        raise HTTPException(status_code=400, detail="当前订单状态不允许取消")
+
+    if order.prepay_id:
+        pay_service = get_wechat_pay_service()
+        try:
+            _, remote_order = _unwrap_wechat_result(pay_service.query_order(order_no))
+        except Exception as query_error:
+            logger.warning("取消订单 %s 时查询微信状态失败: %s", order_no, query_error)
+        else:
+            if _is_remote_payment_success(remote_order):
+                raise HTTPException(status_code=409, detail="订单已支付成功，不能取消")
+            _close_remote_order_if_needed(pay_service, order_no)
+
+    participant = None
+    if order.participant_id:
+        participant = db.query(ActivityParticipant).filter(
+            ActivityParticipant.id == order.participant_id,
+            ActivityParticipant.tenant_id == ctx.tenant_id,
+        ).with_for_update().first()
+    if participant is None and order.user_id:
+        participant = crud_participant.get_participant_by_user(
+            db,
+            order.activity_id,
+            order.user_id,
+            ctx.tenant_id,
+        )
+
+    if participant is not None:
+        db.delete(participant)
+    db.delete(order)
+    db.commit()
+    return {"code": "SUCCESS", "message": "订单已取消"}
 
 
 @router.post("/{order_no}/refund", response_model=RefundDetailResponse)

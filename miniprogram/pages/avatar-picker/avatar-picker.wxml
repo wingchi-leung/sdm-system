@@ -19,7 +19,7 @@
       </view>
     </view>
 
-    <view class="section">
+    <!-- <view class="section">
       <text class="section-title">默认头像</text>
       <view class="avatar-grid">
         <view
@@ -32,10 +32,9 @@
           <image class="avatar-image" src="{{item.path}}" mode="aspectFill" />
         </view>
       </view>
-    </view>
+    </view> -->
 
     <view class="section">
-      <text class="section-title">自定义头像</text>
       <view class="upload-card">
         <view class="upload-copy">
           <text class="upload-title">{{customAvatarUrl ? '已选择自定义头像' : '上传你自己的头像'}}</text>

@@ -185,7 +185,6 @@ button {
 
 .question-item {
   padding: 26rpx 0 28rpx;
-  border-bottom: 1rpx solid var(--divider);
 }
 
 .question-item:last-child {
@@ -274,7 +273,6 @@ button {
 .payment-note {
   margin-top: 28rpx;
   padding: 24rpx 0 0;
-  border-top: 1rpx solid var(--divider);
 }
 
 .payment-note-title {

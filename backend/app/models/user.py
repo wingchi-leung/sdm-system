@@ -155,6 +155,7 @@ class UserBindInfoRequest(BaseModel):
     phone: str = Field(..., min_length=11, max_length=11)
     email: Optional[str] = Field(None, max_length=255)
     industry: str = Field(..., min_length=1, max_length=100)
+    avatar_url: Optional[str] = Field(None, max_length=500)
 
     @field_validator('email')
     @classmethod

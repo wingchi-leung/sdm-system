@@ -4,7 +4,7 @@
   box-sizing: border-box;
   background: #ffffff;
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
 }
 
 .card {
@@ -55,4 +55,3 @@
   font-size: 24rpx;
   line-height: 34rpx;
 }
-

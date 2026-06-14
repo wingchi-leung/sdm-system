@@ -71,6 +71,7 @@
 | 微信支付下单 | 小程序调起微信支付 | ✅ 已实现 | 已接入微信小程序支付 |
 | 支付回调 | 微信支付回调通知处理 | ✅ 已实现 | 成功落库 + 补偿逻辑 |
 | 订单查询 | 前端查询订单状态 | ✅ 已实现 | 补偿创建参与记录 |
+| 支付取消 | 用户取消支付后删除待支付订单及报名记录 | ✅ 已实现 | 不保留订单号、支付状态和报名状态 |
 | 退款/补单 | 退款、补单、财务对账 | ❌ 未实现 | 待补充 |
 | 支付订单最小化 | 订单只保留交易必要字段 | ✅ 已实现 | 不保存报名资料快照 |
 
@@ -127,6 +128,7 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-06-14 | 小程序报名支付取消链路收口：取消微信支付后会同步删除后端待支付订单、对应报名记录与本地订单历史；活动详情页和报名页移除“继续支付”恢复入口，相关状态统一收敛为“报名处理中”提示 | `backend/app/api/v1/endpoints/payments.py`, `backend/tests/api/test_payments.py`, `miniprogram/pages/register/*`, `miniprogram/pages/activity-detail/*`, `miniprogram/pages/index/*`, `miniprogram/pages/my-activities/*`, `miniprogram/utils/api.js`, `miniprogram/utils/payment-order.js`, `miniprogram/utils/mine-data.js` |
 | 2026-06-14 | 修复发布动态图片不展示 & 活动动态详情打不开：发布页 onInsertImage 拆分为 imageRelativeUrl/imageDisplayUrl，编辑器插入用完整 URL、字符串快照与后端存储统一以相对路径为准（新增 _normalizeImageSrcsToRelative 反向还原），onEditorInput/onEditorBlur/_captureEditorSnapshot 写入 _editorHtml 前均做 URL 标准化；community-post-detail 双模式化，按 channelId 是否存在识别 channel/activity 模式，分别调 channel 版与 activity 版 API | `miniprogram/pages/community-post-create/community-post-create.js`, `miniprogram/pages/community-post-detail/community-post-detail.js`, `miniprogram/tests/community-post-create-page.test.js` |
 | 2026-06-14 | 修复活动详情页"发布动态"报 422：`community-post-create` 页面双模式化，按 query 自动识别 `activity` / `channel` 模式分别调 `POST /community/posts` 与 `POST /community/channels/{id}/posts`；缺参数时 toast + 自动返回，替代原"按钮仍可点"导致 URL 出现 `/channels/null/posts` 的旧行为 | `miniprogram/pages/community-post-create/community-post-create.js`, `miniprogram/pages/community-post-create/community-post-create.wxml` |
 | 2026-06-13 | 小程序字体系统统一：全局字体收口为 `LorchinSansP0` + `PingFang SC`，社区内页移除宋体/Georgia/Times 混用，首页品牌主视觉保留衬线展示字，并补充 `SPEC-10_小程序字体规范.md` | `miniprogram/app.wxss`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/community/*`, `docs/specs/SPEC-10_小程序字体规范.md` |

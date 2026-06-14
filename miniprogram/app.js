@@ -1,7 +1,7 @@
 // SDM 活动报名小程序 - 入口
 const tenant = require('./utils/tenant');
 const privacy = require('./utils/privacy');
-const config = require('./config');
+const config = require('./config/index');
 
 App({
   onLaunch(options) {

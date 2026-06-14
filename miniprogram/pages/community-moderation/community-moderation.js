@@ -6,8 +6,8 @@ function buildGroups(pendingData) {
   const map = [
     { key: 'activity_posts', title: '活动动态', itemType: 'activity_post' },
     { key: 'activity_comments', title: '活动评论', itemType: 'activity_comment' },
-    { key: 'channel_posts', title: '频道动态', itemType: 'channel_post' },
-    { key: 'channel_comments', title: '频道评论', itemType: 'channel_comment' },
+    { key: 'channel_posts', title: '社区动态', itemType: 'channel_post' },
+    { key: 'channel_comments', title: '社区评论', itemType: 'channel_comment' },
   ];
   return map.map((group) => {
     const block = pendingData[group.key] || {};

@@ -2,6 +2,13 @@
   width: 100vw;
   margin-left: calc(50% - 50vw);
   box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14rpx);
+  -webkit-backdrop-filter: blur(14rpx);
+  border-bottom: 1rpx solid rgba(17, 17, 17, 0.04);
 }
 
 .page-header__spacer {
@@ -16,6 +23,7 @@
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
+  background: transparent;
 }
 
 .page-header__left,

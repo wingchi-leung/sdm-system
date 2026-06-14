@@ -1,3 +1,46 @@
+const HTML_TAG_PATTERN = /<\/?(p|div|span|img|br|strong|em|h[1-6]|ul|ol|li|blockquote|a)\b/i;
+
+function extractImageUrlsFromHtml(html) {
+  if (!html) return [];
+  const matches = String(html).match(/<img[^>]+src=["']([^"']+)["']/gi) || [];
+  return matches
+    .map((item) => {
+      const result = item.match(/src=["']([^"']+)["']/i);
+      return result ? result[1] : null;
+    })
+    .filter(Boolean);
+}
+
+function htmlToText(html) {
+  if (!html) return '';
+  return String(html)
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\n{2,}/g, '\n')
+    .trim();
+}
+
+function buildHtmlBlocks(html) {
+  const text = htmlToText(html);
+  const images = extractImageUrlsFromHtml(html);
+  const blocks = [];
+  if (text) {
+    blocks.push({ type: 'text', text });
+  }
+  if (images.length) {
+    blocks.push({ type: 'images', images });
+  }
+  return { text, blocks };
+}
+
 function parsePostContent(content) {
   const raw = content == null ? '' : String(content);
   if (!raw.trim()) {
@@ -29,6 +72,9 @@ function parsePostContent(content) {
       blocks,
     };
   } catch (_) {
+    if (HTML_TAG_PATTERN.test(raw)) {
+      return buildHtmlBlocks(raw);
+    }
     return { text: raw, blocks: [{ type: 'text', text: raw }] };
   }
 }

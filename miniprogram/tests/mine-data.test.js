@@ -7,6 +7,7 @@ const {
   buildPendingOrderStorageKey,
   buildOrderHistoryStorageKey,
   upsertOrderRecord,
+  removeOrderRecord,
   formatOrderList,
 } = require('../utils/payment-order');
 
@@ -25,7 +26,7 @@ test('报名活动列表补充展示字段', () => {
   assert.equal(items[0].enroll_status_class, 'is-registered');
   assert.equal(items[1].enroll_status_text, '候补中');
   assert.equal(items[1].enroll_status_class, 'is-waiting');
-  assert.equal(items[2].enroll_status_text, '待支付');
+  assert.equal(items[2].enroll_status_text, '报名处理中');
   assert.equal(items[2].enroll_status_class, 'is-pending');
 });
 
@@ -58,6 +59,19 @@ test('订单记录更新时按订单号合并并保留最新状态', () => {
 
   assert.equal(records.length, 1);
   assert.equal(records[0].status, 1);
+});
+
+test('订单记录可按订单号删除', () => {
+  const records = removeOrderRecord(
+    [
+      { order_no: 'A001', status: 0 },
+      { order_no: 'A002', status: 1 },
+    ],
+    'A001'
+  );
+
+  assert.equal(records.length, 1);
+  assert.equal(records[0].order_no, 'A002');
 });
 
 test('订单展示列表补充金额和状态文案', () => {

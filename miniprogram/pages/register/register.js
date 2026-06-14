@@ -6,6 +6,7 @@ const {
   buildPendingOrderStorageKey,
   buildOrderHistoryStorageKey,
   upsertOrderRecord,
+  removeOrderRecord,
 } = require('../../utils/payment-order');
 
 Page({
@@ -45,7 +46,6 @@ Page({
     // 基本信息折叠状态
     basicInfoExpanded: false,
     requireBindInfo: false,
-    recoverPendingPayment: false,
     activeField: '',
   },
 
@@ -130,27 +130,6 @@ Page({
       statusBarHeight = 0;
     }
 
-    // 恢复未完成的支付订单号（应对用户关闭小程序再重开的场景）
-    try {
-      const stored = wx.getStorageSync(buildPendingOrderStorageKey(
-        tenant.getTenantCode(),
-        auth.getUserId()
-      ));
-      if (
-        stored &&
-        stored.orderNo &&
-        stored.activityId != null &&
-        String(stored.activityId) === String(activityId)
-      ) {
-        this.setData({
-          paymentOrderNo: stored.orderNo,
-          recoverPendingPayment: true,
-        });
-      }
-    } catch (_) {
-      // Storage 读取失败不影响主流程
-    }
-
     this.setData({ activityId, loading: true, error: null, statusBarHeight });
     this.initPage(activityId);
   },
@@ -160,7 +139,6 @@ Page({
       await Promise.all([
         this.loadActivity(activityId),
         this.ensureProfileBound(),
-        this.refreshPendingPaymentStatus(activityId),
       ]);
     } catch (err) {
       if (err && err.stopFlow) {
@@ -172,37 +150,6 @@ Page({
       setTimeout(() => wx.navigateBack(), 1500);
     } finally {
       this.setData({ loading: false });
-    }
-  },
-
-  async refreshPendingPaymentStatus(activityId) {
-    if (!this.data.recoverPendingPayment || !this.data.paymentOrderNo) {
-      return;
-    }
-
-    try {
-      const orderDetail = await api.queryPaymentOrder(this.data.paymentOrderNo);
-      if (String(orderDetail?.activity_id || '') !== String(activityId)) {
-        this._persistPendingOrder('');
-        this.setData({
-          paymentOrderNo: '',
-          recoverPendingPayment: false,
-        });
-        return;
-      }
-
-      if (orderDetail.status === 0) {
-        this.setData({ recoverPendingPayment: true });
-        return;
-      }
-
-      this._persistPendingOrder('');
-      this.setData({
-        paymentOrderNo: '',
-        recoverPendingPayment: false,
-      });
-    } catch (_) {
-      // 查询失败时保留本地待支付状态，避免网络波动导致误清理
     }
   },
 
@@ -497,6 +444,31 @@ Page({
     }
   },
 
+  _removeOrderHistory(orderNo) {
+    const historyKey = buildOrderHistoryStorageKey(tenant.getTenantCode(), auth.getUserId());
+    try {
+      const current = wx.getStorageSync(historyKey) || [];
+      const next = removeOrderRecord(current, orderNo);
+      wx.setStorageSync(historyKey, next);
+    } catch (_) {
+      // 本地订单历史仅作为用户侧展示，不阻断主流程
+    }
+  },
+
+  async _cancelPaymentOrder(orderNo) {
+    if (!orderNo) {
+      return;
+    }
+
+    try {
+      await api.cancelPaymentOrder(orderNo);
+    } catch (err) {
+      const message = err && err.message ? err.message : '取消报名记录失败';
+      this.setData({ error: message });
+      wx.showToast({ title: '已取消支付，清理记录失败', icon: 'none' });
+    }
+  },
+
   // 支付报名
   doPaymentRegister() {
     const { actualFee } = this.data;
@@ -565,7 +537,6 @@ Page({
         this.setData({
           paymentOrderNo: '',
           submitting: false,
-          recoverPendingPayment: false,
         });
         wx.showToast({ title: message, icon: 'success' });
         setTimeout(() => {
@@ -577,10 +548,18 @@ Page({
         let msg = '支付失败';
         const { paymentOrderNo } = this.data;
         if (err && err.errMsg && err.errMsg.includes('cancel')) {
-          msg = '已取消支付';
-        } else if (err && err.code === 'PAYMENT_CONFIRM_TIMEOUT') {
-          msg = '支付已受理，报名确认中。可点击"继续支付"恢复当前订单';
-          this.setData({ recoverPendingPayment: true });
+          this._persistPendingOrder('');
+          this._removeOrderHistory(paymentOrderNo);
+          this.setData({
+            paymentOrderNo: '',
+            submitting: false,
+          });
+          this._cancelPaymentOrder(paymentOrderNo);
+          wx.showToast({ title: '已取消报名', icon: 'none' });
+          return;
+        }
+        if (err && err.code === 'PAYMENT_CONFIRM_TIMEOUT') {
+          msg = '支付已受理，报名确认中，请稍后再查看状态';
         } else if (err && err.message) {
           msg = err.message;
         } else if (err && err.errMsg) {
@@ -660,9 +639,7 @@ Page({
       submitting: true,
       error: null,
     };
-    if (!this.data.recoverPendingPayment) {
-      nextState.paymentOrderNo = '';
-    }
+    nextState.paymentOrderNo = '';
     this.setData(nextState);
 
     const { requirePayment } = this.data;

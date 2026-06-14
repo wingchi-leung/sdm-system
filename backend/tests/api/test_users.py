@@ -147,6 +147,31 @@ class TestUserProfile:
         )
         assert response.status_code == status.HTTP_200_OK
 
+    def test_update_my_profile_with_avatar(self, client, user_token, sample_user):
+        """测试 bind-info 支持同时绑定头像。"""
+        response = client.put(
+            "/api/v1/users/bind-info",
+            headers=auth_headers(user_token),
+            json={
+                "name": "测试用户",
+                "sex": "male",
+                "age": 25,
+                "occupation": "工程师",
+                "phone": sample_user.phone,
+                "email": "avatar@example.com",
+                "industry": "IT",
+                "avatar_url": "/uploads/avatars/demo.jpg",
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        profile_response = client.get(
+            "/api/v1/users/me",
+            headers=auth_headers(user_token),
+        )
+        assert profile_response.status_code == status.HTTP_200_OK
+        data = profile_response.json()
+        assert data["avatar_url"] == "/uploads/avatars/demo.jpg"
+
     def test_update_my_profile_accepts_encrypted_phone_and_identity_number(
         self,
         client,

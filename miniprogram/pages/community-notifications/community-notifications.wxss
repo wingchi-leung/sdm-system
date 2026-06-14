@@ -97,20 +97,19 @@
 .hero-title {
   display: block;
   color: #111111;
-  font-size: 60rpx;
+  font-size: 42rpx;
   line-height: 1.08;
-  font-weight: 300;
-  letter-spacing: 0.08em;
-  font-family: "Songti SC", "STSong", "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .hero-subtitle {
   display: block;
   margin-top: 18rpx;
   color: #7a7a7a;
-  font-size: 32rpx;
+  font-size: 24rpx;
   line-height: 1.45;
-  font-weight: 300;
+  font-weight: 400;
   letter-spacing: 0.02em;
 }
 
@@ -212,11 +211,10 @@
 
 .empty-title {
   color: #777777;
-  font-size: 38rpx;
+  font-size: 32rpx;
   line-height: 1.35;
   font-weight: 400;
-  letter-spacing: 0.03em;
-  font-family: "Songti SC", "STSong", "Times New Roman", serif;
+  letter-spacing: 0.02em;
 }
 
 .empty-divider {

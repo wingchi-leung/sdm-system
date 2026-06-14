@@ -5,7 +5,7 @@
     radial-gradient(circle at top left, rgba(17, 17, 17, 0.02) 0, rgba(17, 17, 17, 0.01) 20%, transparent 45%),
     linear-gradient(180deg, #ffffff 0%, #fcfcfc 100%);
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
 }
 
 .content {

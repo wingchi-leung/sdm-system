@@ -299,7 +299,7 @@ class TestPaymentEndpoints:
         assert response.status_code == status.HTTP_403_FORBIDDEN
         assert "无法报名" in response.json()["detail"]
 
-    def test_create_payment_order_reuses_pending_order(
+    def test_create_payment_order_rejects_pending_order(
         self,
         client,
         db_session,
@@ -327,8 +327,18 @@ class TestPaymentEndpoints:
             lambda: FakePayService(),
         )
 
-        payload = _payment_request_payload(sample_activity.id)
-        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
+        participant = ActivityParticipant(
+            tenant_id=sample_user.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name="待支付用户",
+            payment_status=1,
+            paid_amount=0,
+            enroll_status=1,
+        )
+        db_session.add(participant)
+        db_session.commit()
+        db_session.refresh(participant)
         crud_payment.create_payment_order(
             db=db_session,
             order_no="SDMPENDING001",
@@ -348,10 +358,77 @@ class TestPaymentEndpoints:
             json=_payment_request_payload(sample_activity.id),
         )
 
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert "未取消的支付订单" in response.json()["detail"]
+
+    def test_cancel_payment_order_deletes_pending_records(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        user_token,
+        monkeypatch,
+    ):
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_cancel_payment")
+
+        participant = ActivityParticipant(
+            tenant_id=sample_user.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name="待取消用户",
+            payment_status=1,
+            paid_amount=0,
+            enroll_status=1,
+        )
+        db_session.add(participant)
+        db_session.commit()
+        db_session.refresh(participant)
+        order = crud_payment.create_payment_order(
+            db=db_session,
+            order_no="SDMCANCEL001",
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_id=participant.id,
+            openid="wx_openid_cancel_payment",
+            suggested_fee=1000,
+            actual_fee=1000,
+            prepay_id="prepay_cancel_001",
+            tenant_id=sample_user.tenant_id,
+        )
+
+        class FakePayService:
+            def query_order(self, order_no):
+                return 200, {
+                    "out_trade_no": order_no,
+                    "trade_state": "NOTPAY",
+                    "appid": "wx-test-app",
+                    "mchid": "mch-test",
+                    "amount": {"total": 1000},
+                    "payer": {"openid": "wx_openid_cancel_payment"},
+                }
+
+            def close_order(self, order_no):
+                return 200, {"status": "closed"}
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.get_wechat_pay_service",
+            lambda: FakePayService(),
+        )
+
+        response = client.delete(
+            f"/api/v1/payments/order/{order.order_no}",
+            headers=auth_headers(user_token),
+        )
+
         assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["order_no"] == "SDMPENDING001"
-        assert data["payment_params"]["package"] == "prepay_id=prepay_pending"
+        assert response.json()["code"] == "SUCCESS"
+        assert response.json()["message"] == "订单已取消"
+
+        assert db_session.get(PaymentOrder, order.id) is None
+        assert db_session.get(ActivityParticipant, participant.id) is None
 
     def test_query_payment_order_recovers_success_from_wechat(
         self,

@@ -171,7 +171,7 @@ test('活动管理员在可报名活动中可以看到报名入口', async () =>
   assert.equal(page.data.actionTipText, '');
 });
 
-test('待支付报名在活动详情页会显示待支付并隐藏社区入口', async () => {
+test('报名处理中状态在活动详情页会显示提示并隐藏社区入口', async () => {
   const calls = {
     navigateTo: 0,
   };
@@ -226,9 +226,9 @@ test('待支付报名在活动详情页会显示待支付并隐藏社区入口',
 
   assert.equal(page.data.hasRegistered, false);
   assert.equal(page.data.hasPendingPayment, true);
-  assert.equal(page.data.registrationStatusText, '待支付');
+  assert.equal(page.data.registrationStatusText, '报名处理中');
   assert.equal(page.data.canEnroll, false);
-  assert.equal(page.data.actionTipText, '待支付，请前往我的订单继续完成支付');
+  assert.equal(page.data.actionTipText, '报名处理中，请稍后刷新');
   assert.equal(page.data.showCommunitySection, false);
 });
 
@@ -277,4 +277,40 @@ test('活动详情页新版视图模型会补全标题摘要和信息区', async
   assert.equal(page.data.activity.info_rows[0].end_value, '06.12 周五 21:00');
   assert.equal(page.data.activity.info_rows[1].value, '上海 · 徐汇滨江');
   assert.equal(page.data.activity.info_rows[2].value, '线下参与 ｜ 限定 20 人');
+});
+
+test('活动详情页海报为空时会回退到默认背景图', async () => {
+  const pageConfig = loadActivityDetailPage({
+    api: {
+      getActivity() {
+        return Promise.resolve({
+          id: 12,
+          status: 2,
+          activity_name: '未来设计',
+          poster_url: '',
+        });
+      },
+      getActivityPermissions() {
+        return Promise.resolve({ can_manage: false });
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isAdmin: () => false,
+      isUser: () => false,
+      isSuperAdmin: () => false,
+      canManageActivityType: () => false,
+    },
+    image: {
+      resolveDisplayUrl(url) {
+        return Promise.resolve(url);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig, { activityId: 12 });
+
+  page.loadActivity(12);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(page.data.activity.poster_url, '/assets/defaultbg.jpg');
 });

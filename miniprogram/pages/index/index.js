@@ -177,7 +177,7 @@ Page({
             has_registered: hasRegistered,
             registration_status_text: registration
               ? (hasPendingPayment
-                ? '待支付'
+                ? '报名处理中'
                 : (registration.enroll_status === 2 ? '候补中' : '已报名'))
               : '',
             location_display: this.formatLocation(a.location),
@@ -190,7 +190,7 @@ Page({
         items.sort((a, b) => {
           const aTime = a.start_time ? new Date(a.start_time).getTime() : 0;
           const bTime = b.start_time ? new Date(b.start_time).getTime() : 0;
-          return aTime - bTime;
+          return bTime - aTime;
         });
         const dateGroups = this.buildDateGroups(items);
 

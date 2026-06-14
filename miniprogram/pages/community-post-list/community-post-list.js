@@ -31,6 +31,7 @@ Page({
     showManageButton: false,
     canComment: false,
     hasMorePosts: false,
+    showEmptyState: false,
     total: 0,
     skip: 0,
   },
@@ -103,6 +104,7 @@ Page({
         total,
         skip,
         hasMorePosts: skip < total,
+        showEmptyState: posts.length === 0,
         loading: false,
         loadingMore: false,
       });

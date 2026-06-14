@@ -1,4 +1,5 @@
 <view class="page">
+  <page-header title="社区管理" statusBarHeight="{{statusBarHeight}}"></page-header>
   <view class="shell">
     <view wx:if="{{loading}}" class="state-wrap state-wrap--loading">
       <view class="loading-card loading-card--headline"></view>
@@ -31,8 +32,13 @@
         </view>
 
         <view class="channel-actions">
-          <view wx:if="{{showEditButton}}" class="action-btn action-btn--ghost" bindtap="onEditChannel">
-            <text>编辑</text>
+          <view wx:if="{{showEditButton || showDeleteButton}}" class="action-stack">
+            <view wx:if="{{showEditButton}}" class="action-btn action-btn--ghost action-btn--compact" bindtap="onEditChannel">
+              <text>编辑</text>
+            </view>
+            <view wx:if="{{showDeleteButton}}" class="action-btn action-btn--danger action-btn--compact" bindtap="onDeleteChannel">
+              <text>删除</text>
+            </view>
           </view>
           <view class="invite-btn" hover-class="invite-btn--active" bindtap="onInviteMembers">
             <image class="invite-icon" src="/assets/icons/invite.png" mode="aspectFit"></image>

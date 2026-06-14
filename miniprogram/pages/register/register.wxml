@@ -11,13 +11,12 @@
       </view>
     </page-header>
 
-    <view class="hero">
-      <text class="hero-title">加入本次探索</text>
-      <view class="hero-underline"></view>
-      <text class="hero-subtitle">报名问卷</text>
-      <text class="hero-activity">{{activity.activity_name}}</text>
-      <text wx:if="{{recoverPendingPayment}}" class="hero-badge">当前有未完成支付</text>
-    </view>
+      <view class="hero">
+        <text class="hero-title">加入本次探索</text>
+        <view class="hero-underline"></view>
+        <text class="hero-subtitle">报名问卷</text>
+        <text class="hero-activity">{{activity.activity_name}}</text>
+      </view>
 
     <view class="profile-toggle" bindtap="toggleBasicInfo">
       <text class="profile-toggle-label">个人资料</text>
@@ -65,7 +64,7 @@
 
       <view class="question-item">
         <text class="question-index">01</text>
-        <text class="question-label required">为什么想参与？</text>
+        <text class="question-label required">为什么想参与此活动？</text>
         <view class="question-control {{activeField === 'whyJoin' ? 'active' : ''}}">
           <textarea
             class="question-input question-textarea"
@@ -185,7 +184,7 @@
 
   <view wx:if="{{activity}}" class="bottom-bar">
     <button class="next-btn" disabled="{{submitting}}" bindtap="submit">
-      <text class="next-btn-text">{{submitting ? '处理中…' : (recoverPendingPayment ? '继续支付' : '下一步')}}</text>
+      <text class="next-btn-text">{{submitting ? '处理中…' : '下一步'}}</text>
       <text class="next-btn-arrow ui-chevron ui-chevron--md">›</text>
     </button>
   </view>

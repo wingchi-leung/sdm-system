@@ -1,6 +1,7 @@
 const api = require('./api');
 
 const imageCache = {};
+const DEFAULT_POSTER_PATH = '/assets/defaultbg.jpg';
 
 function isLocalPath(url) {
   return !!url && (
@@ -50,7 +51,7 @@ function resolveDisplayUrl(url) {
 function resolveActivityPosters(items) {
   return Promise.all((items || []).map(async (item) => ({
     ...item,
-    poster_url: await resolveDisplayUrl(item.poster_url),
+    poster_url: await resolveDisplayUrl(item.poster_url) || DEFAULT_POSTER_PATH,
   })));
 }
 

@@ -287,7 +287,7 @@ test('报名提交 payload 不包含证件号字段', () => {
   assert.equal(payload.identity_type, undefined);
 });
 
-test('报名页仅在同活动存在待支付订单时恢复继续支付', () => {
+test('报名页不会恢复未完成支付状态', () => {
   const calls = {
     initPage: 0,
   };
@@ -322,12 +322,11 @@ test('报名页仅在同活动存在待支付订单时恢复继续支付', () =>
 
   page.onLoad({ id: '12' });
 
-  assert.equal(page.data.recoverPendingPayment, true);
-  assert.equal(page.data.paymentOrderNo, 'ORDER-RECOVER-1');
+  assert.equal(page.data.paymentOrderNo, '');
   assert.equal(calls.initPage, 1);
 });
 
-test('报名页不会恢复其他活动的待支付订单', () => {
+test('报名页不会因为本地待支付记录自动回填订单号', () => {
   const pageConfig = loadRegisterPage({
     auth: {
       isLoggedIn: () => true,
@@ -357,21 +356,31 @@ test('报名页不会恢复其他活动的待支付订单', () => {
 
   page.onLoad({ id: '12' });
 
-  assert.equal(page.data.recoverPendingPayment, false);
   assert.equal(page.data.paymentOrderNo, '');
 });
 
-test('报名页会自动清理已关闭的待支付订单', async () => {
+test('取消支付后会清理本地和后端的待支付记录', async () => {
   const calls = {
-    removeStorageSync: [],
+    cancelPaymentOrder: 0,
   };
+  const storage = {};
   const pageConfig = loadRegisterPage({
     api: {
-      queryPaymentOrder() {
+      createPaymentOrder() {
         return Promise.resolve({
-          activity_id: 12,
-          status: 3,
+          order_no: 'ORDER-CANCEL-1',
+          payment_params: {
+            timeStamp: '1',
+            nonceStr: 'n',
+            package: 'p',
+            signType: 'MD5',
+            paySign: 's',
+          },
         });
+      },
+      cancelPaymentOrder() {
+        calls.cancelPaymentOrder += 1;
+        return Promise.resolve({ code: 'SUCCESS' });
       },
     },
     auth: {
@@ -386,30 +395,37 @@ test('报名页会自动清理已关闭的待支付订单', async () => {
     paymentOrder: {
       buildPendingOrderStorageKey: () => 'pending-order-key',
       buildOrderHistoryStorageKey: () => 'history-order-key',
-      upsertOrderRecord: (current) => current,
+      upsertOrderRecord: (current, record) => [...(current || []), record],
+      removeOrderRecord: (current) => (current || []).filter((item) => item.order_no !== 'ORDER-CANCEL-1'),
     },
     wxMock: {
-      getStorageSync() {
-        return {
-          activityId: 12,
-          orderNo: 'ORDER-CLOSED-1',
-        };
+      getStorageSync(key) { return storage[key]; },
+      setStorageSync(key, value) { storage[key] = value; },
+      removeStorageSync(key) { delete storage[key]; },
+      requestPayment({ fail }) {
+        fail({ errMsg: 'requestPayment:fail cancel' });
       },
-      removeStorageSync(key) {
-        calls.removeStorageSync.push(key);
-      },
+      showToast() {},
     },
   });
   const page = createPageInstance(pageConfig);
   page.setData({
     activityId: 12,
-    paymentOrderNo: 'ORDER-CLOSED-1',
-    recoverPendingPayment: true,
+    activity: { id: 12, activity_name: '测试活动' },
+    actualFee: 100,
+    submitting: false,
+    name: '报名用户',
+    whyJoin: '想参加',
+    channel: '朋友推荐',
+    expectation: '学习交流',
   });
 
-  await page.refreshPendingPaymentStatus(12);
+  await page.doPaymentRegister();
+  await new Promise((resolve) => setTimeout(resolve, 0));
 
-  assert.equal(page.data.recoverPendingPayment, false);
   assert.equal(page.data.paymentOrderNo, '');
-  assert.equal(calls.removeStorageSync.length, 1);
+  assert.equal(page.data.submitting, false);
+  assert.equal(calls.cancelPaymentOrder, 1);
+  assert.equal(storage['pending-order-key'], undefined);
+  assert.deepEqual(storage['history-order-key'], []);
 });

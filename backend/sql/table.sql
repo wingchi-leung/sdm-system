@@ -567,9 +567,6 @@ CREATE TABLE IF NOT EXISTS `community_channel_comment` (
   KEY `idx_ccc_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道评论表(预留,当前复用 community_comment)';
 
-ALTER TABLE `community_channel_post`
-  ADD COLUMN `content_format` varchar(16) NOT NULL DEFAULT 'html' COMMENT '内容格式:text/html/blocks' AFTER `content`;
-
 --
 -- 用户-活动类型关联表
 --

@@ -5,27 +5,53 @@
   </view>
 
   <view wx:else class="shell">
-    <page-header title="完善信息"></page-header>
+    <page-header title="完善信息" autoBack="{{false}}" bindback="onBack"></page-header>
 
     <view class="hero">
-      <text class="hero-title">完善信息</text>
-      <view class="hero-underline"></view>
-      <text class="hero-subtitle">首次登录需要绑定以下信息</text>
+      <text class="hero-subtitle">首次登录请上传头像并绑定基础信息</text>
     </view>
 
     <view class="form">
+      <view class="section">
+        <text class="section-title">头像设置</text>
+
+        <view class="avatar-section">
+          <view class="avatar-preview-wrap" bindtap="onChooseAvatar">
+            <view wx:if="{{avatarDisplayUrl || avatarTemp || avatarUrl}}" class="avatar-preview-frame">
+              <image class="avatar-preview" src="{{avatarDisplayUrl || avatarTemp || avatarUrl}}" mode="aspectFit" />
+              <view class="avatar-overlay">
+              </view>
+            </view>
+            <view wx:else class="avatar-placeholder">
+              <text class="avatar-placeholder-icon">＋</text>
+              <text class="avatar-placeholder-text">上传头像</text>
+            </view>
+          </view>
+
+          <view class="avatar-actions">
+            <view class="avatar-action avatar-action-primary" bindtap="onChooseAvatar">
+              <text>{{avatarTemp || avatarUrl ? '重新上传' : '上传头像'}}</text>
+            </view>
+         
+          </view>
+        </view>
+      </view>
+
       <view class="section">
         <text class="section-title">基础资料</text>
 
         <view class="field">
           <text class="field-label required">姓名</text>
-          <view class="field-control">
+          <view class="field-control {{focusedField === 'name' ? 'field-control--focused' : ''}}">
             <input
               class="input"
               placeholder="请输入真实姓名"
               placeholder-class="input-placeholder"
               value="{{formData.name}}"
               bindinput="onNameInput"
+              data-field="name"
+              bindfocus="onFieldFocus"
+              bindblur="onFieldBlur"
             />
           </view>
         </view>
@@ -38,7 +64,9 @@
               data-value="male"
               bindtap="onSexChange"
             >
-              <image class="sex-option-image" src="/assets/icons/man.png" mode="aspectFit" />
+              <view class="sex-option-circle">
+                <image class="sex-option-image" src="/assets/icons/man.png" mode="aspectFit" />
+              </view>
               <text class="sex-option-label">男</text>
             </view>
             <view
@@ -46,7 +74,9 @@
               data-value="female"
               bindtap="onSexChange"
             >
-              <image class="sex-option-image" src="/assets/icons/woman.png" mode="aspectFit" />
+              <view class="sex-option-circle">
+                <image class="sex-option-image" src="/assets/icons/woman.png" mode="aspectFit" />
+              </view>
               <text class="sex-option-label">女</text>
             </view>
           </view>
@@ -54,7 +84,7 @@
 
         <view class="field">
           <text class="field-label required">年龄</text>
-          <view class="field-control">
+          <view class="field-control {{focusedField === 'age' ? 'field-control--focused' : ''}}">
             <input
               class="input"
               type="digit"
@@ -63,32 +93,41 @@
               placeholder-class="input-placeholder"
               value="{{formData.age}}"
               bindinput="onAgeInput"
+              data-field="age"
+              bindfocus="onFieldFocus"
+              bindblur="onFieldBlur"
             />
           </view>
         </view>
 
         <view class="field">
           <text class="field-label required">职业</text>
-          <view class="field-control">
+          <view class="field-control {{focusedField === 'occupation' ? 'field-control--focused' : ''}}">
             <input
               class="input"
               placeholder="请输入职业"
               placeholder-class="input-placeholder"
               value="{{formData.occupation}}"
               bindinput="onOccupationInput"
+              data-field="occupation"
+              bindfocus="onFieldFocus"
+              bindblur="onFieldBlur"
             />
           </view>
         </view>
 
         <view class="field">
           <text class="field-label required">行业</text>
-          <view class="field-control">
+          <view class="field-control {{focusedField === 'industry' ? 'field-control--focused' : ''}}">
             <input
               class="input"
               placeholder="请输入所在行业"
               placeholder-class="input-placeholder"
               value="{{formData.industry}}"
               bindinput="onIndustryInput"
+              data-field="industry"
+              bindfocus="onFieldFocus"
+              bindblur="onFieldBlur"
             />
           </view>
         </view>
@@ -99,7 +138,7 @@
 
         <view class="field">
           <text class="field-label required">手机号</text>
-          <view class="field-control">
+          <view class="field-control {{focusedField === 'phone' ? 'field-control--focused' : ''}}">
             <input
               class="input {{phoneReadonly ? 'input-readonly' : ''}}"
               type="digit"
@@ -109,6 +148,9 @@
               value="{{formData.phone}}"
               disabled="{{phoneReadonly}}"
               bindinput="onPhoneInput"
+              data-field="phone"
+              bindfocus="onFieldFocus"
+              bindblur="onFieldBlur"
             />
           </view>
           <text class="field-tip" wx:if="{{phoneReadonly}}">已使用微信授权手机号，首次绑定时不可修改</text>
@@ -116,13 +158,16 @@
 
         <view class="field">
           <text class="field-label required">邮箱</text>
-          <view class="field-control">
+          <view class="field-control {{focusedField === 'email' ? 'field-control--focused' : ''}}">
             <input
               class="input"
               placeholder="请输入邮箱"
               placeholder-class="input-placeholder"
               value="{{formData.email}}"
               bindinput="onEmailInput"
+              data-field="email"
+              bindfocus="onFieldFocus"
+              bindblur="onFieldBlur"
             />
           </view>
         </view>
@@ -135,8 +180,8 @@
   </view>
 
   <view wx:if="{{!loading}}" class="bottom-bar">
-    <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
-      <text class="btn-text">{{submitting ? '提交中…' : '提交'}}</text>
+    <button class="btn-submit" disabled="{{submitting || avatarUploading}}" bindtap="submit">
+      <text class="btn-text">{{avatarUploading ? '头像上传中…' : submitting ? '提交中…' : '提交'}}</text>
       <text class="btn-arrow ui-chevron ui-chevron--md">›</text>
     </button>
   </view>

@@ -13,6 +13,9 @@ function loadPage(pageRelativePath, moduleMap, wxMock = {}) {
     showLoading() {},
     hideLoading() {},
     stopPullDownRefresh() {},
+    getWindowInfo() {
+      return { statusBarHeight: 24 };
+    },
     ...wxMock,
   };
 
@@ -224,4 +227,36 @@ test('社区管理页支持管理员删除社区并回到上一页', async () =>
   assert.equal(deletedChannelId, 7);
   assert.equal(navigateBackCount, 1);
   assert.equal(page.data.deleting, false);
+});
+
+test('社区管理页使用统一页头并保留状态栏高度', async () => {
+  const pageConfig = loadPage('../pages/community-channel-manage/community-channel-manage.js', [
+    ['../../utils/api.js', {
+      getCommunityChannelDetail: async () => ({
+        id: 7,
+        name: '测试社区',
+        role: 'member',
+        member_count: 0,
+      }),
+      getCommunityChannelMembers: async () => ({
+        items: [],
+        total: 0,
+      }),
+    }],
+    ['../../utils/auth.js', {
+      getUserId: () => 9000,
+    }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+      appendTenantToUrl: (url) => url,
+    }],
+  ]);
+
+  const page = createPageInstance(pageConfig);
+  page.onLoad({ channelId: '7', channelName: encodeURIComponent('测试社区'), channelRole: 'member' });
+  await new Promise((resolve) => setTimeout(resolve, 20));
+
+  assert.equal(page.data.statusBarHeight, 24);
+  assert.equal(page.data.loading, false);
+  assert.ok(pageConfig);
 });

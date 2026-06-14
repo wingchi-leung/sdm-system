@@ -4,7 +4,7 @@
   box-sizing: border-box;
   background: #ffffff;
   color: #111111;
-  font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  font-family: var(--font-body);
 }
 
 .form-card {
@@ -117,4 +117,3 @@
 .save-btn::after {
   border: none;
 }
-
