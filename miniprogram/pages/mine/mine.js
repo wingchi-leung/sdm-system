@@ -45,7 +45,6 @@ Page({
   onLoad(options) {
     tenant.applyPageOptions(options);
     this._loadVersion = 0;
-    this.checkAuth();
   },
 
   onShow() {
@@ -137,17 +136,14 @@ Page({
       let displayActivities = [];
 
       try {
-        profile = await api.getUserProfile();
-      } catch (err) {
-        wx.showToast({ title: '个人资料加载失败', icon: 'none' });
-      }
-
-      try {
-        const activitiesRes = await api.getMyParticipantActivities();
+        const profileTask = api.getUserProfile().catch(() => null);
+        const activitiesTask = api.getMyParticipantActivities().catch(() => null);
+        const [profileRes, activitiesRes] = await Promise.all([profileTask, activitiesTask]);
+        profile = profileRes;
         participantItems = Array.isArray(activitiesRes && activitiesRes.items) ? activitiesRes.items : [];
         displayActivities = await this.buildMyActivities(participantItems);
       } catch (err) {
-        wx.showToast({ title: '报名数据加载失败', icon: 'none' });
+        wx.showToast({ title: '个人资料或报名数据加载失败', icon: 'none' });
       }
 
       try {

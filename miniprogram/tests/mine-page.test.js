@@ -259,3 +259,58 @@ test('我的页可以跳转到设置和协议说明', () => {
 
   assert.deepEqual(navUrls, ['/pages/settings/settings', '/pages/agreement-notes/agreement-notes']);
 });
+
+test('我的页首次进入时不会在 onLoad 和 onShow 重复请求用户资料', async () => {
+  const calls = {
+    getUserProfile: 0,
+    getMyParticipantActivities: 0,
+  };
+  let resolveProfile;
+  let resolveActivities;
+
+  const pageConfig = loadMinePage({
+    api: {
+      getUserProfile: () => {
+        calls.getUserProfile += 1;
+        return new Promise((resolve) => {
+          resolveProfile = resolve;
+        });
+      },
+      getMyParticipantActivities: () => {
+        calls.getMyParticipantActivities += 1;
+        return new Promise((resolve) => {
+          resolveActivities = resolve;
+        });
+      },
+    },
+    auth: {
+      isAdmin: () => false,
+      isUser: () => true,
+      getUserName: () => '普通用户',
+    },
+    image: {
+      resolveActivityPosters: async (items) => items,
+    },
+    tenant: {
+      applyPageOptions() {},
+      appendTenantToUrl: (url) => url,
+    },
+    avatar: {
+      resolveAvatarDisplayUrl: async () => '',
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+  page.onLoad({});
+  page.onShow();
+
+  assert.equal(calls.getUserProfile, 1);
+  assert.equal(calls.getMyParticipantActivities, 1);
+
+  resolveProfile({ avatar_url: '', create_time: '2024-01-01T00:00:00.000Z' });
+  resolveActivities({ items: [] });
+  await flushTimers();
+  await flushTimers();
+
+  assert.equal(page.data.loading, false);
+});

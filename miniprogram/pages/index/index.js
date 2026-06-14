@@ -38,6 +38,7 @@ Page({
   },
 
   _redirectingToLogin: false,
+  _loadSeq: 0,
 
   resetPageState(overrides = {}) {
     this.setData({
@@ -109,11 +110,7 @@ Page({
 
   onLoad(options) {
     tenant.applyPageOptions(options);
-    if (!this.ensureLoggedIn()) return;
-    this.syncAdminCapabilities().finally(() => {
-      this.resolveAdminState();
-      this.load();
-    });
+    this.ensureLoggedIn();
   },
 
   onShow() {
@@ -140,17 +137,22 @@ Page({
   },
 
   load() {
+    const loadSeq = this._loadSeq + 1;
+    this._loadSeq = loadSeq;
     this.resetPageState();
     this.resolveAdminState();
     // 超级管理员按管理视角看全量活动；其他账号按用户视角展示。
     const useAdminView = auth.isSuperAdmin();
-    const tasks = [api.getEnrollableActivities({ asUserView: !useAdminView })];
-    if (auth.isUser()) {
-      tasks.push(api.getMyParticipantActivities());
-      tasks.push(api.getUserProfile());
-    }
-    return Promise.all(tasks)
-      .then(async ([res, registrationRes, profile]) => {
+    const activityTask = api.getEnrollableActivities({ asUserView: !useAdminView });
+    const registrationTask = auth.isUser()
+      ? api.getMyParticipantActivities()
+      : Promise.resolve({ items: [] });
+    const profileTask = auth.isUser()
+      ? api.getUserProfile().catch(() => null)
+      : Promise.resolve(null);
+    return Promise.all([activityTask, registrationTask])
+      .then(async ([res, registrationRes]) => {
+        if (this._loadSeq !== loadSeq) return;
         const registrationMap = {};
         (registrationRes?.items || []).forEach((item) => {
           registrationMap[item.id] = item;
@@ -194,21 +196,38 @@ Page({
         });
         const dateGroups = this.buildDateGroups(items);
 
-        const headerAvatarUrl = auth.isUser()
-          ? await resolveAvatarDisplayUrl(profile && profile.avatar_url, profile && profile.update_time)
-          : '';
         this.setData({
           activities: items,
           visibleActivities: items,
           dateGroups,
           loading: false,
-          headerAvatarUrl,
+          headerAvatarUrl: '',
           weekdayLabelCn: this.getWeekdayLabelCn(new Date()),
           weekdayLabelEn: this.getWeekdayLabelEn(new Date()),
           todayDateShort: this.getTodayDateShort(new Date()),
         });
+
+        if (!auth.isUser()) return;
+        profileTask
+          .then(async (profile) => {
+            if (this._loadSeq !== loadSeq || !profile) return;
+            try {
+              const headerAvatarUrl = await resolveAvatarDisplayUrl(
+                profile.avatar_url,
+                profile.update_time
+              );
+              if (this._loadSeq !== loadSeq) return;
+              this.setData({ headerAvatarUrl });
+            } catch (_) {
+              // 头像只是增强展示，失败时保留首字母兜底
+            }
+          })
+          .catch(() => {
+            // 头像请求失败不影响活动列表首屏
+          });
       })
       .catch((err) => {
+        if (this._loadSeq !== loadSeq) return;
         const msg = formatLoadError(err);
         this.setData({
           error: msg,
