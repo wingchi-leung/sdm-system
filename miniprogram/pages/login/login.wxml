@@ -59,7 +59,7 @@
 
   <block wx:else>
     <view class="poster-page safe-area-bottom">
-      <image class="poster-background" src="/assets/loginclean.png" mode="widthFix" />
+      <image class="poster-background" src="/assets/login.webp" mode="widthFix" />
       <view class="poster-admin-hotspot" bindtap="onGateIconTap"></view>
 
       <view class="poster-message-stack" wx:if="{{unsafeTip || error}}">
