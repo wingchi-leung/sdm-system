@@ -7,7 +7,7 @@
 
 .hero {
   position: relative;
-  min-height: 62vh;
+  min-height: 22vh;
   padding: 12rpx 34rpx 0;
   overflow: hidden;
 }
@@ -24,10 +24,10 @@
 
 .hero-banner {
   position: absolute;
-  top: 120rpx;
-  right: -26rpx;
-  width: 690rpx;
-  max-width: calc(100% + 52rpx);
+  top: 98rpx;
+  right: -18rpx;
+  width: 610rpx;
+  max-width: calc(100% + 36rpx);
   opacity: 0.98;
   pointer-events: none;
 }
@@ -78,7 +78,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 24rpx;
-  margin-top: 246rpx;
+  margin-top: 38rpx;
   padding: 0 8rpx;
 }
 
@@ -200,7 +200,7 @@
 }
 
 .list-shell {
-  margin-top: -4rpx;
+  margin-top: -18rpx;
   padding: 0 40rpx 0;
 }
 
@@ -208,7 +208,7 @@
   width: 100%;
   height: auto;
   display: block;
-  margin: 0 auto 18rpx;
+  margin: 0 auto 8rpx;
   opacity: 0.92;
   pointer-events: none;
 }
