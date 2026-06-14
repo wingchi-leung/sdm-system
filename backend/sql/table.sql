@@ -738,3 +738,34 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 ALTER TABLE user_role
    ADD COLUMN update_time timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '' AFTER create_time;
+
+
+-- ============================================================
+-- 社区频道公告表 (community_channel_announcement) — SPEC-11
+-- ============================================================
+-- 公告是社区频道的独立资源（独立于 community_channel_post）：
+--   * 无评论、无点赞，只读展示
+--   * 仅 community_channel_member.role='admin' 可发
+--   * 管理员发布免审（status=1）
+--   * 物理删除（无 status=0 软删）
+--   * 删除频道时由 DELETE /community/channels/{id} 级联清理
+
+CREATE TABLE IF NOT EXISTS `community_channel_announcement` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `channel_id` int NOT NULL COMMENT '所属频道ID',
+  `author_user_id` int NOT NULL COMMENT '发布人用户ID（必为该频道 admin）',
+  `title` varchar(120) NOT NULL COMMENT '公告标题',
+  `content` mediumtext NOT NULL COMMENT '公告内容（HTML；与帖子一致）',
+  `content_format` varchar(16) NOT NULL DEFAULT 'html' COMMENT 'text/html/blocks',
+  `images` text DEFAULT NULL COMMENT 'JSON 数组；与帖子一致',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '1-正常 0-已删除',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_ann_channel_id` (`channel_id`),
+  KEY `idx_ann_author_user_id` (`author_user_id`),
+  KEY `idx_ann_create_time` (`create_time`),
+  KEY `idx_ann_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道公告表';
+

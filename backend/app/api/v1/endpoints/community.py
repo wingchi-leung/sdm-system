@@ -22,6 +22,10 @@ from app.crud import (
     crud_participant,
 )
 from app.models.community import (
+    CommunityChannelAnnouncementCreate,
+    CommunityChannelAnnouncementListResponse,
+    CommunityChannelAnnouncementResponse,
+    CommunityChannelAnnouncementSummaryResponse,
     CommunityChannelCreate,
     CommunityChannelInviteRequest,
     CommunityChannelCommentCreate,
@@ -1160,6 +1164,135 @@ async def handle_wechat_media_callback(
         item_id=task.item_id,
     )
     return PlainTextResponse("success")
+
+
+# ============================================================
+# 社区频道公告
+# ============================================================
+
+
+@router.get("/channels/{channel_id}/announcements", response_model=CommunityChannelAnnouncementListResponse)
+def list_channel_announcements(
+    channel_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_member(db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+    items, total = crud_community_channel.list_channel_announcements(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        skip=skip,
+        limit=limit,
+    )
+    return {"items": items, "total": total}
+
+
+@router.post("/channels/{channel_id}/announcements", response_model=CommunityChannelAnnouncementResponse)
+def create_channel_announcement(
+    channel_id: int,
+    body: CommunityChannelAnnouncementCreate,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    """发布频道公告。权限：仅频道管理员（混合账号场景下 RBAC 管理员可发，与帖子 D17 一致免审）。"""
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    member = _ensure_channel_admin(
+        db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id
+    )
+
+    is_platform_admin = ctx.has_any_role(db)
+    if member.role == "admin" or is_platform_admin:
+        announcement_status = 1
+    else:
+        announcement_status, _ = _resolve_review_status(
+            text=f"{body.title}\n{body.content}",
+            bypass=False,
+        )
+
+    ann = crud_community_channel.create_channel_announcement(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        author_user_id=ctx.user_id,
+        title=body.title,
+        content=body.content,
+        content_format=body.content_format or "html",
+        images=body.images,
+        status=announcement_status,
+    )
+    detail = crud_community_channel.get_channel_announcement_detail(
+        db, tenant_id=ctx.tenant_id, announcement_id=ann.id
+    )
+    if not detail:
+        raise HTTPException(status_code=500, detail="公告创建成功但读取失败")
+    return detail
+
+
+@router.get("/channels/{channel_id}/announcements/summary", response_model=CommunityChannelAnnouncementSummaryResponse)
+def get_channel_announcement_summary(
+    channel_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    """公告概要：条数与最近一条（用于公告栏入口卡片渲染决策）。"""
+    _ensure_channel_member(db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+    return crud_community_channel.get_channel_announcement_summary(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+    )
+
+
+@router.get(
+    "/channels/{channel_id}/announcements/{announcement_id}",
+    response_model=CommunityChannelAnnouncementResponse,
+)
+def get_channel_announcement_detail(
+    channel_id: int,
+    announcement_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_member(db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+    detail = crud_community_channel.get_channel_announcement_detail(
+        db, tenant_id=ctx.tenant_id, announcement_id=announcement_id
+    )
+    if not detail or detail["channel_id"] != channel_id:
+        raise HTTPException(status_code=404, detail="公告不存在")
+    return detail
+
+
+@router.delete("/channels/{channel_id}/announcements/{announcement_id}")
+def delete_channel_announcement(
+    channel_id: int,
+    announcement_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    """删除公告。权限：发布人本人或频道管理员。"""
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    member = _ensure_channel_member(
+        db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id
+    )
+    detail = crud_community_channel.get_channel_announcement_detail(
+        db, tenant_id=ctx.tenant_id, announcement_id=announcement_id
+    )
+    if not detail or detail["channel_id"] != channel_id:
+        raise HTTPException(status_code=404, detail="公告不存在")
+    if detail["author_user_id"] != ctx.user_id and member.role != "admin":
+        raise HTTPException(status_code=403, detail="你没有删除该公告的权限")
+    deleted = crud_community_channel.delete_channel_announcement(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        announcement_id=announcement_id,
+    )
+    if not deleted:
+        raise HTTPException(status_code=404, detail="公告不存在")
+    return {"success": True}
 
 
 @router.post("/channels/avatar-upload")

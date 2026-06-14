@@ -355,3 +355,62 @@ class CommunityModerationQueueResponse(BaseModel):
     activity_comments: CommunityCommentListResponse
     channel_posts: CommunityChannelPostListResponse
     channel_comments: CommunityChannelCommentListResponse
+
+
+# ============================================================
+# 社区频道公告 (community_channel_announcement) DTO
+# ============================================================
+
+
+class CommunityChannelAnnouncementCreate(BaseModel):
+    title: str = Field(..., max_length=120)
+    content: str = Field(..., max_length=10000)
+    content_format: Optional[str] = "html"
+    images: List[str] = Field(default_factory=list, max_length=9)
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        return _normalize_required_text(value, "标题", 120)
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, value: str) -> str:
+        return _normalize_required_text(value, "正文", 10000)
+
+    @field_validator("images")
+    @classmethod
+    def validate_images(cls, value: List[str]) -> List[str]:
+        return CommunityPostCreate.validate_images(value)
+
+
+class CommunityChannelAnnouncementResponse(BaseModel):
+    id: int
+    channel_id: int
+    author_user_id: int
+    author_name: str
+    author_avatar_url: Optional[str] = None
+    author_update_time: Optional[datetime] = None
+    title: str
+    content: str
+    content_format: Optional[str] = None
+    images: List[str] = Field(default_factory=list)
+    status: int
+    create_time: datetime
+    update_time: datetime
+
+
+class CommunityChannelAnnouncementListResponse(BaseModel):
+    items: List[CommunityChannelAnnouncementResponse]
+    total: int
+
+
+class CommunityChannelAnnouncementSummaryLatest(BaseModel):
+    id: int
+    title: str
+    create_time: datetime
+
+
+class CommunityChannelAnnouncementSummaryResponse(BaseModel):
+    total: int
+    latest: Optional[CommunityChannelAnnouncementSummaryLatest] = None

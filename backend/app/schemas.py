@@ -458,6 +458,19 @@ class CommunityChannelComment(BaseModel):
     status = Column(SmallInteger, default=1, nullable=False, index=True)
 
 
+class CommunityChannelAnnouncement(BaseModel):
+    __tablename__ = "community_channel_announcement"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    channel_id = Column(Integer, nullable=False, index=True)
+    author_user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    # 公告与帖子一样走富文本 HTML；content 容量按 MEDIUMTEXT 在 table.sql 处理
+    content = Column(Text, nullable=False)
+    content_format = Column(String(16), nullable=False, default="html")
+    images = Column(Text, nullable=True)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
 class CommunityMediaModerationTask(BaseModel):
     __tablename__ = "community_media_moderation_task"
     tenant_id = Column(Integer, nullable=False, index=True)

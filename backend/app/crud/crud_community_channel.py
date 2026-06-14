@@ -8,6 +8,7 @@ from app.models.community import CommunityChannelCreate
 from app.models.community import CommunityChannelUpdate
 from app.schemas import (
     CommunityChannel,
+    CommunityChannelAnnouncement,
     CommunityChannelComment,
     CommunityChannelMember,
     CommunityChannelPost,
@@ -573,6 +574,11 @@ def delete_channel(
         CommunityChannelMember.channel_id == channel_id,
     ).delete(synchronize_session=False)
 
+    deleted_announcement_count = db.query(CommunityChannelAnnouncement).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.channel_id == channel_id,
+    ).delete(synchronize_session=False)
+
     deleted_notification_count = db.query(CommunityNotification).filter(
         CommunityNotification.tenant_id == tenant_id,
         CommunityNotification.type == "channel_invite",
@@ -603,6 +609,7 @@ def delete_channel(
         "deleted_comments": int(deleted_comment_count or 0),
         "deleted_posts": int(deleted_post_count or 0),
         "deleted_members": int(deleted_member_count or 0),
+        "deleted_announcements": int(deleted_announcement_count or 0),
         "deleted_notifications": int(deleted_notification_count or 0),
         "deleted_tasks": int(deleted_task_count or 0),
     }
@@ -1044,3 +1051,152 @@ def list_pending_channel_comments(
             }
         )
     return items, int(total)
+
+
+# ============================================================
+# 社区频道公告 (community_channel_announcement) CRUD
+# ============================================================
+
+
+def _serialize_announcement(
+    ann: CommunityChannelAnnouncement, user: User
+) -> dict:
+    return {
+        "id": ann.id,
+        "channel_id": ann.channel_id,
+        "author_user_id": ann.author_user_id,
+        "author_name": user.name or "用户",
+        "author_avatar_url": user.avatar_url,
+        "author_update_time": user.update_time,
+        "title": ann.title,
+        "content": ann.content,
+        "content_format": ann.content_format,
+        "images": _normalize_images(ann.images),
+        "status": ann.status,
+        "create_time": ann.create_time,
+        "update_time": ann.update_time,
+    }
+
+
+def create_channel_announcement(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    author_user_id: int,
+    title: str,
+    content: str,
+    content_format: str,
+    images: list[str],
+    status: int = 1,
+) -> CommunityChannelAnnouncement:
+    ann = CommunityChannelAnnouncement(
+        tenant_id=tenant_id,
+        channel_id=channel_id,
+        author_user_id=author_user_id,
+        title=title,
+        content=content,
+        content_format=content_format or "html",
+        images=json.dumps(images, ensure_ascii=False),
+        status=status,
+    )
+    db.add(ann)
+    db.commit()
+    db.refresh(ann)
+    return ann
+
+
+def list_channel_announcements(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    skip: int,
+    limit: int,
+) -> tuple[list[dict], int]:
+    total = db.query(func.count(CommunityChannelAnnouncement.id)).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.channel_id == channel_id,
+        CommunityChannelAnnouncement.status == 1,
+    ).scalar() or 0
+
+    rows = db.query(CommunityChannelAnnouncement, User).join(
+        User,
+        (User.id == CommunityChannelAnnouncement.author_user_id)
+        & (User.tenant_id == CommunityChannelAnnouncement.tenant_id),
+    ).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.channel_id == channel_id,
+        CommunityChannelAnnouncement.status == 1,
+    ).order_by(
+        CommunityChannelAnnouncement.create_time.desc(),
+    ).offset(skip).limit(limit).all()
+
+    items = [_serialize_announcement(ann, user) for ann, user in rows]
+    return items, int(total)
+
+
+def get_channel_announcement_detail(
+    db: Session,
+    *,
+    tenant_id: int,
+    announcement_id: int,
+) -> dict | None:
+    row = db.query(CommunityChannelAnnouncement, User).join(
+        User,
+        (User.id == CommunityChannelAnnouncement.author_user_id)
+        & (User.tenant_id == CommunityChannelAnnouncement.tenant_id),
+    ).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.id == announcement_id,
+        CommunityChannelAnnouncement.status == 1,
+    ).first()
+    if not row:
+        return None
+    ann, user = row
+    return _serialize_announcement(ann, user)
+
+
+def get_channel_announcement_summary(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+) -> dict:
+    total = db.query(func.count(CommunityChannelAnnouncement.id)).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.channel_id == channel_id,
+        CommunityChannelAnnouncement.status == 1,
+    ).scalar() or 0
+    latest_row = db.query(CommunityChannelAnnouncement).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.channel_id == channel_id,
+        CommunityChannelAnnouncement.status == 1,
+    ).order_by(
+        CommunityChannelAnnouncement.create_time.desc(),
+    ).first()
+    latest = None
+    if latest_row is not None:
+        latest = {
+            "id": latest_row.id,
+            "title": latest_row.title,
+            "create_time": latest_row.create_time,
+        }
+    return {"total": int(total), "latest": latest}
+
+
+def delete_channel_announcement(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    announcement_id: int,
+) -> bool:
+    """硬删除一条公告（status=0 表示软删，==1 表示在用；本项目按硬删走）。"""
+    deleted = db.query(CommunityChannelAnnouncement).filter(
+        CommunityChannelAnnouncement.tenant_id == tenant_id,
+        CommunityChannelAnnouncement.channel_id == channel_id,
+        CommunityChannelAnnouncement.id == announcement_id,
+    ).delete(synchronize_session=False)
+    db.commit()
+    return int(deleted or 0) > 0

@@ -90,6 +90,7 @@
 | 规格项 | 描述 | 状态 | 说明 |
 |--------|------|------|------|
 | 社区频道 | 小程序支持频道列表、频道发帖、频道详情、成员管理、删除频道、评论与通知 | ⚠️ 部分实现 | 已完成按设计稿纠偏的发帖页与单列帖子流，并将频道管理内页重做为 iPhone 风格的极简成员页；频道删除会级联清理帖子、评论和成员数据；Flutter 端待补 |
+| 频道公告 | 社区频道内独立入口发布公告、与帖子并列独立页展示 | ⏳ 规格已立，待开发 | 公告与帖子是两类独立资源（独立表、独立 API、独立页 + 独立发布入口），仅频道管理员可发，免审；入口以「动态流上方公告栏卡片」形态呈现，不采用 tab 切换；发布人/频道管理员可删除公告；详见 [SPEC-11_社区-频道公告.md](SPEC-11_社区-频道公告.md) |
 | 角色：老师/学生 | 平台存在老师、学生两种角色 | ❌ 未实现 | 需单独设计 |
 | 老师发布学习视频 | 老师可创建教导活动，发布学习视频 | ❌ 未实现 | 需内容模型 |
 | 学生跟练与打卡 | 学生跟练并上传打卡 | ❌ 未实现 | 需打卡内容类型 |
@@ -109,7 +110,7 @@
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
 | 我的页信息架构 | 一级菜单包含「设置」「协议和说明」 | ✅ 已实现 | 设置承载账号操作，协议页承载文档入口 |
 | 报名页极简重排版 | 小程序活动报名页采用克制的高级字体层级与文字入口式提交 | ✅ 已实现 | 保留原版式结构，统一为 PingFang SC / SF Pro 字体系统与极细分隔线 |
-| 活动展示页字体升级 | 小程序首页/活动列表/活动详情三页接入落尘无衬 P0 (Lorchin Sans P0) | ✅ 已实现 | 走 `wx.loadFontFace` + 后端 `/uploads/fonts/LorchinSansP0.woff2` 网络字体，统一收口为同一字体系统 |
+| 活动展示页字体升级 | 小程序首页/活动列表/活动详情三页接入落尘无衬 P0 (Lorchin Sans P0) | ✅ 已实现 | 走 `wx.loadFontFace` + 后端 `/uploads/fonts/LorchinSansP0.woff2` 网络字体，当前线上字体为基于小程序实际文案字符集裁切的子集版，原始全量字体保留为 `/uploads/fonts/LorchinSansP0.full.woff2` 备用 |
 
 ---
 
@@ -128,6 +129,8 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-06-14 | 立项社区频道公告能力：公告与帖子是独立资源（独立表 `community_channel_announcement`、独立 API `/community/channels/{id}/announcements`、独立页 `community-announcement-list/detail/create` + 频道内 tab 容器 `community-channel-tabs`），仅频道管理员可发、免审、跨租户校验、删频道级联清理 | [SPEC-11_社区-频道公告.md](SPEC-11_社区-频道公告.md) |
+| 2026-06-14 | 小程序活动展示页字体子集化：从当前小程序文案提取可用字符生成 `backend/uploads/fonts/LorchinSansP0.woff2` 子集字体，并保留原始全量字体为 `backend/uploads/fonts/LorchinSansP0.full.woff2` 备用，继续由 `wx.loadFontFace` 动态注册 | `backend/uploads/fonts/LorchinSansP0.woff2`, `backend/uploads/fonts/LorchinSansP0.full.woff2`, `backend/scripts/generate_lorchin_subset_font.py`, `miniprogram/app.js` |
 | 2026-06-14 | 小程序报名支付取消链路收口：取消微信支付后会同步删除后端待支付订单、对应报名记录与本地订单历史；活动详情页和报名页移除“继续支付”恢复入口，相关状态统一收敛为“报名处理中”提示 | `backend/app/api/v1/endpoints/payments.py`, `backend/tests/api/test_payments.py`, `miniprogram/pages/register/*`, `miniprogram/pages/activity-detail/*`, `miniprogram/pages/index/*`, `miniprogram/pages/my-activities/*`, `miniprogram/utils/api.js`, `miniprogram/utils/payment-order.js`, `miniprogram/utils/mine-data.js` |
 | 2026-06-14 | 修复发布动态图片不展示 & 活动动态详情打不开：发布页 onInsertImage 拆分为 imageRelativeUrl/imageDisplayUrl，编辑器插入用完整 URL、字符串快照与后端存储统一以相对路径为准（新增 _normalizeImageSrcsToRelative 反向还原），onEditorInput/onEditorBlur/_captureEditorSnapshot 写入 _editorHtml 前均做 URL 标准化；community-post-detail 双模式化，按 channelId 是否存在识别 channel/activity 模式，分别调 channel 版与 activity 版 API | `miniprogram/pages/community-post-create/community-post-create.js`, `miniprogram/pages/community-post-detail/community-post-detail.js`, `miniprogram/tests/community-post-create-page.test.js` |
 | 2026-06-14 | 修复活动详情页"发布动态"报 422：`community-post-create` 页面双模式化，按 query 自动识别 `activity` / `channel` 模式分别调 `POST /community/posts` 与 `POST /community/channels/{id}/posts`；缺参数时 toast + 自动返回，替代原"按钮仍可点"导致 URL 出现 `/channels/null/posts` 的旧行为 | `miniprogram/pages/community-post-create/community-post-create.js`, `miniprogram/pages/community-post-create/community-post-create.wxml` |
