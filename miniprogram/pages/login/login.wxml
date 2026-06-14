@@ -83,7 +83,7 @@
             hover-class="none"
           >
             <text class="poster-login-trigger-text">{{submitting ? 'LOGIN...' : 'LOGIN'}}</text>
-            <text class="poster-login-trigger-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+            <view class="poster-login-trigger-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
           </button>
 
           <view class="poster-loading-tip" wx:if="{{submitting}}">

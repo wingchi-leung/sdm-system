@@ -142,14 +142,14 @@
       <view wx:if="{{hasPendingPayment}}" class="cta-wrap pending" bindtap="onPrimaryAction">
           <view class="cta-text-row">
             <text class="cta-text">继续支付</text>
-            <text class="cta-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+            <view class="cta-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
           </view>
           <view class="cta-line"></view>
         </view>
         <view wx:elif="{{canEnroll}}" class="cta-wrap" bindtap="onPrimaryAction">
           <view class="cta-text-row">
             <text class="cta-text">报名活动</text>
-            <text class="cta-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+            <view class="cta-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
           </view>
           <view class="cta-line"></view>
         </view>

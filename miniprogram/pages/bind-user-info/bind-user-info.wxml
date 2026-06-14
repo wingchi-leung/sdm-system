@@ -137,7 +137,7 @@
   <view wx:if="{{!loading}}" class="bottom-bar">
     <button class="btn-submit" disabled="{{submitting}}" bindtap="submit">
       <text class="btn-text">{{submitting ? '提交中…' : '提交'}}</text>
-      <text class="btn-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+      <view class="btn-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
     </button>
   </view>
 </view>

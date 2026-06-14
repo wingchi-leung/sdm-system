@@ -39,7 +39,7 @@
         >
           <view class="picker-row">
             <text class="picker-value">{{activityTypeName || '请选择活动类型'}}</text>
-            <text class="picker-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+            <view class="picker-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
           </view>
         </picker>
         <input
@@ -64,13 +64,13 @@
               <picker mode="date" value="{{startDate}}" start="2020-01-01" end="2030-12-31" bindchange="onDateChange">
                 <view class="time-chip">
                   <text class="time-chip-text">{{startDate || '选择日期'}}</text>
-                  <text class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></text>
+                  <view class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></view>
                 </view>
               </picker>
               <picker mode="time" value="{{startTime}}" start="00:00" end="23:59" bindchange="onTimeChange">
                 <view class="time-chip">
                   <text class="time-chip-text">{{startTime || '选择时间'}}</text>
-                  <text class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></text>
+                  <view class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></view>
                 </view>
               </picker>
             </view>
@@ -81,13 +81,13 @@
               <picker mode="date" value="{{endDate}}" start="2020-01-01" end="2030-12-31" bindchange="onEndDateChange">
                 <view class="time-chip">
                   <text class="time-chip-text">{{endDate || '选择日期'}}</text>
-                  <text class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></text>
+                  <view class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></view>
                 </view>
               </picker>
               <picker mode="time" value="{{endTime}}" start="00:00" end="23:59" bindchange="onEndTimeChange">
                 <view class="time-chip">
                   <text class="time-chip-text">{{endTime || '选择时间'}}</text>
-                  <text class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></text>
+                  <view class="time-chip-arrow ui-chevron ui-chevron--sm ui-chevron--down"></view>
                 </view>
               </picker>
             </view>
@@ -186,7 +186,7 @@
   <view class="footer-bar">
     <button class="footer-btn footer-btn-primary" disabled="{{submitting || uploading}}" bindtap="submit">
       <text class="footer-btn-text">{{uploading ? '上传中…' : submitting ? '发布中…' : '发布活动'}}</text>
-      <text class="footer-btn-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+      <view class="footer-btn-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
     </button>
   </view>
 </view>

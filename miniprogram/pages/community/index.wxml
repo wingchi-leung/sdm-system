@@ -60,7 +60,7 @@
           <text wx:if="{{item.description}}" class="channel-desc">{{item.description}}</text>
         </view>
 
-        <text class="channel-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+        <view class="channel-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
       </view>
     </view>
   </view>

@@ -18,7 +18,7 @@
         <text class="profile-role">{{view === 'admin' ? (adminProfile.levelText || '活动管理员') : 'Welcome back'}}</text>
         <view class="profile-underline"></view>
       </view>
-      <text class="row-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+      <view class="row-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
     </view>
 
     <view class="stats-row" wx:if="{{view === 'user'}}">
@@ -40,7 +40,7 @@
             <text class="service-title">报名活动</text>
             <text class="service-desc">查看已报名和候补中的活动</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
 
         <view class="service-item" bindtap="goMyOrders">
@@ -51,7 +51,7 @@
             <text class="service-title">我的订单</text>
             <text class="service-desc">查看订单与状态</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
 
         <view class="service-item" bindtap="goSettings">
@@ -62,7 +62,7 @@
             <text class="service-title">设置</text>
             <text class="service-desc">修改个人信息、注销账号</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
 
         <view class="service-item" bindtap="goAgreementNotes">
@@ -73,7 +73,7 @@
             <text class="service-title">协议和说明</text>
             <text class="service-desc">查看隐私政策与平台说明</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
       </view>
     </view>
@@ -90,7 +90,7 @@
             <text class="service-title">发布活动</text>
             <text class="service-desc">{{adminProfile && adminProfile.canCreateActivity ? '创建新的活动' : '暂无可发布类型'}}</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
 
         <view class="service-item" bindtap="goActivityManage">
@@ -101,7 +101,7 @@
             <text class="service-title">活动管理</text>
             <text class="service-desc">编辑、删除活动</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
 
         <view class="service-item" wx:if="{{adminProfile && adminProfile.canViewUsers}}" bindtap="goUserList">
@@ -112,7 +112,7 @@
             <text class="service-title">用户管理</text>
             <text class="service-desc">查看平台所有用户</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
 
         <view class="service-item" bindtap="goCommunityModeration">
@@ -123,14 +123,14 @@
             <text class="service-title">内容审核</text>
             <text class="service-desc">审核普通用户待处理的社区内容</text>
           </view>
-          <text class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></text>
+          <view class="row-arrow row-arrow-dark ui-chevron ui-chevron--md ui-chevron--right"></view>
         </view>
       </view>
     </view>
 
     <view class="logout-row" bindtap="logout">
       <text class="logout-text">退出登录</text>
-      <text class="logout-arrow ui-chevron ui-chevron--md ui-chevron--right"></text>
+      <view class="logout-arrow ui-chevron ui-chevron--md ui-chevron--right"></view>
     </view>
   </view>
 </view>

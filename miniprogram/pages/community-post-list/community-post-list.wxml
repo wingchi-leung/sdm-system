@@ -19,7 +19,7 @@
         <view class="head-actions">
         <view wx:if="{{showManageButton}}" class="manage-btn" bindtap="onManageMembers">
           <text class="manage-btn-text">成员管理</text>
-          <text class="manage-btn-arrow ui-chevron ui-chevron--sm ui-chevron--right"></text>
+          <view class="manage-btn-arrow ui-chevron ui-chevron--sm ui-chevron--right"></view>
         </view>
         <view wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreatePost">+</view>
       </view>
