@@ -28,7 +28,13 @@ class ParticipantResponse(ParticipantBase):
     review_reason: Optional[str] = Field(None, description="审核拒绝原因")
     payment_status: Optional[int] = Field(None, description="支付状态：0-无需支付 1-待支付 2-已支付")
     payment_order_id: Optional[int] = Field(None, description="支付订单ID")
+    payment_order_no: Optional[str] = Field(None, description="支付订单号")
     paid_amount: Optional[int] = Field(None, description="实际支付金额（分）")
+    refund_status: Optional[int] = Field(None, description="退款状态：0-无退款 1-待退款 2-处理中 3-成功 4-失败 5-关闭")
+    refund_amount: Optional[int] = Field(None, description="退款金额（分）")
+    refund_apply_at: Optional[datetime] = Field(None, description="退款申请时间")
+    refund_success_at: Optional[datetime] = Field(None, description="退款成功时间")
+    refund_fail_reason: Optional[str] = Field(None, description="退款失败原因")
     create_time: datetime
     update_time: datetime
 

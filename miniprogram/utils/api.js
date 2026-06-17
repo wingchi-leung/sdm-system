@@ -878,6 +878,29 @@ function queryPaymentOrder(orderNo) {
   });
 }
 
+/** 发起订单退款（管理员） */
+function createPaymentRefund(orderNo, reason, idempotencyKey) {
+  const payload = {
+    reason: (reason || '').trim(),
+  };
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/payments/${encodeURIComponent(orderNo)}/refund`,
+      method: 'POST',
+      header: {
+        ...getHeader(true),
+        'Idempotency-Key': (idempotencyKey || '').trim(),
+      },
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 取消待支付订单 */
 function cancelPaymentOrder(orderNo) {
   return new Promise((resolve, reject) => {
@@ -1567,6 +1590,7 @@ module.exports = {
   createPaymentOrder,
   queryPaymentOrder,
   cancelPaymentOrder,
+  createPaymentRefund,
   uploadPoster,
   uploadCommunityImage,
   uploadAvatar,

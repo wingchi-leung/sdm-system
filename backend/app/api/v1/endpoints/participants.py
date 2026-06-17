@@ -126,6 +126,22 @@ def get_activity_participants(
         skip=skip,
         limit=limit
     )
+    payment_order_ids = [item.payment_order_id for item in participants if item.payment_order_id]
+    payment_orders = []
+    if payment_order_ids:
+        payment_orders = db.query(PaymentOrder).filter(
+            PaymentOrder.tenant_id == ctx.tenant_id,
+            PaymentOrder.id.in_(payment_order_ids),
+        ).all()
+    payment_order_map = {order.id: order for order in payment_orders}
+    for item in participants:
+        payment_order = payment_order_map.get(item.payment_order_id)
+        setattr(item, "payment_order_no", payment_order.order_no if payment_order else None)
+        setattr(item, "refund_status", payment_order.refund_status if payment_order else None)
+        setattr(item, "refund_amount", payment_order.refund_amount if payment_order else None)
+        setattr(item, "refund_apply_at", payment_order.refund_apply_at if payment_order else None)
+        setattr(item, "refund_success_at", payment_order.refund_success_at if payment_order else None)
+        setattr(item, "refund_fail_reason", payment_order.refund_fail_reason if payment_order else None)
     return {"items": participants, "total": total}
 
 

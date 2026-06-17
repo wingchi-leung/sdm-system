@@ -31,6 +31,30 @@
         <text class="info-label">报名时间</text>
         <text class="info-value">{{item.create_time}}</text>
       </view>
+      <view class="participant-info" wx:if="{{item.payment_order_no}}">
+        <text class="info-label">订单号</text>
+        <text class="info-value">{{item.payment_order_no}}</text>
+      </view>
+      <view class="participant-info" wx:if="{{item.payment_status === 2}}">
+        <text class="info-label">退款状态</text>
+        <text class="info-value refund-status {{item.refund_status_class}}">{{item.refund_status_text}}</text>
+      </view>
+      <view class="participant-info" wx:if="{{item.refund_reason_text}}">
+        <text class="info-label">退款原因</text>
+        <text class="info-value">{{item.refund_reason_text}}</text>
+      </view>
+      <view class="participant-actions">
+        <button
+          wx:if="{{item.can_refund}}"
+          class="refund-btn"
+          data-id="{{item.id}}"
+          loading="{{refundingParticipantId === item.id}}"
+          disabled="{{refundingParticipantId === item.id}}"
+          bindtap="onRefund"
+        >
+          {{item.refund_action_text}}
+        </button>
+      </view>
     </view>
 
     <!-- 分页 -->

@@ -95,6 +95,47 @@
   color: #666666;
 }
 
+.participant-info .refund-status.is-pending {
+  color: #b26a00;
+}
+
+.participant-info .refund-status.is-processing {
+  color: #1b7a5a;
+}
+
+.participant-info .refund-status.is-success {
+  color: #0f8b3d;
+}
+
+.participant-info .refund-status.is-failed {
+  color: #c43d3d;
+}
+
+.participant-info .refund-status.is-closed {
+  color: #999999;
+}
+
+.participant-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12rpx 0 0 52rpx;
+}
+
+.refund-btn {
+  margin: 0;
+  padding: 0 28rpx;
+  height: 64rpx;
+  line-height: 64rpx;
+  border-radius: 18rpx;
+  background: #111111;
+  color: #ffffff;
+  font-size: 24rpx;
+}
+
+.refund-btn[disabled] {
+  opacity: 0.6;
+}
+
 .pagination {
   display: flex;
   align-items: center;

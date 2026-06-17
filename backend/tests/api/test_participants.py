@@ -3,6 +3,9 @@
 """
 import pytest
 from fastapi import status
+
+from app.crud import crud_payment
+from app.schemas import PaymentOrder
 from app.core.pii import mask_identity_number, mask_name, mask_phone
 from tests.conftest import auth_headers
 
@@ -229,6 +232,33 @@ class TestParticipantRetrieval:
     def test_get_activity_participants(self, client, super_admin_token, sample_activity, db_session):
         """测试获取活动参与者列表"""
         from tests.factories import ParticipantFactory
+        linked_participant = ParticipantFactory(
+            activity_id=sample_activity.id,
+            participant_name="退款参与者",
+            payment_status=2,
+            paid_amount=1000,
+        )
+        db_session.add(linked_participant)
+        db_session.flush()
+        linked_order = PaymentOrder(
+            tenant_id=sample_activity.tenant_id,
+            order_no="PO_PARTICIPANT_REFUND_001",
+            activity_id=sample_activity.id,
+            user_id=linked_participant.user_id,
+            participant_id=linked_participant.id,
+            suggested_fee=1000,
+            actual_fee=1000,
+            status=crud_payment.PAYMENT_STATUS_SUCCESS,
+            openid="openid_participant_refund",
+            prepay_id="prepay_participant_refund",
+            refund_status=crud_payment.REFUND_STATUS_PENDING,
+            refund_amount=1000,
+            refund_fail_reason="审核拒绝退款",
+            expire_at=linked_participant.create_time,
+        )
+        db_session.add(linked_order)
+        db_session.flush()
+        linked_participant.payment_order_id = linked_order.id
         for i in range(5):
             participant = ParticipantFactory(
                 activity_id=sample_activity.id,
@@ -249,6 +279,11 @@ class TestParticipantRetrieval:
         assert data.get("total", 0) >= 5
         assert data["items"][0]["payment_status"] in [0, 2]
         assert "paid_amount" in data["items"][0]
+        linked_item = next(
+            item for item in data["items"] if item.get("payment_order_no") == "PO_PARTICIPANT_REFUND_001"
+        )
+        assert linked_item["refund_status"] == crud_payment.REFUND_STATUS_PENDING
+        assert linked_item["refund_fail_reason"] == "审核拒绝退款"
 
     def test_get_participants_unauthorized(self, client, user_token, sample_activity):
         """测试普通用户获取参与者列表"""
