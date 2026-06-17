@@ -32,8 +32,8 @@ function canRefundParticipant(participant) {
   const refundStatus = Number(participant.refund_status || 0);
   const hasOrderNo = !!String(participant.payment_order_no || '').trim();
   if (paymentStatus !== 2 || !hasOrderNo) return false;
-  if (refundStatus === 2 || refundStatus === 3 || refundStatus === 5) return false;
-  return reviewStatus === 2 || refundStatus === 1 || refundStatus === 4 || refundStatus === 0;
+  if (reviewStatus !== 2) return false;
+  return refundStatus === 0 || refundStatus === 1 || refundStatus === 4;
 }
 
 function getRefundActionText(participant) {
@@ -43,6 +43,13 @@ function getRefundActionText(participant) {
   if (refundStatus === 3) return '已退款';
   if (refundStatus === 5) return '退款已关闭';
   return '执行退款';
+}
+
+function resolveRefundIdempotencyKey(participant) {
+  const orderNo = String(participant && participant.payment_order_no ? participant.payment_order_no : '').trim();
+  const latestRefundId = Number(participant && participant.refund_latest_id ? participant.refund_latest_id : 0);
+  const nextSeq = Number.isFinite(latestRefundId) && latestRefundId > 0 ? latestRefundId + 1 : 1;
+  return orderNo ? `refund-${orderNo}-${nextSeq}` : '';
 }
 
 Page({
@@ -71,13 +78,17 @@ Page({
   },
 
   ensureAdminAccess() {
+    if (!auth.isLoggedIn()) {
+      this.resetSensitiveData();
+      auth.redirectToLogin('请先使用管理员账号登录');
+      return false;
+    }
     if (auth.isAdmin()) {
       this.setData({ isAdmin: true });
       return true;
     }
     this.resetSensitiveData();
-    wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
-    setTimeout(() => wx.navigateBack(), 1500);
+    auth.redirectToLogin('请先使用管理员账号登录');
     return false;
   },
 
@@ -184,7 +195,10 @@ Page({
         if (!res.confirm) return;
         this.setData({ refundingParticipantId: participantId });
         try {
-          const idempotencyKey = `refund-${participantId}-${Date.now()}`;
+          const idempotencyKey = resolveRefundIdempotencyKey(participant);
+          if (!idempotencyKey) {
+            throw new Error('缺少退款单号，无法发起退款');
+          }
           await api.createPaymentRefund(orderNo, reason, idempotencyKey);
           wx.showToast({ title: '退款已提交', icon: 'success' });
           await this.loadParticipants();

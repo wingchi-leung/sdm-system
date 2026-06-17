@@ -32,6 +32,8 @@ class ParticipantResponse(ParticipantBase):
     paid_amount: Optional[int] = Field(None, description="实际支付金额（分）")
     refund_status: Optional[int] = Field(None, description="退款状态：0-无退款 1-待退款 2-处理中 3-成功 4-失败 5-关闭")
     refund_amount: Optional[int] = Field(None, description="退款金额（分）")
+    refund_latest_id: Optional[int] = Field(None, description="最近一笔退款流水ID")
+    refund_out_refund_no: Optional[str] = Field(None, description="最近一笔退款单号")
     refund_apply_at: Optional[datetime] = Field(None, description="退款申请时间")
     refund_success_at: Optional[datetime] = Field(None, description="退款成功时间")
     refund_fail_reason: Optional[str] = Field(None, description="退款失败原因")

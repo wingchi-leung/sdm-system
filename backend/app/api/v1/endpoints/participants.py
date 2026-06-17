@@ -6,7 +6,7 @@ from pydantic import ValidationError
 from app.crud import crud_participant, crud_payment, crud_user
 from app.models import participant
 from app.api import deps
-from app.schemas import Activity, ActivityParticipant, PaymentOrder
+from app.schemas import Activity, ActivityParticipant, PaymentOrder, PaymentRefund
 
 router = APIRouter()
 
@@ -128,17 +128,29 @@ def get_activity_participants(
     )
     payment_order_ids = [item.payment_order_id for item in participants if item.payment_order_id]
     payment_orders = []
+    payment_refunds = []
     if payment_order_ids:
         payment_orders = db.query(PaymentOrder).filter(
             PaymentOrder.tenant_id == ctx.tenant_id,
             PaymentOrder.id.in_(payment_order_ids),
         ).all()
+        payment_refunds = db.query(PaymentRefund).filter(
+            PaymentRefund.tenant_id == ctx.tenant_id,
+            PaymentRefund.payment_order_id.in_(payment_order_ids),
+        ).order_by(PaymentRefund.id.desc()).all()
     payment_order_map = {order.id: order for order in payment_orders}
+    refund_map: dict[int, PaymentRefund] = {}
+    for refund in payment_refunds:
+        if refund.payment_order_id not in refund_map:
+            refund_map[refund.payment_order_id] = refund
     for item in participants:
         payment_order = payment_order_map.get(item.payment_order_id)
+        refund = refund_map.get(item.payment_order_id)
         setattr(item, "payment_order_no", payment_order.order_no if payment_order else None)
         setattr(item, "refund_status", payment_order.refund_status if payment_order else None)
         setattr(item, "refund_amount", payment_order.refund_amount if payment_order else None)
+        setattr(item, "refund_latest_id", refund.id if refund else None)
+        setattr(item, "refund_out_refund_no", refund.out_refund_no if refund else None)
         setattr(item, "refund_apply_at", payment_order.refund_apply_at if payment_order else None)
         setattr(item, "refund_success_at", payment_order.refund_success_at if payment_order else None)
         setattr(item, "refund_fail_reason", payment_order.refund_fail_reason if payment_order else None)

@@ -5,6 +5,7 @@ import pytest
 from fastapi import status
 
 from app.crud import crud_payment
+from app.crud import crud_refund
 from app.schemas import PaymentOrder
 from app.core.pii import mask_identity_number, mask_name, mask_phone
 from tests.conftest import auth_headers
@@ -229,7 +230,7 @@ class TestParticipantRegistration:
 class TestParticipantRetrieval:
     """参与者查询测试"""
 
-    def test_get_activity_participants(self, client, super_admin_token, sample_activity, db_session):
+    def test_get_activity_participants(self, client, super_admin_token, sample_activity, sample_user, db_session):
         """测试获取活动参与者列表"""
         from tests.factories import ParticipantFactory
         linked_participant = ParticipantFactory(
@@ -259,6 +260,23 @@ class TestParticipantRetrieval:
         db_session.add(linked_order)
         db_session.flush()
         linked_participant.payment_order_id = linked_order.id
+        linked_refund = crud_refund.create_refund(
+            db=db_session,
+            tenant_id=sample_activity.tenant_id,
+            payment_order_id=linked_order.id,
+            participant_id=linked_participant.id,
+            out_refund_no=crud_refund.generate_out_refund_no(
+                tenant_id=sample_activity.tenant_id,
+                payment_order_id=linked_order.id,
+                seq=1,
+            ),
+            amount=1000,
+            idempotency_key="idem-participant-refund",
+            operator_id=sample_user.id,
+            reason="审核拒绝退款",
+            request_raw={"order_no": linked_order.order_no},
+        )
+        crud_refund.mark_processing(db_session, linked_refund, request_raw={"status": "PROCESSING"})
         for i in range(5):
             participant = ParticipantFactory(
                 activity_id=sample_activity.id,
@@ -282,6 +300,8 @@ class TestParticipantRetrieval:
         linked_item = next(
             item for item in data["items"] if item.get("payment_order_no") == "PO_PARTICIPANT_REFUND_001"
         )
+        assert linked_item["refund_latest_id"] == linked_refund.id
+        assert linked_item["refund_out_refund_no"] == linked_refund.out_refund_no
         assert linked_item["refund_status"] == crud_payment.REFUND_STATUS_PENDING
         assert linked_item["refund_fail_reason"] == "审核拒绝退款"
 

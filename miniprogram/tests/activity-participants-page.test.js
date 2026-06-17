@@ -134,6 +134,7 @@ test('点击退款会调用退款接口并刷新列表', async () => {
         payment_status: 2,
         payment_order_no: 'PO_REFUND_001',
         refund_status: 1,
+        refund_latest_id: null,
         review_status: 2,
         review_reason: '审核拒绝退款',
         can_refund: true,
@@ -159,7 +160,7 @@ test('点击退款会调用退款接口并刷新列表', async () => {
   assert.ok(refundArgs);
   assert.equal(refundArgs[0], 'PO_REFUND_001');
   assert.equal(refundArgs[1], '审核拒绝退款');
-  assert.match(refundArgs[2], /^refund-11-/);
+  assert.equal(refundArgs[2], 'refund-PO_REFUND_001-1');
   assert.equal(reloadCalls, 1);
   assert.equal(page.data.refundingParticipantId, null);
 });
