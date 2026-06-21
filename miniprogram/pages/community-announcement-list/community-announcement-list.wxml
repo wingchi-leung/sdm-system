@@ -60,18 +60,7 @@
           </view>
         </view>
 
-        <view wx:if="{{item.preview_images.length === 1}}" class="ann-image-single-wrap">
-          <image
-            class="ann-image-single"
-            src="{{item.preview_images[0]}}"
-            mode="aspectFill"
-            catchtap="onPreviewImage"
-            data-id="{{item.id}}"
-            data-url="{{item.preview_images[0]}}"
-          />
-        </view>
-
-        <view wx:elif="{{item.preview_images.length > 1}}" class="ann-images-grid" style="{{item.preview_image_grid_style}}">
+        <view wx:if="{{item.preview_images.length > 0}}" class="ann-images-grid">
           <image
             wx:for="{{item.preview_images}}"
             wx:for-item="imgUrl"

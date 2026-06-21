@@ -158,9 +158,6 @@ Page({
       ...item,
       preview_blocks: previewBlocks,
       preview_images: previewImages,
-      preview_image_grid_style: previewImages.length > 1
-        ? `grid-template-columns: repeat(${Math.min(previewImages.length, 4)}, minmax(0, 1fr));`
-        : '',
       author_avatar_display_url: authorAvatar,
       create_time_display: formatRelativeTime(item.create_time),
     };
