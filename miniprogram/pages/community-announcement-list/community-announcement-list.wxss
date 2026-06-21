@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: #f8f8fc;
+  background: #ffffff;
   color: #101828;
   padding-bottom: calc(132rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
@@ -141,17 +141,17 @@
 .ann-list {
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
-  margin-top: 22rpx;
+  margin-top: 18rpx;
 }
 
 .ann-card {
-  background: #ffffff;
-  border: 1rpx solid rgba(15, 23, 42, 0.05);
-  border-radius: 30rpx;
-  padding: 22rpx 22rpx 20rpx;
+  padding: 22rpx 4rpx 22rpx;
   box-sizing: border-box;
-  box-shadow: 0 12rpx 30rpx rgba(15, 23, 42, 0.04);
+  border-top: 1rpx solid rgba(15, 23, 42, 0.08);
+}
+
+.ann-card:first-child {
+  border-top: 0;
 }
 
 .ann-card-head {
@@ -181,7 +181,7 @@
 
 .ann-title {
   display: block;
-  margin-top: 16rpx;
+  margin-top: 12rpx;
   color: #101828;
   font-size: 39rpx;
   line-height: 1.22;
@@ -222,7 +222,7 @@
 .ann-image-single {
   width: 100%;
   height: 430rpx;
-  border-radius: 10rpx;
+  border-radius: 12rpx;
   background: #f2f4f7;
   object-fit: cover;
 }
@@ -236,7 +236,7 @@
 .ann-image-grid-item {
   width: 100%;
   height: 220rpx;
-  border-radius: 10rpx;
+  border-radius: 12rpx;
   background: #f2f4f7;
   object-fit: cover;
 }
@@ -246,7 +246,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16rpx;
-  margin-top: 20rpx;
+  margin-top: 18rpx;
 }
 
 .ann-author-row {
@@ -297,7 +297,7 @@
 .ann-loadmore {
   display: flex;
   justify-content: center;
-  padding: 32rpx 0;
+  padding: 28rpx 0;
 }
 
 .ann-loadmore-link {
