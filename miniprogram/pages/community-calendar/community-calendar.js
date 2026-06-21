@@ -106,7 +106,7 @@ Page({
       }));
 
       const nextSelectedDate = selectedDate || `${year}-${String(month).padStart(2, '0')}-01`;
-      const selectedEvents = normalizedEvents.filter((item) => item.date_key === nextSelectedDate);
+      const selectedEvents = await this.loadDayEvents(nextSelectedDate, normalizedEvents);
       const latestEvent = summary.latest
         ? {
             ...summary.latest,
@@ -151,12 +151,43 @@ Page({
   onSelectDate(e) {
     const date = String(e.detail?.date || '');
     if (!date) return;
-    const selectedEvents = (this.data.events || []).filter((item) => item.date_key === date);
+    this.loadDayForSelection(date);
+  },
+
+  async loadDayForSelection(date) {
+    if (!this.data.channelId || !date) return;
     this.setData({
       selectedDate: date,
       selectedDayLabel: formatDayLabel(date),
-      selectedEvents,
     });
+    try {
+      const selectedEvents = await this.loadDayEvents(date);
+      this.setData({ selectedEvents });
+    } catch (err) {
+      wx.showToast({ title: err.message || '加载当天事件失败', icon: 'none' });
+    }
+  },
+
+  async loadDayEvents(date, fallbackEvents = null) {
+    if (!this.data.channelId || !date) return [];
+    try {
+      const result = await api.getCommunityChannelCalendarEvents(this.data.channelId, {
+        date,
+        skip: 0,
+        limit: 100,
+      });
+      return (result.items || []).map((item) => ({
+        ...item,
+        start_time_display: formatDateTime(item.start_time),
+        end_time_display: formatDateTime(item.end_time),
+        date_key: String(item.start_time || '').slice(0, 10),
+      }));
+    } catch (err) {
+      if (Array.isArray(fallbackEvents)) {
+        return fallbackEvents.filter((item) => item.date_key === date);
+      }
+      throw err;
+    }
   },
 
   onOpenDetail(e) {

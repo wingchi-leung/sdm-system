@@ -73,17 +73,14 @@
 
 .icon-badge {
   position: absolute;
-  top: -6rpx;
-  right: -6rpx;
-  min-width: 28rpx;
-  height: 28rpx;
-  padding: 0 6rpx;
+  top: 2rpx;
+  right: 2rpx;
+  width: 14rpx;
+  height: 14rpx;
   border-radius: 999rpx;
-  background: #111111;
-  color: #ffffff;
-  font-size: 16rpx;
-  line-height: 28rpx;
-  text-align: center;
+  background: #e64646;
+  border: 2rpx solid #ffffff;
+  box-shadow: 0 0 0 1rpx rgba(230, 70, 70, 0.12);
 }
 
 .hero-copy {
@@ -93,42 +90,17 @@
   z-index: 2;
 }
 
-.hero-title-row {
-  display: flex;
-  align-items: baseline;
-  gap: 18rpx;
-}
-
-.hero-word {
-  color: #111111;
-  font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 72rpx;
-  line-height: 1;
-  font-weight: 400;
-  letter-spacing: 0.04em;
-}
-
-.hero-word-left {
-  margin-left: 2rpx;
-}
-
-.hero-word-right {
-  margin-right: 2rpx;
-}
-
-.hero-divider {
-  color: #111111;
-  font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 48rpx;
-  line-height: 1;
-  font-weight: 300;
-  opacity: 0.75;
+.hero-title-image {
+  display: block;
+  width: 420rpx;
+  height: 178rpx;
+  max-width: 100%;
 }
 
 .hero-subtitle {
   display: flex;
   flex-direction: column;
-  margin-top: 24rpx;
+  margin-top:-30rpx;
   margin-left: 2rpx;
   color: #7a7a7a;
   font-family: "Songti SC", "STSong", "Times New Roman", serif;
@@ -300,7 +272,33 @@
 .channel-actions {
   display: flex;
   align-items: center;
-  margin-top: 12rpx;
+  gap: 12rpx;
+  margin-top: 14rpx;
+}
+
+.channel-action-chip {
+  min-height: 44rpx;
+  padding: 0 16rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999rpx;
+  background: rgba(47, 111, 232, 0.10);
+}
+
+.channel-action-chip--ghost {
+  background: rgba(17, 17, 17, 0.05);
+}
+
+.channel-action-chip__text {
+  font-size: 22rpx;
+  line-height: 1;
+  color: #2f6fe8;
+  font-weight: 600;
+}
+
+.channel-action-chip--ghost .channel-action-chip__text {
+  color: #111111;
 }
 
 .channel-manage {

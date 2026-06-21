@@ -136,11 +136,54 @@ test('社区日历页 onLoad 会拉取月汇总和事件列表', async () => {
   await new Promise((resolve) => setImmediate(resolve));
 
   assert.equal(summaryCalled, 1);
-  assert.equal(listCalled, 1);
+  assert.equal(listCalled >= 2, true);
   assert.equal(page.data.total, 2);
   assert.deepEqual(page.data.eventDates, ['2026-06-21', '2026-06-22']);
   assert.equal(page.data.selectedEvents.length, 1);
   assert.equal(page.data.selectedEvents[0].title, '周六分享会');
+});
+
+test('社区日历点选日期会按 date 精确拉取当天全部事件', async () => {
+  let dateCalled = 0;
+  const pageConfig = loadPage('../pages/community-calendar/community-calendar.js', [
+    ['../../utils/api.js', {
+      getCommunityChannelCalendarMonthSummary: async () => ({
+        year: 2026,
+        month: 6,
+        total: 2,
+        day_counts: [{ date: '2026-06-21', count: 2 }],
+        latest: null,
+      }),
+      getCommunityChannelCalendarEvents: async (_channelId, opts = {}) => {
+        if (opts.date === '2026-06-21') {
+          dateCalled += 1;
+          return {
+            items: [
+              { id: 1, title: '上午分享', event_type: 'activity', start_time: '2026-06-21T09:00:00.000Z', end_time: null, location: '', activity_name: '' },
+              { id: 2, title: '下午讨论', event_type: 'meeting', start_time: '2026-06-21T14:00:00.000Z', end_time: null, location: '', activity_name: '' },
+            ],
+            total: 2,
+          };
+        }
+        return { items: [], total: 0 };
+      },
+    }],
+    ['../../utils/tenant.js', { applyPageOptions() {}, appendTenantToUrl: (u) => u }],
+  ]);
+
+  const page = createPageInstance(pageConfig, {});
+  page.onLoad({ channelId: '9', channelName: '测试社区', channelRole: 'member' });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  page.onSelectDate({ detail: { date: '2026-06-21' } });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.equal(dateCalled >= 1, true);
+  assert.equal(page.data.selectedEvents.length, 2);
+  assert.equal(page.data.selectedEvents[0].title, '上午分享');
+  assert.equal(page.data.selectedEvents[1].title, '下午讨论');
 });
 
 test('社区日历新建页会组装正确 payload', async () => {
@@ -180,4 +223,44 @@ test('社区日历新建页会组装正确 payload', async () => {
     end_time: '2026-06-21T12:00:00',
     activity_id: 99,
   });
+});
+
+test('社区首页频道卡片可跳转到日历', () => {
+  let navigatedUrl = '';
+  const pageConfig = loadPage('../pages/community/index.js', [
+    ['../../utils/api.js', {
+      getCommunityChannels: async () => ({ items: [], total: 0 }),
+      getCommunityNotificationUnreadCount: async () => ({ unread_count: 0 }),
+    }],
+    ['../../utils/auth.js', { isAdmin: () => true }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+      appendTenantToUrl: (url, params = {}) => {
+        const query = Object.keys(params)
+          .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(params[key]))}`)
+          .join('&');
+        return query ? `${url}?${query}` : url;
+      },
+    }],
+    ['../../utils/tab-bar.js', { syncTabBarSelected() {} }],
+  ], {
+    navigateTo({ url }) {
+      navigatedUrl = url;
+    },
+  });
+
+  const page = createPageInstance(pageConfig, {});
+  page.onOpenChannelCalendar({
+    currentTarget: {
+      dataset: {
+        channel: {
+          id: 7,
+          name: '测试社区',
+          role: 'admin',
+        },
+      },
+    },
+  });
+
+  assert.match(navigatedUrl, /\/pages\/community-calendar\/community-calendar/);
 });

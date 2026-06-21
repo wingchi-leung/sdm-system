@@ -98,6 +98,14 @@
   color: rgba(15, 26, 23, 0.52);
 }
 
+.day-panel__subtitle {
+  display: block;
+  padding: 0 8rpx;
+  margin-top: -8rpx;
+  font-size: 22rpx;
+  color: rgba(15, 26, 23, 0.46);
+}
+
 .event-list {
   display: flex;
   flex-direction: column;

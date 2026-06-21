@@ -6,7 +6,7 @@
     <view class="hero-actions">
       <view class="icon-btn" bindtap="onOpenNotifications" aria-label="社区通知">
         <image class="icon-bell-image" src="/assets/icons/bell.png" mode="aspectFit" />
-        <view wx:if="{{unreadCount > 0}}" class="icon-badge">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
+        <view wx:if="{{unreadCount > 0}}" class="icon-badge" aria-hidden="true"></view>
       </view>
       <view class="icon-btn icon-btn-add" bindtap="onCreateChannel" aria-label="创建社区">
         <text class="icon-plus">＋</text>
@@ -14,11 +14,12 @@
     </view>
 
     <view class="hero-copy">
-      <view class="hero-title-row">
-        <text class="hero-word hero-word-left">认知</text>
-        <text class="hero-divider">|</text>
-        <text class="hero-word hero-word-right">视野</text>
-      </view>
+      <image
+        class="hero-title-image"
+        src="/assets/text/renzhi-shiye-community.png"
+        mode="aspectFit"
+        aria-hidden="true"
+      />
       <view class="hero-subtitle">
         <text class="hero-subtitle-line">Expand your</text>
         <text class="hero-subtitle-line">perspective.</text>
@@ -38,7 +39,6 @@
 
     <view wx:elif="{{channels.length === 0}}" class="state-wrap state-wrap-empty">
       <text class="state-title">还没有加入任何社区</text>
-      <text class="state-text">等待管理员邀请你加入新的社区。</text>
     </view>
 
     <view wx:else class="channel-section">
@@ -60,6 +60,14 @@
           <view class="channel-main">
             <text class="channel-name">{{item.name}}</text>
             <text wx:if="{{item.description}}" class="channel-desc">{{item.description}}</text>
+            <view class="channel-actions">
+              <view class="channel-action-chip" catchtap="onOpenChannelCalendar" data-channel="{{item}}">
+                <text class="channel-action-chip__text">日历</text>
+              </view>
+              <view wx:if="{{item.role === 'admin'}}" class="channel-action-chip channel-action-chip--ghost" catchtap="onManageChannelMembers" data-channel="{{item}}">
+                <text class="channel-action-chip__text">管理</text>
+              </view>
+            </view>
           </view>
 
           <text class="channel-arrow ui-chevron ui-chevron--md">›</text>

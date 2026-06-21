@@ -72,6 +72,18 @@ Page({
     });
   },
 
+  onOpenChannelCalendar(e) {
+    const channel = e.currentTarget.dataset.channel;
+    if (!channel || !channel.id) return;
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-calendar/community-calendar', {
+        channelId: channel.id,
+        channelName: channel.name || '',
+        channelRole: channel.role || 'member',
+      }),
+    });
+  },
+
   onManageChannelMembers(e) {
     const channel = e.currentTarget.dataset.channel;
     if (!channel || !channel.id) return;

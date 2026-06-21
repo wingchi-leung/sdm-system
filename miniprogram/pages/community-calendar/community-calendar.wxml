@@ -42,9 +42,10 @@
 
     <view class="day-panel">
       <view class="day-panel__header">
-        <text class="day-panel__title">{{selectedDayLabel}}</text>
+        <text class="day-panel__title">当天全部事件</text>
         <text class="day-panel__count">{{selectedEvents.length}} 条安排</text>
       </view>
+      <text class="day-panel__subtitle">{{selectedDayLabel}}</text>
 
       <view wx:if="{{selectedEvents.length > 0}}" class="event-list">
         <surface-card wx:for="{{selectedEvents}}" wx:for-item="item" wx:key="id" class="event-card" bindtap="onOpenDetail" data-id="{{item.id}}">
