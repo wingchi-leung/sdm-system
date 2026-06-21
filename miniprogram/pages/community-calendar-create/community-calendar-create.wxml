@@ -1,0 +1,94 @@
+<view class="page">
+  <page-header title="{{pageTitle}}" statusBarHeight="{{statusBarHeight}}"></page-header>
+
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">暂时无法创建事件</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="form">
+    <view class="field">
+      <text class="field-label">事件标题</text>
+      <input class="input" value="{{title}}" bindinput="onTitleInput" placeholder="请输入事件标题" placeholder-class="input-placeholder" />
+    </view>
+
+    <view class="field">
+      <text class="field-label">事件类型</text>
+      <picker mode="selector" range="{{eventTypeOptions}}" range-key="label" value="{{eventTypeIndex}}" bindchange="onEventTypeChange">
+        <view class="picker">
+          <text class="picker-value">{{eventTypeOptions[eventTypeIndex].label}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="field-label">开始时间</text>
+      <view class="datetime-row">
+        <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+          <view class="picker">
+            <text class="picker-value">{{startDate || '选择日期'}}</text>
+          </view>
+        </picker>
+        <picker mode="time" value="{{startTime}}" bindchange="onStartTimeChange">
+          <view class="picker">
+            <text class="picker-value">{{startTime || '选择时间'}}</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">结束时间</text>
+      <view class="datetime-row">
+        <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+          <view class="picker">
+            <text class="picker-value">{{endDate || '选择日期'}}</text>
+          </view>
+        </picker>
+        <picker mode="time" value="{{endTime}}" bindchange="onEndTimeChange">
+          <view class="picker">
+            <text class="picker-value">{{endTime || '选择时间'}}</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">地点</text>
+      <input class="input" value="{{location}}" bindinput="onLocationInput" placeholder="例如：朝阳区会议室" placeholder-class="input-placeholder" />
+    </view>
+
+    <view class="field">
+      <text class="field-label">关联活动 ID</text>
+      <input class="input" type="number" value="{{activityId}}" bindinput="onActivityIdInput" placeholder="选填，输入活动 ID" placeholder-class="input-placeholder" />
+    </view>
+
+    <view class="field">
+      <text class="field-label">封面图</text>
+      <view wx:if="{{coverPreviewUrl}}" class="cover-preview-wrap">
+        <image class="cover-preview" src="{{coverPreviewUrl}}" mode="aspectFill" />
+      </view>
+      <view class="cover-actions">
+        <view class="cover-btn" bindtap="onChooseCover">
+          <text class="cover-btn__text">{{coverPreviewUrl ? '更换封面图' : '上传封面图'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">说明</text>
+      <textarea class="textarea" value="{{content}}" bindinput="onContentInput" placeholder="请输入事件说明" placeholder-class="textarea-placeholder" maxlength="2000" auto-height></textarea>
+    </view>
+
+    <view class="footer">
+      <view class="submit-btn {{submitting ? 'submit-btn--loading' : ''}}" bindtap="onSubmit">
+        <text class="submit-btn__text">{{submitting ? '提交中…' : submitText}}</text>
+      </view>
+    </view>
+  </view>
+</view>

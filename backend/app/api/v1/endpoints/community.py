@@ -26,6 +26,11 @@ from app.models.community import (
     CommunityChannelAnnouncementListResponse,
     CommunityChannelAnnouncementResponse,
     CommunityChannelAnnouncementSummaryResponse,
+    CommunityChannelCalendarEventCreate,
+    CommunityChannelCalendarEventListResponse,
+    CommunityChannelCalendarEventResponse,
+    CommunityChannelCalendarEventUpdate,
+    CommunityChannelCalendarSummaryResponse,
     CommunityChannelCreate,
     CommunityChannelInviteRequest,
     CommunityChannelCommentCreate,
@@ -139,6 +144,22 @@ def _ensure_post_exists(db: Session, *, post_id: int, tenant_id: int) -> dict:
     if not post:
         raise HTTPException(status_code=404, detail="文章不存在")
     return post
+
+
+def _ensure_calendar_event_exists(
+    db: Session,
+    *,
+    event_id: int,
+    tenant_id: int,
+) -> dict:
+    event = crud_community_channel.get_channel_calendar_event_detail(
+        db,
+        tenant_id=tenant_id,
+        event_id=event_id,
+    )
+    if not event:
+        raise HTTPException(status_code=404, detail="事件不存在")
+    return event
 
 
 def _ensure_can_read_activity_community(
@@ -1292,6 +1313,159 @@ def delete_channel_announcement(
     )
     if not deleted:
         raise HTTPException(status_code=404, detail="公告不存在")
+    return {"success": True}
+
+
+@router.get("/channels/{channel_id}/calendar/events", response_model=CommunityChannelCalendarEventListResponse)
+def list_channel_calendar_events(
+    channel_id: int,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    year: int | None = Query(None, ge=1970, le=2100),
+    month: int | None = Query(None, ge=1, le=12),
+    date_value: str | None = Query(None, alias="date"),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_member(db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+    items, total = crud_community_channel.list_channel_calendar_events(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        skip=skip,
+        limit=limit,
+        year=year,
+        month=month,
+        date_value=date_value,
+    )
+    return {"items": items, "total": total}
+
+
+@router.get("/channels/{channel_id}/calendar/month-summary", response_model=CommunityChannelCalendarSummaryResponse)
+def get_channel_calendar_month_summary(
+    channel_id: int,
+    year: int = Query(..., ge=1970, le=2100),
+    month: int = Query(..., ge=1, le=12),
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_member(db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+    return crud_community_channel.get_channel_calendar_month_summary(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        year=year,
+        month=month,
+    )
+
+
+@router.post("/channels/{channel_id}/calendar/events", response_model=CommunityChannelCalendarEventResponse)
+def create_channel_calendar_event(
+    channel_id: int,
+    body: CommunityChannelCalendarEventCreate,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    _ensure_channel_admin(
+        db,
+        channel_id=channel_id,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+    )
+    if body.activity_id is not None:
+        _ensure_activity_exists(db, activity_id=body.activity_id, tenant_id=ctx.tenant_id)
+
+    event = crud_community_channel.create_channel_calendar_event(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        author_user_id=ctx.user_id,
+        title=body.title,
+        event_type=body.event_type,
+        content=body.content,
+        location=body.location,
+        cover_url=body.cover_url,
+        activity_id=body.activity_id,
+        start_time=body.start_time,
+        end_time=body.end_time,
+        status=1,
+    )
+    detail = crud_community_channel.get_channel_calendar_event_detail(
+        db,
+        tenant_id=ctx.tenant_id,
+        event_id=event.id,
+    )
+    if not detail:
+        raise HTTPException(status_code=500, detail="事件创建成功但读取失败")
+    return detail
+
+
+@router.get("/channels/{channel_id}/calendar/events/{event_id}", response_model=CommunityChannelCalendarEventResponse)
+def get_channel_calendar_event_detail(
+    channel_id: int,
+    event_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_member(db, channel_id=channel_id, tenant_id=ctx.tenant_id, user_id=ctx.user_id)
+    detail = _ensure_calendar_event_exists(db, event_id=event_id, tenant_id=ctx.tenant_id)
+    if detail["channel_id"] != channel_id:
+        raise HTTPException(status_code=404, detail="事件不存在")
+    return detail
+
+
+@router.put("/channels/{channel_id}/calendar/events/{event_id}", response_model=CommunityChannelCalendarEventResponse)
+def update_channel_calendar_event(
+    channel_id: int,
+    event_id: int,
+    body: CommunityChannelCalendarEventUpdate,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    _ensure_channel_admin(
+        db,
+        channel_id=channel_id,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+    )
+    if body.activity_id is not None:
+        _ensure_activity_exists(db, activity_id=body.activity_id, tenant_id=ctx.tenant_id)
+    detail = crud_community_channel.update_channel_calendar_event(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        event_id=event_id,
+        body=body,
+    )
+    if not detail:
+        raise HTTPException(status_code=404, detail="事件不存在")
+    return detail
+
+
+@router.delete("/channels/{channel_id}/calendar/events/{event_id}")
+def delete_channel_calendar_event(
+    channel_id: int,
+    event_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+):
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    _ensure_channel_admin(
+        db,
+        channel_id=channel_id,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+    )
+    deleted = crud_community_channel.delete_channel_calendar_event(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        event_id=event_id,
+    )
+    if not deleted:
+        raise HTTPException(status_code=404, detail="事件不存在")
     return {"success": True}
 
 

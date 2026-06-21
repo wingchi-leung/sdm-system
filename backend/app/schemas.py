@@ -93,7 +93,7 @@ class User(BaseModel, EncryptedContactMixin, EncryptedIdentityMixin):
         UniqueConstraint('email_hash', 'tenant_id', name='uk_user_email'),
     )
     tenant_id = Column(Integer, nullable=False, index=True)
-    _name_ciphertext = Column("name", String(1024))
+    name = Column(String(255), nullable=True)
     _identity_number_ciphertext = Column("identity_number", String(1024), nullable=True)
     identity_type = Column(String(20), nullable=True)
     _phone_ciphertext = Column("phone", String(1024), nullable=True)
@@ -106,14 +106,6 @@ class User(BaseModel, EncryptedContactMixin, EncryptedIdentityMixin):
     avatar_url = Column(String(500), nullable=True)
     isblock = Column(Integer, default=0)
     block_reason = Column(String(255), nullable=True)
-
-    @property
-    def name(self):
-        return decrypt_pii(self._name_ciphertext)
-
-    @name.setter
-    def name(self, value):
-        self._name_ciphertext = encrypt_pii(value)
 
     @property
     def email(self):
@@ -468,6 +460,22 @@ class CommunityChannelAnnouncement(BaseModel):
     content = Column(Text, nullable=False)
     content_format = Column(String(16), nullable=False, default="html")
     images = Column(Text, nullable=True)
+    status = Column(SmallInteger, default=1, nullable=False, index=True)
+
+
+class CommunityChannelCalendarEvent(BaseModel):
+    __tablename__ = "community_channel_calendar_event"
+    tenant_id = Column(Integer, nullable=False, index=True)
+    channel_id = Column(Integer, nullable=False, index=True)
+    activity_id = Column(Integer, nullable=True, index=True)
+    author_user_id = Column(Integer, nullable=False, index=True)
+    title = Column(String(120), nullable=False)
+    event_type = Column(String(32), nullable=False, default="activity")
+    content = Column(Text, nullable=True)
+    location = Column(String(200), nullable=True)
+    cover_url = Column(String(500), nullable=True)
+    start_time = Column(DateTime, nullable=False, index=True)
+    end_time = Column(DateTime, nullable=True)
     status = Column(SmallInteger, default=1, nullable=False, index=True)
 
 

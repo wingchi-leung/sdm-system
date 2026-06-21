@@ -1,0 +1,67 @@
+<view class="page">
+  <page-header title="社区日历" statusBarHeight="{{statusBarHeight}}">
+    <view wx:if="{{showCreateButton}}" slot="actions" class="header-actions">
+      <view class="header-create-btn" bindtap="onCreate">
+        <text class="header-create-btn__text">+ 新建</text>
+      </view>
+    </view>
+  </page-header>
+
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">暂时无法查看日历</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <surface-card class="summary-card">
+      <view class="summary-top">
+        <view class="summary-meta">
+          <text class="summary-title">{{channelName || '社区'}} 日历</text>
+          <text class="summary-subtitle">共 {{total}} 个事件</text>
+        </view>
+        <view wx:if="{{latestEvent}}" class="summary-latest">
+          <text class="summary-latest-label">最近一条</text>
+          <text class="summary-latest-title">{{latestEvent.title}}</text>
+        </view>
+      </view>
+    </surface-card>
+
+    <community-calendar
+      year="{{currentYear}}"
+      month="{{currentMonth}}"
+      selectedDate="{{selectedDate}}"
+      eventDates="{{eventDates}}"
+      bind:monthchange="onMonthChange"
+      bind:selectdate="onSelectDate"
+      bind:todaytap="onTodayTap"
+    />
+
+    <view class="day-panel">
+      <view class="day-panel__header">
+        <text class="day-panel__title">{{selectedDayLabel}}</text>
+        <text class="day-panel__count">{{selectedEvents.length}} 条安排</text>
+      </view>
+
+      <view wx:if="{{selectedEvents.length > 0}}" class="event-list">
+        <surface-card wx:for="{{selectedEvents}}" wx:for-item="item" wx:key="id" class="event-card" bindtap="onOpenDetail" data-id="{{item.id}}">
+          <view class="event-card__top">
+            <view class="event-badge event-badge--{{item.event_type}}">
+              <text class="event-badge__text">{{item.event_type}}</text>
+            </view>
+            <text class="event-time">{{item.start_time_display}}{{item.end_time_display ? ' - ' + item.end_time_display : ''}}</text>
+          </view>
+          <text class="event-title">{{item.title}}</text>
+          <text wx:if="{{item.location}}" class="event-location">{{item.location}}</text>
+          <text wx:if="{{item.activity_name}}" class="event-activity">关联活动：{{item.activity_name}}</text>
+          <text wx:if="{{item.content}}" class="event-content">{{item.content}}</text>
+        </surface-card>
+      </view>
+
+      <state-view wx:else type="empty" title="这一天还没有安排" description="切换日期看看其他时间点，或者由管理员新建一个事件。" />
+    </view>
+  </view>
+</view>

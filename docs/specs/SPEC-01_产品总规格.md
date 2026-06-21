@@ -81,7 +81,7 @@
 | 规格项 | 描述 | 状态 | 说明 |
 |--------|------|------|------|
 | 密码哈希存储 | 密码不可逆哈希，不明文 | ✅ 已实现 | `user_credential.credential_hash` |
-| 敏感字段加密 | 姓名、手机号、身份证、邮箱 AES-GCM 加密 | ✅ 已实现 | PII 处理模块 |
+| 敏感字段处理 | 姓名明文存储，手机号、身份证、邮箱 AES-GCM 加密 | ✅ 已实现 | PII 处理模块 |
 | 日志脱敏 | 日志中禁止打印完整证件号、手机号、姓名 | ✅ 已实现 | 后端敏感信息过滤器 |
 | API 响应脱敏 | 前后端 API 响应脱敏 | ✅ 已实现 | 掩码展示、盲索引查询 |
 | Web Cookie 认证 | 管理端 HttpOnly Cookie | ✅ 已实现 | `sdm_admin_session` |
@@ -92,6 +92,7 @@
 |--------|------|------|------|
 | 社区频道 | 小程序支持频道列表、频道发帖、频道详情、成员管理、删除频道、评论与通知 | ⚠️ 部分实现 | 已完成按设计稿纠偏的发帖页与单列帖子流，并将频道管理内页重做为 iPhone 风格的极简成员页；频道删除会级联清理帖子、评论和成员数据；Flutter 端待补 |
 | 频道公告 | 社区频道内独立入口发布公告、与帖子并列独立页展示 | ✅ 已实现 | 公告与帖子是两类独立资源（独立表、独立 API、独立页 + 独立发布入口），仅频道管理员可发，免审；入口以「动态流上方公告栏卡片」形态呈现，不采用 tab 切换；发布人/频道管理员可删除公告；详见 [SPEC-11_社区-频道公告.md](SPEC-11_社区-频道公告.md) |
+| 频道日历 | 社区频道内独立日历视图，用于承载活动、提醒和时间安排 | ✅ 已实现 | 已支持按频道查看月历、按日期查看事件、管理员创建/编辑/删除事件；可关联现有活动，详见 [SPEC-12_社区-频道日历.md](SPEC-12_社区-频道日历.md) |
 | 角色：老师/学生 | 平台存在老师、学生两种角色 | ❌ 未实现 | 需单独设计 |
 | 老师发布学习视频 | 老师可创建教导活动，发布学习视频 | ❌ 未实现 | 需内容模型 |
 | 学生跟练与打卡 | 学生跟练并上传打卡 | ❌ 未实现 | 需打卡内容类型 |
@@ -132,6 +133,9 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-06-21 | 社区频道日历功能落地：新增频道内独立月历组件、日历首页/详情/新建/编辑页面，以及后端事件 API、月汇总和级联删除 | `docs/specs/SPEC-12_社区-频道日历.md`, `backend/app/api/v1/endpoints/community.py`, `backend/app/crud/crud_community_channel.py`, `backend/app/models/community.py`, `backend/app/schemas.py`, `miniprogram/components/community-calendar/`, `miniprogram/pages/community-calendar*/` |
+| 2026-06-21 | 立项社区频道日历能力：为每个社区增加独立日历视图与事件管理能力，先以规格文档固化范围、角色、事件模型与页面形态 | `docs/specs/SPEC-12_社区-频道日历.md` |
+| 2026-06-21 | 取消用户姓名加密，`user.name` 改为明文存储；补充历史密文回填脚本 `backend/scripts/migrate_user_names_to_plaintext.py`，并同步修订数据安全规格 | `backend/app/schemas.py`, `backend/scripts/migrate_user_names_to_plaintext.py`, `docs/specs/SPEC-01_产品总规格.md` |
 | 2026-06-21 | 小程序社区发布页抽出公共富文本编辑器方法：标题截断、编辑器上下文、富文本快照、图片插入与正文校验统一复用，发布动态/发布公告仅保留各自业务壳与提交接口 | `miniprogram/utils/community-editor.js`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/community-announcement-create/*`, `miniprogram/tests/community-post-create-page.test.js`, `miniprogram/tests/community-announcement-create-page.test.js` |
 | 2026-06-21 | 小程序创建社区页按设计稿优化为白底极简表单：保留大标题与蓝色下划线，补齐头像上传卡片、轻边框输入框和底部文字式创建入口 | `miniprogram/pages/community-channel-create/*` |
 | 2026-06-21 | 小程序发布动态页重做为公告同款编辑器布局：标题输入 + 富文本正文 + 工具栏 + 插图按钮 + 底部发布按钮，统一频道/活动两种入口的视觉与交互 | `miniprogram/pages/community-post-create/*`, `miniprogram/tests/community-post-create-page.test.js` |

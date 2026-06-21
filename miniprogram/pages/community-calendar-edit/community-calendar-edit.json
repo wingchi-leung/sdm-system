@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "编辑日历事件",
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  }
+}

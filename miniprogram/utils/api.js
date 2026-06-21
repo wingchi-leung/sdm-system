@@ -1267,6 +1267,103 @@ function getCommunityChannelAnnouncementSummary(channelId) {
   });
 }
 
+function getCommunityChannelCalendarEvents(channelId, opts = {}) {
+  const { skip = 0, limit = 20, year, month, date } = opts;
+  let url = `${baseUrl}/community/channels/${channelId}/calendar/events?skip=${skip}&limit=${limit}`;
+  if (year != null) url += `&year=${encodeURIComponent(year)}`;
+  if (month != null) url += `&month=${encodeURIComponent(month)}`;
+  if (date) url += `&date=${encodeURIComponent(date)}`;
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelCalendarMonthSummary(channelId, year, month) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/calendar/month-summary?year=${encodeURIComponent(year)}&month=${encodeURIComponent(month)}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function createCommunityChannelCalendarEvent(channelId, payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/calendar/events`,
+      method: 'POST',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function updateCommunityChannelCalendarEvent(channelId, eventId, payload) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/calendar/events/${eventId}`,
+      method: 'PUT',
+      header: getHeader(true),
+      data: payload,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function getCommunityChannelCalendarEventDetail(channelId, eventId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/calendar/events/${eventId}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+function deleteCommunityChannelCalendarEvent(channelId, eventId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/calendar/events/${eventId}`,
+      method: 'DELETE',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 function generateCommunityInviteCode(channelId) {
   return Promise.reject(new ApiError(410, '邀请码加入功能已关闭'));
 }
@@ -1555,6 +1652,12 @@ module.exports = {
   getCommunityChannelAnnouncementDetail,
   deleteCommunityChannelAnnouncement,
   getCommunityChannelAnnouncementSummary,
+  getCommunityChannelCalendarEvents,
+  getCommunityChannelCalendarMonthSummary,
+  createCommunityChannelCalendarEvent,
+  updateCommunityChannelCalendarEvent,
+  getCommunityChannelCalendarEventDetail,
+  deleteCommunityChannelCalendarEvent,
   generateCommunityInviteCode,
   joinCommunityChannelByCode,
   createCommunityChannel,

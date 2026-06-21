@@ -414,3 +414,169 @@ class CommunityChannelAnnouncementSummaryLatest(BaseModel):
 class CommunityChannelAnnouncementSummaryResponse(BaseModel):
     total: int
     latest: Optional[CommunityChannelAnnouncementSummaryLatest] = None
+
+
+class CommunityChannelCalendarEventCreate(BaseModel):
+    title: str = Field(..., max_length=120)
+    event_type: str = Field("activity", max_length=32)
+    content: Optional[str] = Field(None, max_length=2000)
+    location: Optional[str] = Field(None, max_length=200)
+    cover_url: Optional[str] = Field(None, max_length=500)
+    activity_id: Optional[int] = Field(None, ge=1)
+    start_time: datetime
+    end_time: Optional[datetime] = None
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: str) -> str:
+        return _normalize_required_text(value, "标题", 120)
+
+    @field_validator("event_type")
+    @classmethod
+    def validate_event_type(cls, value: str) -> str:
+        normalized = (value or "").strip().lower()
+        allowed = {"activity", "meeting", "reminder", "deadline", "routine"}
+        if normalized not in allowed:
+            raise ValueError("事件类型仅支持 activity/meeting/reminder/deadline/routine")
+        return normalized
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 2000:
+            raise ValueError("事件说明不能超过2000个字符")
+        return text
+
+    @field_validator("location")
+    @classmethod
+    def validate_location(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 200:
+            raise ValueError("地点不能超过200个字符")
+        return text
+
+    @field_validator("cover_url")
+    @classmethod
+    def validate_cover_url(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 500:
+            raise ValueError("封面图地址不能超过500个字符")
+        return text
+
+
+class CommunityChannelCalendarEventUpdate(BaseModel):
+    title: Optional[str] = Field(None, max_length=120)
+    event_type: Optional[str] = Field(None, max_length=32)
+    content: Optional[str] = Field(None, max_length=2000)
+    location: Optional[str] = Field(None, max_length=200)
+    cover_url: Optional[str] = Field(None, max_length=500)
+    activity_id: Optional[int] = Field(None, ge=1)
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return _normalize_required_text(value, "标题", 120)
+
+    @field_validator("event_type")
+    @classmethod
+    def validate_event_type(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        normalized = (value or "").strip().lower()
+        allowed = {"activity", "meeting", "reminder", "deadline", "routine"}
+        if normalized not in allowed:
+            raise ValueError("事件类型仅支持 activity/meeting/reminder/deadline/routine")
+        return normalized
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 2000:
+            raise ValueError("事件说明不能超过2000个字符")
+        return text
+
+    @field_validator("location")
+    @classmethod
+    def validate_location(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 200:
+            raise ValueError("地点不能超过200个字符")
+        return text
+
+    @field_validator("cover_url")
+    @classmethod
+    def validate_cover_url(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if len(text) > 500:
+            raise ValueError("封面图地址不能超过500个字符")
+        return text
+
+
+class CommunityChannelCalendarEventResponse(BaseModel):
+    id: int
+    tenant_id: int
+    channel_id: int
+    activity_id: Optional[int] = None
+    activity_name: Optional[str] = None
+    author_user_id: int
+    author_name: str
+    author_avatar_url: Optional[str] = None
+    author_update_time: Optional[datetime] = None
+    title: str
+    event_type: str
+    content: Optional[str] = None
+    location: Optional[str] = None
+    cover_url: Optional[str] = None
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    status: int
+    create_time: datetime
+    update_time: datetime
+
+
+class CommunityChannelCalendarEventListResponse(BaseModel):
+    items: List[CommunityChannelCalendarEventResponse]
+    total: int
+
+
+class CommunityChannelCalendarDayCount(BaseModel):
+    date: str
+    count: int
+
+
+class CommunityChannelCalendarSummaryResponse(BaseModel):
+    year: int
+    month: int
+    total: int
+    day_counts: List[CommunityChannelCalendarDayCount] = Field(default_factory=list)
+    latest: Optional[CommunityChannelCalendarEventResponse] = None

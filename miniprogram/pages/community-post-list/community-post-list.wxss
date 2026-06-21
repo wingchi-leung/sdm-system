@@ -204,14 +204,47 @@
   margin-top: 2rpx;
 }
 
-.announcement-create-wrap {
+.calendar-entry-card {
+  margin-top: 24rpx;
+  padding: 24rpx 22rpx;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  margin-top: 16rpx;
-  gap: 10rpx;
+  justify-content: space-between;
+  gap: 18rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, rgba(47, 111, 232, 0.10), rgba(15, 26, 23, 0.03));
+  border: 1rpx solid rgba(47, 111, 232, 0.10);
 }
+
+.calendar-entry-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendar-entry-title {
+  display: block;
+  color: #1d2939;
+  font-size: 28rpx;
+  line-height: 1.45;
+  font-weight: 700;
+}
+
+.calendar-entry-subtitle {
+  display: block;
+  margin-top: 6rpx;
+  color: #667085;
+  font-size: 22rpx;
+  line-height: 1.45;
+}
+
+.calendar-entry-arrow {
+  flex-shrink: 0;
+  color: #2f6fe8;
+  font-size: 30rpx;
+  line-height: 1;
+  font-weight: 300;
+}
+ 
 
 .announcement-create-btn {
   width: 78rpx;

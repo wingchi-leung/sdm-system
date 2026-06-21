@@ -14,6 +14,10 @@
   <view wx:else class="content">
     <view class="toolbar">
       <view class="toolbar-actions">
+        <view wx:if="{{showCalendarButton}}" class="toolbar-btn toolbar-btn--ghost" bindtap="onOpenCalendar">
+          <text class="toolbar-btn-text">社区日历</text>
+          <text class="toolbar-btn-arrow ui-chevron ui-chevron--sm">›</text>
+        </view>
         <view wx:if="{{showManageButton}}" class="toolbar-btn toolbar-btn--ghost" bindtap="onManageMembers">
           <text class="toolbar-btn-text">社区管理</text>
           <text class="toolbar-btn-arrow ui-chevron ui-chevron--sm">›</text>
@@ -33,12 +37,7 @@
           <text class="announcement-arrow">→</text>
         </view>
       </view>
-      <view wx:if="{{showAnnouncementCreate}}" class="announcement-create-wrap">
-        <view class="announcement-create-btn" bindtap="onCreateAnnouncement" hover-class="announcement-create-btn--active">
-          <text class="announcement-create-btn__icon">＋</text>
-        </view>
-        <text class="announcement-create-btn__text">发布公告</text>
-      </view>
+     
     </view>
 
     <view wx:if="{{posts.length > 0}}" class="feed-list">
@@ -178,6 +177,14 @@
     <view wx:elif="{{showEmptyState}}" class="empty-box">
       <text class="empty-title">还没有社区动态</text>
       <text class="empty-text">社区成员发布后，会在这里展示。</text>
+    </view>
+
+    <view wx:if="{{showCalendarButton}}" class="calendar-entry-card" bindtap="onOpenCalendar">
+      <view class="calendar-entry-copy">
+        <text class="calendar-entry-title">本社区日历</text>
+        <text class="calendar-entry-subtitle">查看活动、提醒和时间安排</text>
+      </view>
+      <text class="calendar-entry-arrow">→</text>
     </view>
   </view>
 

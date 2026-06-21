@@ -29,6 +29,7 @@ Page({
     error: null,
     showCreateButton: true,
     showManageButton: false,
+    showCalendarButton: true,
     canComment: false,
     hasMorePosts: false,
     showEmptyState: false,
@@ -42,6 +43,7 @@ Page({
       // 公告发布按钮：仅频道管理员可见（不是 RBAC 的 isAdmin）
       showCreateButton: auth.isUser() || auth.isAdmin(),
       showManageButton: this.data.channelRole === 'admin',
+      showCalendarButton: true,
       canComment: auth.isUser() || auth.isAdmin(),
       showAnnouncementEntry: this.data.announcementCount > 0,
       showAnnouncementCreate: this.data.channelRole === 'admin',
@@ -510,6 +512,16 @@ Page({
   onOpenAnnouncementList() {
     wx.navigateTo({
       url: tenant.appendTenantToUrl('/pages/community-announcement-list/community-announcement-list', {
+        channelId: this.data.channelId,
+        channelName: this.data.channelName,
+        channelRole: this.data.channelRole,
+      }),
+    });
+  },
+
+  onOpenCalendar() {
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/community-calendar/community-calendar', {
         channelId: this.data.channelId,
         channelName: this.data.channelName,
         channelRole: this.data.channelRole,

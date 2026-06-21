@@ -1,0 +1,173 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6fafc 0%, #ffffff 100%);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding: 0 24rpx 40rpx;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.header-create-btn {
+  padding: 14rpx 22rpx;
+  border-radius: 999rpx;
+  background: #2f6fe8;
+}
+
+.header-create-btn__text {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.summary-card {
+  padding: 26rpx 24rpx;
+}
+
+.summary-top {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.summary-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.summary-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #0f1a17;
+}
+
+.summary-subtitle {
+  font-size: 24rpx;
+  color: rgba(15, 26, 23, 0.56);
+}
+
+.summary-latest {
+  padding: 18rpx 20rpx;
+  border-radius: 24rpx;
+  background: rgba(47, 111, 232, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.summary-latest-label {
+  font-size: 20rpx;
+  color: #2f6fe8;
+}
+
+.summary-latest-title {
+  font-size: 26rpx;
+  color: #0f1a17;
+  font-weight: 600;
+}
+
+.day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.day-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 8rpx;
+}
+
+.day-panel__title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f1a17;
+}
+
+.day-panel__count {
+  font-size: 22rpx;
+  color: rgba(15, 26, 23, 0.52);
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18rpx;
+}
+
+.event-card {
+  padding: 22rpx 22rpx 24rpx;
+}
+
+.event-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 10rpx;
+}
+
+.event-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(47, 111, 232, 0.08);
+}
+
+.event-badge__text {
+  font-size: 20rpx;
+  color: #2f6fe8;
+}
+
+.event-time {
+  font-size: 22rpx;
+  color: rgba(15, 26, 23, 0.56);
+}
+
+.event-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0f1a17;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.event-location,
+.event-activity,
+.event-content {
+  display: block;
+  font-size: 24rpx;
+  line-height: 1.6;
+  color: rgba(15, 26, 23, 0.72);
+  margin-top: 6rpx;
+}
+
+.event-badge--activity {
+  background: rgba(47, 111, 232, 0.08);
+}
+
+.event-badge--meeting {
+  background: rgba(16, 185, 129, 0.10);
+}
+
+.event-badge--reminder {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.event-badge--deadline {
+  background: rgba(217, 45, 32, 0.10);
+}
+
+.event-badge--routine {
+  background: rgba(107, 114, 128, 0.10);
+}

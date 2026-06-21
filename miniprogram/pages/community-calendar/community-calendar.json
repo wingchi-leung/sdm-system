@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "社区日历",
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header",
+    "surface-card": "/components/surface-card/surface-card",
+    "state-view": "/components/state-view/state-view",
+    "community-calendar": "/components/community-calendar/community-calendar"
+  }
+}

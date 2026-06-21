@@ -1,0 +1,54 @@
+<view class="page">
+  <page-header title="" statusBarHeight="{{statusBarHeight}}">
+    <view wx:if="{{canEdit || canDelete}}" slot="actions" class="header-actions">
+      <view wx:if="{{canEdit}}" class="header-action-btn" bindtap="onEdit">
+        <text class="header-action-btn__text">编辑</text>
+      </view>
+      <view wx:if="{{canDelete}}" class="header-action-btn header-action-btn--danger" bindtap="onDelete">
+        <text class="header-action-btn__text">删除</text>
+      </view>
+    </view>
+  </page-header>
+
+  <view wx:if="{{loading}}" class="state-wrap">
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:elif="{{error}}" class="state-wrap">
+    <text class="state-title">暂时无法查看事件</text>
+    <text class="state-text">{{error}}</text>
+  </view>
+
+  <view wx:else class="content">
+    <surface-card class="hero-card">
+      <view class="hero-top">
+        <view class="event-badge event-badge--{{event.event_type}}">
+          <text class="event-badge__text">{{event.event_type}}</text>
+        </view>
+        <text class="hero-time">{{event.start_time_display}}{{event.end_time_display ? ' - ' + event.end_time_display : ''}}</text>
+      </view>
+      <text class="hero-title">{{event.title}}</text>
+      <text class="hero-channel">{{channelName}}</text>
+    </surface-card>
+
+    <surface-card class="detail-card">
+      <view class="detail-row">
+        <text class="detail-label">地点</text>
+        <text class="detail-value">{{event.location || '未填写'}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">关联活动</text>
+        <text wx:if="{{event.activity_name}}" class="detail-link" bindtap="onOpenActivity">{{event.activity_name}}</text>
+        <text wx:else class="detail-value">未关联</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">发布人</text>
+        <text class="detail-value">{{event.author_name}}</text>
+      </view>
+      <view class="detail-row detail-row--stack">
+        <text class="detail-label">说明</text>
+        <text class="detail-content">{{event.content || '暂无说明'}}</text>
+      </view>
+    </surface-card>
+  </view>
+</view>

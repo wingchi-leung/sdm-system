@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 from app.models.community import CommunityChannelCreate
 from app.models.community import CommunityChannelUpdate
 from app.schemas import (
+    Activity,
     CommunityChannel,
     CommunityChannelAnnouncement,
     CommunityChannelComment,
+    CommunityChannelCalendarEvent,
     CommunityChannelMember,
     CommunityChannelPost,
     CommunityNotification,
@@ -579,6 +581,11 @@ def delete_channel(
         CommunityChannelAnnouncement.channel_id == channel_id,
     ).delete(synchronize_session=False)
 
+    deleted_calendar_event_count = db.query(CommunityChannelCalendarEvent).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.channel_id == channel_id,
+    ).delete(synchronize_session=False)
+
     deleted_notification_count = db.query(CommunityNotification).filter(
         CommunityNotification.tenant_id == tenant_id,
         CommunityNotification.type == "channel_invite",
@@ -610,6 +617,7 @@ def delete_channel(
         "deleted_posts": int(deleted_post_count or 0),
         "deleted_members": int(deleted_member_count or 0),
         "deleted_announcements": int(deleted_announcement_count or 0),
+        "deleted_calendar_events": int(deleted_calendar_event_count or 0),
         "deleted_notifications": int(deleted_notification_count or 0),
         "deleted_tasks": int(deleted_task_count or 0),
     }
@@ -733,7 +741,7 @@ def list_channel_posts(
     ).group_by(
         CommunityChannelPost.id,
         User.id,
-        User._name_ciphertext,
+        User.name,
     ).order_by(
         CommunityChannelPost.is_pinned.desc(),
         CommunityChannelPost.create_time.desc(),
@@ -814,7 +822,7 @@ def get_channel_post_detail(
     row = query.group_by(
         CommunityChannelPost.id,
         User.id,
-        User._name_ciphertext,
+        User.name,
     ).first()
     if not row:
         return None
@@ -1200,3 +1208,289 @@ def delete_channel_announcement(
     ).delete(synchronize_session=False)
     db.commit()
     return int(deleted or 0) > 0
+
+
+# ============================================================
+# 社区频道日历 (community_channel_calendar_event) CRUD
+# ============================================================
+
+
+def _serialize_calendar_event(
+    event: CommunityChannelCalendarEvent,
+    user: User,
+    activity: Activity | None = None,
+) -> dict:
+    return {
+        "id": event.id,
+        "tenant_id": event.tenant_id,
+        "channel_id": event.channel_id,
+        "activity_id": event.activity_id,
+        "activity_name": activity.activity_name if activity else None,
+        "author_user_id": event.author_user_id,
+        "author_name": user.name or "用户",
+        "author_avatar_url": user.avatar_url,
+        "author_update_time": user.update_time,
+        "title": event.title,
+        "event_type": event.event_type,
+        "content": event.content,
+        "location": event.location,
+        "cover_url": event.cover_url,
+        "start_time": event.start_time,
+        "end_time": event.end_time,
+        "status": event.status,
+        "create_time": event.create_time,
+        "update_time": event.update_time,
+    }
+
+
+def create_channel_calendar_event(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    author_user_id: int,
+    title: str,
+    event_type: str,
+    content: str | None,
+    location: str | None,
+    cover_url: str | None,
+    activity_id: int | None,
+    start_time,
+    end_time,
+    status: int = 1,
+) -> CommunityChannelCalendarEvent:
+    event = CommunityChannelCalendarEvent(
+        tenant_id=tenant_id,
+        channel_id=channel_id,
+        activity_id=activity_id,
+        author_user_id=author_user_id,
+        title=title,
+        event_type=event_type,
+        content=content,
+        location=location,
+        cover_url=cover_url,
+        start_time=start_time,
+        end_time=end_time,
+        status=status,
+    )
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
+
+
+def list_channel_calendar_events(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    skip: int,
+    limit: int,
+    year: int | None = None,
+    month: int | None = None,
+    date_value: str | None = None,
+) -> tuple[list[dict], int]:
+    query = db.query(CommunityChannelCalendarEvent).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.channel_id == channel_id,
+        CommunityChannelCalendarEvent.status == 1,
+    )
+    if year and month:
+        from datetime import datetime, timedelta
+
+        month_start = datetime(year, month, 1)
+        if month == 12:
+            next_month = datetime(year + 1, 1, 1)
+        else:
+            next_month = datetime(year, month + 1, 1)
+        query = query.filter(
+            CommunityChannelCalendarEvent.start_time >= month_start,
+            CommunityChannelCalendarEvent.start_time < next_month,
+        )
+    if date_value:
+        from datetime import datetime, timedelta
+
+        try:
+            day_start = datetime.strptime(date_value, "%Y-%m-%d")
+        except ValueError:
+            day_start = None
+        if day_start:
+            day_end = day_start + timedelta(days=1)
+            query = query.filter(
+                CommunityChannelCalendarEvent.start_time >= day_start,
+                CommunityChannelCalendarEvent.start_time < day_end,
+            )
+
+    total = query.count()
+    rows = query.order_by(
+        CommunityChannelCalendarEvent.start_time.asc(),
+        CommunityChannelCalendarEvent.create_time.asc(),
+    ).offset(skip).limit(limit).all()
+
+    user_ids = sorted({row.author_user_id for row in rows})
+    activity_ids = sorted({row.activity_id for row in rows if row.activity_id is not None})
+    user_map = {}
+    if user_ids:
+        user_rows = db.query(User).filter(
+            User.tenant_id == tenant_id,
+            User.id.in_(user_ids),
+        ).all()
+        user_map = {user.id: user for user in user_rows}
+
+    activity_map = {}
+    if activity_ids:
+        activity_rows = db.query(Activity).filter(
+            Activity.tenant_id == tenant_id,
+            Activity.id.in_(activity_ids),
+        ).all()
+        activity_map = {activity.id: activity for activity in activity_rows}
+
+    items = []
+    for row in rows:
+        items.append(
+            _serialize_calendar_event(
+                row,
+                user_map.get(row.author_user_id) or User(name="用户"),
+                activity_map.get(row.activity_id) if row.activity_id else None,
+            )
+        )
+    return items, int(total)
+
+
+def get_channel_calendar_event_detail(
+    db: Session,
+    *,
+    tenant_id: int,
+    event_id: int,
+) -> dict | None:
+    event = db.query(CommunityChannelCalendarEvent).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.id == event_id,
+    ).first()
+    if not event:
+        return None
+    user = db.query(User).filter(
+        User.tenant_id == tenant_id,
+        User.id == event.author_user_id,
+    ).first() or User(name="用户")
+    activity = None
+    if event.activity_id:
+        activity = db.query(Activity).filter(
+            Activity.tenant_id == tenant_id,
+            Activity.id == event.activity_id,
+        ).first()
+    return _serialize_calendar_event(event, user, activity)
+
+
+def update_channel_calendar_event(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    event_id: int,
+    body,
+) -> dict | None:
+    event = db.query(CommunityChannelCalendarEvent).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.channel_id == channel_id,
+        CommunityChannelCalendarEvent.id == event_id,
+        CommunityChannelCalendarEvent.status == 1,
+    ).first()
+    if not event:
+        return None
+
+    for field in ("title", "event_type", "content", "location", "cover_url", "activity_id", "start_time", "end_time"):
+        value = getattr(body, field, None)
+        if value is not None:
+            setattr(event, field, value)
+
+    db.commit()
+    db.refresh(event)
+    return get_channel_calendar_event_detail(db, tenant_id=tenant_id, event_id=event.id)
+
+
+def delete_channel_calendar_event(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    event_id: int,
+) -> bool:
+    deleted = db.query(CommunityChannelCalendarEvent).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.channel_id == channel_id,
+        CommunityChannelCalendarEvent.id == event_id,
+    ).delete(synchronize_session=False)
+    db.commit()
+    return int(deleted or 0) > 0
+
+
+def get_channel_calendar_month_summary(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    year: int,
+    month: int,
+) -> dict:
+    from datetime import datetime
+    from sqlalchemy import func
+
+    month_start = datetime(year, month, 1)
+    if month == 12:
+        next_month = datetime(year + 1, 1, 1)
+    else:
+        next_month = datetime(year, month + 1, 1)
+
+    rows = db.query(
+        func.date(CommunityChannelCalendarEvent.start_time).label("event_date"),
+        func.count(CommunityChannelCalendarEvent.id).label("count"),
+    ).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.channel_id == channel_id,
+        CommunityChannelCalendarEvent.status == 1,
+        CommunityChannelCalendarEvent.start_time >= month_start,
+        CommunityChannelCalendarEvent.start_time < next_month,
+    ).group_by(
+        func.date(CommunityChannelCalendarEvent.start_time),
+    ).all()
+
+    day_counts = []
+    for event_date, count in rows:
+        day_counts.append({
+            "date": str(event_date),
+            "count": int(count or 0),
+        })
+
+    latest_row = db.query(CommunityChannelCalendarEvent).filter(
+        CommunityChannelCalendarEvent.tenant_id == tenant_id,
+        CommunityChannelCalendarEvent.channel_id == channel_id,
+        CommunityChannelCalendarEvent.status == 1,
+        CommunityChannelCalendarEvent.start_time >= month_start,
+        CommunityChannelCalendarEvent.start_time < next_month,
+    ).order_by(
+        CommunityChannelCalendarEvent.start_time.desc(),
+        CommunityChannelCalendarEvent.create_time.desc(),
+    ).first()
+
+    latest = None
+    if latest_row is not None:
+        user = db.query(User).filter(
+            User.tenant_id == tenant_id,
+            User.id == latest_row.author_user_id,
+        ).first() or User(name="用户")
+        activity = None
+        if latest_row.activity_id:
+            activity = db.query(Activity).filter(
+                Activity.tenant_id == tenant_id,
+                Activity.id == latest_row.activity_id,
+            ).first()
+        latest = _serialize_calendar_event(latest_row, user, activity)
+
+    return {
+        "year": year,
+        "month": month,
+        "total": len(day_counts) and sum(item["count"] for item in day_counts) or 0,
+        "day_counts": day_counts,
+        "latest": latest,
+    }

@@ -1,0 +1,39 @@
+<view class="calendar-shell">
+  <view class="calendar-header">
+    <view class="calendar-nav calendar-nav--prev" bindtap="onPrevMonth">
+      <text class="calendar-nav-icon">‹</text>
+    </view>
+    <view class="calendar-title-wrap">
+      <text class="calendar-title">{{monthLabel}}</text>
+      <text class="calendar-subtitle">点选日期查看当天安排</text>
+    </view>
+    <view class="calendar-nav calendar-nav--next" bindtap="onNextMonth">
+      <text class="calendar-nav-icon">›</text>
+    </view>
+  </view>
+
+  <view class="calendar-week-row">
+    <text wx:for="{{weekLabels}}" wx:for-item="label" wx:key="label" class="calendar-week-cell">{{label}}</text>
+  </view>
+
+  <view class="calendar-grid">
+    <view wx:for="{{weeks}}" wx:for-item="week" wx:key="index" class="calendar-week">
+      <view wx:for="{{week}}" wx:for-item="cell" wx:key="dateKey" class="calendar-day-wrap">
+        <view
+          class="calendar-day {{cell.inMonth ? '' : 'calendar-day--out'}} {{cell.isSelected ? 'calendar-day--selected' : ''}} {{cell.isToday ? 'calendar-day--today' : ''}} {{cell.hasEvent ? 'calendar-day--event' : ''}} {{cell.isWeekend ? 'calendar-day--weekend' : ''}}"
+          data-date="{{cell.dateKey}}"
+          bindtap="onSelectCell"
+        >
+          <text class="calendar-day-text">{{cell.day}}</text>
+          <view wx:if="{{cell.hasEvent}}" class="calendar-event-dot"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="calendar-footer">
+    <view class="calendar-today-btn" bindtap="onTodayTap">
+      <text class="calendar-today-btn__text">回到今天</text>
+    </view>
+  </view>
+</view>

@@ -106,7 +106,6 @@ CREATE TABLE IF NOT EXISTS `activity_participants` (
   `user_id` int DEFAULT NULL COMMENT '用户ID',
   `participant_name` varchar(255) NOT NULL COMMENT '参与人姓名',
   `enroll_status` int DEFAULT 1 COMMENT '报名状态：1-已报名 2-候补',
-  `review_status` int NOT NULL DEFAULT 1 COMMENT '审核状态：0-待审核 1-通过 2-拒绝',
   `review_reason` varchar(255) DEFAULT NULL COMMENT '审核拒绝原因',
   `reviewed_by` int DEFAULT NULL COMMENT '审核人ID',
   `reviewed_at` datetime DEFAULT NULL COMMENT '审核时间',
@@ -768,4 +767,30 @@ CREATE TABLE IF NOT EXISTS `community_channel_announcement` (
   KEY `idx_ann_create_time` (`create_time`),
   KEY `idx_ann_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道公告表';
+
+-- ============================================================
+-- 社区频道日历事件表 (community_channel_calendar_event)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS `community_channel_calendar_event` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `channel_id` int NOT NULL COMMENT '所属频道ID',
+  `activity_id` int DEFAULT NULL COMMENT '关联活动ID',
+  `author_user_id` int NOT NULL COMMENT '发布人用户ID',
+  `title` varchar(120) NOT NULL COMMENT '事件标题',
+  `event_type` varchar(32) NOT NULL DEFAULT 'activity' COMMENT '事件类型：activity/meeting/reminder/deadline/routine',
+  `content` mediumtext DEFAULT NULL COMMENT '事件说明',
+  `location` varchar(200) DEFAULT NULL COMMENT '地点',
+  `cover_url` varchar(500) DEFAULT NULL COMMENT '封面图',
+  `start_time` datetime NOT NULL COMMENT '开始时间',
+  `end_time` datetime DEFAULT NULL COMMENT '结束时间',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '1-正常 0-已删除',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_calendar_channel_id` (`channel_id`),
+  KEY `idx_calendar_tenant_id` (`tenant_id`),
+  KEY `idx_calendar_activity_id` (`activity_id`),
+  KEY `idx_calendar_start_time` (`start_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='社区频道日历事件表';
 

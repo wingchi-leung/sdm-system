@@ -1,0 +1,131 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f6fafc 0%, #ffffff 100%);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+  padding: 0 24rpx 40rpx;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.header-action-btn {
+  padding: 14rpx 20rpx;
+  border-radius: 999rpx;
+  background: rgba(15, 26, 23, 0.06);
+}
+
+.header-action-btn--danger {
+  background: rgba(217, 45, 32, 0.10);
+}
+
+.header-action-btn__text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #0f1a17;
+}
+
+.hero-card,
+.detail-card {
+  padding: 24rpx;
+}
+
+.hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 14rpx;
+}
+
+.event-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: rgba(47, 111, 232, 0.08);
+}
+
+.event-badge__text {
+  font-size: 20rpx;
+  color: #2f6fe8;
+}
+
+.hero-time {
+  font-size: 22rpx;
+  color: rgba(15, 26, 23, 0.56);
+}
+
+.hero-title {
+  display: block;
+  font-size: 38rpx;
+  font-weight: 800;
+  color: #0f1a17;
+  margin-bottom: 12rpx;
+}
+
+.hero-channel {
+  font-size: 24rpx;
+  color: rgba(15, 26, 23, 0.56);
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid rgba(15, 26, 23, 0.06);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row--stack {
+  flex-direction: column;
+}
+
+.detail-label {
+  width: 140rpx;
+  font-size: 24rpx;
+  color: rgba(15, 26, 23, 0.48);
+  flex-shrink: 0;
+}
+
+.detail-value,
+.detail-link,
+.detail-content {
+  flex: 1;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #0f1a17;
+}
+
+.detail-link {
+  color: #2f6fe8;
+  font-weight: 600;
+}
+
+.event-badge--meeting {
+  background: rgba(16, 185, 129, 0.10);
+}
+
+.event-badge--reminder {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.event-badge--deadline {
+  background: rgba(217, 45, 32, 0.10);
+}
+
+.event-badge--routine {
+  background: rgba(107, 114, 128, 0.10);
+}
