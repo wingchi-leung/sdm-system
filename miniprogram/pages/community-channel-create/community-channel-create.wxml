@@ -1,87 +1,98 @@
 <view class="page">
   <page-header title="{{pageTitle}}"></page-header>
-  <view class="hero">
-    <text class="hero-title">{{heroTitle}}</text>
-    <view class="hero-accent"></view>
-  </view>
+  <view class="page-body">
+    <view wx:if="{{loadingDetail}}" class="state-wrap">
+      <text class="state-text">加载社区信息中…</text>
+    </view>
 
-  <view wx:if="{{loadingDetail}}" class="state-wrap">
-    <text class="state-text">加载社区信息中…</text>
-  </view>
-
-  <view wx:else class="form-shell">
-    <view class="field field-avatar">
-      <view class="field-head">
-        <text class="field-label">社区封面</text>
+    <view wx:else class="content">
+      <view class="hero">
+        <text class="hero-title">{{heroTitle}}</text>
+        <view class="hero-accent"></view>
       </view>
 
-      <view class="avatar-row">
-        <view class="avatar-picker" bindtap="onChooseAvatar">
-          <block wx:if="{{uploading}}">
-            <view class="avatar-loading">
-              <view class="loading-spin"></view>
-              <text class="avatar-loading-text">上传中</text>
-            </view>
-          </block>
-          <block wx:elif="{{avatarTemp}}">
-            <image class="avatar-preview" src="{{avatarTemp}}" mode="aspectFill" />
-            <view class="avatar-badge">更换</view>
-          </block>
-          <block wx:else>
-            <view class="avatar-placeholder">
-              <text class="avatar-plus">＋</text>
-            </view>
-          </block>
+      <view class="form-shell">
+        <view class="field field-avatar">
+          <view class="field-head">
+            <text class="field-label">社区封面</text>
+          </view>
+
+          <view class="avatar-card" bindtap="onChooseAvatar">
+            <block wx:if="{{uploading}}">
+              <view class="avatar-loading">
+                <view class="loading-spin"></view>
+                <text class="avatar-loading-text">上传中</text>
+              </view>
+            </block>
+            <block wx:elif="{{avatarTemp}}">
+              <image class="avatar-preview" src="{{avatarTemp}}" mode="aspectFill" />
+              <view class="avatar-badge">更换封面</view>
+            </block>
+            <block wx:else>
+              <view class="avatar-placeholder">
+                <text class="avatar-plus">＋</text>
+              </view>
+            </block>
+          </view>
+
+          <text class="field-tip">建议尺寸 800 × 400，支持 JPG / PNG，≤ 2MB</text>
         </view>
-      </view>
-    </view>
 
-    <view class="field field-name">
-      <view class="field-head">
-        <text class="field-label">社区名称</text>
-        <text class="field-required">*</text>
-      </view>
-      <view class="line-input-row">
-        <input
-          class="line-input {{nameError ? 'line-input-error' : ''}}"
-          placeholder-class="input-placeholder"
-          maxlength="32"
-          value="{{name}}"
-          bindinput="onNameInput"
-        />
-        <text class="field-count">{{name.length}}/32</text>
-      </view>
-      <text wx:if="{{nameError}}" class="field-error">{{nameError}}</text>
-    </view>
+        <view class="field field-name">
+          <view class="field-head field-head--split">
+            <view class="field-title-wrap">
+              <text class="field-label">社区名称</text>
+              <text class="field-required">*</text>
+            </view>
+            <text class="field-count">{{name.length}} / 32</text>
+          </view>
+          <view class="input-shell">
+            <input
+              class="line-input {{nameError ? 'line-input-error' : ''}}"
+              placeholder="给你的社区起一个名字"
+              placeholder-class="input-placeholder"
+              maxlength="32"
+              value="{{name}}"
+              bindinput="onNameInput"
+            />
+          </view>
+          <text wx:if="{{nameError}}" class="field-error">{{nameError}}</text>
+        </view>
 
-    <view class="field field-description">
-      <view class="field-head">
-        <text class="field-label">社区描述</text>
-      </view>
+        <view class="field field-description">
+          <view class="field-head field-head--split">
+            <text class="field-label">社区描述</text>
+            <text class="field-count">{{description.length}} / 200</text>
+          </view>
 
-      <view class="description-box">
-        <textarea
-          class="description-input"
-          placeholder-class="input-placeholder"
-          maxlength="200"
-          value="{{description}}"
-          bindinput="onDescriptionInput"
-          auto-height
-        />
-        <view class="description-footer">
-          <text class="field-count">{{description.length}}/200</text>
+          <view class="description-box">
+            <textarea
+              class="description-input"
+              placeholder="介绍一下你的社区吧..."
+              placeholder-class="input-placeholder"
+              maxlength="200"
+              value="{{description}}"
+              bindinput="onDescriptionInput"
+            />
+          </view>
         </view>
       </view>
     </view>
   </view>
 
   <view class="footer-bar">
+    <view class="footer-line"></view>
     <button
       class="submit-btn"
       disabled="{{submitting || uploading || loadingDetail}}"
       bindtap="onSubmit"
+      plain
     >
-      {{submitting ? (editMode ? '保存中…' : '创建中…') : uploading ? '头像上传中…' : submitText}}
+      <text class="submit-icon">＋</text>
+      <text class="submit-text">
+        {{submitting ? (editMode ? '保存中…' : '创建中…') : uploading ? '头像上传中…' : submitText}}
+      </text>
     </button>
+    <view class="footer-line"></view>
   </view>
 </view>

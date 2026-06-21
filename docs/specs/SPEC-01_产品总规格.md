@@ -41,6 +41,7 @@
 | 手机号+密码登录 | 用户使用手机号与密码登录 | ✅ 已实现 | 统一到 `POST /auth/login` |
 | 微信授权登录 | 小程序微信一键登录/绑定 | ✅ 已实现 | `POST /auth/wechat` |
 | 小程序活动访问鉴权 | 未登录用户不能查看活动 | ✅ 已实现 | 前置登录拦截 |
+| 登录态失效兜底 | 用户进入受保护页面但本地登录态已失效时，直接跳转登录页 | ✅ 已实现 | 小程序受保护页面统一 `reLaunch` 到登录页，避免停留在已失效页面 |
 | 个人信息更正 | 小程序用户可一次性编辑姓名/邮箱/职业/行业/年龄/性别 | ✅ 已实现 | `PUT /users/profile` + 设置二级页完整表单 |
 | 个人信息删除 | 小程序用户主动删除资料字段能力 | ⚠️ 下线保留接口 | 前端入口已移除，后端接口保留 |
 | 账号注销 | 小程序用户可发起账号注销并停用登录凭证 | ✅ 已实现 | `DELETE /users/me` + 设置二级页入口 |
@@ -103,9 +104,11 @@
 | 首页活动列表改版 | 小程序首页活动列表采用探索页极简留白风格，活动封面统一为正方形卡片，列表信息改为左图右文 | ✅ 已实现 | `miniprogram/pages/index/index.wxml`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/index/index.js` |
 | 活动详情页改版 | 小程序活动详情页采用极简海报式排版，统一主色 `#2A4D87`，增加自定义顶部返回/更多、主题标题、大图卡片、信息分栏与底部文字式报名入口 | ✅ 已实现 | `miniprogram/pages/activity-detail/activity-detail.wxml`, `miniprogram/pages/activity-detail/activity-detail.wxss`, `miniprogram/pages/activity-detail/activity-detail.js` |
 | 活动发布页改版 | 小程序发布活动页采用单列极简表单，补齐自定义顶部栏、开始/结束时间选择、公开活动、报名限额、支付设置、地点与介绍区块 | ✅ 已实现 | `miniprogram/pages/create-activity/create-activity.wxml`, `miniprogram/pages/create-activity/create-activity.wxss`, `miniprogram/pages/create-activity/create-activity.js`, `miniprogram/pages/create-activity/create-activity.json` |
+| 社区发帖页改版 | 小程序发布动态页改为“文字区在上、图片区在下”的单列表单，右上角采用圆角发布按钮，图片选择与删除独立管理，提交时自动生成标题 | ✅ 已实现 | `miniprogram/pages/community-post-create/community-post-create.wxml`, `miniprogram/pages/community-post-create/community-post-create.wxss`, `miniprogram/pages/community-post-create/community-post-create.js`, `miniprogram/components/page-header/page-header.wxss` |
 | 管理员用户详情页收敛 | 小程序管理员用户详情页收敛为白底轻卡片风格，统一信息概览、基础信息、管理信息与底部操作区的留白节奏 | ✅ 已实现 | `miniprogram/pages/user-detail/user-detail.wxml`, `miniprogram/pages/user-detail/user-detail.wxss` |
 | 我的页重设计 | 小程序“我的”页采用白底极简平铺样式，恢复顶部“我的”标题、铃铛入口、头像信息区、三栏统计和极简服务列表 | ✅ 已实现 | `miniprogram/pages/mine/mine.wxml`, `miniprogram/pages/mine/mine.wxss`, `miniprogram/pages/mine/mine.js`, `miniprogram/pages/mine/mine.json` |
 | 小程序字体系统统一 | 小程序全局字体统一为 `LorchinSansP0` + `PingFang SC` 回退链，业务正文移除宋体/Georgia/Times 混用，首页品牌主视觉保留衬线展示字 | ✅ 已实现 | `miniprogram/app.wxss`, `docs/specs/SPEC-10_小程序字体规范.md`, `miniprogram/pages/index/index.wxss`, `miniprogram/pages/community/*`, `miniprogram/pages/community-*/*.wxss` |
+| 社区频道创建页优化 | 小程序创建社区页按设计稿继续收口为白底极简表单：大标题、蓝色下划线、头像卡片、轻边框输入框与底部文字式主操作 | ✅ 已实现 | `miniprogram/pages/community-channel-create/community-channel-create.wxml`, `miniprogram/pages/community-channel-create/community-channel-create.wxss` |
 | 用户头像 | 普通用户可选择默认头像或上传自定义 | ✅ 已实现 | 4 个默认头像 + 自定义上传 |
 | 登录页改版 | 小程序登录页海报式视觉 | ✅ 已实现 | 整屏原稿直出 |
 | 我的页信息架构 | 一级菜单包含「设置」「协议和说明」 | ✅ 已实现 | 设置承载账号操作，协议页承载文档入口 |
@@ -129,6 +132,9 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-06-21 | 小程序创建社区页按设计稿优化为白底极简表单：保留大标题与蓝色下划线，补齐头像上传卡片、轻边框输入框和底部文字式创建入口 | `miniprogram/pages/community-channel-create/*` |
+| 2026-06-21 | 小程序发布动态页改版为单列表单：文字区置顶、图片区独立置底，右上角发布按钮改为圆角胶囊样式；图片新增/删除通过独立图片区管理，提交时由正文自动生成标题 | `miniprogram/pages/community-post-create/*`, `miniprogram/components/page-header/page-header.wxss`, `miniprogram/tests/community-post-create-page.test.js` |
+| 2026-06-17 | 小程序登录态兜底统一收口：我的页、设置页、我的订单页及各类受保护页面在登录态失效时不再停留或 `navigateBack`，统一 `reLaunch` 到登录页；补充登录重定向测试与 `auth.redirectToLogin` 公共方法 | `miniprogram/utils/auth.js`, `miniprogram/pages/mine/*`, `miniprogram/pages/settings/*`, `miniprogram/pages/my-orders/*`, `miniprogram/pages/my-activities/*`, `miniprogram/pages/activity-participants/*`, `miniprogram/pages/activity-statistics/*`, `miniprogram/pages/activity-checkins/*`, `miniprogram/pages/create-activity/*`, `miniprogram/pages/edit-activity/*`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/community-channel-create/*`, `miniprogram/tests/auth.test.js`, `miniprogram/tests/login-redirect-guards.test.js` |
 | 2026-06-15 | 社区频道公告能力完整实现：后端新增独立表 `community_channel_announcement` + 5 个 API（list/create/detail/summary/delete），删频道级联清理；小程序新增 `community-announcement-list/detail/create` 3 个独立页 + `community-post-list` 顶部加「📢 公告」入口卡片与「+ 公告」按钮；19 + 8 = 27 个测试全过 | [SPEC-11_社区-频道公告.md](SPEC-11_社区-频道公告.md), `backend/app/api/v1/endpoints/community.py`, `backend/app/crud/crud_community_channel.py`, `backend/app/schemas.py`, `backend/app/models/community.py`, `backend/sql/table.sql`, `backend/tests/api/test_community_announcements.py`, `miniprogram/pages/community-announcement-list/*`, `miniprogram/pages/community-announcement-detail/*`, `miniprogram/pages/community-announcement-create/*`, `miniprogram/pages/community-post-list/*`, `miniprogram/utils/api.js`, `miniprogram/app.json`, `miniprogram/tests/community-announcement-page.test.js` |
 | 2026-06-14 | 立项社区频道公告能力：公告与帖子是独立资源（独立表 `community_channel_announcement`、独立 API `/community/channels/{id}/announcements`、独立页 `community-announcement-list/detail/create` + 频道内 tab 容器 `community-channel-tabs`），仅频道管理员可发、免审、跨租户校验、删频道级联清理 | [SPEC-11_社区-频道公告.md](SPEC-11_社区-频道公告.md) |
 | 2026-06-14 | 小程序活动展示页字体子集化：从当前小程序文案提取可用字符生成 `backend/uploads/fonts/LorchinSansP0.woff2` 子集字体，并保留原始全量字体为 `backend/uploads/fonts/LorchinSansP0.full.woff2` 备用，继续由 `wx.loadFontFace` 动态注册 | `backend/uploads/fonts/LorchinSansP0.woff2`, `backend/uploads/fonts/LorchinSansP0.full.woff2`, `backend/scripts/generate_lorchin_subset_font.py`, `miniprogram/app.js` |
