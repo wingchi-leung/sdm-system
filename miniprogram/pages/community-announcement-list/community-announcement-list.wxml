@@ -1,7 +1,12 @@
 <view class="page">
-  <view class="page-header-sticky">
-    <page-header title="公告"></page-header>
-  </view>
+  <page-header title="" statusBarHeight="{{statusBarHeight}}">
+    <view slot="actions" class="header-actions">
+      <view wx:if="{{showCreateButton}}" class="header-create-btn" bindtap="onCreateAnnouncement">
+        <text class="header-create-btn__icon">+</text>
+        <text class="header-create-btn__text">公告</text>
+      </view>
+    </view>
+  </page-header>
 
   <view wx:if="{{loading}}" class="state-wrap">
     <text class="state-text">加载中…</text>
@@ -18,23 +23,19 @@
         <text class="page-title">频道公告</text>
         <text class="page-subtitle">共 {{total}} 条</text>
       </view>
-      <view class="head-actions">
-        <view wx:if="{{showCreateButton}}" class="create-btn" bindtap="onCreateAnnouncement">+ 公告</view>
-      </view>
     </view>
-
-    <view class="head-accent"></view>
+    <view class="page-divider"></view>
 
     <view wx:if="{{announcements.length > 0}}" class="ann-list">
-      <view
-        wx:for="{{announcements}}"
-        wx:key="id"
-        class="ann-card"
-        data-id="{{item.id}}"
-        bindtap="onOpenDetail"
-      >
+      <view wx:for="{{announcements}}" wx:for-index="index" wx:key="id" class="ann-card {{index === 0 ? 'ann-card--featured' : ''}}" data-id="{{item.id}}" bindtap="onOpenDetail">
         <view class="ann-card-head">
-          <text class="ann-title">{{item.title}}</text>
+          <view class="ann-copy">
+            <view wx:if="{{index === 0}}" class="ann-badge">
+              <text class="ann-badge-dot">•</text>
+              <text class="ann-badge-text">最新</text>
+            </view>
+            <text class="ann-title">{{item.title}}</text>
+          </view>
           <view wx:if="{{canDelete(item)}}" class="ann-more" catchtap="onMoreTap" data-id="{{item.id}}">
             <text class="ann-more-dot">·</text>
             <text class="ann-more-dot">·</text>
@@ -45,21 +46,32 @@
         <view wx:if="{{item.preview_blocks.length > 0}}" class="ann-card-body">
           <view wx:for="{{item.preview_blocks}}" wx:for-item="block" wx:key="index">
             <text wx:if="{{block.type === 'text'}}" class="ann-summary">{{block.text}}</text>
-            <view wx:elif="{{block.type === 'images'}}" class="ann-thumbs">
-              <image
-                wx:for="{{block.images}}"
-                wx:for-item="imgUrl"
-                wx:for-index="imgIndex"
-                wx:key="imgUrl"
-                class="ann-thumb"
-                src="{{imgUrl}}"
-                mode="aspectFill"
-                catchtap="onPreviewImage"
-                data-id="{{item.id}}"
-                data-url="{{imgUrl}}"
-              />
-            </view>
           </view>
+        </view>
+
+        <view wx:if="{{item.preview_images.length === 1}}" class="ann-image-single-wrap">
+          <image
+            class="ann-image-single"
+            src="{{item.preview_images[0]}}"
+            mode="aspectFill"
+            catchtap="onPreviewImage"
+            data-id="{{item.id}}"
+            data-url="{{item.preview_images[0]}}"
+          />
+        </view>
+
+        <view wx:elif="{{item.preview_images.length > 1}}" class="ann-images-grid">
+          <image
+            wx:for="{{item.preview_images}}"
+            wx:for-item="imgUrl"
+            wx:key="imgUrl"
+            class="ann-image-grid-item"
+            src="{{imgUrl}}"
+            mode="aspectFill"
+            catchtap="onPreviewImage"
+            data-id="{{item.id}}"
+            data-url="{{imgUrl}}"
+          />
         </view>
 
         <view class="ann-card-foot">

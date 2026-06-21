@@ -1,7 +1,11 @@
 <view class="page">
-  <view class="page-header-sticky">
-    <page-header title="公告详情"></page-header>
-  </view>
+  <page-header title="" statusBarHeight="{{statusBarHeight}}">
+    <view wx:if="{{canDelete}}" slot="actions" class="header-actions">
+      <view class="header-delete-btn" bindtap="onDelete">
+        <text class="header-delete-btn__text">删除</text>
+      </view>
+    </view>
+  </page-header>
 
   <view wx:if="{{loading}}" class="state-wrap">
     <text class="state-text">加载中…</text>
@@ -14,7 +18,9 @@
 
   <view wx:else class="content">
     <view class="ann-card">
-      <text class="ann-caption">频道公告</text>
+      <view class="ann-badge-row">
+        <view class="ann-badge">频道公告</view>
+      </view>
       <text class="ann-title">{{announcement.title}}</text>
       <view class="ann-meta">
         <image class="ann-meta-avatar" src="{{announcement.author_avatar_display_url}}" mode="aspectFill" />
@@ -27,10 +33,6 @@
         <rich-text nodes="{{announcement.content}}" />
       </view>
       <text wx:else class="ann-text">{{announcement.plain_text}}</text>
-    </view>
-
-    <view wx:if="{{canDelete}}" class="ann-actions">
-      <view class="ann-delete" bindtap="onDelete">删除</view>
     </view>
   </view>
 </view>

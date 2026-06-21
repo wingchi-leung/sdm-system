@@ -1,16 +1,18 @@
 .page {
   min-height: 100vh;
-  background: #ffffff;
+  background:
+    radial-gradient(circle at top left, rgba(255, 213, 142, 0.18), transparent 34%),
+    radial-gradient(circle at top right, rgba(170, 223, 255, 0.18), transparent 28%),
+    #f6f7fb;
   color: #101828;
   padding-bottom: calc(132rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-.page-header-sticky {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #ffffff;
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .state-wrap {
@@ -38,51 +40,56 @@
 }
 
 .content {
-  padding: 0 28rpx;
+  padding: 24rpx 24rpx 0;
 }
 
 .ann-card {
-  margin-top: 24rpx;
   background: #ffffff;
-  border: 1rpx solid rgba(17, 17, 17, 0.06);
-  border-radius: 16rpx;
-  padding: 32rpx 28rpx;
+  border: 1rpx solid rgba(15, 23, 42, 0.06);
+  border-radius: 28rpx;
+  padding: 28rpx 24rpx 26rpx;
   box-sizing: border-box;
+  box-shadow: 0 16rpx 42rpx rgba(15, 23, 42, 0.06);
 }
 
-.ann-caption {
-  display: block;
-  color: #98a2b3;
-  font-size: 22rpx;
+.ann-badge-row {
+  margin-bottom: 12rpx;
+}
+
+.ann-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f2f4f7;
+  color: #667085;
+  font-size: 20rpx;
   line-height: 1.4;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 8rpx;
+  font-weight: 500;
 }
 
 .ann-title {
   display: block;
   color: #101828;
-  font-size: 36rpx;
-  line-height: 1.4;
-  font-weight: 600;
+  font-size: 42rpx;
+  line-height: 1.28;
+  font-weight: 700;
   letter-spacing: 0.01em;
 }
 
 .ann-meta {
   display: flex;
   align-items: center;
-  margin-top: 20rpx;
-  gap: 6rpx;
+  margin-top: 18rpx;
+  gap: 8rpx;
   flex-wrap: wrap;
 }
 
 .ann-meta-avatar {
-  width: 36rpx;
-  height: 36rpx;
+  width: 42rpx;
+  height: 42rpx;
   border-radius: 999rpx;
   background: #f2f4f7;
-  margin-right: 4rpx;
   flex-shrink: 0;
 }
 
@@ -106,10 +113,10 @@
 }
 
 .ann-html {
-  margin-top: 28rpx;
+  margin-top: 24rpx;
   color: #101828;
   font-size: 28rpx;
-  line-height: 1.75;
+  line-height: 1.8;
 }
 
 .ann-html image {
@@ -119,27 +126,40 @@
 
 .ann-text {
   display: block;
-  margin-top: 28rpx;
+  margin-top: 24rpx;
   color: #101828;
   font-size: 28rpx;
-  line-height: 1.75;
+  line-height: 1.8;
   white-space: pre-wrap;
+}
+
+.header-delete-btn {
+  min-width: 112rpx;
+  height: 64rpx;
+  padding: 0 22rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-radius: 999rpx;
+  border: 1rpx solid rgba(217, 45, 32, 0.18);
+  background: rgba(255, 255, 255, 0.92);
+  color: #d92d20;
+  box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.05);
+}
+
+.header-delete-btn__text {
+  font-size: 24rpx;
+  line-height: 1;
+  font-weight: 500;
 }
 
 .ann-actions {
   display: flex;
   justify-content: center;
-  margin-top: 40rpx;
+  margin-top: 32rpx;
 }
 
 .ann-delete {
-  min-width: 240rpx;
-  height: 80rpx;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(217, 45, 32, 0.30);
-  color: #d92d20;
-  font-size: 28rpx;
-  line-height: 80rpx;
-  text-align: center;
-  letter-spacing: 0.02em;
+  display: none;
 }
