@@ -6,7 +6,7 @@ const { resolveAvatarDisplayUrl, getDefaultAvatarPath } = require('../../utils/a
 
 const PAGE_SIZE = 20;
 const PREVIEW_TEXT_LIMIT = 140;
-const PREVIEW_IMAGE_LIMIT = 3;
+const PREVIEW_IMAGE_LIMIT = 4;
 
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
@@ -157,6 +157,10 @@ Page({
     return {
       ...item,
       preview_blocks: previewBlocks,
+      preview_images: previewImages,
+      preview_image_grid_style: previewImages.length > 1
+        ? `grid-template-columns: repeat(${Math.min(previewImages.length, 4)}, minmax(0, 1fr));`
+        : '',
       author_avatar_display_url: authorAvatar,
       create_time_display: formatRelativeTime(item.create_time),
     };
