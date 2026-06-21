@@ -13,13 +13,13 @@
       <view class="title-row">
         <input
           class="title-input"
-          placeholder="输入动态标题"
+          placeholder="输入公告标题"
           placeholder-class="input-placeholder"
           value="{{title}}"
-          maxlength="50"
+          maxlength="{{titleMaxLength}}"
           bindinput="onTitleInput"
         />
-        <text class="field-counter">{{titleLength}}/50</text>
+        <text class="field-counter">{{titleLength}}/{{titleMaxLength}}</text>
       </view>
     </view>
 

@@ -4,6 +4,7 @@
 
   <view class="composer-shell">
     <text wx:if="{{mode === 'channel' && channelName}}" class="channel-name">{{channelName}}</text>
+    <text wx:if="{{mode === 'activity' && activityName}}" class="channel-name">{{activityName}}</text>
 
     <view class="field field-title">
       <view class="field-head">
@@ -16,10 +17,10 @@
           placeholder="输入动态标题"
           placeholder-class="input-placeholder"
           value="{{title}}"
-          maxlength="50"
+          maxlength="{{titleMaxLength}}"
           bindinput="onTitleInput"
         />
-        <text class="field-counter">{{titleLength}}/50</text>
+        <text class="field-counter">{{titleLength}}/{{titleMaxLength}}</text>
       </view>
     </view>
 
