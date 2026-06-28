@@ -1,6 +1,7 @@
 import pytest
 
 from app.crud import crud_credential
+from app.core.security import verify_password
 from app.schemas import UserCredential
 
 
@@ -32,3 +33,38 @@ def test_get_or_create_phone_credential_reuses_inactive_record(db_session, sampl
         UserCredential.identifier == phone,
     ).all()
     assert len(all_rows) == 1
+
+
+@pytest.mark.unit
+def test_create_password_credential_refreshes_existing_identifier(
+    db_session,
+    sample_user,
+):
+    """同名密码凭证应刷新到当前用户和新密码，保证幂等创建可自愈。"""
+    identifier = "wechatadmin"
+    old_credential = UserCredential(
+        user_id=sample_user.id,
+        tenant_id=sample_user.tenant_id,
+        credential_type="password",
+        identifier=identifier,
+        credential_hash="old_hash",
+        must_reset_password=1,
+        status=1,
+    )
+    db_session.add(old_credential)
+    db_session.commit()
+
+    refreshed = crud_credential.create_password_credential(
+        db_session,
+        user_id=sample_user.id,
+        tenant_id=sample_user.tenant_id,
+        identifier=identifier,
+        password="new_password_123",
+        must_reset=False,
+    )
+    db_session.commit()
+
+    assert refreshed.id == old_credential.id
+    assert refreshed.user_id == sample_user.id
+    assert refreshed.must_reset_password == 0
+    assert verify_password("new_password_123", refreshed.credential_hash)

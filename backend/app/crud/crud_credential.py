@@ -160,9 +160,16 @@ def create_password_credential(
     password: str,
     must_reset: bool = True,
 ) -> UserCredential:
-    """创建密码凭证（分配角色时自动创建）"""
+    """创建或刷新密码凭证（分配角色时自动创建）"""
     existing = get_credential(db, tenant_id, "password", identifier)
     if existing:
+        # 幂等同步场景下，已有同名凭证也要回写当前用户和密码，
+        # 否则 create_admin.py 重新执行时会“看起来同步成功”，但实际密码仍是旧值。
+        existing.user_id = user_id
+        existing.credential_hash = hash_password(password)
+        existing.must_reset_password = 1 if must_reset else 0
+        existing.status = 1
+        db.flush()
         return existing
     cred = UserCredential(
         user_id=user_id,

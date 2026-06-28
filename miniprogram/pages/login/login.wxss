@@ -32,6 +32,35 @@
   pointer-events: none;
 }
 
+.poster-mark {
+  position: absolute;
+  left: 80rpx;
+  top: 460rpx;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.poster-mark-en {
+  display: flex;
+  align-items: center;
+  color: #123d97;
+  font-family: "LorchinSansP0", "PingFang SC", "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 22rpx;
+  line-height: 1.2;
+  transform: translateX(5rpx);
+}
+
+.poster-letter {
+  margin-right: 10rpx;
+}
+
+.poster-letter:last-child {
+  margin-right: 0;
+}
+
 .poster-admin-hotspot {
   position: absolute;
   top: 408rpx;

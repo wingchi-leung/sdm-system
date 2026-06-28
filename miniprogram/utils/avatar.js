@@ -61,12 +61,7 @@ function buildAvatarCacheBustedUrl(avatarUrl, cacheVersion) {
   if (!text || isBuiltinAvatarKey(text) || text.startsWith('/assets/')) {
     return text;
   }
-  const version = cacheVersion == null ? '' : String(cacheVersion).trim();
-  if (!version) {
-    return text;
-  }
-  const separator = text.includes('?') ? '&' : '?';
-  return `${text}${separator}v=${encodeURIComponent(version)}`;
+  return text;
 }
 
 async function resolveAvatarDisplayUrl(avatarUrl, cacheVersion) {
@@ -80,7 +75,13 @@ async function resolveAvatarDisplayUrl(avatarUrl, cacheVersion) {
   if (text.startsWith('/assets/')) {
     return text;
   }
-  return image.resolveDisplayUrl(buildAvatarCacheBustedUrl(text, cacheVersion));
+  const resolver = image && typeof image.resolveDisplayUrl === 'function'
+    ? image.resolveDisplayUrl
+    : null;
+  if (!resolver) {
+    return buildAvatarCacheBustedUrl(text, cacheVersion);
+  }
+  return resolver(buildAvatarCacheBustedUrl(text, cacheVersion));
 }
 
 module.exports = {

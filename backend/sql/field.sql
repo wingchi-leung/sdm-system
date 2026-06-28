@@ -19,3 +19,5 @@ ALTER TABLE community_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAUL
 
 -- 5. 社区频道帖子表补 content_format 字段(与 community_post 同步)
 ALTER TABLE community_channel_post ADD COLUMN content_format VARCHAR(16) NOT NULL DEFAULT 'html' COMMENT '内容格式:text/html/blocks' AFTER content;
+
+ALTER TABLE activity_participants ADD COLUMN review_status int NOT NULL DEFAULT 1 COMMENT '报名状态：1-已报名 2-候补'  

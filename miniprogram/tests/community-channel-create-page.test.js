@@ -80,6 +80,7 @@ test('社区编辑页会回填详情并提交更新', async () => {
       },
     }],
     ['../../utils/auth.js', {
+      isLoggedIn: () => true,
       isAdmin: () => true,
     }],
   ], {

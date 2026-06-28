@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 const {
   getDefaultAvatarKey,
@@ -63,6 +64,7 @@ Page({
         selectedAvatarDisplayUrl: displayUrl,
       });
     } catch (err) {
+      if (auth.handleSessionExpired(err)) return;
       this.setData({
         loading: false,
         error: err && err.message ? err.message : '加载头像资料失败',
@@ -139,6 +141,7 @@ Page({
               uploading: false,
             });
           } catch (err) {
+            if (auth.handleSessionExpired(err)) return;
             this.setData({
               uploading: false,
               selectedAvatarKey: previousState.selectedAvatarKey,
@@ -183,6 +186,7 @@ Page({
       wx.showToast({ title: '头像已更新', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 800);
     } catch (err) {
+      if (auth.handleSessionExpired(err)) return;
       this.setData({
         saving: false,
         error: err && err.message ? err.message : '保存头像失败',

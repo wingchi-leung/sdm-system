@@ -372,6 +372,7 @@ class TestPaymentEndpoints:
     ):
         sample_activity.require_payment = 1
         sample_activity.suggested_fee = 1000
+        sample_activity.max_participants = 1
         _bind_wechat_openid(db_session, sample_user, "wx_openid_cancel_payment")
 
         participant = ActivityParticipant(
@@ -426,6 +427,15 @@ class TestPaymentEndpoints:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["code"] == "SUCCESS"
         assert response.json()["message"] == "订单已取消"
+
+        enrollment_response = client.get(
+            f"/api/v1/activities/{sample_activity.id}/enrollment-info",
+            headers=auth_headers(user_token),
+        )
+        assert enrollment_response.status_code == status.HTTP_200_OK
+        enrollment_data = enrollment_response.json()
+        assert enrollment_data["enrolled_count"] == 0
+        assert enrollment_data["remaining_quota"] == 1
 
         assert db_session.get(PaymentOrder, order.id) is None
         assert db_session.get(ActivityParticipant, participant.id) is None

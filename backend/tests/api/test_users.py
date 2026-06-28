@@ -862,6 +862,21 @@ class TestUserManagement:
         data = response.json()
         assert data["id"] == sample_user.id
 
+    def test_get_user_by_id_tolerates_legacy_null_name(self, client, super_admin_token, sample_user, db_session):
+        """测试历史脏数据 name 为空时不会导致用户详情 500。"""
+        sample_user.name = None
+        db_session.commit()
+
+        response = client.get(
+            f"/api/v1/users/{sample_user.id}",
+            headers=auth_headers(super_admin_token),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["id"] == sample_user.id
+        assert data["name"] == "未填写姓名"
+
     def test_get_nonexistent_user(self, client, super_admin_token):
         """测试获取不存在的用户"""
         response = client.get(

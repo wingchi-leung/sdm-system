@@ -16,6 +16,7 @@ function loadSettingsPage({
     showModal() {},
     showToast() {},
     navigateTo() {},
+    reLaunch() {},
     ...wxMock,
   };
 
@@ -57,7 +58,7 @@ function createPageInstance(config) {
 test('设置页注销账号确认后会调用接口并退出登录', async () => {
   let deactivateCalls = 0;
   let logoutCalls = 0;
-  let navigateCalls = 0;
+  let reLaunchCalls = 0;
 
   const pageConfig = loadSettingsPage({
     api: {
@@ -67,6 +68,7 @@ test('设置页注销账号确认后会调用接口并退出登录', async () =>
       },
     },
     auth: {
+      isLoggedIn: () => true,
       logout: () => {
         logoutCalls += 1;
       },
@@ -78,8 +80,8 @@ test('设置页注销账号确认后会调用接口并退出登录', async () =>
       showModal({ success }) {
         success({ confirm: true });
       },
-      navigateTo() {
-        navigateCalls += 1;
+      reLaunch() {
+        reLaunchCalls += 1;
       },
     },
   });
@@ -91,6 +93,28 @@ test('设置页注销账号确认后会调用接口并退出登录', async () =>
 
   assert.equal(deactivateCalls, 1);
   assert.equal(logoutCalls, 1);
-  assert.equal(navigateCalls, 1);
+  assert.equal(reLaunchCalls, 1);
 });
 
+test('设置页未登录时会直接重定向到登录页', () => {
+  let reLaunchCalls = 0;
+
+  const pageConfig = loadSettingsPage({
+    auth: {
+      isLoggedIn: () => false,
+    },
+    tenant: {
+      appendTenantToUrl: (url) => url,
+    },
+    wxMock: {
+      reLaunch() {
+        reLaunchCalls += 1;
+      },
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+  page.onShow();
+
+  assert.equal(reLaunchCalls, 1);
+});

@@ -21,6 +21,10 @@ Page({
     tenant.applyPageOptions(options);
   },
 
+  goToLogin() {
+    wx.reLaunch({ url: tenant.appendTenantToUrl('/pages/login/login') });
+  },
+
   onShow() {
     if (!this.ensureUserAccess()) return;
     this.loadOrders();
@@ -34,8 +38,7 @@ Page({
       summaryText: '暂无订单',
       error: null,
     });
-    wx.showToast({ title: '请登录后查看', icon: 'none' });
-    setTimeout(() => wx.navigateBack(), 1200);
+    this.goToLogin();
     return false;
   },
 

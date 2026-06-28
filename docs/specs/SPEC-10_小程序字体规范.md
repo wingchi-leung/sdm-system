@@ -12,6 +12,7 @@
 
 - 全局默认字体：`LorchinSansP0`
 - 回退字体：`PingFang SC` → `-apple-system` → `BlinkMacSystemFont` → `sans-serif`
+- 当前线上字体文件为基于小程序实际文案字符集裁切后的子集版，源字体保留为 `LorchinSansP0.full.woff2` 备用
 
 ### 2.2 使用原则
 

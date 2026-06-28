@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const image = require('../../utils/image');
+const { resolveActivityPostersOrFallback } = require('../../utils/image-safe');
 const tenant = require('../../utils/tenant');
 
 // 分页配置
@@ -43,7 +44,7 @@ Page({
 
   // 处理活动数据，转换图片URL
   async processActivities(items) {
-    return image.resolveActivityPosters(items || []);
+    return resolveActivityPostersOrFallback(image, items || [], '活动管理列表');
   },
 
   sortActivitiesDesc(items) {

@@ -3,6 +3,7 @@
  * 支持 admin（管理员）与 user（普通用户）双角色
  * 管理员进一步支持：super / activity_type_admin（按活动类型授权）
  */
+const tenant = require('./tenant');
 const KEY_TOKEN = 'access_token';
 const KEY_ROLE = 'user_role';
 const KEY_USER_ID = 'user_id';
@@ -12,6 +13,7 @@ const KEY_ADMIN_ACTIVITY_TYPES = 'admin_activity_types'; // [{ id, name, code }]
 const KEY_ADMIN_PERMISSIONS = 'admin_permissions'; // ['user.view', ...]
 const KEY_REQUIRE_BIND_INFO = 'require_bind_info';
 const KEY_WECHAT_PHONE = 'wechat_phone';
+let redirectingToLogin = false;
 
 function normalizeText(v) {
   return (v == null ? '' : String(v)).trim();
@@ -271,6 +273,30 @@ function logout() {
   clearRequireBindInfo();
 }
 
+function redirectToLogin(message = '') {
+  if (redirectingToLogin) return;
+  redirectingToLogin = true;
+  logout();
+  if (message) {
+    wx.showToast({ title: message, icon: 'none' });
+  }
+  wx.reLaunch({ url: tenant.appendTenantToUrl('/pages/login/login') });
+  setTimeout(() => {
+    redirectingToLogin = false;
+  }, 1500);
+}
+
+function isSessionExpiredError(err) {
+  const statusCode = Number(err && err.statusCode);
+  return statusCode === 401 || statusCode === 404;
+}
+
+function handleSessionExpired(err, message = '登录已过期，请重新登录') {
+  if (!isSessionExpiredError(err)) return false;
+  redirectToLogin(message);
+  return true;
+}
+
 module.exports = {
   normalizeActivityType,
   parseAdminMeta,
@@ -295,5 +321,8 @@ module.exports = {
   saveUserToken,
   markRequireBindInfo,
   clearRequireBindInfo,
+  redirectToLogin,
+  isSessionExpiredError,
+  handleSessionExpired,
   logout,
 };

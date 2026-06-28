@@ -77,36 +77,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24rpx;
-  margin-top: 38rpx;
+  gap: 18rpx;
+  margin-top: 34rpx;
   padding: 0 8rpx;
 }
 
 .hero-mark-left {
   flex: 1;
   min-width: 0;
+  max-width: 360rpx;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.hero-mark-cn {
-  color: #111111;
-  font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 126rpx;
-  line-height: 0.9;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
-.hero-mark-en {
-  margin-top: 10rpx;
-  color: #9b9b9b;
-  font-family: "LorchinSansP0", "PingFang SC", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 24rpx;
-  line-height: 1.45;
-  letter-spacing: 0.08em;
-  
+.hero-mark-cn-image {
+  display: block;
+  width: 300rpx;
+  height: 160rpx;
+  max-width: 100%;
 }
 
 .hero-divider {
@@ -117,21 +106,20 @@
 }
 
 .hero-mark-right {
-  width: 190rpx;
-  padding-left: 12rpx;
+  width: 168rpx;
+  height: 220rpx;
+  padding-left: 8rpx;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
 }
 
-.hero-mark-vertical {
-  color: #111111;
-  font-family: "Songti SC", "STSong", "Times New Roman", serif;
-  font-size: 126rpx;
-  line-height: 0.9;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+.hero-mark-vertical-image {
+  display: block;
+  width: 160rpx;
+  height: 220rpx;
+  max-width: 100%;
 }
 
 .state-wrap {

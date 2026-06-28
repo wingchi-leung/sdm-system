@@ -19,6 +19,11 @@ Page({
   },
 
   ensureAdminAccess() {
+    if (!auth.isLoggedIn()) {
+      this.resetSensitiveData();
+      auth.redirectToLogin('请先使用管理员账号登录');
+      return false;
+    }
     if (auth.isAdmin()) return true;
     this.resetSensitiveData();
     wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });

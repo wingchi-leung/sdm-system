@@ -210,7 +210,11 @@ Page({
 
   // 加载用户资料
   async loadUserProfile() {
-    const profile = await api.getUserProfile();
+    const profile = await api.getUserProfile().catch((err) => {
+      if (auth.handleSessionExpired(err)) return null;
+      throw err;
+    });
+    if (!profile) return;
     const sexText = profile?.sex === 'F' || profile?.sex === 'female'
       ? '女'
       : (profile?.sex === 'M' || profile?.sex === 'male' ? '男' : (profile?.sex || ''));
@@ -543,19 +547,29 @@ Page({
           wx.navigateBack();
         }, 1200);
       })
-      .catch((err) => {
+      .catch(async (err) => {
         // 处理错误
         let msg = '支付失败';
         const { paymentOrderNo } = this.data;
         if (err && err.errMsg && err.errMsg.includes('cancel')) {
-          this._persistPendingOrder('');
-          this._removeOrderHistory(paymentOrderNo);
-          this.setData({
-            paymentOrderNo: '',
-            submitting: false,
-          });
-          this._cancelPaymentOrder(paymentOrderNo);
-          wx.showToast({ title: '已取消报名', icon: 'none' });
+          try {
+            await this._cancelPaymentOrder(paymentOrderNo);
+            this._persistPendingOrder('');
+            this._removeOrderHistory(paymentOrderNo);
+            this.setData({
+              paymentOrderNo: '',
+              submitting: false,
+            });
+            if (this.data.activityId) {
+              this.loadEnrollmentInfo(this.data.activityId);
+            }
+            wx.showToast({ title: '已取消报名', icon: 'none' });
+          } catch (_) {
+            this.setData({
+              submitting: false,
+            });
+            wx.showToast({ title: '取消失败，请重试', icon: 'none' });
+          }
           return;
         }
         if (err && err.code === 'PAYMENT_CONFIRM_TIMEOUT') {

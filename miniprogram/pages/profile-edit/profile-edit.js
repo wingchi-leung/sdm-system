@@ -1,4 +1,5 @@
 const api = require('../../utils/api');
+const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 
 Page({
@@ -44,6 +45,7 @@ Page({
         loading: false,
       });
     } catch (err) {
+      if (auth.handleSessionExpired(err)) return;
       this.setData({
         loading: false,
         error: err && err.message ? err.message : '加载资料失败',
@@ -97,10 +99,10 @@ Page({
       wx.showToast({ title: '保存成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 700);
     } catch (err) {
+      if (auth.handleSessionExpired(err)) return;
       this.setData({ error: err && err.message ? err.message : '保存失败' });
     } finally {
       this.setData({ submitting: false });
     }
   },
 });
-

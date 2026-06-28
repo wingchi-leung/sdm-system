@@ -144,13 +144,21 @@ Page({
 
   loadActivity(activityId) {
     this.setData({ loading: true, error: null, posterLoadFailed: false });
-    const tasks = [api.getActivity(activityId), api.getActivityPermissions(activityId)];
-    if (auth.isUser()) {
-      tasks.push(api.getMyParticipantActivities(activityId));
-    }
+    Promise.resolve()
+      .then(() => api.getActivity(activityId))
+      .then(async (activity) => {
+        const permissionPromise = api.getActivityPermissions(activityId);
+        const registrationPromise = auth.isUser()
+          ? api.getMyParticipantActivities(activityId)
+          : Promise.resolve(null);
 
-    Promise.all(tasks)
-      .then(async ([activity, permissions, registrationRes]) => {
+        const [permissionsResult, registrationResult] = await Promise.allSettled([
+          permissionPromise,
+          registrationPromise,
+        ]);
+
+        const permissions = permissionsResult.status === 'fulfilled' ? permissionsResult.value : null;
+        const registrationRes = registrationResult.status === 'fulfilled' ? registrationResult.value : null;
         const registration = registrationRes && registrationRes.items && registrationRes.items[0]
           ? registrationRes.items[0]
           : null;
@@ -174,7 +182,7 @@ Page({
           actionTipText = '活动已结束，无法报名';
         }
 
-        const posterUrl = await image.resolveDisplayUrl(activity.poster_url) || '/assets/defaultbg.jpg';
+        const posterUrl = await this.resolvePosterUrl(activity.poster_url);
         const detailParagraphs = this.buildDetailParagraphs(activity.activity_intro);
         const infoRows = this.buildInfoRows(activity, startDisplay, endDisplay, joinMethodDisplay);
         const heroKicker = this.resolveHeroKicker(activity);
@@ -204,8 +212,9 @@ Page({
           actionTipText,
           showCommunitySection,
           showAdminPanel,
-          permissions: permissions || null,
+          permissions,
           loading: false,
+          error: null,
         });
         if (showCommunitySection) {
           this.loadCommunityPreview(activity.id);
@@ -217,13 +226,26 @@ Page({
           });
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        const message = err && err.message ? err.message : '加载失败';
         this.setData({
-          error: '加载失败',
+          error: message || '加载失败',
           loading: false,
         });
-        wx.showToast({ title: '加载失败', icon: 'none' });
+        wx.showToast({ title: message || '加载失败', icon: 'none' });
       });
+  },
+
+  async resolvePosterUrl(posterUrl) {
+    try {
+      if (image && typeof image.resolveDisplayUrl === 'function') {
+        const resolved = await image.resolveDisplayUrl(posterUrl);
+        return resolved || '/assets/defaultbg.jpg';
+      }
+    } catch (_) {
+      // 图片解析失败时回退到默认海报，避免整页报错
+    }
+    return posterUrl || '/assets/defaultbg.jpg';
   },
 
   onPosterLoad() {

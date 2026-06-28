@@ -1,12 +1,7 @@
 <view class="page">
   <page-header title="公告" statusBarHeight="{{statusBarHeight}}">
     <view slot="actions" class="header-actions">
-      <view class="header-menu-pill">
-        <text class="header-menu-dots">···</text>
-        <view class="header-menu-circle">
-          <view class="header-menu-circle-inner"></view>
-        </view>
-      </view>
+    
     </view>
   </page-header>
 
@@ -22,8 +17,6 @@
   <view wx:else class="content">
     <view class="page-head">
       <view class="page-copy">
-        <text class="page-title">频道公告</text>
-        <text class="page-subtitle">共 {{total}} 条</text>
       </view>
       <view wx:if="{{showCreateButton}}" class="head-actions">
         <view class="create-btn" bindtap="onCreateAnnouncement">
@@ -32,7 +25,6 @@
       </view>
     </view>
 
-    <view class="page-divider"></view>
 
     <view wx:if="{{announcements.length > 0}}" class="ann-list">
       <view
@@ -43,15 +35,22 @@
         data-id="{{item.id}}"
         bindtap="onOpenDetail"
       >
+      <view class="ann-card-foot">
+          <view class="ann-author-row">
+            <image class="ann-author-avatar" src="{{item.author_avatar_display_url}}" mode="aspectFill" />
+            <text class="ann-author-name">{{item.author_name}}</text>
+          </view>
+          <view wx:if="{{canDelete(item)}}" class="ann-more" catchtap="onMoreTap" data-id="{{item.id}}">
+            <text class="ann-more-dot">·</text>
+            <text class="ann-more-dot">·</text>
+            <text class="ann-more-dot">·</text>
+          </view>
+        </view>
         <view class="ann-card-head">
           <view class="ann-top-left">
-            <view wx:if="{{index === 0}}" class="ann-badge">
-              <text class="ann-badge-text">置顶</text>
-            </view>
           </view>
           <text class="ann-time">{{item.create_time_display}}</text>
         </view>
-
         <text class="ann-title">{{item.title}}</text>
 
         <view wx:if="{{item.preview_blocks.length > 0}}" class="ann-card-body">
@@ -74,18 +73,7 @@
           />
         </view>
 
-        <view class="ann-card-foot">
-          <view class="ann-author-row">
-            <image class="ann-author-avatar" src="{{item.author_avatar_display_url}}" mode="aspectFill" />
-            <text class="ann-author-name">{{item.author_name}}</text>
-            <text class="ann-foot-time">· {{item.create_time_display}}</text>
-          </view>
-          <view wx:if="{{canDelete(item)}}" class="ann-more" catchtap="onMoreTap" data-id="{{item.id}}">
-            <text class="ann-more-dot">·</text>
-            <text class="ann-more-dot">·</text>
-            <text class="ann-more-dot">·</text>
-          </view>
-        </view>
+        
       </view>
     </view>
 

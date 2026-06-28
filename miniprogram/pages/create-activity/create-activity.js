@@ -56,6 +56,11 @@ Page({
   },
 
   ensureAdminAccess() {
+    if (!auth.isLoggedIn()) {
+      this.resetFormState();
+      auth.redirectToLogin('请先使用管理员账号登录');
+      return false;
+    }
     if (auth.isAdmin()) return true;
     this.resetFormState();
     wx.showToast({ title: '请先使用管理员账号登录', icon: 'none' });
@@ -83,6 +88,7 @@ Page({
       const snapshot = await api.getAuthSnapshot();
       auth.updateAdminMeta(snapshot || {});
     } catch (e) {
+      if (auth.handleSessionExpired(e)) return;
       // 忽略失败，沿用本地缓存
     }
     const isSuperAdmin = auth.isSuperAdmin();

@@ -29,6 +29,17 @@ function htmlToText(html) {
     .trim();
 }
 
+function normalizeRichTextImageUrls(html) {
+  if (!html) return '';
+  return String(html).replace(/<img\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi, (match, src) => {
+    const resolvedSrc = api.getImageUrl(src);
+    if (!resolvedSrc || resolvedSrc === src) {
+      return match;
+    }
+    return match.replace(src, resolvedSrc);
+  });
+}
+
 function formatDateTime(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -78,11 +89,15 @@ Page({
         this.data.announcementId,
       );
       const avatar = await this.resolveAvatar(data.author_avatar_url, data.author_update_time);
+      const content = data.content_format === 'html'
+        ? normalizeRichTextImageUrls(data.content || '')
+        : data.content;
       const announcement = {
         ...data,
         author_avatar_display_url: avatar,
         create_time_display: formatDateTime(data.create_time),
-        plain_text: htmlToText(data.content || ''),
+        content,
+        plain_text: htmlToText(content || ''),
       };
       this.setData({
         announcement,

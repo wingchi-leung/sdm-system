@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
+const { resolveActivityPostersOrFallback } = require('../../utils/image-safe');
 const tenant = require('../../utils/tenant');
 const { syncTabBarSelected } = require('../../utils/tab-bar');
 const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
@@ -104,6 +105,7 @@ Page({
       const snapshot = await api.getAuthSnapshot();
       auth.updateAdminMeta(snapshot || {});
     } catch (e) {
+      if (auth.handleSessionExpired(e)) return;
       // 忽略同步失败，保留本地缓存作为兜底
     }
   },
@@ -147,12 +149,16 @@ Page({
     const registrationTask = auth.isUser()
       ? api.getMyParticipantActivities()
       : Promise.resolve({ items: [] });
-    const profileTask = auth.isUser()
-      ? api.getUserProfile().catch(() => null)
+      const profileTask = auth.isUser()
+      ? api.getUserProfile().catch((err) => {
+          if (auth.handleSessionExpired(err)) return null;
+          return null;
+        })
       : Promise.resolve(null);
     return Promise.all([activityTask, registrationTask])
       .then(async ([res, registrationRes]) => {
         if (this._loadSeq !== loadSeq) return;
+        if (!auth.isLoggedIn()) return;
         const registrationMap = {};
         (registrationRes?.items || []).forEach((item) => {
           registrationMap[item.id] = item;
@@ -188,7 +194,7 @@ Page({
             summary_text: this.buildActivitySummary(a),
           };
         });
-        items = await image.resolveActivityPosters(items);
+        items = await resolveActivityPostersOrFallback(image, items, '首页活动列表');
         items.sort((a, b) => {
           const aTime = a.start_time ? new Date(a.start_time).getTime() : 0;
           const bTime = b.start_time ? new Date(b.start_time).getTime() : 0;
@@ -222,7 +228,8 @@ Page({
               // 头像只是增强展示，失败时保留首字母兜底
             }
           })
-          .catch(() => {
+          .catch((err) => {
+            if (auth.handleSessionExpired(err)) return;
             // 头像请求失败不影响活动列表首屏
           });
       })

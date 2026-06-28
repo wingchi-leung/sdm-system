@@ -1,7 +1,7 @@
 """幂等创建/更新超级管理员账号。
 
 修复点:
-1. 已存在用户时回填 name/phone/sex,走 ORM setter 重新加密(可自愈损坏密文)
+1. 已存在用户时回填 name/phone/sex,确保管理员资料始终与预期一致
 2. 用 phone_hash 盲索引查重(原代码的 User.phone == PHONE 在 SQLAlchemy 层不可用)
 3. 启动时校验 PII_ENCRYPTION_KEY 是否固化,防止容器重启/重建后密钥翻篇
 4. 区分 created / updated / noop,便于排障
@@ -50,19 +50,14 @@ def _find_user(db, tenant_id: int) -> User | None:
 
 
 def _sync_user_pii(user: User) -> str:
-    """回填并自愈用户关键 PII 字段,返回变更摘要。"""
+    """回填并自愈用户关键资料字段,返回变更摘要。"""
     actions: list[str] = []
 
-    # name
-    original_cipher = user._name_ciphertext
-    decrypted_name = decrypt_pii(original_cipher)
-    if original_cipher is not None and decrypted_name is None:
-        # 密文存在但用当前密钥解不开 → 损坏,强制覆盖
+    # name 已改为明文存储,直接校正
+    if (user.name or "").strip() != NAME:
+        old = user.name
         user.name = NAME
-        actions.append(f"name: 损坏密文(无法解密) -> {NAME!r}")
-    elif decrypted_name != NAME:
-        user.name = NAME
-        actions.append(f"name: {decrypted_name!r} -> {NAME!r}")
+        actions.append(f"name: {old!r} -> {NAME!r}")
 
     # phone
     decrypted_phone = decrypt_pii(user._phone_ciphertext)

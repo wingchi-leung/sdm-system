@@ -9,10 +9,7 @@
       <view wx:if="{{unreadCount > 0}}" class="count-pill" bindtap="onReadAll">
         <text class="count-pill-text">全部已读</text>
       </view>
-      <view class="menu-pill">
-        <text class="menu-pill-dots">•••</text>
-        <view class="menu-pill-ring"></view>
-      </view>
+     
     </view>
 
     <view class="hero-copy">

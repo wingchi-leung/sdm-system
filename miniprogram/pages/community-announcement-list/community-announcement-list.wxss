@@ -11,47 +11,11 @@
   align-items: center;
   justify-content: flex-end;
 }
+ 
 
-.header-menu-pill {
-  min-width: 168rpx;
-  height: 68rpx;
-  padding: 0 20rpx 0 22rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  border-radius: 999rpx;
-  border: 1rpx solid rgba(17, 24, 39, 0.12);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10rpx 28rpx rgba(15, 23, 42, 0.06);
-}
+ 
 
-.header-menu-dots {
-  color: #111111;
-  font-size: 30rpx;
-  line-height: 1;
-  letter-spacing: 10rpx;
-  transform: translateX(4rpx);
-}
-
-.header-menu-circle {
-  width: 34rpx;
-  height: 34rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  border: 4rpx solid #111111;
-  border-radius: 50%;
-}
-
-.header-menu-circle-inner {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #111111;
-}
-
+ 
 .state-wrap {
   min-height: 40vh;
   display: flex;
@@ -96,7 +60,7 @@
 
 .page-title {
   color: #101828;
-  font-size: 50rpx;
+  font-size: 40rpx;
   line-height: 1.15;
   font-weight: 700;
 }
@@ -112,8 +76,8 @@
 }
 
 .create-btn {
-  min-width: 160rpx;
-  height: 68rpx;
+  min-width: 40rpx;
+  height: 66rpx;
   padding: 0 24rpx;
   display: inline-flex;
   align-items: center;

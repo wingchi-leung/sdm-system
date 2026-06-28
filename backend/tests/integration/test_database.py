@@ -3,6 +3,7 @@ from datetime import datetime
 
 import pytest
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
@@ -10,7 +11,6 @@ from app.schemas import (
     Activity,
     ActivityParticipant,
     ActivityType,
-    AdminUser,
     CheckInRecord,
     PaymentOrder,
     Permission,
@@ -30,7 +30,6 @@ class TestDatabaseSchema:
         """测试所有主要表均可访问"""
         tables = [
             Tenant,
-            AdminUser,
             User,
             Activity,
             ActivityType,
@@ -63,27 +62,6 @@ class TestDatabaseSchema:
         db_session.refresh(activity)
 
         assert activity.activity_type_id == activity_type.id
-
-    def test_admin_username_can_repeat_across_accounts(self, db_session: Session):
-        """测试当前模型未对管理员用户名加唯一约束"""
-        admin1 = AdminUser(
-            tenant_id=1,
-            user_id=5001,
-            username="unique_admin",
-            password_hash=hash_password("password"),
-        )
-        admin2 = AdminUser(
-            tenant_id=1,
-            user_id=5002,
-            username="unique_admin",
-            password_hash=hash_password("password"),
-        )
-        db_session.add(admin1)
-        db_session.commit()
-        db_session.add(admin2)
-
-        db_session.commit()
-        assert db_session.query(AdminUser).filter_by(username="unique_admin").count() == 2
 
     def test_user_phone_unique_per_tenant(self, db_session: Session):
         """测试用户手机号在同租户内唯一"""
@@ -123,9 +101,14 @@ class TestDatabaseTransactions:
         db_session.add(user)
         db_session.commit()
 
-        retrieved_user = db_session.query(User).filter_by(phone="13800138888").first()
+        retrieved_user = db_session.query(User).filter_by(id=user.id).first()
         assert retrieved_user is not None
         assert retrieved_user.name == "事务用户"
+        raw_name = db_session.execute(
+            text("SELECT name FROM `user` WHERE id = :user_id"),
+            {"user_id": user.id},
+        ).scalar_one()
+        assert raw_name == "事务用户"
 
     def test_transaction_rollback(self, db_session: Session):
         """测试事务回滚"""

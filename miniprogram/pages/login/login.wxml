@@ -5,6 +5,20 @@
       src="/assets/login.png"
       mode="aspectFit"
     />
+    <view class="poster-mark" aria-hidden="true">
+      <view class="poster-mark-en">
+        <text class="poster-letter">E</text>
+        <text class="poster-letter">X</text>
+        <text class="poster-letter">P</text>
+        <text class="poster-letter">L</text>
+        <text class="poster-letter">O</text>
+        <text class="poster-letter">R</text>
+        <text class="poster-letter">A</text>
+        <text class="poster-letter">T</text>
+        <text class="poster-letter">R</text>
+        <text class="poster-letter">Y</text>
+      </view>
+    </view>
     <block wx:if="{{isAdminMode}}">
       <view class="admin-page">
         <view class="admin-card">

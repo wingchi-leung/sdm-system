@@ -18,6 +18,7 @@ from app.models.user import ImportTemplateRequest, ImportTemplateResponse, Impor
 from app.schemas import User
 
 router = APIRouter()
+DEFAULT_USER_DISPLAY_NAME = "未填写姓名"
 
 
 def _normalize_admin_user_list_time(value) -> datetime | None:
@@ -71,6 +72,31 @@ def _serialize_admin_user_list_item_raw(db_user: User) -> user.UserListItemForAd
     )
 
 
+def _normalize_user_response_payload(db_user: User) -> dict:
+    """把历史脏数据整理成能通过响应校验的用户详情。"""
+    return {
+        "id": db_user.id,
+        "name": (db_user.name or "").strip() or DEFAULT_USER_DISPLAY_NAME,
+        "identity_number": db_user.identity_number,
+        "identity_type": db_user.identity_type,
+        "phone": db_user.phone,
+        "email": db_user.email,
+        "sex": db_user.sex,
+        "avatar_url": db_user.avatar_url,
+        "isblock": db_user.isblock or 0,
+        "block_reason": db_user.block_reason,
+        "age": db_user.age,
+        "occupation": db_user.occupation,
+        "industry": db_user.industry,
+        "create_time": db_user.create_time,
+        "update_time": db_user.update_time,
+    }
+
+
+def _serialize_user_response(db_user: User) -> user.UserResponse:
+    return user.UserResponse.model_validate(_normalize_user_response_payload(db_user))
+
+
 @router.post("/register", response_model=user.UserResponse)
 def register(body: user.RegisterRequest, db: Session = Depends(deps.get_db)):
     """用户注册"""
@@ -79,7 +105,7 @@ def register(body: user.RegisterRequest, db: Session = Depends(deps.get_db)):
     if not tenant or tenant.status != 1:
         raise HTTPException(status_code=400, detail="租户不存在或已禁用")
     
-    return crud_user.register_user(db=db, body=body, tenant_id=tenant.id)
+    return _serialize_user_response(crud_user.register_user(db=db, body=body, tenant_id=tenant.id))
 
 
 @router.get("/me", response_model=user.UserResponse)
@@ -91,7 +117,7 @@ def get_my_profile(
     db_user = crud_user.get_user(db, user_id=ctx.user_id, tenant_id=ctx.tenant_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="用户不存在")
-    return db_user
+    return _serialize_user_response(db_user)
 
 
 @router.post("/create", response_model=user.UserResponse)
@@ -101,7 +127,7 @@ def create_user(
     ctx: deps.TenantContext = Depends(deps.get_current_admin),
 ):
     """创建用户"""
-    return crud_user.create_user(db=db, user=user_in, tenant_id=ctx.tenant_id)
+    return _serialize_user_response(crud_user.create_user(db=db, user=user_in, tenant_id=ctx.tenant_id))
 
 
 @router.put("/bind-info")
@@ -154,12 +180,12 @@ def update_user_avatar(
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """更新当前用户头像。"""
-    return crud_user.update_user_avatar(
+    return _serialize_user_response(crud_user.update_user_avatar(
         db=db,
         user_id=ctx.user_id,
         tenant_id=ctx.tenant_id,
         avatar_url=body.avatar_url,
-    )
+    ))
 
 
 @router.post("/avatar", response_model=user.UserResponse)
@@ -169,12 +195,12 @@ def update_user_avatar_post(
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """兼容旧客户端或代理环境，允许通过 POST 更新当前用户头像。"""
-    return crud_user.update_user_avatar(
+    return _serialize_user_response(crud_user.update_user_avatar(
         db=db,
         user_id=ctx.user_id,
         tenant_id=ctx.tenant_id,
         avatar_url=body.avatar_url,
-    )
+    ))
 
 
 @router.put("/profile", response_model=user.UserResponse)
@@ -184,7 +210,7 @@ def update_my_profile_self(
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """修改当前用户的个人信息 。"""
-    return crud_user.update_user_profile_self(
+    return _serialize_user_response(crud_user.update_user_profile_self(
         db=db,
         user_id=ctx.user_id,
         tenant_id=ctx.tenant_id,
@@ -194,7 +220,7 @@ def update_my_profile_self(
         occupation=body.occupation,
         industry=body.industry,
         email=body.email,
-    )
+    ))
 
 
 @router.delete("/profile-fields", response_model=user.UserResponse)
@@ -204,12 +230,12 @@ def clear_my_profile_fields_self(
     ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
     """删除当前用户指定个人信息字段（不含证件字段）。"""
-    return crud_user.clear_user_profile_fields_self(
+    return _serialize_user_response(crud_user.clear_user_profile_fields_self(
         db=db,
         user_id=ctx.user_id,
         tenant_id=ctx.tenant_id,
         fields=body.fields,
-    )
+    ))
 
 
 @router.delete("/me")
@@ -478,4 +504,4 @@ def read_user(
     db_user = crud_user.get_user(db, user_id=user_id, tenant_id=ctx.tenant_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    return _serialize_user_response(db_user)

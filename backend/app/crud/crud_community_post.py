@@ -83,7 +83,7 @@ def get_posts_by_activity(
     ).group_by(
         CommunityPost.id,
         User.id,
-        User._name_ciphertext,
+        User.name,
     )
 
     rows = query.order_by(CommunityPost.create_time.desc()).offset(skip).limit(limit).all()
@@ -135,7 +135,7 @@ def get_post_detail(
     row = query.group_by(
         CommunityPost.id,
         User.id,
-        User._name_ciphertext,
+        User.name,
     ).first()
 
     if not row:

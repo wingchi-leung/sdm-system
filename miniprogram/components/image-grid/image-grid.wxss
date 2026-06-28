@@ -8,7 +8,7 @@
 .image-grid__single {
   position: relative;
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: 22rpx;
   overflow: hidden;
 }
 
@@ -16,14 +16,14 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: var(--radius-md);
+  border-radius: 22rpx;
 }
 
 .image-grid__add--single {
   margin-top: var(--space-xs);
   width: 100%;
-  height: 200rpx;
-  border-radius: var(--radius-md);
+  height: 192rpx;
+  border-radius: 22rpx;
 }
 
 /* 2 列网格 */
@@ -45,7 +45,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--radius-md);
+  border-radius: 22rpx;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -54,8 +54,8 @@
   width: 100%;
   height: 100%;
   display: block;
-  border-radius: var(--radius-md);
-  background-color: var(--background-subtle);
+  border-radius: 22rpx;
+  background-color: #f8fafc;
 }
 
 /* edit 模式 + 占位 */
@@ -63,9 +63,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--background-subtle);
-  border: 1rpx dashed var(--border);
-  border-radius: var(--radius-md);
+  background-color: #fbfdff;
+  border: 1rpx dashed #d8e0ea;
+  border-radius: 22rpx;
   box-sizing: border-box;
   transition: opacity 0.2s ease;
 }
@@ -75,20 +75,20 @@
 }
 
 .image-grid__add-icon {
-  font-size: 56rpx;
+  font-size: 54rpx;
   font-weight: 300;
-  color: var(--text-tertiary);
+  color: #8f99a8;
   line-height: 1;
 }
 
 /* edit 模式:右上角删除按钮 */
 .image-grid__remove {
   position: absolute;
-  top: 8rpx;
-  right: 8rpx;
-  width: 24rpx;
-  height: 24rpx;
-  line-height: 22rpx;
+  top: 10rpx;
+  right: 10rpx;
+  width: 28rpx;
+  height: 28rpx;
+  line-height: 26rpx;
   text-align: center;
   font-size: 24rpx;
   color: #ffffff;

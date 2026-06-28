@@ -11,13 +11,21 @@
 
     <view class="hero-mark">
       <view class="hero-mark-left">
-        <text class="hero-mark-cn">参悟</text>
-
+        <image
+          class="hero-mark-cn-image"
+          src="/assets/text/canwu.png"
+          mode="aspectFit"
+          aria-hidden="true"
+        />
       </view>
       <view class="hero-divider"></view>
       <view class="hero-mark-right">
-        <text class="hero-mark-vertical">真</text>
-        <text class="hero-mark-vertical">理</text>
+        <image
+          class="hero-mark-vertical-image"
+          src="/assets/text/zhenli.png"
+          mode="aspectFit"
+          aria-hidden="true"
+        />
       </view>
     </view>
   </view>

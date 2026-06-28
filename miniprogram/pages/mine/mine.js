@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
+const { resolveActivityPostersOrFallback } = require('../../utils/image-safe');
 const tenant = require('../../utils/tenant');
 const { formatParticipantActivities } = require('../../utils/mine-data');
 const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
@@ -31,7 +32,7 @@ function buildSummaryCards(items = []) {
 
 Page({
   data: {
-    view: 'user', // user | admin
+    view: 'guest', // guest | user | admin
     profile: null,
     adminProfile: null,
     loading: true,
@@ -52,6 +53,12 @@ Page({
     this.checkAuth();
   },
 
+  goToLogin() {
+    if (this._redirectingToLogin) return;
+    this._redirectingToLogin = true;
+    wx.reLaunch({ url: tenant.appendTenantToUrl('/pages/login/login') });
+  },
+
   bumpLoadVersion() {
     this._loadVersion = (this._loadVersion || 0) + 1;
     return this._loadVersion;
@@ -63,7 +70,7 @@ Page({
 
   resetPageState(overrides = {}) {
     this.setData({
-      view: 'user',
+      view: 'guest',
       profile: null,
       adminProfile: null,
       loading: true,
@@ -80,12 +87,17 @@ Page({
     const loadVersion = this.bumpLoadVersion();
 
     if (auth.isAdmin()) {
+      this._redirectingToLogin = false;
       this.resetPageState({ view: 'admin', loading: true, summaryCards: [] });
       try {
         const profileTask = api.getUserProfile();
-        const snapshotTask = api.getAuthSnapshot().catch(() => null);
+        const snapshotTask = api.getAuthSnapshot().catch((err) => {
+          if (auth.handleSessionExpired(err)) return null;
+          return null;
+        });
         const [profile, snapshot] = await Promise.all([profileTask, snapshotTask]);
         if (!this.isCurrentLoad(loadVersion)) return;
+        if (!auth.isLoggedIn()) return;
 
         if (snapshot) {
           auth.updateAdminMeta(snapshot);
@@ -108,6 +120,7 @@ Page({
           adminProfile: this.buildAdminProfile(),
         });
       } catch (err) {
+        if (auth.handleSessionExpired(err)) return;
         if (!this.isCurrentLoad(loadVersion)) return;
         this.setData({
           view: 'admin',
@@ -124,6 +137,7 @@ Page({
     }
 
     if (auth.isUser()) {
+      this._redirectingToLogin = false;
       this.resetPageState({
         view: 'user',
         loading: true,
@@ -136,16 +150,21 @@ Page({
       let displayActivities = [];
 
       try {
-        const profileTask = api.getUserProfile().catch(() => null);
+        const profileTask = api.getUserProfile().catch((err) => {
+          if (auth.handleSessionExpired(err)) return null;
+          return null;
+        });
         const activitiesTask = api.getMyParticipantActivities().catch(() => null);
         const [profileRes, activitiesRes] = await Promise.all([profileTask, activitiesTask]);
         profile = profileRes;
         participantItems = Array.isArray(activitiesRes && activitiesRes.items) ? activitiesRes.items : [];
         displayActivities = await this.buildMyActivities(participantItems);
       } catch (err) {
+        if (auth.handleSessionExpired(err)) return;
         wx.showToast({ title: '个人资料或报名数据加载失败', icon: 'none' });
       }
 
+      if (!auth.isLoggedIn()) return;
       try {
         avatarDisplayUrl = await resolveAvatarDisplayUrl(profile && profile.avatar_url, profile && profile.update_time);
       } catch (avatarErr) {
@@ -168,9 +187,9 @@ Page({
       return;
     }
 
-    this.resetPageState({ loading: false });
-    // 未登录直接跳转登录页
-    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
+    this.resetPageState({ view: 'guest', loading: false });
+    // 未登录直接踢回登录页，不保留当前页历史
+    this.goToLogin();
   },
 
   buildAdminProfile() {
@@ -190,7 +209,7 @@ Page({
 
   async buildMyActivities(items) {
     const mappedItems = formatParticipantActivities(items, this.formatTime.bind(this));
-    return image.resolveActivityPosters(mappedItems);
+    return resolveActivityPostersOrFallback(image, mappedItems, '我的页报名记录');
   },
 
   formatTime(iso) {
@@ -214,8 +233,7 @@ Page({
         this.bumpLoadVersion();
         auth.logout();
         this.resetPageState({ loading: false, summaryCards: [] });
-        wx.showToast({ title: '已退出', icon: 'none' });
-        wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/login/login') });
+        this.goToLogin();
       },
       fail: () => {
         wx.showToast({ title: '无法弹出确认框，请稍后重试', icon: 'none' });

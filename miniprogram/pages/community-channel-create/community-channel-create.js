@@ -58,6 +58,10 @@ Page({
     }
 
     // 权限前置校验:非管理员直接返回
+    if (!auth.isLoggedIn()) {
+      auth.redirectToLogin(editMode ? '请先使用管理员账号登录' : '请先使用管理员账号登录');
+      return;
+    }
     if (!auth.isAdmin()) {
       wx.showToast({ title: editMode ? '仅管理员可编辑社区' : '仅管理员可创建社区', icon: 'none' });
       setTimeout(() => wx.navigateBack(), 1500);

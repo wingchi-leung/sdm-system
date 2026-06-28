@@ -10,6 +10,9 @@ function loadPage(pageRelativePath, moduleMap) {
   global.wx = {
     showToast() {},
     navigateTo() {},
+    getStorageSync() {
+      return null;
+    },
   };
   global.getApp = () => ({ globalData: {} });
 
@@ -224,6 +227,12 @@ test('公告详情页 onLoad 拉取详情', async () => {
   let detailCalled = 0;
   const pageConfig = loadPage('../pages/community-announcement-detail/community-announcement-detail.js', [
     ['../../utils/api.js', {
+      getImageUrl: (url) => {
+        if (String(url).includes('/uploads/')) {
+          return `https://static.example.com${String(url).replace(/^https?:\/\/[^/]+/, '').replace('/__pageframe__', '')}`;
+        }
+        return url;
+      },
       getCommunityChannelAnnouncementDetail: async (channelId, id) => {
         detailCalled += 1;
         return {
@@ -260,4 +269,46 @@ test('公告详情页 onLoad 拉取详情', async () => {
   assert.equal(page.data.announcementId, 9);
   assert.equal(page.data.announcement.title, 'T');
   assert.equal(page.data.canDelete, true, '频道 admin 看他人的公告也应可删');
+});
+
+test('公告详情页会把图片地址规范化为可访问静态地址', async () => {
+  const pageConfig = loadPage('../pages/community-announcement-detail/community-announcement-detail.js', [
+    ['../../utils/api.js', {
+      getImageUrl: (url) => {
+        const text = String(url);
+        if (text.startsWith('/__pageframe__/uploads/')) {
+          return `https://static.example.com${text.replace('/__pageframe__', '')}`;
+        }
+        if (text.startsWith('/uploads/')) {
+          return `https://static.example.com${text}`;
+        }
+        return text;
+      },
+      getCommunityChannelAnnouncementDetail: async () => ({
+        id: 1,
+        channel_id: 5,
+        author_user_id: 1,
+        author_name: 'A',
+        author_avatar_url: '/a',
+        author_update_time: '2026-06-12T08:00:00.000Z',
+        title: 'T',
+        content: '<p>hello</p><img src="/__pageframe__/uploads/community/posts/2026/06/20260621_b47b2f58.jpg" />',
+        content_format: 'html',
+        images: [],
+        status: 1,
+        create_time: '2026-06-12T08:00:00.000Z',
+        update_time: '2026-06-12T08:00:00.000Z',
+      }),
+    }],
+    ['../../utils/auth.js', { isUser: () => true, isAdmin: () => false }],
+    ['../../utils/tenant.js', { applyPageOptions() {}, appendTenantToUrl: (u) => u }],
+    ['../../utils/avatar.js', { resolveAvatarDisplayUrl: async () => '/a', getDefaultAvatarPath: () => '/b' }],
+  ]);
+
+  const page = createPageInstance(pageConfig, {});
+  page.onLoad({ id: 9, channelId: 5, channelName: 'CN', channelRole: 'admin' });
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.match(page.data.announcement.content, /https:\/\/static\.example\.com\/uploads\/community\/posts\/2026\/06\/20260621_b47b2f58\.jpg/);
 });

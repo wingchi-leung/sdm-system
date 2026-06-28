@@ -18,9 +18,6 @@
 
   <view wx:else class="content">
     <view class="ann-card">
-      <view class="ann-badge-row">
-        <view class="ann-badge">频道公告</view>
-      </view>
       <text class="ann-title">{{announcement.title}}</text>
       <view class="ann-meta">
         <image class="ann-meta-avatar" src="{{announcement.author_avatar_display_url}}" mode="aspectFill" />

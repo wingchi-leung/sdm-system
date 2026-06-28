@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const image = require('../../utils/image');
+const { resolveActivityPostersOrFallback } = require('../../utils/image-safe');
 const tenant = require('../../utils/tenant');
 const { formatParticipantActivities } = require('../../utils/mine-data');
 
@@ -23,6 +24,16 @@ Page({
 
   ensureUserAccess() {
     // 允许普通用户和活动管理员访问（活动管理员也可以报名自己的活动）
+    if (!auth.isLoggedIn()) {
+      this.setData({
+        loading: false,
+        activities: [],
+        summaryText: '共 0 条报名记录',
+        error: null,
+      });
+      auth.redirectToLogin('请登录后查看');
+      return false;
+    }
     if (auth.isUser() || auth.isActivityTypeAdmin()) return true;
     this.setData({
       loading: false,
@@ -48,7 +59,11 @@ Page({
         registrations.items || [],
         this.formatTime.bind(this)
       );
-      const resolvedActivities = await image.resolveActivityPosters(activities);
+      const resolvedActivities = await resolveActivityPostersOrFallback(
+        image,
+        activities,
+        '我的活动列表'
+      );
       this.setData({
         activities: resolvedActivities,
         summaryText: `共 ${resolvedActivities.length} 条报名记录`,
