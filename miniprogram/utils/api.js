@@ -878,6 +878,39 @@ function queryPaymentOrder(orderNo) {
   });
 }
 
+/** 获取通知配置 */
+function getNotificationConfig() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/notifications/config`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 上报订阅消息授权结果 */
+function recordSubscribeConsent(data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/notifications/subscribe-consent`,
+      method: 'POST',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 发起订单退款（管理员） */
 function createPaymentRefund(orderNo, reason, idempotencyKey) {
   const payload = {
@@ -1638,6 +1671,8 @@ module.exports = {
   getActivityPermissions,
   getEnrollmentInfo,
   getMyParticipantActivities,
+  getNotificationConfig,
+  recordSubscribeConsent,
   getCommunityPosts,
   getCommunityChannels,
   getCommunityChannelDetail,

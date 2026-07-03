@@ -43,6 +43,7 @@ Page({
     isFull: false,
     remainingQuota: null,
     paymentOrderNo: '',
+    subscribeConfig: null,
     // 基本信息折叠状态
     basicInfoExpanded: false,
     requireBindInfo: false,
@@ -139,6 +140,7 @@ Page({
       await Promise.all([
         this.loadActivity(activityId),
         this.ensureProfileBound(),
+        this.loadNotificationConfig(),
       ]);
     } catch (err) {
       if (err && err.stopFlow) {
@@ -249,6 +251,47 @@ Page({
 
     this.setData({ requireBindInfo: false });
     await this.loadUserProfile();
+  },
+
+  async loadNotificationConfig() {
+    try {
+      const config = await api.getNotificationConfig();
+      this.setData({ subscribeConfig: config || null });
+    } catch (_) {
+      this.setData({ subscribeConfig: null });
+    }
+  },
+
+  getRegistrationSubscribeScene() {
+    const config = this.data.subscribeConfig;
+    const scenes = config && Array.isArray(config.scenes) ? config.scenes : [];
+    return scenes.find((item) => item && item.scene === 'registration_success') || null;
+  },
+
+  requestRegistrationSubscribeConsent() {
+    const sceneConfig = this.getRegistrationSubscribeScene();
+    const templateId = sceneConfig && sceneConfig.enabled ? sceneConfig.template_id : '';
+    if (!templateId || typeof wx.requestSubscribeMessage !== 'function') {
+      return Promise.resolve(null);
+    }
+
+    return new Promise((resolve) => {
+      wx.requestSubscribeMessage({
+        tmplIds: [templateId],
+        success: (res) => {
+          const status = res && res[templateId];
+          if (status === 'accept' || status === 'reject' || status === 'ban') {
+            api.recordSubscribeConsent({
+              template_id: templateId,
+              accept_status: status,
+              source_page: 'pages/register/register',
+            }).catch(() => {});
+          }
+          resolve(res);
+        },
+        fail: () => resolve(null),
+      });
+    });
   },
 
   // 问卷输入处理
@@ -381,8 +424,8 @@ Page({
   doRegister() {
     const participantData = this.buildParticipantData();
 
-    api
-      .registerParticipant(participantData)
+    return this.requestRegistrationSubscribeConsent()
+      .then(() => api.registerParticipant(participantData))
       .then((result) => {
         // 检查是否进入候补
         const isWaitlist = result.enroll_status === 2;
@@ -478,12 +521,11 @@ Page({
     const { actualFee } = this.data;
     const participantData = this.buildParticipantData();
 
-    // 1. 创建支付订单
-    api
-      .createPaymentOrder({
+    return this.requestRegistrationSubscribeConsent()
+      .then(() => api.createPaymentOrder({
         ...participantData,
         actual_fee: actualFee,
-      })
+      }))
       .then((orderData) => {
         const orderNo = orderData.order_no || '';
         if (!orderNo) {

@@ -131,7 +131,7 @@ test('超级管理员停留在报名页时不能继续提交支付报名', () =>
   assert.equal(page.data.submitting, false);
 });
 
-test('活动管理员可继续提交支付报名', () => {
+test('活动管理员可继续提交支付报名', async () => {
   const calls = {
     createPaymentOrder: 0,
   };
@@ -191,8 +191,99 @@ test('活动管理员可继续提交支付报名', () => {
   });
 
   page.submit();
+  await new Promise((resolve) => setTimeout(resolve, 0));
 
   assert.equal(calls.createPaymentOrder, 1);
+});
+
+test('报名前会请求报名成功订阅消息授权并上报结果', async () => {
+  const calls = {
+    requestSubscribeMessage: 0,
+    recordSubscribeConsent: 0,
+    registerParticipant: 0,
+  };
+  const pageConfig = loadRegisterPage({
+    api: {
+      recordSubscribeConsent(payload) {
+        calls.recordSubscribeConsent += 1;
+        assert.equal(payload.template_id, 'TPL_REGISTER_SUCCESS');
+        assert.equal(payload.accept_status, 'accept');
+        return Promise.resolve({});
+      },
+      registerParticipant() {
+        calls.registerParticipant += 1;
+        return Promise.resolve({ enroll_status: 1 });
+      },
+    },
+    wxMock: {
+      requestSubscribeMessage({ tmplIds, success }) {
+        calls.requestSubscribeMessage += 1;
+        assert.deepEqual(tmplIds, ['TPL_REGISTER_SUCCESS']);
+        success({ TPL_REGISTER_SUCCESS: 'accept' });
+      },
+      showToast() {},
+      navigateBack() {},
+    },
+  });
+  const page = createPageInstance(pageConfig, {
+    activity: { id: 66 },
+    subscribeConfig: {
+      scenes: [
+        {
+          scene: 'registration_success',
+          enabled: true,
+          template_id: 'TPL_REGISTER_SUCCESS',
+        },
+      ],
+    },
+    name: '报名用户',
+    whyJoin: '想参加',
+    channel: '朋友推荐',
+    expectation: '学习交流',
+  });
+
+  await page.doRegister();
+
+  assert.equal(calls.requestSubscribeMessage, 1);
+  assert.equal(calls.recordSubscribeConsent, 1);
+  assert.equal(calls.registerParticipant, 1);
+});
+
+test('未配置报名成功模板时不会请求订阅授权', async () => {
+  const calls = {
+    requestSubscribeMessage: 0,
+    registerParticipant: 0,
+  };
+  const pageConfig = loadRegisterPage({
+    api: {
+      registerParticipant() {
+        calls.registerParticipant += 1;
+        return Promise.resolve({ enroll_status: 1 });
+      },
+    },
+    wxMock: {
+      requestSubscribeMessage() {
+        calls.requestSubscribeMessage += 1;
+      },
+      showToast() {},
+      navigateBack() {},
+    },
+  });
+  const page = createPageInstance(pageConfig, {
+    activity: { id: 88 },
+    subscribeConfig: {
+      scenes: [],
+    },
+    name: '报名用户',
+    whyJoin: '想参加',
+    channel: '朋友推荐',
+    expectation: '学习交流',
+  });
+
+  await page.doRegister();
+
+  assert.equal(calls.requestSubscribeMessage, 0);
+  assert.equal(calls.registerParticipant, 1);
 });
 
 test('报名页加载活动时会解析海报展示地址', async () => {
