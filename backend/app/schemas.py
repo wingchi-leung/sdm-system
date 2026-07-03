@@ -334,6 +334,7 @@ class MessageTask(BaseModel):
     user_id = Column(Integer, nullable=False, index=True)
     openid = Column(String(64), nullable=False)
     template_id = Column(String(64), nullable=False)
+    page_path = Column(String(255), nullable=True)
     payload_json = Column(Text, nullable=False)
     status = Column(String(20), nullable=False, default="pending", index=True)
     retry_count = Column(Integer, nullable=False, default=0)
@@ -354,6 +355,21 @@ class SubscribeConsent(BaseModel):
     accept_status = Column(String(16), nullable=False)
     accept_time = Column(DateTime, nullable=True)
     source_page = Column(String(255), nullable=True)
+
+
+class NotificationSceneConfig(BaseModel):
+    __tablename__ = "notification_scene_config"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "scene", name="uk_notification_scene_config_tenant_scene"),
+    )
+    tenant_id = Column(Integer, nullable=False, index=True)
+    scene = Column(String(64), nullable=False)
+    name = Column(String(100), nullable=False)
+    description = Column(String(255), nullable=True)
+    enabled = Column(SmallInteger, nullable=False, default=1)
+    template_id = Column(String(64), nullable=True)
+    page_path = Column(String(255), nullable=True)
+    payload_template_json = Column(Text, nullable=True)
 
 
 # ============================================================

@@ -28,6 +28,7 @@
 | 活动报名 | 已登录用户可查看活动并提交报名 | ✅ 已实现 | 后端 `POST /participants`；付费活动的“待支付”不算已报名，需支付成功后才进入正式报名态 |
 | 活动签到 | 现场对已报名人员进行签到记录 | ✅ 已实现 | 后端 `POST /checkins` |
 | 报名时支付 | 付费活动未满员时必须走微信支付 | ✅ 已实现 | 小程序微信支付主链路已完成 |
+| 报名成功微信通知 | 报名成功后可向用户发送微信订阅消息 | ✅ 已实现 | 已接入小程序授权弹窗、报名成功入队与租户级通知配置表 |
 | 活动编辑/删除 | 管理员可编辑活动信息、删除活动 | ✅ 已实现 | `PUT/DELETE /activities/{id}` |
 | 活动人员查看 | 管理员可查看活动报名人员及信息 | ✅ 已实现 | `GET /participants/{activity_id}/` |
 | 活动导出 Excel | 超级管理员可导出活动及报名数据 | ✅ 已实现 | 仅超级管理员可访问导出接口 |
@@ -134,6 +135,7 @@
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
 | 2026-06-21 | 社区频道日历功能落地：新增频道内独立月历组件、日历首页/详情/新建/编辑页面，以及后端事件 API、月汇总和级联删除 | `docs/specs/SPEC-12_社区-频道日历.md`, `backend/app/api/v1/endpoints/community.py`, `backend/app/crud/crud_community_channel.py`, `backend/app/models/community.py`, `backend/app/schemas.py`, `miniprogram/components/community-calendar/`, `miniprogram/pages/community-calendar*/` |
+| 2026-07-03 | 小程序订阅消息链路补齐报名成功通知：新增租户级通知场景配置表 `notification_scene_config`，报名页接入 `wx.requestSubscribeMessage` 授权弹窗并上报结果，后端支持报名成功/退款结果/活动提醒统一按配置入队与发送 | `docs/specs/SPEC-04_小程序-订阅消息通知.md`, `docs/specs/SPEC-01_产品总规格.md`, `backend/app/api/v1/endpoints/notifications.py`, `backend/app/api/v1/endpoints/participants.py`, `backend/app/api/v1/endpoints/payments.py`, `backend/app/services/notification_center.py`, `backend/sql/table.sql`, `miniprogram/pages/register/register.js`, `miniprogram/utils/api.js` |
 | 2026-06-21 | 立项社区频道日历能力：为每个社区增加独立日历视图与事件管理能力，先以规格文档固化范围、角色、事件模型与页面形态 | `docs/specs/SPEC-12_社区-频道日历.md` |
 | 2026-06-21 | 取消用户姓名加密，`user.name` 改为明文存储；补充历史密文回填脚本 `backend/scripts/migrate_user_names_to_plaintext.py`，并同步修订数据安全规格 | `backend/app/schemas.py`, `backend/scripts/migrate_user_names_to_plaintext.py`, `docs/specs/SPEC-01_产品总规格.md` |
 | 2026-06-21 | 小程序社区发布页抽出公共富文本编辑器方法：标题截断、编辑器上下文、富文本快照、图片插入与正文校验统一复用，发布动态/发布公告仅保留各自业务壳与提交接口 | `miniprogram/utils/community-editor.js`, `miniprogram/pages/community-post-create/*`, `miniprogram/pages/community-announcement-create/*`, `miniprogram/tests/community-post-create-page.test.js`, `miniprogram/tests/community-announcement-create-page.test.js` |

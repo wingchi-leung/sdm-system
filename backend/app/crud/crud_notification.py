@@ -60,6 +60,7 @@ def enqueue_message_task(
     openid: str,
     template_id: str,
     payload: dict,
+    page_path: str | None = None,
     max_retry: int | None = None,
 ) -> MessageTask:
     task = MessageTask(
@@ -69,6 +70,7 @@ def enqueue_message_task(
         user_id=user_id,
         openid=openid,
         template_id=template_id,
+        page_path=page_path,
         payload_json=json.dumps(payload, ensure_ascii=False),
         status=TASK_STATUS_PENDING,
         retry_count=0,

@@ -15,6 +15,7 @@ from sqlalchemy import and_
 from app.database import SessionLocal
 from app.schemas import Activity, ActivityParticipant, PaymentOrder, User, UserCredential
 from app.services.wechat_pay import get_wechat_pay_service
+from app.services import notification_center
 from app.services.wechat_subscribe import send_subscribe_message
 from app.crud import crud_notification, crud_payment
 from app.core.config import settings
@@ -193,11 +194,19 @@ def queue_activity_remind_tasks(lookahead_seconds: int = 300):
         )
 
         for participant, activity, credential in participants:
-            payload = {
-                "thing1": {"value": activity.activity_name[:20]},
-                "time2": {"value": activity.start_time.strftime("%Y-%m-%d %H:%M")},
-                "thing3": {"value": (activity.location or "线上活动")[:20]},
-            }
+            rendered_message = notification_center.render_scene_message(
+                db,
+                tenant_id=participant.tenant_id,
+                scene=notification_center.SCENE_ACTIVITY_REMIND_30M,
+                context={
+                    "activity_id": activity.id,
+                    "activity_name": activity.activity_name[:20],
+                    "start_time": activity.start_time.strftime("%Y-%m-%d %H:%M"),
+                    "location": (activity.location or "线上活动")[:20],
+                },
+            )
+            if not rendered_message:
+                continue
             crud_notification.enqueue_message_task(
                 db,
                 tenant_id=participant.tenant_id,
@@ -205,8 +214,9 @@ def queue_activity_remind_tasks(lookahead_seconds: int = 300):
                 biz_id=participant.id,
                 user_id=participant.user_id,
                 openid=credential.identifier,
-                template_id=template_id,
-                payload=payload,
+                template_id=rendered_message["template_id"],
+                payload=rendered_message["payload"],
+                page_path=rendered_message["page_path"],
                 max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
             )
     except Exception as exc:
@@ -250,21 +260,26 @@ def queue_refund_notify_tasks(limit: int = 200):
 
         for order, credential in orders:
             if order.refund_status == 3 and template_success:
-                scene = "refund_success"
-                template_id = template_success
+                scene = notification_center.SCENE_REFUND_SUCCESS
                 phrase = "退款成功"
             elif order.refund_status == 4 and template_failed:
-                scene = "refund_failed"
-                template_id = template_failed
+                scene = notification_center.SCENE_REFUND_FAILED
                 phrase = "退款失败"
             else:
                 continue
 
-            payload = {
-                "thing1": {"value": f"订单{order.order_no}"[:20]},
-                "amount2": {"value": f"{(order.refund_amount or order.actual_fee) / 100:.2f}元"},
-                "phrase3": {"value": phrase},
-            }
+            rendered_message = notification_center.render_scene_message(
+                db,
+                tenant_id=order.tenant_id,
+                scene=scene,
+                context={
+                    "order_no": order.order_no[:20],
+                    "amount_yuan": f"{(order.refund_amount or order.actual_fee) / 100:.2f}",
+                    "result_phrase": phrase,
+                },
+            )
+            if not rendered_message:
+                continue
             crud_notification.enqueue_message_task(
                 db,
                 tenant_id=order.tenant_id,
@@ -272,8 +287,9 @@ def queue_refund_notify_tasks(limit: int = 200):
                 biz_id=order.id,
                 user_id=order.user_id,
                 openid=credential.identifier,
-                template_id=template_id,
-                payload=payload,
+                template_id=rendered_message["template_id"],
+                payload=rendered_message["payload"],
+                page_path=rendered_message["page_path"],
                 max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
             )
     except Exception as exc:
@@ -301,6 +317,7 @@ def dispatch_message_tasks(batch_size: int = 20):
                     openid=locked_task.openid,
                     template_id=locked_task.template_id,
                     data=payload,
+                    page=locked_task.page_path,
                 )
                 crud_notification.mark_task_success(db, locked_task)
             except Exception as exc:

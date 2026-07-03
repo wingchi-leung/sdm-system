@@ -6,11 +6,14 @@ from app.core.config import settings
 from app.crud import crud_notification
 from app.models.notification import (
     MessageTaskRetryResponse,
+    NotificationSceneConfigItem,
+    NotificationSceneConfigUpsert,
     RefundNotifyEnqueueRequest,
     SubscribeConfigResponse,
     SubscribeConsentUpsert,
 )
 from app.schemas import PaymentOrder, UserCredential
+from app.services import notification_center
 
 router = APIRouter()
 
@@ -42,15 +45,56 @@ def upsert_subscribe_consent(
 
 @router.get("/config", response_model=SubscribeConfigResponse)
 def get_subscribe_config(
+    db: Session = Depends(deps.get_db),
     _ctx: deps.TenantContext = Depends(deps.get_current_user),
 ):
+    scenes = notification_center.list_scene_configs(db, _ctx.tenant_id)
+    scene_map = {item["scene"]: item for item in scenes}
     return SubscribeConfigResponse(
         enabled=settings.WECHAT_SUBSCRIBE_ENABLED,
-        refund_success_template_id=settings.WECHAT_SUBSCRIBE_REFUND_SUCCESS_TEMPLATE_ID,
-        refund_failed_template_id=settings.WECHAT_SUBSCRIBE_REFUND_FAILED_TEMPLATE_ID,
-        activity_remind_template_id=settings.WECHAT_SUBSCRIBE_ACTIVITY_REMIND_TEMPLATE_ID,
+        refund_success_template_id=scene_map.get(notification_center.SCENE_REFUND_SUCCESS, {}).get("template_id"),
+        refund_failed_template_id=scene_map.get(notification_center.SCENE_REFUND_FAILED, {}).get("template_id"),
+        activity_remind_template_id=scene_map.get(notification_center.SCENE_ACTIVITY_REMIND_30M, {}).get("template_id"),
+        registration_success_template_id=scene_map.get(notification_center.SCENE_REGISTRATION_SUCCESS, {}).get("template_id"),
         retry_max=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
+        scenes=[NotificationSceneConfigItem(**item) for item in scenes],
     )
+
+
+@router.get("/scene-configs", response_model=list[NotificationSceneConfigItem])
+def list_scene_configs(
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    scenes = notification_center.list_scene_configs(db, ctx.tenant_id)
+    return [NotificationSceneConfigItem(**item) for item in scenes]
+
+
+@router.put("/scene-configs/{scene}", response_model=NotificationSceneConfigItem)
+def upsert_scene_config(
+    scene: str,
+    payload: NotificationSceneConfigUpsert,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    try:
+        notification_center.get_scene_config(db, ctx.tenant_id, scene)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="通知场景不存在")
+
+    notification_center.upsert_scene_config(
+        db,
+        tenant_id=ctx.tenant_id,
+        scene=scene,
+        name=payload.name,
+        description=payload.description,
+        enabled=payload.enabled,
+        template_id=payload.template_id,
+        page_path=payload.page_path,
+        payload_template_json=payload.payload_template_json,
+    )
+    scene_config = notification_center.get_scene_config(db, ctx.tenant_id, scene)
+    return NotificationSceneConfigItem(**scene_config)
 
 
 @router.post("/tasks/{task_id}/retry", response_model=MessageTaskRetryResponse)
@@ -106,11 +150,18 @@ def enqueue_refund_notify(
         raise HTTPException(status_code=400, detail="退款通知模板未配置")
 
     scene = "refund_success" if payload.result == "success" else "refund_failed"
-    payload_data = {
-        "thing1": {"value": f"订单{order.order_no}"[:20]},
-        "amount2": {"value": f"{order.actual_fee / 100:.2f}元"},
-        "phrase3": {"value": "退款成功" if payload.result == "success" else "退款失败"},
-    }
+    rendered_message = notification_center.render_scene_message(
+        db,
+        tenant_id=ctx.tenant_id,
+        scene=scene,
+        context={
+            "order_no": order.order_no[:20],
+            "amount_yuan": f"{order.actual_fee / 100:.2f}",
+        },
+    )
+    if not rendered_message:
+        raise HTTPException(status_code=400, detail="当前通知场景未启用或模板未配置")
+
     task = crud_notification.enqueue_message_task(
         db,
         tenant_id=ctx.tenant_id,
@@ -119,7 +170,8 @@ def enqueue_refund_notify(
         user_id=order.user_id,
         openid=credential.identifier,
         template_id=template_id,
-        payload=payload_data,
+        payload=rendered_message["payload"],
+        page_path=rendered_message["page_path"],
         max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
     )
     return {"task_id": task.id, "status": task.status}

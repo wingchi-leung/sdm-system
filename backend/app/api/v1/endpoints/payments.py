@@ -22,6 +22,7 @@ from app.models.payment import (
     PaymentOrderDetail,
 )
 from app.schemas import Activity, ActivityParticipant, PaymentOrder, PaymentRefund, User, UserCredential
+from app.services import notification_center
 from app.services.wechat_pay import get_wechat_pay_service
 
 router = APIRouter()
@@ -511,6 +512,18 @@ async def payment_notify(
                     order_no,
                     participant.id,
                 )
+                activity = db.query(Activity).filter(
+                    Activity.id == order.activity_id,
+                    Activity.tenant_id == order.tenant_id,
+                ).first()
+                if activity:
+                    notification_center.enqueue_registration_success_message(
+                        db,
+                        tenant_id=order.tenant_id,
+                        user_id=order.user_id,
+                        participant=participant,
+                        activity=activity,
+                    )
 
             except Exception as e:
                 db.rollback()
@@ -566,7 +579,19 @@ def query_payment_order(
                 if locked_order and locked_order.status != crud_payment.PAYMENT_STATUS_SUCCESS:
                     try:
                         order = locked_order
-                        _complete_successful_payment(db, order, remote_order)
+                        participant = _complete_successful_payment(db, order, remote_order)
+                        activity = db.query(Activity).filter(
+                            Activity.id == order.activity_id,
+                            Activity.tenant_id == ctx.tenant_id,
+                        ).first()
+                        if activity:
+                            notification_center.enqueue_registration_success_message(
+                                db,
+                                tenant_id=ctx.tenant_id,
+                                user_id=order.user_id,
+                                participant=participant,
+                                activity=activity,
+                            )
                     except Exception as complete_error:
                         db.rollback()
                         logger.exception(
@@ -807,21 +832,28 @@ async def refund_notify(
                     UserCredential.status == 1,
                 ).first()
                 if credential:
-                    crud_notification.enqueue_message_task(
+                    rendered_message = notification_center.render_scene_message(
                         db,
                         tenant_id=order.tenant_id,
-                        scene="refund_success",
-                        biz_id=order.id,
-                        user_id=order.user_id,
-                        openid=credential.identifier,
-                        template_id=settings.WECHAT_SUBSCRIBE_REFUND_SUCCESS_TEMPLATE_ID,
-                        payload={
-                            "thing1": {"value": f"订单{order.order_no}"[:20]},
-                            "amount2": {"value": f"{order.actual_fee / 100:.2f}元"},
-                            "phrase3": {"value": "退款成功"},
+                        scene=notification_center.SCENE_REFUND_SUCCESS,
+                        context={
+                            "order_no": order.order_no[:20],
+                            "amount_yuan": f"{order.actual_fee / 100:.2f}",
                         },
-                        max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
                     )
+                    if rendered_message:
+                        crud_notification.enqueue_message_task(
+                            db,
+                            tenant_id=order.tenant_id,
+                            scene="refund_success",
+                            biz_id=order.id,
+                            user_id=order.user_id,
+                            openid=credential.identifier,
+                            template_id=rendered_message["template_id"],
+                            payload=rendered_message["payload"],
+                            page_path=rendered_message["page_path"],
+                            max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
+                        )
         else:
             reason = resource.get("user_received_account") or resource.get("refund_status") or "退款失败"
             crud_refund.mark_failed(db, refund, fail_reason=reason, callback_raw=resource)
@@ -835,21 +867,28 @@ async def refund_notify(
                     UserCredential.status == 1,
                 ).first()
                 if credential:
-                    crud_notification.enqueue_message_task(
+                    rendered_message = notification_center.render_scene_message(
                         db,
                         tenant_id=order.tenant_id,
-                        scene="refund_failed",
-                        biz_id=order.id,
-                        user_id=order.user_id,
-                        openid=credential.identifier,
-                        template_id=settings.WECHAT_SUBSCRIBE_REFUND_FAILED_TEMPLATE_ID,
-                        payload={
-                            "thing1": {"value": f"订单{order.order_no}"[:20]},
-                            "amount2": {"value": f"{order.actual_fee / 100:.2f}元"},
-                            "phrase3": {"value": "退款失败"},
+                        scene=notification_center.SCENE_REFUND_FAILED,
+                        context={
+                            "order_no": order.order_no[:20],
+                            "amount_yuan": f"{order.actual_fee / 100:.2f}",
                         },
-                        max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
                     )
+                    if rendered_message:
+                        crud_notification.enqueue_message_task(
+                            db,
+                            tenant_id=order.tenant_id,
+                            scene="refund_failed",
+                            biz_id=order.id,
+                            user_id=order.user_id,
+                            openid=credential.identifier,
+                            template_id=rendered_message["template_id"],
+                            payload=rendered_message["payload"],
+                            page_path=rendered_message["page_path"],
+                            max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
+                        )
 
         db.commit()
         return {"code": "SUCCESS", "message": "成功"}

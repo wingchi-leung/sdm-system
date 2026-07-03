@@ -3,6 +3,7 @@
 """
 import pytest
 from fastapi import status
+from sqlalchemy import text
 
 from app.crud import crud_payment
 from app.crud import crud_refund
@@ -32,6 +33,61 @@ class TestParticipantRegistration:
         assert data["activity_id"] == sample_activity.id
         assert data["participant_name"] == mask_name(sample_user.name)
         assert data["phone"] == mask_phone(sample_user.phone)
+
+    def test_register_for_activity_enqueues_registration_success_message(
+        self,
+        client,
+        user_token,
+        sample_activity,
+        sample_user,
+        db_session,
+        monkeypatch,
+    ):
+        from app.schemas import NotificationSceneConfig, UserCredential
+        from app.core.config import settings
+
+        monkeypatch.setattr(settings, "WECHAT_SUBSCRIBE_ENABLED", True)
+
+        db_session.add(
+            UserCredential(
+                user_id=sample_user.id,
+                tenant_id=sample_user.tenant_id,
+                credential_type="wechat",
+                identifier="openid_register_success",
+                status=1,
+            )
+        )
+        db_session.add(
+            NotificationSceneConfig(
+                tenant_id=sample_user.tenant_id,
+                scene="registration_success",
+                name="报名成功通知",
+                enabled=1,
+                template_id="tpl_register_success",
+                page_path="pages/my-activities/my-activities",
+                payload_template_json='{"thing1":{"value":"{{activity_name}}"}}',
+            )
+        )
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "报名者",
+                "phone": "13900139100",
+                "identity_number": "110101199001013000",
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        row = db_session.execute(
+            text("SELECT scene, template_id FROM message_task WHERE user_id = :user_id ORDER BY id DESC LIMIT 1"),
+            {"user_id": sample_user.id},
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "registration_success"
+        assert row[1] == "tpl_register_success"
 
     def test_register_ignores_client_supplied_user_id(
         self,

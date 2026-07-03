@@ -7,6 +7,7 @@ from app.crud import crud_participant, crud_payment, crud_user
 from app.models import participant
 from app.api import deps
 from app.schemas import Activity, ActivityParticipant, PaymentOrder, PaymentRefund
+from app.services import notification_center
 
 router = APIRouter()
 
@@ -101,11 +102,19 @@ async def create_participant(
     ):
         raise HTTPException(status_code=400, detail="已报名，无需重复报名")
 
-    return crud_participant.create_participant(
+    created_participant = crud_participant.create_participant(
         db=db,
         participant=normalized_participant,
         tenant_id=tenant_id,
     )
+    notification_center.enqueue_registration_success_message(
+        db,
+        tenant_id=tenant_id,
+        user_id=current_user.id,
+        participant=created_participant,
+        activity=activity,
+    )
+    return created_participant
 
 
 @router.get("/{activity_id}/", response_model=participant.ParticipantListResponse)

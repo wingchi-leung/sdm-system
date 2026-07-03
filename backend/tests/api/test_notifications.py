@@ -10,6 +10,8 @@ def test_get_notifications_config(client, user_token):
     payload = response.json()
     assert "enabled" in payload
     assert payload["retry_max"] == 5
+    assert "scenes" in payload
+    assert any(item["scene"] == "registration_success" for item in payload["scenes"])
 
 
 def test_upsert_subscribe_consent(client, user_token):
@@ -48,3 +50,27 @@ def test_retry_message_task_requires_admin(client, db_session, activity_admin_to
     )
     assert response.status_code == 200
     assert response.json()["status"] == "pending"
+
+
+def test_admin_can_upsert_notification_scene_config(client, super_admin_token):
+    response = client.put(
+        "/api/v1/notifications/scene-configs/registration_success",
+        headers={"Authorization": f"Bearer {super_admin_token}"},
+        json={
+            "name": "报名成功通知",
+            "description": "报名成功后通知用户",
+            "enabled": True,
+            "template_id": "tpl_register_ok",
+            "page_path": "pages/my-activities/my-activities",
+            "payload_template_json": {
+                "thing1": {"value": "{{activity_name}}"},
+                "phrase2": {"value": "报名成功"},
+                "time3": {"value": "{{start_time}}"},
+            },
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["scene"] == "registration_success"
+    assert payload["enabled"] is True
+    assert payload["template_id"] == "tpl_register_ok"

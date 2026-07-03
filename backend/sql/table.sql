@@ -224,6 +224,7 @@ CREATE TABLE IF NOT EXISTS `message_task` (
   `user_id` int NOT NULL COMMENT '用户ID',
   `openid` varchar(64) NOT NULL COMMENT '接收者 openid',
   `template_id` varchar(64) NOT NULL COMMENT '订阅消息模板ID',
+  `page_path` varchar(255) DEFAULT NULL COMMENT '点击通知后跳转的小程序页面',
   `payload_json` text NOT NULL COMMENT '消息体 JSON',
   `status` varchar(20) NOT NULL DEFAULT 'pending' COMMENT '任务状态：pending/sending/success/failed/dead',
   `retry_count` int NOT NULL DEFAULT 0 COMMENT '重试次数',
@@ -255,6 +256,26 @@ CREATE TABLE IF NOT EXISTS `subscribe_consent` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_subscribe_consent_user_template` (`tenant_id`, `user_id`, `template_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订阅消息授权记录表';
+
+--
+-- 12. 通知场景配置表
+--
+CREATE TABLE IF NOT EXISTS `notification_scene_config` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `scene` varchar(64) NOT NULL COMMENT '通知场景编码',
+  `name` varchar(100) NOT NULL COMMENT '通知场景名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '通知说明',
+  `enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否启用：1-启用 0-禁用',
+  `template_id` varchar(64) DEFAULT NULL COMMENT '微信订阅消息模板ID',
+  `page_path` varchar(255) DEFAULT NULL COMMENT '点击通知跳转页面',
+  `payload_template_json` text DEFAULT NULL COMMENT '消息体模板 JSON',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_notification_scene_config_tenant_scene` (`tenant_id`, `scene`),
+  KEY `idx_notification_scene_config_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知场景配置表';
 
 -- 10. RBAC 权限表
 
@@ -733,6 +754,31 @@ SET @need := (
 );
 SET @sql := IF(@need, 'ALTER TABLE `payment_order` ADD COLUMN `refund_fail_reason` varchar(255) DEFAULT NULL AFTER `refund_success_at`', 'SELECT 1');
 PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
+  FROM information_schema.columns
+  WHERE table_schema = @schema_name AND table_name = 'message_task' AND column_name = 'page_path'
+);
+SET @sql := IF(@need, 'ALTER TABLE `message_task` ADD COLUMN `page_path` varchar(255) DEFAULT NULL COMMENT ''点击通知后跳转的小程序页面'' AFTER `template_id`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+CREATE TABLE IF NOT EXISTS `notification_scene_config` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `scene` varchar(64) NOT NULL COMMENT '通知场景编码',
+  `name` varchar(100) NOT NULL COMMENT '通知场景名称',
+  `description` varchar(255) DEFAULT NULL COMMENT '通知说明',
+  `enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否启用：1-启用 0-禁用',
+  `template_id` varchar(64) DEFAULT NULL COMMENT '微信订阅消息模板ID',
+  `page_path` varchar(255) DEFAULT NULL COMMENT '点击通知跳转页面',
+  `payload_template_json` text DEFAULT NULL COMMENT '消息体模板 JSON',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_notification_scene_config_tenant_scene` (`tenant_id`, `scene`),
+  KEY `idx_notification_scene_config_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知场景配置表';
 
 
 ALTER TABLE user_role
