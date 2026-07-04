@@ -1,8 +1,15 @@
 from pydantic import BaseModel, Field, field_serializer
 from datetime import datetime
-from typing import Optional, List
+from typing import Any, Optional, List
 from .participant import ParticipantBase
 from app.core.pii import mask_email, mask_identity_number, mask_name, mask_phone
+
+
+class ActivityNotificationConfigPayload(BaseModel):
+    enabled: bool = True
+    template_id: Optional[str] = Field(None, max_length=64)
+    page_path: Optional[str] = Field(None, max_length=255)
+    payload_template_json: dict[str, Any] = Field(default_factory=dict)
 
 
 class ActivityBase(BaseModel):
@@ -37,6 +44,7 @@ class ActivityCreate(BaseModel):
     activity_intro: Optional[str] = Field(None, max_length=1000, description="活动介绍，最多1000字")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
     is_public: int = Field(0, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
+    registration_success_notification: Optional[ActivityNotificationConfigPayload] = None
 
 
 class ActivityUpdate(BaseModel):
@@ -53,10 +61,12 @@ class ActivityUpdate(BaseModel):
     activity_intro: Optional[str] = Field(None, max_length=1000, description="活动介绍，最多1000字")
     max_participants: Optional[int] = Field(None, ge=1, description="最大参与人数，NULL表示无限制")
     is_public: Optional[int] = Field(None, ge=0, le=1, description="是否公开：0-否 1-是（所有用户可见）")
+    registration_success_notification: Optional[ActivityNotificationConfigPayload] = None
 
 
 class ActivityResponse(ActivityBase):
     id: int
+    registration_success_notification: Optional[ActivityNotificationConfigPayload] = None
     create_time: datetime
     update_time: datetime
 

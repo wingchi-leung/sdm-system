@@ -27,7 +27,9 @@ def create_activity(db: Session, activity: ActivityCreate, tenant_id: int) -> Ac
         participants = activity.participants or []
         activity_type_id = _resolve_activity_type_id(db, activity, tenant_id)
 
-        activity_dict = activity.model_dump(exclude={"participants", "activity_type_name"})
+        activity_dict = activity.model_dump(
+            exclude={"participants", "activity_type_name", "registration_success_notification"}
+        )
         activity_dict["activity_type_id"] = activity_type_id
         activity_dict["tenant_id"] = tenant_id
         activity_dict["status"] = 1
@@ -177,7 +179,7 @@ def update_activity(
         if not db_activity:
             raise HTTPException(status_code=404, detail="Activity not found")
 
-        update_data = activity_update.model_dump(exclude_unset=True)
+        update_data = activity_update.model_dump(exclude_unset=True, exclude={"registration_success_notification"})
 
         if "activity_type_name" in update_data:
             type_name = update_data.pop("activity_type_name")

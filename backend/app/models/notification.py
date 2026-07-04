@@ -20,6 +20,15 @@ class NotificationSceneConfigItem(BaseModel):
     payload_template_json: dict[str, Any] = Field(default_factory=dict)
 
 
+class ActivityNotificationConfigItem(BaseModel):
+    activity_id: int
+    scene: str
+    enabled: bool
+    template_id: Optional[str] = None
+    page_path: Optional[str] = None
+    payload_template_json: dict[str, Any] = Field(default_factory=dict)
+
+
 class SubscribeConfigResponse(BaseModel):
     enabled: bool
     refund_success_template_id: Optional[str] = None
@@ -33,6 +42,13 @@ class SubscribeConfigResponse(BaseModel):
 class NotificationSceneConfigUpsert(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=255)
+    enabled: bool = True
+    template_id: Optional[str] = Field(None, max_length=64)
+    page_path: Optional[str] = Field(None, max_length=255)
+    payload_template_json: dict[str, Any] = Field(default_factory=dict)
+
+
+class ActivityNotificationConfigUpsert(BaseModel):
     enabled: bool = True
     template_id: Optional[str] = Field(None, max_length=64)
     page_path: Optional[str] = Field(None, max_length=255)

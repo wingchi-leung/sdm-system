@@ -277,6 +277,43 @@ CREATE TABLE IF NOT EXISTS `notification_scene_config` (
   KEY `idx_notification_scene_config_tenant_id` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='通知场景配置表';
 
+CREATE TABLE IF NOT EXISTS `activity_notification_config` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `activity_id` int NOT NULL COMMENT '活动ID',
+  `scene` varchar(64) NOT NULL COMMENT '通知场景编码',
+  `enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否启用：1-启用 0-禁用',
+  `template_id` varchar(64) DEFAULT NULL COMMENT '微信订阅消息模板ID',
+  `page_path` varchar(255) DEFAULT NULL COMMENT '点击通知跳转页面',
+  `payload_template_json` text DEFAULT NULL COMMENT '消息体模板 JSON',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_activity_notification_config` (`tenant_id`, `activity_id`, `scene`),
+  KEY `idx_activity_notification_config_activity_id` (`activity_id`),
+  KEY `idx_activity_notification_config_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动级通知配置表';
+
+--
+-- 13. 活动级通知配置表
+--
+CREATE TABLE IF NOT EXISTS `activity_notification_config` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `tenant_id` int NOT NULL COMMENT '租户ID',
+  `activity_id` int NOT NULL COMMENT '活动ID',
+  `scene` varchar(64) NOT NULL COMMENT '通知场景编码',
+  `enabled` tinyint NOT NULL DEFAULT 1 COMMENT '是否启用：1-启用 0-禁用',
+  `template_id` varchar(64) DEFAULT NULL COMMENT '微信订阅消息模板ID',
+  `page_path` varchar(255) DEFAULT NULL COMMENT '点击通知跳转页面',
+  `payload_template_json` text DEFAULT NULL COMMENT '消息体模板 JSON',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_activity_notification_config` (`tenant_id`, `activity_id`, `scene`),
+  KEY `idx_activity_notification_config_activity_id` (`activity_id`),
+  KEY `idx_activity_notification_config_tenant_id` (`tenant_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='活动级通知配置表';
+
 -- 10. RBAC 权限表
 
 CREATE TABLE IF NOT EXISTS `permission` (

@@ -8,7 +8,13 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.crud import crud_notification
-from app.schemas import Activity, ActivityParticipant, NotificationSceneConfig, UserCredential
+from app.schemas import (
+    Activity,
+    ActivityNotificationConfig,
+    ActivityParticipant,
+    NotificationSceneConfig,
+    UserCredential,
+)
 
 WECHAT_CREDENTIAL_TYPE = "wechat"
 
@@ -126,6 +132,81 @@ def get_scene_config(db: Session, tenant_id: int, scene: str) -> dict[str, Any]:
     raise KeyError(scene)
 
 
+def _normalize_activity_config_record(record: ActivityNotificationConfig) -> dict[str, Any]:
+    return {
+        "activity_id": record.activity_id,
+        "scene": record.scene,
+        "enabled": bool(record.enabled),
+        "template_id": record.template_id,
+        "page_path": record.page_path,
+        "payload_template_json": json.loads(record.payload_template_json or "{}"),
+    }
+
+
+def get_activity_scene_config(
+    db: Session,
+    *,
+    tenant_id: int,
+    activity_id: int,
+    scene: str,
+) -> dict[str, Any]:
+    base = get_scene_config(db, tenant_id, scene)
+    record = db.query(ActivityNotificationConfig).filter(
+        ActivityNotificationConfig.tenant_id == tenant_id,
+        ActivityNotificationConfig.activity_id == activity_id,
+        ActivityNotificationConfig.scene == scene,
+    ).first()
+    if not record:
+        return {
+            "activity_id": activity_id,
+            "scene": scene,
+            "enabled": bool(base.get("enabled")),
+            "template_id": base.get("template_id"),
+            "page_path": base.get("page_path"),
+            "payload_template_json": base.get("payload_template_json") or {},
+        }
+
+    normalized = _normalize_activity_config_record(record)
+    return normalized
+
+
+def upsert_activity_scene_config(
+    db: Session,
+    *,
+    tenant_id: int,
+    activity_id: int,
+    scene: str,
+    enabled: bool,
+    template_id: str | None,
+    page_path: str | None,
+    payload_template_json: dict[str, Any],
+) -> ActivityNotificationConfig:
+    record = db.query(ActivityNotificationConfig).filter(
+        ActivityNotificationConfig.tenant_id == tenant_id,
+        ActivityNotificationConfig.activity_id == activity_id,
+        ActivityNotificationConfig.scene == scene,
+    ).first()
+    if record is None:
+        record = ActivityNotificationConfig(
+            tenant_id=tenant_id,
+            activity_id=activity_id,
+            scene=scene,
+            enabled=1 if enabled else 0,
+            template_id=template_id,
+            page_path=page_path,
+            payload_template_json=json.dumps(payload_template_json, ensure_ascii=False),
+        )
+        db.add(record)
+    else:
+        record.enabled = 1 if enabled else 0
+        record.template_id = template_id
+        record.page_path = page_path
+        record.payload_template_json = json.dumps(payload_template_json, ensure_ascii=False)
+    db.commit()
+    db.refresh(record)
+    return record
+
+
 def upsert_scene_config(
     db: Session,
     *,
@@ -192,8 +273,14 @@ def render_scene_message(
     tenant_id: int,
     scene: str,
     context: dict[str, Any],
+    activity_id: int | None = None,
 ) -> dict[str, Any] | None:
-    config = get_scene_config(db, tenant_id, scene)
+    config = get_activity_scene_config(
+        db,
+        tenant_id=tenant_id,
+        activity_id=activity_id,
+        scene=scene,
+    ) if activity_id is not None else get_scene_config(db, tenant_id, scene)
     template_id = (config.get("template_id") or "").strip()
     if not settings.WECHAT_SUBSCRIBE_ENABLED or not config.get("enabled") or not template_id:
         return None
@@ -253,6 +340,7 @@ def enqueue_registration_success_message(
             activity.activity_name[:20],
             activity.start_time.strftime("%Y-%m-%d %H:%M") if isinstance(activity.start_time, datetime) else "",
         ),
+        activity_id=activity.id,
     )
     if not rendered_message:
         return

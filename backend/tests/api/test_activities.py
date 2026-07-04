@@ -4,6 +4,7 @@
 import pytest
 from datetime import datetime, timedelta
 from fastapi import status
+from sqlalchemy import text
 from app.schemas import Activity, ActivityParticipant, PaymentOrder, Tenant, UserActivityType
 from tests.conftest import auth_headers
 
@@ -111,6 +112,41 @@ class TestActivityCreation:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["activity_intro"] == intro
+
+    def test_create_activity_with_registration_notification_config(
+        self,
+        client,
+        super_admin_token,
+        sample_activity_type,
+        db_session,
+    ):
+        response = client.post(
+            "/api/v1/activities/",
+            headers=auth_headers(super_admin_token),
+            json={
+                "activity_name": "带通知配置活动",
+                "activity_type_id": sample_activity_type.id,
+                "start_time": "2026-06-01T09:00:00",
+                "registration_success_notification": {
+                    "enabled": True,
+                    "template_id": "tpl_activity_register",
+                    "page_path": "pages/my-activities/my-activities",
+                    "payload_template_json": {
+                        "thing1": {"value": "{{activity_name}}"},
+                    },
+                },
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+        activity_id = response.json()["id"]
+        row = db_session.execute(
+            text(
+                "SELECT template_id FROM activity_notification_config WHERE activity_id = :activity_id AND scene = 'registration_success'"
+            ),
+            {"activity_id": activity_id},
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "tpl_activity_register"
 
     def test_create_activity_intro_too_long(self, client, super_admin_token, sample_activity_type):
         """测试活动介绍超过1000字时报错"""
@@ -335,6 +371,49 @@ class TestActivityUpdate:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["poster_url"] is None
+
+    def test_update_activity_registration_notification_config(self, client, super_admin_token, sample_activity):
+        response = client.put(
+            f"/api/v1/activities/{sample_activity.id}",
+            headers=auth_headers(super_admin_token),
+            json={
+                "registration_success_notification": {
+                    "enabled": True,
+                    "template_id": "tpl_update_register",
+                    "page_path": "pages/my-activities/my-activities",
+                    "payload_template_json": {
+                        "thing1": {"value": "{{activity_name}}"},
+                    },
+                }
+            }
+        )
+        assert response.status_code == status.HTTP_200_OK
+        payload = response.json()
+        assert payload["registration_success_notification"]["template_id"] == "tpl_update_register"
+
+    def test_get_activity_notification_config(self, client, super_admin_token, sample_activity):
+        update_response = client.put(
+            f"/api/v1/activities/{sample_activity.id}/notification-configs/registration_success",
+            headers=auth_headers(super_admin_token),
+            json={
+                "enabled": True,
+                "template_id": "tpl_activity_scene",
+                "page_path": "pages/my-activities/my-activities",
+                "payload_template_json": {
+                    "thing1": {"value": "{{activity_name}}"}
+                }
+            }
+        )
+        assert update_response.status_code == status.HTTP_200_OK
+
+        response = client.get(
+            f"/api/v1/activities/{sample_activity.id}/notification-configs/registration_success",
+            headers=auth_headers(super_admin_token),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        payload = response.json()
+        assert payload["activity_id"] == sample_activity.id
+        assert payload["template_id"] == "tpl_activity_scene"
 
 
 @pytest.mark.api

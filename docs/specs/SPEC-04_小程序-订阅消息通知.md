@@ -21,6 +21,7 @@
 | 报名成功通知入队 | ✅ 已完成 | 免费报名成功、支付报名确认成功后均可按配置入队 |
 | 订阅消息实际发送 | ✅ 已完成 | 已实现微信订阅消息发送服务与任务派发 |
 | 租户级通知配置表 | ✅ 已完成 | 已新增 `notification_scene_config`，支持模板 ID、跳转页与消息体模板配置 |
+| 活动级通知配置表 | ✅ 已完成 | 已新增 `activity_notification_config`，支持按活动覆盖报名成功通知配置 |
 | 报名页订阅授权弹窗 | ✅ 已完成 | 小程序报名页已接入 `wx.requestSubscribeMessage` 并上报授权结果 |
 | 退款业务闭环（审核+执行退款+微信退款回调） | ✅ 已完成 | 已覆盖审核拒绝、管理员发起退款、微信回调与结果通知 |
 | 管理端退款按钮与审核操作页联动 | ✅ 已完成 | 报名管理页已接入退款操作入口 |
@@ -100,6 +101,7 @@
 配置说明：
 - 通过 `notification_scene_config.scene=registration_success` 维护模板 ID、跳转页和消息体模板。
 - 小程序报名页在提交前调用 `wx.requestSubscribeMessage` 请求一次性授权，并上报到 `subscribe_consent`。
+- 若活动发布时填写了活动级通知配置，则优先读取 `activity_notification_config(scene=registration_success)`；未填写时回退到租户默认配置。
 
 ---
 
@@ -157,6 +159,22 @@
 说明：
 - 支持按租户覆盖默认通知配置。
 - `payload_template_json` 采用微信订阅消息原始字段结构，字段值可使用 `{{activity_name}}`、`{{start_time}}` 等占位符。
+
+### 5.4 活动级通知配置表 `activity_notification_config`
+
+字段说明：
+- `tenant_id`
+- `activity_id`
+- `scene`
+- `enabled`
+- `template_id`
+- `page_path`
+- `payload_template_json`
+
+说明：
+- 当前用于 `registration_success` 场景。
+- 发送顺序：先查活动级配置，再回退到租户级默认配置。
+- 小程序管理员可在“发布活动页”直接填写，也可在“编辑活动 -> 通知配置”页单独维护。
 
 ---
 

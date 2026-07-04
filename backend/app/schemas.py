@@ -378,6 +378,20 @@ class NotificationSceneConfig(BaseModel):
     payload_template_json = Column(Text, nullable=True)
 
 
+class ActivityNotificationConfig(BaseModel):
+    __tablename__ = "activity_notification_config"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "activity_id", "scene", name="uk_activity_notification_config"),
+    )
+    tenant_id = Column(Integer, nullable=False, index=True)
+    activity_id = Column(Integer, nullable=False, index=True)
+    scene = Column(String(64), nullable=False)
+    enabled = Column(SmallInteger, nullable=False, default=1)
+    template_id = Column(String(64), nullable=True)
+    page_path = Column(String(255), nullable=True)
+    payload_template_json = Column(Text, nullable=True)
+
+
 # ============================================================
 # 社区文章表
 # ============================================================

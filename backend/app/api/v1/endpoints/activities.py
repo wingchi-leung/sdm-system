@@ -7,10 +7,28 @@ from typing import List
 
 from app.crud import crud_activity, crud_checkin, crud_participant, crud_rbac, crud_user_activity_type
 from app.models import activity, checkin
+from app.models.notification import ActivityNotificationConfigItem, ActivityNotificationConfigUpsert
 from app.api import deps
 from app.schemas import Activity, ActivityParticipant, ActivityType, PaymentOrder, Tenant
+from app.services import notification_center
 
 router = APIRouter()
+
+
+def _attach_registration_success_notification(db: Session, act: Activity) -> Activity:
+    setattr(
+        act,
+        "registration_success_notification",
+        activity.ActivityNotificationConfigPayload(
+            **notification_center.get_activity_scene_config(
+                db,
+                tenant_id=act.tenant_id,
+                activity_id=act.id,
+                scene=notification_center.SCENE_REGISTRATION_SUCCESS,
+            )
+        ),
+    )
+    return act
 
 
 def _allowed_scopes_for_list(
@@ -93,7 +111,19 @@ def create_activity(
         if body.activity_type_id not in allowed_types:
             raise HTTPException(status_code=403, detail="所选活动类型不在授权范围内")
 
-    return crud_activity.create_activity(db=db, activity=body, tenant_id=ctx.tenant_id)
+    created = crud_activity.create_activity(db=db, activity=body, tenant_id=ctx.tenant_id)
+    if body.registration_success_notification is not None:
+        notification_center.upsert_activity_scene_config(
+            db,
+            tenant_id=ctx.tenant_id,
+            activity_id=created.id,
+            scene=notification_center.SCENE_REGISTRATION_SUCCESS,
+            enabled=body.registration_success_notification.enabled,
+            template_id=body.registration_success_notification.template_id,
+            page_path=body.registration_success_notification.page_path,
+            payload_template_json=body.registration_success_notification.payload_template_json,
+        )
+    return _attach_registration_success_notification(db, created)
 
 
 @router.post("/export", response_model=activity.ActivityExportResponse)
@@ -321,7 +351,7 @@ def get_activity(
         if deps.has_activity_permission(db, ctx, activity_id, "activity.edit") or deps.has_activity_permission(
             db, ctx, activity_id, "participant.view"
         ):
-            return act
+            return _attach_registration_success_notification(db, act)
         # 管理员同时具备用户视角：无管理权限时回退到用户可见性判断
         if _can_user_view_activity(
             db=db,
@@ -341,7 +371,7 @@ def get_activity(
     ):
         raise HTTPException(status_code=404, detail="Activity not found")
 
-    return act
+    return _attach_registration_success_notification(db, act)
 
 
 @router.get("/{activity_id}/my-permissions", response_model=activity.ActivityPermissionResponse)
@@ -518,7 +548,80 @@ def update_activity(
     if not deps.has_activity_permission(db, ctx, activity_id, "activity.edit"):
         raise HTTPException(status_code=403, detail="无权限编辑此活动")
 
-    return crud_activity.update_activity(db, activity_id, body, ctx.tenant_id)
+    updated = crud_activity.update_activity(db, activity_id, body, ctx.tenant_id)
+    if body.registration_success_notification is not None:
+        notification_center.upsert_activity_scene_config(
+            db,
+            tenant_id=ctx.tenant_id,
+            activity_id=activity_id,
+            scene=notification_center.SCENE_REGISTRATION_SUCCESS,
+            enabled=body.registration_success_notification.enabled,
+            template_id=body.registration_success_notification.template_id,
+            page_path=body.registration_success_notification.page_path,
+            payload_template_json=body.registration_success_notification.payload_template_json,
+        )
+    return _attach_registration_success_notification(db, updated)
+
+
+@router.get("/{activity_id}/notification-configs/{scene}", response_model=ActivityNotificationConfigItem)
+def get_activity_notification_config(
+    activity_id: int,
+    scene: str,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    activity_record = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
+    if not activity_record:
+        raise HTTPException(status_code=404, detail="活动不存在")
+    if not deps.has_activity_permission(db, ctx, activity_id, "activity.edit"):
+        raise HTTPException(status_code=403, detail="无权限编辑此活动")
+    if scene != notification_center.SCENE_REGISTRATION_SUCCESS:
+        raise HTTPException(status_code=404, detail="通知场景不存在")
+
+    return ActivityNotificationConfigItem(
+        **notification_center.get_activity_scene_config(
+            db,
+            tenant_id=ctx.tenant_id,
+            activity_id=activity_id,
+            scene=scene,
+        )
+    )
+
+
+@router.put("/{activity_id}/notification-configs/{scene}", response_model=ActivityNotificationConfigItem)
+def upsert_activity_notification_config(
+    activity_id: int,
+    scene: str,
+    payload: ActivityNotificationConfigUpsert,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.TenantContext = Depends(deps.get_current_admin),
+):
+    activity_record = crud_activity.get_activity(db, activity_id, ctx.tenant_id)
+    if not activity_record:
+        raise HTTPException(status_code=404, detail="活动不存在")
+    if not deps.has_activity_permission(db, ctx, activity_id, "activity.edit"):
+        raise HTTPException(status_code=403, detail="无权限编辑此活动")
+    if scene != notification_center.SCENE_REGISTRATION_SUCCESS:
+        raise HTTPException(status_code=404, detail="通知场景不存在")
+
+    notification_center.upsert_activity_scene_config(
+        db,
+        tenant_id=ctx.tenant_id,
+        activity_id=activity_id,
+        scene=scene,
+        enabled=payload.enabled,
+        template_id=payload.template_id,
+        page_path=payload.page_path,
+        payload_template_json=payload.payload_template_json,
+    )
+    return ActivityNotificationConfigItem(
+        **notification_center.get_activity_scene_config(
+            db,
+            tenant_id=ctx.tenant_id,
+            activity_id=activity_id,
+            scene=scene,
+        )
+    )
 
 
 @router.delete("/{activity_id}")
