@@ -757,6 +757,20 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 SET @need := (
   SELECT COUNT(*) = 0
+  FROM information_schema.statistics
+  WHERE table_schema = @schema_name
+    AND table_name = 'payment_refund'
+    AND index_name = 'uk_refund_order_idem'
+);
+SET @sql := IF(
+  @need,
+  'ALTER TABLE `payment_refund` ADD UNIQUE KEY `uk_refund_order_idem` (`tenant_id`, `payment_order_id`, `idempotency_key`)',
+  'SELECT 1'
+);
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @need := (
+  SELECT COUNT(*) = 0
   FROM information_schema.columns
   WHERE table_schema = @schema_name AND table_name = 'message_task' AND column_name = 'page_path'
 );

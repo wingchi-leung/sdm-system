@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from pydantic import ValidationError
 
 from app.api import deps
@@ -532,6 +533,7 @@ async def payment_notify(
 
         else:
             # 支付失败
+            _validate_notify_resource(order, resource)
             order.status = crud_payment.PAYMENT_STATUS_FAILED
             db.commit()
             logger.warning(f"订单 {order_no} 支付失败: {trade_state}")
@@ -711,18 +713,36 @@ def create_refund(
         payment_order_id=order.id,
         seq=seq,
     )
-    refund = crud_refund.create_refund(
-        db,
-        tenant_id=ctx.tenant_id,
-        payment_order_id=order.id,
-        participant_id=order.participant_id,
-        out_refund_no=out_refund_no,
-        amount=order.actual_fee,
-        idempotency_key=idempotency_key.strip(),
-        operator_id=ctx.user_id,
-        reason=payload.reason.strip(),
-        request_raw={"order_no": order_no, "reason": payload.reason},
-    )
+    try:
+        refund = crud_refund.create_refund(
+            db,
+            tenant_id=ctx.tenant_id,
+            payment_order_id=order.id,
+            participant_id=order.participant_id,
+            out_refund_no=out_refund_no,
+            amount=order.actual_fee,
+            idempotency_key=idempotency_key.strip(),
+            operator_id=ctx.user_id,
+            reason=payload.reason.strip(),
+            request_raw={"order_no": order_no, "reason": payload.reason},
+        )
+    except IntegrityError:
+        db.rollback()
+        locked_order = db.query(PaymentOrder).filter(
+            PaymentOrder.order_no == order_no,
+            PaymentOrder.tenant_id == ctx.tenant_id,
+        ).with_for_update().first()
+        if locked_order is None:
+            raise HTTPException(status_code=404, detail="订单不存在")
+        idem_refund = crud_refund.get_by_idempotency_key(
+            db,
+            tenant_id=ctx.tenant_id,
+            payment_order_id=locked_order.id,
+            idempotency_key=idempotency_key.strip(),
+        )
+        if idem_refund is None:
+            raise HTTPException(status_code=409, detail="退款请求正在处理中，请稍后重试")
+        return _build_refund_detail(locked_order, idem_refund)
 
     pay_service = get_wechat_pay_service()
     try:

@@ -78,6 +78,8 @@ class Settings(BaseSettings):
 
     # 密码哈希配置：bcrypt 工作因子（12 是推荐值，平衡安全性和性能）
     BCRYPT_ROUNDS: int = 12
+    # 初始化超级管理员时必须显式提供的密码，避免仓库内硬编码高权限凭据
+    BOOTSTRAP_ADMIN_PASSWORD: Optional[str] = None
     # 敏感信息保护密钥：建议生产环境单独配置；未配置时回退到 JWT_SECRET 派生
     PII_ENCRYPTION_KEY: Optional[str] = None
     # 接口层敏感字段 RSA 解密密钥（PEM 文本）

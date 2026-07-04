@@ -4,7 +4,8 @@
 import pytest
 from fastapi import status
 
-from app.schemas import Role, RolePermission, UserRole
+from app.core.security import verify_password
+from app.schemas import Role, RolePermission, UserCredential, UserRole
 from tests.conftest import _create_admin_with_role, _ensure_permission, auth_headers
 
 
@@ -205,3 +206,48 @@ class TestRoleEndpoints:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "不属于当前租户" in response.json()["detail"]
+
+    def test_assign_user_role_keeps_existing_password_credential(
+        self,
+        client,
+        db_session,
+        default_tenant,
+        sample_user,
+        role_manager_token,
+    ):
+        permission = _ensure_permission(
+            db_session,
+            "participant.view",
+            resource="participant",
+            action="view",
+        )
+        role = Role(
+            tenant_id=default_tenant.id,
+            name="凭证保持角色",
+            is_system=0,
+            description="已有密码凭证时不应被覆盖",
+        )
+        db_session.add(role)
+        db_session.flush()
+        db_session.add(RolePermission(role_id=role.id, permission_id=permission.id))
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/roles/user-roles",
+            headers=auth_headers(role_manager_token),
+            json={
+                "user_id": sample_user.id,
+                "role_id": role.id,
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        password_credential = db_session.query(UserCredential).filter(
+            UserCredential.user_id == sample_user.id,
+            UserCredential.tenant_id == sample_user.tenant_id,
+            UserCredential.credential_type == "password",
+            UserCredential.status == 1,
+        ).first()
+        assert password_credential is not None
+        assert password_credential.must_reset_password == 0
+        assert verify_password("user123", password_credential.credential_hash)

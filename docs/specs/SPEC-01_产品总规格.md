@@ -134,6 +134,7 @@
 
 | 日期 | 变更内容 | 关联文档 |
 |------|----------|----------|
+| 2026-07-04 | 后端安全加固：退款流水新增 `(tenant_id, payment_order_id, idempotency_key)` 唯一约束并在接口层兜底并发重复退款；支付失败回调补齐与成功回调一致的业务字段绑定校验；超级管理员初始化脚本改为必须通过 `BOOTSTRAP_ADMIN_PASSWORD` 注入密码；角色分配不再下发可预测默认密码，密码登录会强制拦截 `must_reset_password=1` 的账号 | `backend/app/api/v1/endpoints/payments.py`, `backend/app/api/v1/endpoints/roles.py`, `backend/app/api/v1/endpoints/auth.py`, `backend/app/schemas.py`, `backend/sql/table.sql`, `backend/create_admin.py` |
 | 2026-06-21 | 社区频道日历功能落地：新增频道内独立月历组件、日历首页/详情/新建/编辑页面，以及后端事件 API、月汇总和级联删除 | `docs/specs/SPEC-12_社区-频道日历.md`, `backend/app/api/v1/endpoints/community.py`, `backend/app/crud/crud_community_channel.py`, `backend/app/models/community.py`, `backend/app/schemas.py`, `miniprogram/components/community-calendar/`, `miniprogram/pages/community-calendar*/` |
 | 2026-07-03 | 小程序订阅消息链路补齐报名成功通知：新增租户级通知场景配置表 `notification_scene_config`，报名页接入 `wx.requestSubscribeMessage` 授权弹窗并上报结果，后端支持报名成功/退款结果/活动提醒统一按配置入队与发送 | `docs/specs/SPEC-04_小程序-订阅消息通知.md`, `docs/specs/SPEC-01_产品总规格.md`, `backend/app/api/v1/endpoints/notifications.py`, `backend/app/api/v1/endpoints/participants.py`, `backend/app/api/v1/endpoints/payments.py`, `backend/app/services/notification_center.py`, `backend/sql/table.sql`, `miniprogram/pages/register/register.js`, `miniprogram/utils/api.js` |
 | 2026-06-21 | 立项社区频道日历能力：为每个社区增加独立日历视图与事件管理能力，先以规格文档固化范围、角色、事件模型与页面形态 | `docs/specs/SPEC-12_社区-频道日历.md` |

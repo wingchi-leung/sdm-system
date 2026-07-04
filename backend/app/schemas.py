@@ -307,6 +307,12 @@ class PaymentRefund(BaseModel):
     __tablename__ = "payment_refund"
     __table_args__ = (
         UniqueConstraint("tenant_id", "out_refund_no", name="uk_refund_out_refund_no"),
+        UniqueConstraint(
+            "tenant_id",
+            "payment_order_id",
+            "idempotency_key",
+            name="uk_refund_order_idem",
+        ),
     )
     tenant_id = Column(Integer, nullable=False, index=True)
     payment_order_id = Column(Integer, nullable=False, index=True)

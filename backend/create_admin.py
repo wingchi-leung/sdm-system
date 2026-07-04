@@ -16,7 +16,6 @@ from app.database import SessionLocal
 from app.schemas import Tenant, User
 
 USERNAME = "wechatadmin"
-PASSWORD = "sdm@1234561"
 TENANT_CODE = "default"
 NAME = "超级管理员"
 PHONE = "13900000001"
@@ -33,6 +32,16 @@ def _check_pii_key() -> None:
             "       建议在 .env 中固化: PII_ENCRYPTION_KEY=<32+ 字符随机串>",
             file=sys.stderr,
         )
+
+
+def _get_bootstrap_password() -> str:
+    """从环境配置读取初始化密码，禁止回退到仓库硬编码默认值。"""
+    password = (settings.BOOTSTRAP_ADMIN_PASSWORD or "").strip()
+    if password:
+        return password
+    raise RuntimeError(
+        "缺少 BOOTSTRAP_ADMIN_PASSWORD，已禁止使用仓库内硬编码超级管理员密码。"
+    )
 
 
 def _find_user(db, tenant_id: int) -> User | None:
@@ -77,14 +86,14 @@ def _sync_user_pii(user: User) -> str:
     return "; ".join(actions) if actions else "noop"
 
 
-def _ensure_credential(db, user_id: int, tenant_id: int) -> str:
+def _ensure_credential(db, user_id: int, tenant_id: int, password: str) -> str:
     """创建或刷新密码凭证。"""
     crud_credential.create_password_credential(
         db=db,
         user_id=user_id,
         tenant_id=tenant_id,
         identifier=USERNAME,
-        password=PASSWORD,
+        password=password,
         must_reset=False,
     )
     return f"credential(identifier={USERNAME}) 已同步"
@@ -110,6 +119,11 @@ def _ensure_role(db, user_id: int, tenant_id: int) -> str:
 
 def main() -> int:
     _check_pii_key()
+    try:
+        bootstrap_password = _get_bootstrap_password()
+    except RuntimeError as exc:
+        print(f"[ERROR] {exc}", file=sys.stderr)
+        return 1
 
     db = SessionLocal()
     try:
@@ -127,7 +141,7 @@ def main() -> int:
         else:
             user_action = f"updated user_id={user.id} ({_sync_user_pii(user)})"
 
-        cred_action = _ensure_credential(db, user.id, tenant.id)
+        cred_action = _ensure_credential(db, user.id, tenant.id, bootstrap_password)
         role_action = _ensure_role(db, user.id, tenant.id)
 
         db.commit()

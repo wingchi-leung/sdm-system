@@ -198,6 +198,11 @@ def login(
     cred = crud_credential.authenticate_by_password(db, tenant_id, body.identifier, body.password)
     if not cred:
         raise HTTPException(status_code=401, detail="用户名或密码错误")
+    if cred.must_reset_password:
+        raise HTTPException(
+            status_code=403,
+            detail="当前账号需要先完成密码重置，请先通过微信或手机号登录后设置密码",
+        )
 
     user = db.query(User).filter(User.id == cred.user_id).first()
     if not user:

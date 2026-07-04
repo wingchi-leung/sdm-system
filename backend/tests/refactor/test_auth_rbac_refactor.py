@@ -58,6 +58,30 @@ def test_login_reads_password_from_user_credential(client, sample_user):
 
 
 @pytest.mark.api
+def test_login_rejects_password_credential_that_requires_reset(client, db_session, sample_user):
+    credential = db_session.query(UserCredential).filter(
+        UserCredential.user_id == sample_user.id,
+        UserCredential.tenant_id == sample_user.tenant_id,
+        UserCredential.credential_type == "password",
+        UserCredential.status == 1,
+    ).first()
+    credential.must_reset_password = 1
+    db_session.commit()
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={
+            "identifier": sample_user.phone,
+            "password": "user123",
+            "tenant_code": "default",
+        },
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert "密码重置" in response.json()["detail"]
+
+
+@pytest.mark.api
 def test_platform_admin_login_uses_unified_login(client, platform_admin):
     response = client.post(
         "/api/v1/auth/login",

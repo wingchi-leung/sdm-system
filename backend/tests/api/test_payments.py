@@ -12,9 +12,10 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from app.crud import crud_credential, crud_payment
 from app.core.config import settings
 from app.core import sensitive_field_crypto
-from app.schemas import ActivityParticipant, PaymentOrder
+from app.schemas import ActivityParticipant, PaymentOrder, PaymentRefund
 from app.tasks import scheduler
 from tests.conftest import auth_headers
+from sqlalchemy.exc import IntegrityError
 
 _TEST_RSA_PUBLIC_KEY = None
 
@@ -94,14 +95,6 @@ def _create_pending_participant(db_session, activity, user, payload: dict) -> Ac
         activity_id=activity.id,
         user_id=user.id,
         participant_name=payload["participant_name"],
-        phone=payload["phone"],
-        identity_number=payload["identity_number"],
-        identity_type=payload["identity_type"],
-        sex=payload["sex"],
-        age=payload["age"],
-        occupation=payload["occupation"],
-        email=payload["email"],
-        industry=payload["industry"],
         why_join=payload["why_join"],
         channel=payload["channel"],
         expectation=payload["expectation"],
@@ -195,16 +188,11 @@ class TestPaymentEndpoints:
         participant = db_session.get(ActivityParticipant, order.participant_id)
         assert participant is not None
         assert participant.participant_name == "资料库用户"
-        assert participant.phone == "13800138000"
-        assert participant.identity_number is None
-        assert participant.identity_type is None
         assert participant.payment_status == 1
         assert participant.why_join == "想系统学习"
         assert participant.channel == "朋友推荐"
         assert participant.expectation == "提升能力"
         assert participant._participant_name_ciphertext != "资料库用户"
-        assert participant._phone_ciphertext != "13800138000"
-        assert participant._identity_number_ciphertext != "110101199001011234"
 
     def test_admin_can_create_payment_order_when_has_user_identity(
         self,
@@ -650,8 +638,6 @@ class TestPaymentEndpoints:
                 activity_id=sample_activity.id,
                 user_id=999,
                 participant_name="已占位用户",
-                phone="13900139113",
-                identity_number="110101199001011235",
                 enroll_status=1,
             )
         )
@@ -787,6 +773,68 @@ class TestPaymentEndpoints:
         assert notify_response.status_code == status.HTTP_200_OK
         assert notify_response.json()["code"] == "FAIL"
 
+    def test_payment_notify_rejects_failure_branch_when_binding_mismatches(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        monkeypatch,
+    ):
+        from app.api.v1.endpoints import payments as payments_endpoint
+
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_fail_binding")
+
+        payload = _payment_request_payload(sample_activity.id)
+        participant = _create_pending_participant(db_session, sample_activity, sample_user, payload)
+        order = crud_payment.create_payment_order(
+            db=db_session,
+            order_no="SDMFAILBIND001",
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_id=participant.id,
+            openid="wx_openid_fail_binding",
+            suggested_fee=1000,
+            actual_fee=1000,
+            prepay_id="prepay_fail_binding",
+            tenant_id=sample_user.tenant_id,
+        )
+        original_status = order.status
+
+        monkeypatch.setattr(payments_endpoint.settings, "WECHAT_APPID", "wx-test-app")
+        monkeypatch.setattr(payments_endpoint.settings, "WECHAT_PAY_MCH_ID", "mch-test")
+
+        class FakePayService:
+            def decrypt_callback(self, headers, body):
+                return {
+                    "resource": {
+                        "out_trade_no": order.order_no,
+                        "trade_state": "CLOSED",
+                        "appid": "wx-test-app",
+                        "mchid": "mch-test",
+                        "amount": {"total": 1},
+                        "payer": {"openid": "wx_openid_fail_binding"},
+                    }
+                }
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.get_wechat_pay_service",
+            lambda: FakePayService(),
+        )
+
+        notify_response = client.post(
+            "/api/v1/payments/notify",
+            content=b"{}",
+            headers={"Content-Type": "application/json"},
+        )
+
+        assert notify_response.status_code == status.HTTP_200_OK
+        assert notify_response.json()["code"] == "FAIL"
+        db_session.refresh(order)
+        assert order.status == original_status
+
 
     def test_payment_notify_without_identity_number_uses_user_uniqueness(
         self,
@@ -870,7 +918,6 @@ class TestPaymentEndpoints:
             ActivityParticipant.activity_id == sample_activity.id,
             ActivityParticipant.user_id == sample_user.id,
         ).one()
-        assert participant.identity_number is None
         assert participant.payment_status == 2
 
         duplicate_response = client.post(
@@ -1120,3 +1167,74 @@ class TestRefundEndpoints:
         assert notify_resp.json()["code"] == "SUCCESS"
         db_session.refresh(order)
         assert order.refund_status == crud_payment.REFUND_STATUS_SUCCESS
+
+    def test_create_refund_returns_existing_record_when_unique_constraint_races(
+        self,
+        client,
+        db_session,
+        sample_activity,
+        sample_user,
+        activity_admin_token,
+        monkeypatch,
+    ):
+        sample_activity.require_payment = 1
+        sample_activity.suggested_fee = 1000
+        _bind_wechat_openid(db_session, sample_user, "wx_openid_refund_race")
+
+        participant = ActivityParticipant(
+            tenant_id=sample_user.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name=sample_user.name,
+            payment_status=2,
+        )
+        db_session.add(participant)
+        db_session.commit()
+        db_session.refresh(participant)
+
+        order = crud_payment.create_payment_order(
+            db=db_session,
+            order_no="SDMREFUNDRACE001",
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_id=participant.id,
+            openid="wx_openid_refund_race",
+            suggested_fee=1000,
+            actual_fee=1000,
+            prepay_id="prepay_refund_race",
+            tenant_id=sample_user.tenant_id,
+            status=crud_payment.PAYMENT_STATUS_SUCCESS,
+        )
+        order.refund_status = crud_payment.REFUND_STATUS_PENDING
+        refund = PaymentRefund(
+            tenant_id=sample_user.tenant_id,
+            payment_order_id=order.id,
+            participant_id=participant.id,
+            out_refund_no="RF-RACE-001",
+            amount=1000,
+            status="processing",
+            idempotency_key="idem-refund-race",
+            operator_id=sample_user.id,
+            reason="并发退款",
+        )
+        db_session.add(refund)
+        db_session.commit()
+
+        def raise_integrity_error(*args, **kwargs):
+            raise IntegrityError("insert", {}, Exception("duplicate"))
+
+        monkeypatch.setattr(
+            "app.api.v1.endpoints.payments.crud_refund.create_refund",
+            raise_integrity_error,
+        )
+
+        headers = auth_headers(activity_admin_token)
+        headers["Idempotency-Key"] = "idem-refund-race"
+        response = client.post(
+            f"/api/v1/payments/{order.order_no}/refund",
+            headers=headers,
+            json={"reason": "并发退款"},
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["out_refund_no"] == "RF-RACE-001"

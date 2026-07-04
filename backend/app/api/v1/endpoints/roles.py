@@ -1,12 +1,42 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+import secrets
 
 from app.crud import crud_rbac, crud_credential
 from app.models import rbac as rbac_model
 from app.api import deps
 
 router = APIRouter()
+
+
+def _ensure_role_assignment_password_bootstrap(
+    db: Session,
+    *,
+    user: crud_rbac.User | None,
+    tenant_id: int,
+) -> None:
+    """仅为尚无密码凭证的账号创建随机占位密码，避免下发可预测默认密码。"""
+    if user is None or not user.phone:
+        return
+
+    existing_password = crud_credential.get_credential_by_user(
+        db,
+        user_id=user.id,
+        tenant_id=tenant_id,
+        credential_type="password",
+    )
+    if existing_password is not None:
+        return
+
+    crud_credential.create_password_credential(
+        db=db,
+        user_id=user.id,
+        tenant_id=tenant_id,
+        identifier=user.phone,
+        password=secrets.token_urlsafe(32),
+        must_reset=True,
+    )
 
 
 @router.get("/permissions", response_model=List[rbac_model.PermissionResponse])
@@ -45,7 +75,7 @@ def assign_user_role(
     db: Session = Depends(deps.get_db),
     ctx: deps.TenantContext = Depends(deps.require_permission("admin.manage")),
 ):
-    """为用户分配角色，同时自动创建密码凭证（如果不存在）"""
+    """为用户分配角色，同时仅在缺失密码凭证时创建随机占位凭证。"""
     try:
         user_role = crud_rbac.assign_user_role(
             db, body.user_id, body.role_id, ctx.tenant_id,
@@ -62,13 +92,11 @@ def assign_user_role(
         crud_rbac.User.id == body.user_id,
         crud_rbac.User.tenant_id == ctx.tenant_id,
     ).first()
-    if user and user.phone:
-        crud_credential.create_password_credential(
-            db, body.user_id, ctx.tenant_id,
-            identifier=user.phone,
-            password="123456",
-            must_reset=True,
-        )
+    _ensure_role_assignment_password_bootstrap(
+        db,
+        user=user,
+        tenant_id=ctx.tenant_id,
+    )
     db.commit()
 
     return {
