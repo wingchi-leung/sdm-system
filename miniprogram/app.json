@@ -7,6 +7,7 @@
     "pages/mine/mine",
     "pages/register/register",
     "pages/create-activity/create-activity",
+    "pages/activity-notification-config/activity-notification-config",
     "pages/activity-list/activity-list",
     "pages/community/index",
     "pages/community-notifications/community-notifications",

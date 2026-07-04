@@ -200,6 +200,49 @@
         </view>
       </view>
 
+      <view class="field">
+        <view class="switch-row">
+          <view class="switch-copy">
+            <text class="switch-label">报名成功通知</text>
+            <text class="field-hint field-hint-inline">发布活动时可直接配置该活动的报名成功订阅消息，未配置时会回退到租户默认模板。</text>
+          </view>
+          <switch checked="{{registrationNotification.enabled}}" bindchange="onRegistrationNotificationToggle" color="var(--primary)" />
+        </view>
+        <view class="textarea-card" wx:if="{{registrationNotification.enabled}}">
+          <view class="field-head field-head-compact">
+            <text class="field-label">模板 ID</text>
+          </view>
+          <input
+            class="input input-line"
+            placeholder="例如：TPL_xxx"
+            placeholder-class="input-placeholder"
+            value="{{registrationNotification.templateId}}"
+            bindinput="onRegistrationTemplateIdInput"
+          />
+          <view class="field-head field-head-compact">
+            <text class="field-label">跳转页面</text>
+          </view>
+          <input
+            class="input input-line"
+            placeholder="例如：pages/my-activities/my-activities"
+            placeholder-class="input-placeholder"
+            value="{{registrationNotification.pagePath}}"
+            bindinput="onRegistrationPagePathInput"
+          />
+          <view class="field-head field-head-compact">
+            <text class="field-label">消息体模板 JSON</text>
+          </view>
+          <textarea
+            class="textarea-input textarea-input-compact"
+            placeholder="请输入 JSON 模板"
+            placeholder-class="input-placeholder"
+            value="{{registrationNotification.payloadTemplateText}}"
+            bindinput="onRegistrationPayloadTemplateInput"
+          />
+          <text class="field-hint">可用占位符：`{{activity_name}}`、`{{start_time}}`</text>
+        </view>
+      </view>
+
       <view wx:if="{{error}}" class="error-box">
         <text class="error-text">{{error}}</text>
       </view>

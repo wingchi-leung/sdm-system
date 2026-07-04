@@ -371,6 +371,7 @@ function createActivity({
   activity_intro,
   max_participants,
   is_public,
+  registration_success_notification,
 }) {
   const data = {
     activity_name,
@@ -401,6 +402,9 @@ function createActivity({
   }
   if (max_participants != null && max_participants > 0) {
     data.max_participants = max_participants;
+  }
+  if (registration_success_notification) {
+    data.registration_success_notification = registration_success_notification;
   }
   return new Promise((resolve, reject) => {
     wx.request({
@@ -871,6 +875,39 @@ function queryPaymentOrder(orderNo) {
       header: getHeader(true),
       success: (res) => {
         if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 获取活动通知配置 */
+function getActivityNotificationConfig(activityId, scene = 'registration_success') {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activities/${activityId}/notification-configs/${encodeURIComponent(scene)}`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 更新活动通知配置 */
+function updateActivityNotificationConfig(activityId, scene, data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/activities/${activityId}/notification-configs/${encodeURIComponent(scene)}`,
+      method: 'PUT',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
         else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
       },
       fail: (err) => reject(err),
@@ -1715,6 +1752,8 @@ module.exports = {
   getCommunityModerationPending,
   reviewCommunityModerationItem,
   updateActivity,
+  getActivityNotificationConfig,
+  updateActivityNotificationConfig,
   deleteActivity,
   getActivityParticipants,
   updateActivityStatus,

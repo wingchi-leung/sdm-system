@@ -181,6 +181,11 @@
   margin-bottom: 16rpx;
 }
 
+.field-head-compact {
+  margin-top: 20rpx;
+  margin-bottom: 10rpx;
+}
+
 .field-label {
   color: #111111;
   font-size: 28rpx;
@@ -399,6 +404,10 @@
   color: #111111;
   font-size: 28rpx;
   line-height: 1.75;
+}
+
+.textarea-input-compact {
+  min-height: 260rpx;
 }
 
 .textarea-count {

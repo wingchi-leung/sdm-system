@@ -1,0 +1,146 @@
+.page {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--font-body);
+}
+
+.container {
+  padding: 24rpx 32rpx calc(120rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.hero {
+  margin-bottom: 28rpx;
+}
+
+.hero-title {
+  display: block;
+  color: #111111;
+  font-size: 34rpx;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.hero-text {
+  display: block;
+  margin-top: 10rpx;
+  color: #888888;
+  font-size: 24rpx;
+  line-height: 1.7;
+}
+
+.field {
+  margin-bottom: 28rpx;
+}
+
+.switch-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.switch-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.switch-label,
+.field-label {
+  display: block;
+  color: #111111;
+  font-size: 28rpx;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.field-label {
+  margin-bottom: 14rpx;
+}
+
+.input {
+  width: 100%;
+  height: 88rpx;
+  padding: 0 0 8rpx;
+  border: none;
+  border-bottom: 1rpx solid rgba(17, 17, 17, 0.12);
+  box-sizing: border-box;
+  background: transparent;
+  color: #111111;
+  font-size: 28rpx;
+}
+
+.input-placeholder {
+  color: #b8b8b8;
+}
+
+.textarea-card {
+  border: 1rpx solid rgba(17, 17, 17, 0.1);
+  border-radius: 18rpx;
+  background: #ffffff;
+}
+
+.textarea-input {
+  width: 100%;
+  min-height: 320rpx;
+  padding: 22rpx;
+  box-sizing: border-box;
+  color: #111111;
+  font-size: 26rpx;
+  line-height: 1.75;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 12rpx;
+  color: #999999;
+  font-size: 22rpx;
+  line-height: 1.6;
+}
+
+.error-box {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background: rgba(178, 65, 55, 0.08);
+}
+
+.error-text {
+  color: #b24137;
+  font-size: 24rpx;
+  line-height: 1.6;
+}
+
+.btn-submit {
+  width: 100%;
+  height: 88rpx;
+  margin-top: 20rpx;
+  border: none;
+  border-radius: 16rpx;
+  background: #111111;
+}
+
+.btn-submit::after {
+  border: none;
+}
+
+.btn-submit[disabled] {
+  opacity: 0.5;
+}
+
+.btn-text {
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.loading-state {
+  padding: 160rpx 32rpx;
+  text-align: center;
+}
+
+.loading-text {
+  color: #888888;
+  font-size: 24rpx;
+}

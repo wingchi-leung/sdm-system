@@ -101,3 +101,61 @@ test('发布活动页选择海报后会进入可预览状态', () => {
   assert.equal(page.data.posterLocalPath, '');
   assert.equal(page.data.posterUrl, '');
 });
+
+test('发布活动时会携带报名成功通知配置', async () => {
+  let createdPayload = null;
+  const pageConfig = loadPage('../pages/create-activity/create-activity.js', [
+    ['../../utils/api.js', {
+      getAvailableActivityTypes: async () => [],
+      createActivity(payload) {
+        createdPayload = payload;
+        return Promise.resolve({ id: 101 });
+      },
+    }],
+    ['../../utils/auth.js', {
+      isAdmin: () => true,
+      isSuperAdmin: () => false,
+      isActivityTypeAdmin: () => false,
+      getAdminActivityTypes: () => [],
+      normalizeActivityType: (item) => item,
+      setAdminActivityTypes() {},
+      canManageActivityType: () => true,
+    }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+    }],
+  ], {
+    showToast() {},
+    navigateBack() {},
+  });
+
+  const page = createPageInstance(pageConfig, {
+    activityName: '测试活动',
+    activityTypeName: '讲座',
+    startDate: '2026-07-10',
+    startTime: '09:00',
+    endDate: '2026-07-10',
+    endTime: '11:00',
+    requirePayment: false,
+    suggestedFee: 0,
+    registrationNotification: {
+      enabled: true,
+      templateId: 'TPL_REGISTER_001',
+      pagePath: 'pages/my-activities/my-activities',
+      payloadTemplateText: JSON.stringify({
+        thing1: { value: '{{activity_name}}' },
+        phrase2: { value: '报名成功' },
+        time3: { value: '{{start_time}}' },
+      }),
+    },
+  });
+  page.getSelectedActivityType = () => ({ id: 3, name: '讲座' });
+
+  page.submit();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.ok(createdPayload);
+  assert.equal(createdPayload.registration_success_notification.enabled, true);
+  assert.equal(createdPayload.registration_success_notification.template_id, 'TPL_REGISTER_001');
+  assert.equal(createdPayload.registration_success_notification.page_path, 'pages/my-activities/my-activities');
+});

@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "通知配置",
+  "usingComponents": {
+    "page-header": "/components/page-header/page-header"
+  }
+}

@@ -73,6 +73,18 @@
       </view>
     </view>
 
+    <view class="field">
+      <text class="field-label">报名成功通知</text>
+      <view class="field-card" bindtap="goNotificationConfig">
+        <view class="field-card-copy">
+          <text class="field-card-title">通知配置</text>
+          <text class="field-card-desc">{{registrationNotificationSummary}}</text>
+        </view>
+        <text class="field-card-arrow">›</text>
+      </view>
+      <text class="field-hint">进入后可单独维护当前活动的报名成功订阅消息模板与消息体。</text>
+    </view>
+
     <button class="btn-submit" bindtap="submit" disabled="{{submitting}}">
       <text class="btn-text">{{submitting ? '提交中…' : '保存修改'}}</text>
     </button>

@@ -1,0 +1,68 @@
+<view class="page">
+  <page-header title="通知配置"></page-header>
+
+  <view class="container" wx:if="{{!loading}}">
+    <view class="hero">
+      <text class="hero-title">{{activityName || '当前活动'}}</text>
+      <text class="hero-text">这里维护当前活动的报名成功订阅消息，优先级高于租户默认配置。</text>
+    </view>
+
+    <view class="field">
+      <view class="switch-row">
+        <view class="switch-copy">
+          <text class="switch-label">启用报名成功通知</text>
+          <text class="field-hint">关闭后将不发送当前活动的报名成功订阅消息。</text>
+        </view>
+        <switch checked="{{form.enabled}}" bindchange="onEnabledChange" color="var(--primary)" />
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="field-label">模板 ID</text>
+      <input
+        class="input"
+        value="{{form.templateId}}"
+        bindinput="onTemplateIdInput"
+        placeholder="例如：TPL_xxx"
+        placeholder-class="input-placeholder"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">跳转页面</text>
+      <input
+        class="input"
+        value="{{form.pagePath}}"
+        bindinput="onPagePathInput"
+        placeholder="例如：pages/my-activities/my-activities"
+        placeholder-class="input-placeholder"
+      />
+    </view>
+
+    <view class="field">
+      <text class="field-label">消息体模板 JSON</text>
+      <view class="textarea-card">
+        <textarea
+          class="textarea-input"
+          value="{{form.payloadTemplateText}}"
+          bindinput="onPayloadTemplateInput"
+          placeholder="请输入 JSON 模板"
+          placeholder-class="input-placeholder"
+        />
+      </view>
+      <text class="field-hint">可用占位符：`{{activity_name}}`、`{{start_time}}`</text>
+    </view>
+
+    <view wx:if="{{error}}" class="error-box">
+      <text class="error-text">{{error}}</text>
+    </view>
+
+    <button class="btn-submit" bindtap="save" disabled="{{saving}}">
+      <text class="btn-text">{{saving ? '保存中…' : '保存通知配置'}}</text>
+    </button>
+  </view>
+
+  <view wx:else class="loading-state">
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

@@ -1,6 +1,10 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const {
+  getDefaultRegistrationNotificationForm,
+  buildRegistrationNotificationPayload,
+} = require('../../utils/activity-notification');
 
 const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
 const POSTER_UPLOAD_NOTICE_KEY = 'notice_poster_upload_ack_v1';
@@ -33,6 +37,7 @@ function createEditableDefaults() {
     activityIntro: '',
     introCount: 0,
     isPublic: false,
+    registrationNotification: getDefaultRegistrationNotificationForm(),
   };
 }
 
@@ -307,6 +312,38 @@ Page({
     this.setData({ activityIntro: trimmed, introCount: trimmed.length, error: null });
   },
 
+  onRegistrationNotificationToggle(e) {
+    const registrationNotification = {
+      ...this.data.registrationNotification,
+      enabled: !!e.detail.value,
+    };
+    this.setData({ registrationNotification, error: null });
+  },
+
+  onRegistrationTemplateIdInput(e) {
+    const registrationNotification = {
+      ...this.data.registrationNotification,
+      templateId: e.detail.value || '',
+    };
+    this.setData({ registrationNotification, error: null });
+  },
+
+  onRegistrationPagePathInput(e) {
+    const registrationNotification = {
+      ...this.data.registrationNotification,
+      pagePath: e.detail.value || '',
+    };
+    this.setData({ registrationNotification, error: null });
+  },
+
+  onRegistrationPayloadTemplateInput(e) {
+    const registrationNotification = {
+      ...this.data.registrationNotification,
+      payloadTemplateText: e.detail.value || '',
+    };
+    this.setData({ registrationNotification, error: null });
+  },
+
   // 公开设置
   onIsPublicChange(e) {
     this.setData({ isPublic: e.detail.value, error: null });
@@ -453,6 +490,14 @@ Page({
 
     // 先上传海报（如果有），再创建活动
     (async () => {
+      let registrationSuccessNotification = null;
+      try {
+        registrationSuccessNotification = buildRegistrationNotificationPayload(this.data.registrationNotification);
+      } catch (err) {
+        this.setData({ error: err.message || '通知配置格式错误', submitting: false });
+        return;
+      }
+
       let posterUrl = '';
       if (this.data.posterLocalPath) {
         try {
@@ -483,6 +528,7 @@ Page({
           activity_intro: (activityIntro || '').trim() || null,
           max_participants: maxParticipantsNum,
           is_public: this.data.isPublic ? 1 : 0,
+          registration_success_notification: registrationSuccessNotification,
         });
         wx.showToast({ title: '发布成功', icon: 'success' });
         setTimeout(() => wx.navigateBack(), 1000);

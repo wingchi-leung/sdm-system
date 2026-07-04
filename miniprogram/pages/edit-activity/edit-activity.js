@@ -1,6 +1,7 @@
 const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
+const { normalizeRegistrationNotificationConfig } = require('../../utils/activity-notification');
 
 const MAX_POSTER_SIZE = 5 * 1024 * 1024; // 5MB
 const POSTER_UPLOAD_NOTICE_KEY = 'notice_poster_upload_ack_v1';
@@ -23,6 +24,7 @@ Page({
     uploading: false,
     // 公开设置
     isPublic: false,
+    registrationNotificationSummary: '未启用报名成功通知',
   },
 
   resetSensitiveData() {
@@ -40,6 +42,7 @@ Page({
       submitting: false,
       uploading: false,
       isPublic: false,
+      registrationNotificationSummary: '未启用报名成功通知',
     });
   },
 
@@ -63,12 +66,14 @@ Page({
     if (options.id) {
       this.setData({ id: options.id });
       this.loadActivity(options.id);
+      this.loadNotificationConfig(options.id);
     }
   },
 
   onShow() {
     if (!this.data.id) return;
-    this.ensureAdminAccess();
+    if (!this.ensureAdminAccess()) return;
+    this.loadNotificationConfig(this.data.id);
   },
 
   async loadActivity(id) {
@@ -105,6 +110,19 @@ Page({
       this.tagTouched = !!(activity.tag || '').trim();
     } catch (err) {
       wx.showToast({ title: err.message || '加载失败', icon: 'none' });
+    }
+  },
+
+  async loadNotificationConfig(id) {
+    try {
+      const config = await api.getActivityNotificationConfig(id, 'registration_success');
+      const normalized = normalizeRegistrationNotificationConfig(config);
+      const summary = normalized.enabled
+        ? `已启用，模板 ${normalized.templateId || '未填写'}`
+        : '未启用报名成功通知';
+      this.setData({ registrationNotificationSummary: summary });
+    } catch (_) {
+      this.setData({ registrationNotificationSummary: '通知配置加载失败' });
     }
   },
 
@@ -178,6 +196,18 @@ Page({
   // 公开设置
   onIsPublicChange(e) {
     this.setData({ isPublic: e.detail.value });
+  },
+
+  goNotificationConfig() {
+    if (!this.data.id) {
+      wx.showToast({ title: '请先保存活动后再配置通知', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: tenant.appendTenantToUrl('/pages/activity-notification-config/activity-notification-config', {
+        id: this.data.id,
+      }),
+    });
   },
 
   // 选择海报
