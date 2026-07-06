@@ -111,7 +111,8 @@
           class="rich-editor"
           placeholder="输入正文内容"
           placeholder-style="color:#98a2b3;font-size:28rpx;line-height:1.75;font-style:italic;"
-          show-img-toolbar="{{false}}"
+          show-img-size="{{true}}"
+          show-img-toolbar="{{true}}"
           show-img-resize="{{true}}"
           bindready="onEditorReady"
           bindinput="onEditorInput"
@@ -129,7 +130,7 @@
         </view>
 
         <view class="editor-footer">
-          <text class="editor-tip">支持图文混排，最多插入 9 张图片</text>
+          <text class="editor-tip">支持图文混排，图片默认缩略显示，点选图片可继续调整大小</text>
           <text class="field-counter">{{contentLength}} 字</text>
         </view>
       </view>

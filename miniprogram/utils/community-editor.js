@@ -1,6 +1,8 @@
 const DEFAULT_MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const DEFAULT_MAX_IMAGE_COUNT = 9;
 const DEFAULT_MAX_CONTENT_LENGTH = 10000;
+const DEFAULT_INSERT_IMAGE_WIDTH = '68%';
+const DEFAULT_INSERT_IMAGE_EXT_CLASS = 'editor--community-thumb-image';
 
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
@@ -311,7 +313,8 @@ function createCommunityEditorMethods({
 
           editorCtx.insertImage({
             src: imageDisplayUrl,
-            width: '100%',
+            width: DEFAULT_INSERT_IMAGE_WIDTH,
+            extClass: DEFAULT_INSERT_IMAGE_EXT_CLASS,
             success: () => {
               this.data._editorHtml = `${this.data._editorHtml || ''}<img src="${imageRelativeUrl}" />`;
               setTimeout(() => {
@@ -393,6 +396,8 @@ module.exports = {
   DEFAULT_MAX_IMAGE_SIZE,
   DEFAULT_MAX_IMAGE_COUNT,
   DEFAULT_MAX_CONTENT_LENGTH,
+  DEFAULT_INSERT_IMAGE_WIDTH,
+  DEFAULT_INSERT_IMAGE_EXT_CLASS,
   decodeDisplayText,
   getPlainTextLength,
   createCommunityEditorData,

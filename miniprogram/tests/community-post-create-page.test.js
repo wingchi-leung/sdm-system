@@ -170,6 +170,60 @@ test('发布页提交时会发送富文本内容和图片列表', async () => {
   });
 });
 
+test('插入图片时会使用缩略宽度和图片样式类', async () => {
+  const insertCalls = [];
+  const editorContext = {
+    insertImage(options) {
+      insertCalls.push(options);
+      if (typeof options.success === 'function') {
+        options.success();
+      }
+    },
+    getContents({ success }) {
+      success({
+        html: '<img src="/uploads/community/thumb.jpg" />',
+        text: '',
+      });
+    },
+  };
+
+  const pageConfig = loadPage('../pages/community-post-create/community-post-create.js', [
+    ['../../utils/api.js', {
+      getImageUrl: (url) => `https://static.example.com${url}`,
+      uploadCommunityImage: async () => ({ url: '/uploads/community/thumb.jpg' }),
+    }],
+    ['../../utils/auth.js', {
+      isLoggedIn: () => true,
+      isUser: () => true,
+      isAdmin: () => false,
+      redirectToLogin() {},
+    }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+    }],
+  ], {
+    editorContext,
+    chooseMedia({ success }) {
+      success({
+        tempFiles: [{
+          tempFilePath: 'wxfile:///tmp/community-thumb.jpg',
+          size: 1024,
+        }],
+      });
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+  page.onLoad({ channelId: '12', channelName: encodeURIComponent('测试社区') });
+
+  await page.onInsertImage();
+
+  assert.equal(insertCalls.length, 1);
+  assert.equal(insertCalls[0].width, '68%');
+  assert.equal(insertCalls[0].extClass, 'editor--community-thumb-image');
+  assert.equal(insertCalls[0].src, 'https://static.example.com/uploads/community/thumb.jpg');
+});
+
 test('活动模式下发布页会提交活动动态', async () => {
   let createdPayload = null;
   const editorContext = {
