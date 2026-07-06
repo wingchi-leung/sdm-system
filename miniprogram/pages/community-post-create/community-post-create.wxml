@@ -1,10 +1,9 @@
 <view class="page">
-  <page-header title="发布动态" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBackTap">
+  <page-header title="{{pageTitle}}" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBackTap">
   </page-header>
 
   <view class="composer-shell">
-    <text wx:if="{{mode === 'channel' && channelName}}" class="channel-name">{{channelName}}</text>
-    <text wx:if="{{mode === 'activity' && activityName}}" class="channel-name">{{activityName}}</text>
+    <text wx:if="{{contextName}}" class="channel-name">{{contextName}}</text>
 
     <view class="field field-title">
       <view class="field-head">
@@ -14,7 +13,7 @@
       <view class="title-row">
         <input
           class="title-input"
-          placeholder="输入动态标题"
+          placeholder="{{titlePlaceholder}}"
           placeholder-class="input-placeholder"
           value="{{title}}"
           maxlength="{{titleMaxLength}}"

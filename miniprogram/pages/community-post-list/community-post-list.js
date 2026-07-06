@@ -502,9 +502,11 @@ Page({
       return;
     }
     wx.navigateTo({
-      url: tenant.appendTenantToUrl('/pages/community-announcement-create/community-announcement-create', {
+      url: tenant.appendTenantToUrl('/pages/community-post-create/community-post-create', {
+        mode: 'channel_announcement',
         channelId: this.data.channelId,
         channelName: this.data.channelName,
+        channelRole: this.data.channelRole,
       }),
     });
   },

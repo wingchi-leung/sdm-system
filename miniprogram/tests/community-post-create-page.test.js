@@ -89,9 +89,12 @@ test('发布页在社区模式下会初始化标题和富文本编辑器', () =>
   const page = createPageInstance(pageConfig);
   page.onLoad({ channelId: '12', channelName: encodeURIComponent('测试社区') });
 
-  assert.equal(page.data.mode, 'channel');
+  assert.equal(page.data.mode, 'channel_post');
   assert.equal(page.data.channelId, 12);
   assert.equal(page.data.channelName, '测试社区');
+  assert.equal(page.data.contextName, '测试社区');
+  assert.equal(page.data.pageTitle, '发布动态');
+  assert.equal(page.data.titlePlaceholder, '输入动态标题');
 });
 
 test('发布页标题会按 120 字限制截断', () => {
@@ -214,4 +217,95 @@ test('活动模式下发布页会提交活动动态', async () => {
     content: '<p>活动动态正文</p>',
     images: [],
   });
+});
+
+test('公告模式下会切换为公告配置并提交公告接口', async () => {
+  let createdPayload = null;
+  const editorContext = {
+    getContents({ success }) {
+      success({
+        html: '<p>公告正文</p><img src="/uploads/community/announcement.jpg" />',
+        text: '公告正文',
+      });
+    },
+  };
+
+  const pageConfig = loadPage('../pages/community-post-create/community-post-create.js', [
+    ['../../utils/api.js', {
+      getImageUrl: (url) => `https://static.example.com${url}`,
+      createCommunityChannelAnnouncement: async (_channelId, payload) => {
+        createdPayload = payload;
+        return { id: 1 };
+      },
+      uploadCommunityImage: async () => ({ url: '/uploads/community/announcement.jpg' }),
+    }],
+    ['../../utils/auth.js', {
+      isLoggedIn: () => true,
+      isUser: () => true,
+      isAdmin: () => false,
+      redirectToLogin() {},
+    }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+    }],
+  ], {
+    editorContext,
+  });
+
+  const page = createPageInstance(pageConfig);
+  page.onLoad({
+    mode: 'channel_announcement',
+    channelId: '18',
+    channelName: encodeURIComponent('公告频道'),
+    channelRole: 'admin',
+  });
+  page.onTitleInput({ detail: { value: 'b'.repeat(80) } });
+
+  assert.equal(page.data.mode, 'channel_announcement');
+  assert.equal(page.data.pageTitle, '发布公告');
+  assert.equal(page.data.titlePlaceholder, '输入公告标题');
+  assert.equal(page.data.title.length, 50);
+  assert.equal(page.data.titleLength, 50);
+
+  await page.onSubmit();
+
+  assert.deepEqual(createdPayload, {
+    title: 'b'.repeat(50),
+    content: '<p>公告正文</p><img src="/uploads/community/announcement.jpg" />',
+    content_format: 'html',
+    images: ['/uploads/community/announcement.jpg'],
+  });
+});
+
+test('非频道管理员不能使用公告模式发布', () => {
+  let toastTitle = '';
+  const pageConfig = loadPage('../pages/community-post-create/community-post-create.js', [
+    ['../../utils/api.js', {
+      getImageUrl: (url) => `https://static.example.com${url}`,
+    }],
+    ['../../utils/auth.js', {
+      isLoggedIn: () => true,
+      isUser: () => true,
+      isAdmin: () => false,
+      redirectToLogin() {},
+    }],
+    ['../../utils/tenant.js', {
+      applyPageOptions() {},
+    }],
+  ], {
+    showToast({ title }) {
+      toastTitle = title;
+    },
+  });
+
+  const page = createPageInstance(pageConfig);
+  page.onBackTap = () => {};
+  page.onLoad({
+    mode: 'channel_announcement',
+    channelId: '18',
+    channelName: encodeURIComponent('公告频道'),
+    channelRole: 'member',
+  });
+
+  assert.equal(toastTitle, '仅频道管理员可发布公告');
 });

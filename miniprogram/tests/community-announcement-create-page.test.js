@@ -8,27 +8,8 @@ function loadPage(pageRelativePath, moduleMap, wxMock = {}) {
     pageConfig = config;
   };
   global.wx = {
-    showToast() {},
-    showLoading() {},
-    hideLoading() {},
-    navigateBack() {},
-    switchTab() {},
-    showModal() {},
-    getSystemInfoSync() {
-      return { statusBarHeight: 24 };
-    },
-    createSelectorQuery() {
-      return {
-        select() {
-          return this;
-        },
-        context(callback) {
-          callback({ context: wxMock.editorContext || null });
-          return this;
-        },
-        exec() {},
-      };
-    },
+    redirectTo() {},
+    navigateTo() {},
     ...wxMock,
   };
 
@@ -50,88 +31,37 @@ function loadPage(pageRelativePath, moduleMap, wxMock = {}) {
   return pageConfig;
 }
 
-function createPageInstance(config, initialData = {}) {
-  const instance = {
-    data: {
-      ...config.data,
-      ...initialData,
-    },
-    setData(update) {
-      this.data = {
-        ...this.data,
-        ...update,
-      };
-    },
-  };
-
+function createPageInstance(config) {
+  const instance = {};
   Object.keys(config).forEach((key) => {
-    if (key !== 'data') instance[key] = config[key];
+    instance[key] = config[key];
   });
   return instance;
 }
 
-test('公告发布页标题会按 50 字限制截断', () => {
+test('公告兼容页会跳转到统一发布页', () => {
+  let targetUrl = '';
   const pageConfig = loadPage('../pages/community-announcement-create/community-announcement-create.js', [
-    ['../../utils/api.js', {
-      getImageUrl: (url) => `https://static.example.com${url}`,
-    }],
-    ['../../utils/auth.js', {
-      isUser: () => true,
-      isAdmin: () => false,
-    }],
     ['../../utils/tenant.js', {
       applyPageOptions() {},
-    }],
-  ]);
-
-  const page = createPageInstance(pageConfig);
-  page.onTitleInput({ detail: { value: 'b'.repeat(80) } });
-
-  assert.equal(page.data.title.length, 50);
-  assert.equal(page.data.titleLength, 50);
-});
-
-test('公告发布页提交时会发送富文本内容和图片列表', async () => {
-  let createdPayload = null;
-  const editorContext = {
-    getContents({ success }) {
-      success({
-        html: '<p>公告正文</p><img src="/uploads/community/announcement.jpg" />',
-        text: '公告正文',
-      });
-    },
-  };
-
-  const pageConfig = loadPage('../pages/community-announcement-create/community-announcement-create.js', [
-    ['../../utils/api.js', {
-      getImageUrl: (url) => `https://static.example.com${url}`,
-      createCommunityChannelAnnouncement: async (_channelId, payload) => {
-        createdPayload = payload;
-        return { id: 1 };
+      appendTenantToUrl(_url, params) {
+        const query = Object.entries(params)
+          .map(([key, value]) => `${key}=${value}`)
+          .join('&');
+        return `/pages/community-post-create/community-post-create?${query}`;
       },
-      uploadCommunityImage: async () => ({ url: '/uploads/community/announcement.jpg' }),
-    }],
-    ['../../utils/auth.js', {
-      isUser: () => true,
-      isAdmin: () => false,
-    }],
-    ['../../utils/tenant.js', {
-      applyPageOptions() {},
     }],
   ], {
-    editorContext,
+    redirectTo({ url }) {
+      targetUrl = url;
+    },
   });
 
   const page = createPageInstance(pageConfig);
-  page.onLoad({ channelId: '18', channelName: encodeURIComponent('公告频道') });
-  page.onTitleInput({ detail: { value: '公告标题' } });
+  page.onLoad({ channelId: '18', channelName: '公告频道', channelRole: 'admin' });
 
-  await page.onSubmit();
-
-  assert.deepEqual(createdPayload, {
-    title: '公告标题',
-    content: '<p>公告正文</p><img src="/uploads/community/announcement.jpg" />',
-    content_format: 'html',
-    images: ['/uploads/community/announcement.jpg'],
-  });
+  assert.equal(
+    targetUrl,
+    '/pages/community-post-create/community-post-create?channelId=18&channelName=公告频道&channelRole=admin&mode=channel_announcement',
+  );
 });
