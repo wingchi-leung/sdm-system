@@ -9,11 +9,20 @@
   display: flex;
   flex-direction: column;
   gap: 30rpx;
-  padding: 12rpx 36rpx 220rpx;
+  padding: 12rpx 36rpx 48rpx;
   box-sizing: border-box;
 }
 
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
 .channel-name {
+  flex: 1;
+  min-width: 0;
   color: #98a2b3;
   font-size: 22rpx;
   line-height: 1.5;
@@ -379,30 +388,22 @@
   line-height: 1.7;
 }
 
-.footer-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  padding: 24rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 28%, #ffffff 100%);
-}
-
 .submit-btn {
-  width: 320rpx;
-  height: 88rpx;
+  min-width: 96rpx;
+  height: 52rpx;
   margin: 0;
-  padding: 0 40rpx;
+  padding: 0 18rpx;
   border: 0;
-  border-radius: 20rpx;
+  border-radius: 999rpx;
   background: #0f172a;
   color: #ffffff;
-  font-size: 28rpx;
-  line-height: 88rpx;
+  font-size: 22rpx;
+  line-height: 52rpx;
   font-weight: 500;
-  box-shadow: 0 16rpx 40rpx rgba(15, 23, 42, 0.16);
+}
+
+.submit-btn-top {
+  flex-shrink: 0;
 }
 
 .submit-btn::after {
