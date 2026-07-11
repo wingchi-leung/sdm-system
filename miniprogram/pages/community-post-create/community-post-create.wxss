@@ -389,17 +389,17 @@
 }
 
 .submit-btn {
-  min-width: 96rpx;
-  height: 52rpx;
+  min-width: 0;
+  height: 44rpx;
   margin: 0;
-  padding: 0 18rpx;
+  padding: 0 8rpx;
   border: 0;
-  border-radius: 999rpx;
-  background: #0f172a;
-  color: #ffffff;
-  font-size: 22rpx;
-  line-height: 52rpx;
-  font-weight: 500;
+  border-radius: 0;
+  background: transparent;
+  color: #0f172a;
+  font-size: 24rpx;
+  line-height: 44rpx;
+  font-weight: 600;
 }
 
 .submit-btn-top {
@@ -411,5 +411,5 @@
 }
 
 .submit-btn[disabled] {
-  opacity: 0.56;
+  opacity: 0.4;
 }
