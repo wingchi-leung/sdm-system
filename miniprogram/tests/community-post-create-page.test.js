@@ -219,7 +219,7 @@ test('插入图片时会使用缩略宽度和图片样式类', async () => {
   await page.onInsertImage();
 
   assert.equal(insertCalls.length, 1);
-  assert.equal(insertCalls[0].width, '68%');
+  assert.equal(insertCalls[0].width, '48%');
   assert.equal(insertCalls[0].extClass, 'editor--community-thumb-image');
   assert.equal(insertCalls[0].src, 'https://static.example.com/uploads/community/thumb.jpg');
 });

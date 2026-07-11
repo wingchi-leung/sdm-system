@@ -1,7 +1,7 @@
 const DEFAULT_MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const DEFAULT_MAX_IMAGE_COUNT = 9;
 const DEFAULT_MAX_CONTENT_LENGTH = 10000;
-const DEFAULT_INSERT_IMAGE_WIDTH = '68%';
+const DEFAULT_INSERT_IMAGE_WIDTH = '48%';
 const DEFAULT_INSERT_IMAGE_EXT_CLASS = 'editor--community-thumb-image';
 
 function decodeDisplayText(value) {
