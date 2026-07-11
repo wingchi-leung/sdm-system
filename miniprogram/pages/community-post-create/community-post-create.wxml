@@ -1,8 +1,14 @@
 <view class="page">
   <page-header title="{{pageTitle}}" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBackTap">
-    <button slot="actions" class="submit-btn submit-btn-top" disabled="{{submitting}}" bindtap="onSubmit">
-      {{submitting ? '发布中…' : '发布'}}
-    </button>
+    <view
+      slot="actions"
+      class="publish-action {{submitting ? 'publish-action--disabled' : ''}}"
+      bindtap="onSubmit"
+      hover-class="publish-action--active"
+      hover-stop-propagation="true"
+    >
+      <text class="publish-action__text">{{submitting ? '发布中…' : '发布'}}</text>
+    </view>
   </page-header>
 
   <view class="composer-shell">
@@ -123,12 +129,11 @@
         />
 
         <view class="editor-actions">
-          <view class="editor-action-btn editor-action-btn-primary" bindtap="onInsertImage">
-            <text class="editor-action-icon">＋</text>
-            <text class="editor-action-text">插入图片</text>
+          <view class="editor-action-btn editor-action-btn-primary editor-action-btn-icon" bindtap="onInsertImage">
+            <image class="editor-action-img" src="/assets/icons/picture.png" mode="aspectFit" />
           </view>
-          <view class="editor-action-btn" data-action="clear" bindtap="onToolbarAction">
-            <text class="editor-action-text">清空正文</text>
+          <view class="editor-action-btn editor-action-btn-icon" data-action="clear" bindtap="onToolbarAction">
+            <image class="editor-action-img" src="/assets/icons/empty.png" mode="aspectFit" />
           </view>
         </view>
 
