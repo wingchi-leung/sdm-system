@@ -1,14 +1,12 @@
 <view class="page">
   <page-header title="{{pageTitle}}" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBackTap">
+    <button slot="actions" class="submit-btn submit-btn-top" disabled="{{submitting}}" bindtap="onSubmit">
+      {{submitting ? '发布中…' : '发布'}}
+    </button>
   </page-header>
 
   <view class="composer-shell">
-    <view class="page-toolbar">
-      <text wx:if="{{contextName}}" class="channel-name">{{contextName}}</text>
-      <button class="submit-btn submit-btn-top" disabled="{{submitting}}" bindtap="onSubmit">
-        {{submitting ? '发布中…' : '发布'}}
-      </button>
-    </view>
+    <text wx:if="{{contextName}}" class="channel-name">{{contextName}}</text>
 
     <view class="field field-title">
       <view class="field-head">
