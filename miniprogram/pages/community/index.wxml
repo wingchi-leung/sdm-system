@@ -61,12 +61,6 @@
             <text class="channel-name">{{item.name}}</text>
             <text wx:if="{{item.description}}" class="channel-desc">{{item.description}}</text>
             <view class="channel-actions">
-              <view class="channel-action-chip" catchtap="onOpenChannelCalendar" data-channel="{{item}}">
-                <text class="channel-action-chip__text">日历</text>
-              </view>
-              <view wx:if="{{item.role === 'admin'}}" class="channel-action-chip channel-action-chip--ghost" catchtap="onManageChannelMembers" data-channel="{{item}}">
-                <text class="channel-action-chip__text">管理</text>
-              </view>
             </view>
           </view>
 

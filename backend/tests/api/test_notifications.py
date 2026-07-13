@@ -12,6 +12,20 @@ def test_get_notifications_config(client, user_token):
     assert payload["retry_max"] == 5
     assert "scenes" in payload
     assert any(item["scene"] == "registration_success" for item in payload["scenes"])
+    assert any(item["scene"] == "registration_received" for item in payload["scenes"])
+    assert any(item["scene"] == "review_result" for item in payload["scenes"])
+
+
+def test_list_notification_scene_configs_includes_new_scenes(client, super_admin_token):
+    response = client.get(
+        "/api/v1/notifications/scene-configs",
+        headers={"Authorization": f"Bearer {super_admin_token}"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    scenes = {item["scene"] for item in payload}
+    assert "registration_received" in scenes
+    assert "review_result" in scenes
 
 
 def test_upsert_subscribe_consent(client, user_token):

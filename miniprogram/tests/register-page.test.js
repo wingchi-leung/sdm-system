@@ -159,6 +159,12 @@ test('活动管理员可继续提交支付报名', async () => {
       isSuperAdmin: () => false,
       getUserId: () => 101,
     },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'pending-key',
+      buildOrderHistoryStorageKey: () => 'history-key',
+      upsertOrderRecord: (current, record) => [...current, record],
+      removeOrderRecord: (current) => current,
+    },
     tenant: {
       getTenantCode: () => 'demo',
     },
@@ -196,7 +202,7 @@ test('活动管理员可继续提交支付报名', async () => {
   assert.equal(calls.createPaymentOrder, 1);
 });
 
-test('报名前会请求报名成功订阅消息授权并上报结果', async () => {
+test('报名成功后会请求报名成功订阅消息授权并上报结果', async () => {
   const calls = {
     requestSubscribeMessage: 0,
     recordSubscribeConsent: 0,
@@ -214,6 +220,20 @@ test('报名前会请求报名成功订阅消息授权并上报结果', async ()
         calls.registerParticipant += 1;
         return Promise.resolve({ enroll_status: 1 });
       },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isSuperAdmin: () => false,
+      getUserId: () => 101,
+    },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'pending-key',
+      buildOrderHistoryStorageKey: () => 'history-key',
+      upsertOrderRecord: (current, record) => [...current, record],
+      removeOrderRecord: (current) => current,
+    },
+    tenant: {
+      getTenantCode: () => 'demo',
     },
     wxMock: {
       requestSubscribeMessage({ tmplIds, success }) {
@@ -247,6 +267,160 @@ test('报名前会请求报名成功订阅消息授权并上报结果', async ()
   assert.equal(calls.requestSubscribeMessage, 1);
   assert.equal(calls.recordSubscribeConsent, 1);
   assert.equal(calls.registerParticipant, 1);
+});
+
+test('报名成功后会一次请求报名成功和报名失败两个订阅消息授权', async () => {
+  const calls = {
+    requestSubscribeMessage: 0,
+    recordSubscribeConsent: 0,
+    registerParticipant: 0,
+  };
+  const pageConfig = loadRegisterPage({
+    api: {
+      recordSubscribeConsent(payload) {
+        calls.recordSubscribeConsent += 1;
+        assert.ok(['TPL_REGISTER_SUCCESS', 'TPL_REVIEW_RESULT'].includes(payload.template_id));
+        assert.equal(payload.accept_status, 'accept');
+        return Promise.resolve({});
+      },
+      registerParticipant() {
+        calls.registerParticipant += 1;
+        return Promise.resolve({ enroll_status: 1 });
+      },
+    },
+    wxMock: {
+      requestSubscribeMessage({ tmplIds, success }) {
+        calls.requestSubscribeMessage += 1;
+        assert.deepEqual(tmplIds, ['TPL_REGISTER_SUCCESS', 'TPL_REVIEW_RESULT']);
+        success({
+          TPL_REGISTER_SUCCESS: 'accept',
+          TPL_REVIEW_RESULT: 'accept',
+        });
+      },
+      showToast() {},
+      navigateBack() {},
+    },
+  });
+  const page = createPageInstance(pageConfig, {
+    activity: { id: 66 },
+    subscribeConfig: {
+      scenes: [
+        {
+          scene: 'registration_success',
+          enabled: true,
+          template_id: 'TPL_REGISTER_SUCCESS',
+        },
+        {
+          scene: 'review_result',
+          enabled: true,
+          template_id: 'TPL_REVIEW_RESULT',
+        },
+      ],
+    },
+    name: '报名用户',
+    whyJoin: '想参加',
+    channel: '朋友推荐',
+    expectation: '学习交流',
+  });
+
+  await page.doRegister();
+
+  assert.equal(calls.requestSubscribeMessage, 1);
+  assert.equal(calls.recordSubscribeConsent, 2);
+  assert.equal(calls.registerParticipant, 1);
+});
+
+test('支付报名成功后会请求报名成功和报名失败两个订阅消息授权', async () => {
+  const sequence = [];
+  const pageConfig = loadRegisterPage({
+    api: {
+      createPaymentOrder() {
+        sequence.push('createPaymentOrder');
+        return Promise.resolve({
+          order_no: 'ORDER-2',
+          payment_params: {
+            timeStamp: '1',
+            nonceStr: 'n',
+            package: 'p',
+            signType: 'MD5',
+            paySign: 's',
+          },
+        });
+      },
+      queryPaymentOrder() {
+        sequence.push('queryPaymentOrder');
+        return Promise.resolve({ status: 1, order_no: 'ORDER-2' });
+      },
+      recordSubscribeConsent(payload) {
+        sequence.push(`record:${payload.template_id}`);
+        return Promise.resolve({});
+      },
+    },
+    auth: {
+      isLoggedIn: () => true,
+      isSuperAdmin: () => false,
+      getUserId: () => 101,
+    },
+    paymentOrder: {
+      buildPendingOrderStorageKey: () => 'pending-key',
+      buildOrderHistoryStorageKey: () => 'history-key',
+      upsertOrderRecord: (current, record) => [...current, record],
+      removeOrderRecord: (current) => current,
+    },
+    tenant: {
+      getTenantCode: () => 'demo',
+    },
+    wxMock: {
+      getStorageSync: () => [],
+      setStorageSync() {},
+      removeStorageSync() {},
+      requestPayment({ success }) {
+        sequence.push('requestPayment');
+        success();
+      },
+      requestSubscribeMessage({ tmplIds, success }) {
+        sequence.push(`subscribe:${tmplIds.join(',')}`);
+        success({
+          TPL_REGISTER_SUCCESS: 'accept',
+          TPL_REVIEW_RESULT: 'accept',
+        });
+      },
+      showToast() {},
+      navigateBack() {},
+    },
+  });
+  const page = createPageInstance(pageConfig, {
+    loading: false,
+    activityId: 12,
+    activity: { id: 12, activity_name: '测试活动' },
+    name: '报名用户',
+    phone: '13800000000',
+    whyJoin: '想参加',
+    channel: '朋友推荐',
+    expectation: '学习交流',
+    requirePayment: true,
+    actualFee: 100,
+    suggestedFee: 100,
+    subscribeConfig: {
+      scenes: [
+        { scene: 'registration_success', enabled: true, template_id: 'TPL_REGISTER_SUCCESS' },
+        { scene: 'review_result', enabled: true, template_id: 'TPL_REVIEW_RESULT' },
+      ],
+    },
+  });
+
+  page.submit();
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  await new Promise((resolve) => setTimeout(resolve, 10));
+
+  assert.deepEqual(sequence, [
+    'createPaymentOrder',
+    'requestPayment',
+    'queryPaymentOrder',
+    'subscribe:TPL_REGISTER_SUCCESS,TPL_REVIEW_RESULT',
+    'record:TPL_REGISTER_SUCCESS',
+    'record:TPL_REVIEW_RESULT',
+  ]);
 });
 
 test('未配置报名成功模板时不会请求订阅授权', async () => {

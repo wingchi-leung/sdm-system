@@ -1,7 +1,6 @@
 .page {
   min-height: 100vh;
   background: #ffffff;
-  /* 系统导航栏模式下，页面内容从导航栏下方开始，padding-top 只需预留想要的留白 */
   padding: 24rpx 32rpx calc(120rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   color: #111111;
@@ -30,7 +29,6 @@
   align-items: center;
   padding: 0 0 20rpx;
   margin-top: 4rpx;
-  border-bottom: 1rpx solid var(--divider);
 }
 
 .avatar-wrap {
@@ -163,11 +161,6 @@
   padding: 18rpx 0;
   display: flex;
   align-items: center;
-  border-bottom: 1rpx solid var(--divider);
-}
-
-.service-item:last-child {
-  border-bottom: none;
 }
 
 .service-item.is-disabled {

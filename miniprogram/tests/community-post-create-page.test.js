@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 
 function loadPage(pageRelativePath, moduleMap, wxMock = {}) {
@@ -95,6 +96,18 @@ test('发布页在社区模式下会初始化标题和富文本编辑器', () =>
   assert.equal(page.data.contextName, '测试社区');
   assert.equal(page.data.pageTitle, '发布动态');
   assert.equal(page.data.titlePlaceholder, '输入动态标题');
+});
+
+test('发布页在右上角提供发布按钮入口', () => {
+  const wxmlPath = path.resolve(__dirname, '../pages/community-post-create/community-post-create.wxml');
+  const wxml = fs.readFileSync(wxmlPath, 'utf8');
+
+  assert.match(wxml, /<button/);
+  assert.match(wxml, /plain="true"/);
+  assert.match(wxml, /bindtap="onSubmit"/);
+  assert.match(wxml, /publish-row/);
+  assert.match(wxml, /publish-action/);
+  assert.match(wxml, /publish-action__text/);
 });
 
 test('发布页标题会按 120 字限制截断', () => {

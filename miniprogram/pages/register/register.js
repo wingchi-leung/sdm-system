@@ -268,25 +268,39 @@ Page({
     return scenes.find((item) => item && item.scene === 'registration_success') || null;
   },
 
+  getRegistrationSubscribeScenes() {
+    const config = this.data.subscribeConfig;
+    const scenes = config && Array.isArray(config.scenes) ? config.scenes : [];
+    return scenes.filter((item) => {
+      return item
+        && item.enabled
+        && (item.scene === 'registration_success' || item.scene === 'review_result');
+    });
+  },
+
   requestRegistrationSubscribeConsent() {
-    const sceneConfig = this.getRegistrationSubscribeScene();
-    const templateId = sceneConfig && sceneConfig.enabled ? sceneConfig.template_id : '';
-    if (!templateId || typeof wx.requestSubscribeMessage !== 'function') {
+    const sceneConfigs = this.getRegistrationSubscribeScenes();
+    const templateIds = sceneConfigs
+      .map((item) => item.template_id)
+      .filter((templateId) => !!templateId);
+    if (templateIds.length === 0 || typeof wx.requestSubscribeMessage !== 'function') {
       return Promise.resolve(null);
     }
 
     return new Promise((resolve) => {
       wx.requestSubscribeMessage({
-        tmplIds: [templateId],
+        tmplIds: templateIds,
         success: (res) => {
-          const status = res && res[templateId];
-          if (status === 'accept' || status === 'reject' || status === 'ban') {
-            api.recordSubscribeConsent({
-              template_id: templateId,
-              accept_status: status,
-              source_page: 'pages/register/register',
-            }).catch(() => {});
-          }
+          templateIds.forEach((templateId) => {
+            const status = res && res[templateId];
+            if (status === 'accept' || status === 'reject' || status === 'ban') {
+              api.recordSubscribeConsent({
+                template_id: templateId,
+                accept_status: status,
+                source_page: 'pages/register/register',
+              }).catch(() => {});
+            }
+          });
           resolve(res);
         },
         fail: () => resolve(null),
@@ -424,8 +438,7 @@ Page({
   doRegister() {
     const participantData = this.buildParticipantData();
 
-    return this.requestRegistrationSubscribeConsent()
-      .then(() => api.registerParticipant(participantData))
+    return api.registerParticipant(participantData)
       .then((result) => {
         // 检查是否进入候补
         const isWaitlist = result.enroll_status === 2;
@@ -434,6 +447,7 @@ Page({
         } else {
           wx.showToast({ title: '报名成功', icon: 'success' });
         }
+        this.requestRegistrationSubscribeConsent().catch(() => {});
         setTimeout(() => {
           wx.navigateBack();
         }, 1200);
@@ -521,11 +535,10 @@ Page({
     const { actualFee } = this.data;
     const participantData = this.buildParticipantData();
 
-    return this.requestRegistrationSubscribeConsent()
-      .then(() => api.createPaymentOrder({
+    return api.createPaymentOrder({
         ...participantData,
         actual_fee: actualFee,
-      }))
+      })
       .then((orderData) => {
         const orderNo = orderData.order_no || '';
         if (!orderNo) {
@@ -563,7 +576,7 @@ Page({
       .then((orderNo) => {
         return this.confirmPaymentResult(orderNo);
       })
-      .then((orderDetail) => {
+      .then(async (orderDetail) => {
         const successOrderNo = orderDetail && orderDetail.order_no
           ? orderDetail.order_no
           : this.data.paymentOrderNo;
@@ -584,6 +597,7 @@ Page({
           paymentOrderNo: '',
           submitting: false,
         });
+        await this.requestRegistrationSubscribeConsent().catch(() => {});
         wx.showToast({ title: message, icon: 'success' });
         setTimeout(() => {
           wx.navigateBack();

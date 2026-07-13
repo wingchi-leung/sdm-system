@@ -89,6 +89,134 @@ class TestParticipantRegistration:
         assert row[0] == "registration_success"
         assert row[1] == "tpl_register_success"
 
+    def test_register_for_activity_enqueues_first_time_confirmation_message(
+        self,
+        client,
+        user_token,
+        sample_activity,
+        sample_user,
+        db_session,
+        monkeypatch,
+    ):
+        from app.core.config import settings
+        from app.schemas import NotificationSceneConfig, UserCredential
+
+        monkeypatch.setattr(settings, "WECHAT_SUBSCRIBE_ENABLED", True)
+
+        db_session.add(
+            UserCredential(
+                user_id=sample_user.id,
+                tenant_id=sample_user.tenant_id,
+                credential_type="wechat",
+                identifier="openid_first_time_confirmation",
+                status=1,
+            )
+        )
+        db_session.add(
+            NotificationSceneConfig(
+                tenant_id=sample_user.tenant_id,
+                scene="registration_received",
+                name="报名确认通知",
+                enabled=1,
+                template_id="tpl_registration_received",
+                page_path="pages/my-activities/my-activities",
+                payload_template_json='{"thing1":{"value":"{{activity_name}}"}}',
+            )
+        )
+        db_session.commit()
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "报名者",
+                "phone": "13900139100",
+                "identity_number": "110101199001013000",
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        row = db_session.execute(
+            text("SELECT scene, template_id FROM message_task WHERE user_id = :user_id ORDER BY id DESC LIMIT 1"),
+            {"user_id": sample_user.id},
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "registration_received"
+        assert row[1] == "tpl_registration_received"
+
+    def test_register_for_activity_skips_confirmation_for_repeat_participant(
+        self,
+        client,
+        user_token,
+        sample_activity,
+        sample_user,
+        db_session,
+        monkeypatch,
+    ):
+        from app.core.config import settings
+        from app.schemas import ActivityParticipant, NotificationSceneConfig, UserCredential
+        from tests.factories import ActivityFactory
+
+        monkeypatch.setattr(settings, "WECHAT_SUBSCRIBE_ENABLED", True)
+
+        previous_activity = ActivityFactory(activity_name="历史活动")
+        db_session.add(previous_activity)
+        db_session.flush()
+        db_session.add(
+            ActivityParticipant(
+                tenant_id=sample_user.tenant_id,
+                activity_id=previous_activity.id,
+                user_id=sample_user.id,
+                participant_name="历史报名者",
+                enroll_status=1,
+            )
+        )
+        db_session.add(
+            UserCredential(
+                user_id=sample_user.id,
+                tenant_id=sample_user.tenant_id,
+                credential_type="wechat",
+                identifier="openid_repeat_participant",
+                status=1,
+            )
+        )
+        db_session.add(
+            NotificationSceneConfig(
+                tenant_id=sample_user.tenant_id,
+                scene="registration_received",
+                name="报名确认通知",
+                enabled=1,
+                template_id="tpl_registration_received",
+                page_path="pages/my-activities/my-activities",
+                payload_template_json='{"thing1":{"value":"{{activity_name}}"}}',
+            )
+        )
+        db_session.commit()
+
+        before_count = db_session.execute(
+            text("SELECT COUNT(*) FROM message_task WHERE user_id = :user_id"),
+            {"user_id": sample_user.id},
+        ).scalar_one()
+
+        response = client.post(
+            "/api/v1/participants/",
+            headers=auth_headers(user_token),
+            json={
+                "activity_id": sample_activity.id,
+                "participant_name": "重复报名者",
+                "phone": "13900139102",
+                "identity_number": "110101199001013002",
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        after_count = db_session.execute(
+            text("SELECT COUNT(*) FROM message_task WHERE user_id = :user_id"),
+            {"user_id": sample_user.id},
+        ).scalar_one()
+        assert after_count == before_count
+
     def test_register_ignores_client_supplied_user_id(
         self,
         client,
@@ -253,6 +381,69 @@ class TestParticipantRegistration:
 
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["enroll_status"] == 2
+
+    def test_review_participant_enqueues_review_result_message(
+        self,
+        client,
+        super_admin_token,
+        sample_activity,
+        sample_user,
+        db_session,
+        monkeypatch,
+    ):
+        from app.core.config import settings
+        from app.schemas import ActivityParticipant, NotificationSceneConfig, UserCredential
+
+        monkeypatch.setattr(settings, "WECHAT_SUBSCRIBE_ENABLED", True)
+
+        participant = ActivityParticipant(
+            tenant_id=sample_user.tenant_id,
+            activity_id=sample_activity.id,
+            user_id=sample_user.id,
+            participant_name="待审核用户",
+            enroll_status=1,
+        )
+        db_session.add(participant)
+        db_session.add(
+            UserCredential(
+                user_id=sample_user.id,
+                tenant_id=sample_user.tenant_id,
+                credential_type="wechat",
+                identifier="openid_review_result",
+                status=1,
+            )
+        )
+        db_session.add(
+            NotificationSceneConfig(
+                tenant_id=sample_user.tenant_id,
+                scene="review_result",
+                name="审核结果通知",
+                enabled=1,
+                template_id="tpl_review_result",
+                page_path="pages/my-activities/my-activities",
+                payload_template_json='{"thing1":{"value":"{{activity_name}}"}}',
+            )
+        )
+        db_session.commit()
+        db_session.refresh(participant)
+
+        response = client.post(
+            f"/api/v1/participants/{participant.id}/review",
+            headers=auth_headers(super_admin_token),
+            json={
+                "action": "reject",
+                "reason": "信息不完整",
+            },
+        )
+        assert response.status_code == status.HTTP_200_OK
+
+        row = db_session.execute(
+            text("SELECT scene, template_id FROM message_task WHERE user_id = :user_id ORDER BY id DESC LIMIT 1"),
+            {"user_id": sample_user.id},
+        ).fetchone()
+        assert row is not None
+        assert row[0] == "review_result"
+        assert row[1] == "tpl_review_result"
 
     def test_register_missing_fields(self, client, user_token, sample_activity):
         """测试缺少必填字段"""

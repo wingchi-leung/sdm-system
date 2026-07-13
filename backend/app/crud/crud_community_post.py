@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 import json
 
 from app.models.community import CommunityPostCreate
+from app.core.display_name import normalize_display_name
 from app.schemas import CommunityComment, CommunityPost, User
 
 
@@ -93,7 +94,7 @@ def get_posts_by_activity(
             "id": post.id,
             "activity_id": post.activity_id,
             "author_user_id": post.author_user_id,
-            "author_name": author_user.name or "管理员",
+            "author_name": normalize_display_name(author_user.name, "管理员"),
             "title": post.title,
             "content": post.content,
             "images": _normalize_images(post.images),
@@ -146,7 +147,7 @@ def get_post_detail(
         "id": post.id,
         "activity_id": post.activity_id,
         "author_user_id": post.author_user_id,
-        "author_name": author_user.name or "管理员",
+        "author_name": normalize_display_name(author_user.name, "管理员"),
         "title": post.title,
         "content": post.content,
         "images": _normalize_images(post.images),
@@ -204,7 +205,7 @@ def list_pending_posts(
                 "id": post.id,
                 "activity_id": post.activity_id,
                 "author_user_id": post.author_user_id,
-                "author_name": user.name or "用户",
+                "author_name": normalize_display_name(user.name, "用户"),
                 "title": post.title,
                 "content": post.content,
                 "images": _normalize_images(post.images),

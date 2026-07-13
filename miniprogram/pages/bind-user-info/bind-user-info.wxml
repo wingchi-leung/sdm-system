@@ -16,10 +16,11 @@
         <text class="section-title">头像设置</text>
 
         <view class="avatar-section">
-          <view class="avatar-preview-wrap" bindtap="onChooseAvatar">
+          <view class="avatar-preview-wrap" bindtap="onPreviewAvatar">
             <view wx:if="{{avatarDisplayUrl || avatarTemp || avatarUrl}}" class="avatar-preview-frame">
-              <image class="avatar-preview" src="{{avatarDisplayUrl || avatarTemp || avatarUrl}}" mode="aspectFit" />
+              <image class="avatar-preview" src="{{avatarDisplayUrl || avatarTemp || avatarUrl}}" mode="aspectFill" />
               <view class="avatar-overlay">
+                <text class="avatar-overlay-text">点击可预览大图</text>
               </view>
             </view>
             <view wx:else class="avatar-placeholder">
@@ -29,10 +30,9 @@
           </view>
 
           <view class="avatar-actions">
-            <view class="avatar-action avatar-action-primary" bindtap="onChooseAvatar">
-              <text>{{avatarTemp || avatarUrl ? '重新上传' : '上传头像'}}</text>
-            </view>
-         
+            <button class="avatar-action avatar-action-primary" bindtap="onChooseAvatar">
+              <text>{{avatarTemp || avatarUrl ? '修改头像' : '上传头像'}}</text>
+            </button>
           </view>
         </view>
       </view>
@@ -181,7 +181,7 @@
 
   <view wx:if="{{!loading}}" class="bottom-bar">
     <button class="btn-submit" disabled="{{submitting || avatarUploading}}" bindtap="submit">
-      <text class="btn-text">{{avatarUploading ? '头像上传中…' : submitting ? '提交中…' : '提交'}}</text>
+      <text class="btn-text">{{avatarUploading ? '头像处理中…' : submitting ? '提交中…' : '确认并提交'}}</text>
       <text class="btn-arrow ui-chevron ui-chevron--md">›</text>
     </button>
   </view>

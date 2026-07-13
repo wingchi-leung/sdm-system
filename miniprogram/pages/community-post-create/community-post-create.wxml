@@ -1,17 +1,18 @@
 <view class="page">
   <page-header title="{{pageTitle}}" statusBarHeight="{{statusBarHeight}}" autoBack="{{false}}" bindback="onBackTap">
-    <view
-      slot="actions"
-      class="publish-action {{submitting ? 'publish-action--disabled' : ''}}"
-      bindtap="onSubmit"
-      hover-class="publish-action--active"
-      hover-stop-propagation="true"
-    >
-      <text class="publish-action__text">{{submitting ? '发布中…' : '发布'}}</text>
-    </view>
   </page-header>
 
   <view class="composer-shell">
+    <view class="publish-row">
+      <view
+        class="publish-btn {{submitting ? 'publish-btn--disabled' : ''}}"
+        hover-class="publish-btn--active"
+        bindtap="onSubmit"
+      >
+        <text class="publish-btn__text">{{submitting ? '发布中…' : '发布'}}</text>
+      </view>
+    </view>
+
     <text wx:if="{{contextName}}" class="channel-name">{{contextName}}</text>
 
     <view class="field field-title">
@@ -33,17 +34,11 @@
     </view>
 
     <view class="field field-editor">
-      <view class="field-head">
-        <text class="field-label">正文</text>
-        <text class="field-required">*</text>
-      </view>
-
       <view class="editor-panel">
         <scroll-view class="toolbar-scroll" scroll-x="{{true}}" enable-flex="{{true}}" show-scrollbar="{{false}}">
           <view class="toolbar">
             <view class="tool-btn tool-btn-text" data-action="paragraph" bindtap="onToolbarAction">
               <text>正文</text>
-              <text class="tool-caret ui-chevron ui-chevron--sm">⌄</text>
             </view>
             <view class="tool-btn tool-btn-icon tool-btn-strong" data-action="bold" bindtap="onToolbarAction">
               <text class="tool-text-icon">B</text>
@@ -58,13 +53,6 @@
               <text class="tool-text-icon">S</text>
             </view>
             <view class="tool-divider"></view>
-            <view class="tool-btn tool-btn-icon" data-action="align-left" bindtap="onToolbarAction">
-              <view class="tool-icon tool-icon-align">
-                <view class="tool-icon-align__line tool-icon-align__line--wide"></view>
-                <view class="tool-icon-align__line"></view>
-                <view class="tool-icon-align__line tool-icon-align__line--wide"></view>
-              </view>
-            </view>
             <view class="tool-btn tool-btn-icon" data-action="list-bullet" bindtap="onToolbarAction">
               <view class="tool-icon tool-icon-bullet">
                 <view class="tool-icon-bullet__rows">
@@ -97,21 +85,6 @@
                 </view>
               </view>
             </view>
-            <view class="tool-divider"></view>
-            <view class="tool-btn tool-btn-icon" data-action="insert-image" bindtap="onToolbarAction">
-              <view class="tool-icon tool-icon-image">
-                <view class="tool-icon-image__frame"></view>
-                <view class="tool-icon-image__sun"></view>
-                <view class="tool-icon-image__mountain"></view>
-              </view>
-            </view>
-            <view class="tool-btn tool-btn-icon" data-action="more" bindtap="onToolbarAction">
-              <view class="tool-icon tool-icon-more">
-                <view class="tool-icon-more__dot"></view>
-                <view class="tool-icon-more__dot"></view>
-                <view class="tool-icon-more__dot"></view>
-              </view>
-            </view>
           </view>
         </scroll-view>
 
@@ -138,7 +111,7 @@
         </view>
 
         <view class="editor-footer">
-          <text class="field-counter">{{contentLength}} 字</text>
+          <text class="field-counter">{{contentLength}} </text>
         </view>
       </view>
     </view>

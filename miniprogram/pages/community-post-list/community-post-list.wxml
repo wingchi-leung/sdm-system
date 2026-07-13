@@ -178,14 +178,7 @@
       <text class="empty-title">还没有社区动态</text>
       <text class="empty-text">社区成员发布后，会在这里展示。</text>
     </view>
-
-    <view wx:if="{{showCalendarButton}}" class="calendar-entry-card" bindtap="onOpenCalendar">
-      <view class="calendar-entry-copy">
-        <text class="calendar-entry-title">本社区日历</text>
-        <text class="calendar-entry-subtitle">查看活动、提醒和时间安排</text>
-      </view>
-      <text class="calendar-entry-arrow">→</text>
-    </view>
+ 
   </view>
 
   <view wx:if="{{showCreateButton}}" class="floating-create-btn" bindtap="onCreatePost" hover-class="floating-create-btn--active">

@@ -215,7 +215,7 @@ test('绑定资料页在未完成绑定时卸载也会回到登录页', () => {
   assert.equal(reLaunchUrl, '/pages/login/login');
 });
 
-test('绑定资料页可先上传头像并在提交时带上头像地址', async () => {
+test('绑定资料页可先预览头像并在提交时带上头像地址', async () => {
   let uploadedPath = '';
   let bindPayload = null;
   const pageConfig = loadBindUserInfoPage({
@@ -256,6 +256,7 @@ test('绑定资料页可先上传头像并在提交时带上头像地址', async
       },
       showToast() {},
       switchTab() {},
+      previewImage() {},
     },
   });
   const page = createPageInstance(pageConfig, {
@@ -275,15 +276,13 @@ test('绑定资料页可先上传头像并在提交时带上头像地址', async
   await Promise.resolve();
   await Promise.resolve();
 
+  assert.equal(uploadedPath, '');
+  assert.equal(page.data.avatarTemp, 'tmp://avatar.jpg');
+  assert.equal(page.data.avatarDisplayUrl, 'tmp://avatar-compressed.jpg');
+
+  await page.submit();
+
   assert.equal(uploadedPath, 'tmp://avatar-compressed.jpg');
-  assert.equal(page.data.avatarUrl, '/uploads/avatars/bind-demo.jpg');
-  assert.equal(page.data.avatarDisplayUrl, '/uploads/avatars/bind-demo.jpg');
-
-  page.submit();
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
-
   assert.equal(bindPayload.avatar_url, '/uploads/avatars/bind-demo.jpg');
   assert.equal(bindPayload.name, '测试用户');
 });

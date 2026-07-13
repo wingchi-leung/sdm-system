@@ -12,7 +12,7 @@ const PROD_HOST = 'https://api.chronono.org';
 // 开发者工具调试模式：
 // - 'local': 走本机/局域网后端（默认，便于本机联调）
 // - 'remote': 走 Cloudflare Tunnel / Docker 暴露的 HTTPS 后端
-const DEVTOOLS_API_MODE = 'remote';
+const DEVTOOLS_API_MODE = 'local';
 
 // 环境配置
 const ENV = {

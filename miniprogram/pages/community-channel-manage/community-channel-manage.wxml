@@ -1,6 +1,12 @@
 <view class="page">
   <page-header title="社区管理" statusBarHeight="{{statusBarHeight}}"></page-header>
   <view class="shell">
+    <view wx:if="{{showPageMenu}}" class="shell-more-row">
+      <view class="nav-btn nav-btn-more" bindtap="onPageMoreTap" aria-label="更多">
+        <text class="nav-icon more">···</text>
+      </view>
+    </view>
+
     <view wx:if="{{loading}}" class="state-wrap state-wrap--loading">
       <view class="loading-card loading-card--headline"></view>
       <view class="loading-card loading-card--sub"></view>
@@ -21,33 +27,12 @@
     </view>
 
     <view wx:else class="content">
-      <view class="hero">
-        <text class="hero-title">社区成员</text>
+   
+      <view class="channel-copy">
+        <text class="channel-name">{{channelName}}</text>
+        <text class="channel-meta">{{channelMemberCount}} 位成员</text>
       </view>
-
-      <view class="channel-head">
-        <view class="channel-copy">
-          <text class="channel-name">{{channelName || '第二个测试社区'}}</text>
-          <text class="channel-meta">{{channelMemberCount}} 位成员</text>
-        </view>
-
-        <view class="channel-actions">
-          <view wx:if="{{showEditButton || showDeleteButton}}" class="action-stack">
-            <view wx:if="{{showEditButton}}" class="action-btn action-btn--ghost action-btn--compact" bindtap="onEditChannel">
-              <text>编辑</text>
-            </view>
-            <view wx:if="{{showDeleteButton}}" class="action-btn action-btn--danger action-btn--compact" bindtap="onDeleteChannel">
-              <text>删除</text>
-            </view>
-          </view>
-          <view class="invite-btn" hover-class="invite-btn--active" bindtap="onInviteMembers">
-            <image class="invite-icon" src="/assets/icons/invite.png" mode="aspectFit"></image>
-          </view>
-        </view>
-      </view>
-
-      <view class="divider"></view>
-
+ 
       <view wx:if="{{members.length === 0}}" class="empty-box">
         <text class="empty-title">暂无成员</text>
         <text class="empty-text">邀请成员后，这里会显示社区的人员列表。</text>
@@ -55,7 +40,7 @@
 
       <view wx:else class="member-list">
         <view wx:for="{{members}}" wx:key="id" class="member-row">
-          <view class="member-avatar" style="background: {{item.avatarStyle}};">
+          <view class="member-avatar" >
             <image wx:if="{{item.avatarDisplayUrl}}" class="member-avatar-image" src="{{item.avatarDisplayUrl}}" mode="aspectFill" />
             <text wx:else class="member-avatar-text">{{item.avatarText}}</text>
           </view>
@@ -73,11 +58,7 @@
             </view>
           </view>
 
-          <view class="member-more" bindtap="onMemberMore" data-member="{{item}}">
-            <view class="member-more-dot"></view>
-            <view class="member-more-dot"></view>
-            <view class="member-more-dot"></view>
-          </view>
+       
         </view>
       </view>
     </view>

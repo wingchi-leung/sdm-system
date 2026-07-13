@@ -1,0 +1,98 @@
+<view class="page">
+  <scroll-view wx:if="{{!loading}}" class="content" scroll-y="true" show-scrollbar="{{false}}">
+    <view class="content-inner">
+     
+
+      <view wx:if="{{error}}" class="error-box">
+        <text class="error-text">{{error}}</text>
+      </view>
+
+      <view class="scene-card" wx:for="{{scenes}}" wx:key="scene">
+        <view class="scene-card__header">
+          <view class="scene-card__title-wrap">
+            <text class="scene-card__title">{{item.name || '未命名场景'}}</text>
+            <text class="scene-card__scene">{{item.scene}}</text>
+          </view>
+          <switch checked="{{item.enabled}}" data-index="{{index}}" bindchange="onEnabledChange" color="var(--primary)" />
+        </view>
+
+        <text class="scene-card__desc">{{item.description || '暂无说明'}}</text>
+
+        <view class="field">
+          <text class="field-label">场景名称</text>
+          <input
+            class="input input-line"
+            value="{{item.name}}"
+            data-index="{{index}}"
+            bindinput="onNameInput"
+            placeholder="请输入场景名称"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+
+        <view class="field">
+          <text class="field-label">场景说明</text>
+          <view class="textarea-card">
+            <textarea
+              class="textarea-input textarea-input--short"
+              value="{{item.description}}"
+              data-index="{{index}}"
+              bindinput="onDescriptionInput"
+              placeholder="请输入场景说明"
+              placeholder-class="input-placeholder"
+            />
+          </view>
+        </view>
+
+        <view class="field">
+          <text class="field-label">模板 ID</text>
+          <input
+            class="input input-line"
+            value="{{item.templateId}}"
+            data-index="{{index}}"
+            bindinput="onTemplateIdInput"
+            placeholder="例如：TPL_xxx"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+
+        <view class="field">
+          <text class="field-label">跳转页面</text>
+          <input
+            class="input input-line"
+            value="{{item.pagePath}}"
+            data-index="{{index}}"
+            bindinput="onPagePathInput"
+            placeholder="例如：pages/my-activities/my-activities"
+            placeholder-class="input-placeholder"
+          />
+        </view>
+
+        <view class="field">
+          <text class="field-label">消息体模板 JSON</text>
+          <view class="textarea-card">
+            <textarea
+              class="textarea-input"
+              value="{{item.payloadTemplateText}}"
+              data-index="{{index}}"
+              bindinput="onPayloadTemplateInput"
+              placeholder="请输入 JSON 模板"
+              placeholder-class="input-placeholder"
+            />
+          </view>
+          <text class="field-hint">可用占位符：`{{activity_name}}`、`{{review_result_text}}`、`{{detail_text}}`</text>
+        </view>
+
+        <button class="scene-card__button" bindtap="saveScene" data-index="{{index}}" disabled="{{item.saving}}">
+          <text class="scene-card__button-text">{{item.saving ? '保存中…' : '保存该场景'}}</text>
+        </button>
+      </view>
+
+      <view class="page-spacer"></view>
+    </view>
+  </scroll-view>
+
+  <view wx:else class="loading-state">
+    <text class="loading-text">加载中...</text>
+  </view>
+</view>

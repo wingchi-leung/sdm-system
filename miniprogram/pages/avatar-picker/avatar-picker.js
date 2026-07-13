@@ -2,13 +2,10 @@ const api = require('../../utils/api');
 const auth = require('../../utils/auth');
 const tenant = require('../../utils/tenant');
 const {
-  getDefaultAvatarKey,
   getDefaultAvatarPath,
-  getBuiltinAvatarList,
   normalizeAvatarValue,
   resolveAvatarDisplayUrl,
 } = require('../../utils/avatar');
-const AVATAR_UPLOAD_NOTICE_KEY = 'notice_avatar_upload_ack_v1';
 
 function compressAvatarImage(filePath) {
   if (!filePath || typeof wx.compressImage !== 'function') {
@@ -28,16 +25,15 @@ function compressAvatarImage(filePath) {
 Page({
   data: {
     loading: true,
-    uploading: false,
+    choosing: false,
     saving: false,
+    uploading: false,
     error: null,
-    avatarOptions: [],
-    selectedAvatarKey: '',
-    customAvatarUrl: '',
-    customAvatarPreviewUrl: '',
+    currentAvatarUrl: '',
     currentAvatarDisplayUrl: '',
     selectedAvatarDisplayUrl: '',
-    previewAnimation: null,
+    selectedAvatarTempPath: '',
+    hasChanged: false,
   },
 
   onLoad(options) {
@@ -49,19 +45,18 @@ Page({
     this.setData({ loading: true, error: null });
     try {
       const profile = await api.getUserProfile();
-      const avatarOptions = getBuiltinAvatarList();
-      const currentAvatarUrl = normalizeAvatarValue(profile.avatar_url || avatarOptions[0].key);
-      const displayUrl = await resolveAvatarDisplayUrl(currentAvatarUrl, profile.update_time);
+      const currentAvatarUrl = normalizeAvatarValue(profile.avatar_url || getDefaultAvatarPath());
+      const currentAvatarDisplayUrl = await resolveAvatarDisplayUrl(
+        currentAvatarUrl,
+        profile.update_time,
+      );
       this.setData({
         loading: false,
-        uploading: false,
-        saving: false,
-        avatarOptions,
-        selectedAvatarKey: currentAvatarUrl,
-        customAvatarUrl: avatarOptions.some((item) => item.key === currentAvatarUrl) ? '' : currentAvatarUrl,
-        customAvatarPreviewUrl: avatarOptions.some((item) => item.key === currentAvatarUrl) ? '' : displayUrl,
-        currentAvatarDisplayUrl: displayUrl,
-        selectedAvatarDisplayUrl: displayUrl,
+        currentAvatarUrl,
+        currentAvatarDisplayUrl,
+        selectedAvatarDisplayUrl: currentAvatarDisplayUrl,
+        selectedAvatarTempPath: '',
+        hasChanged: false,
       });
     } catch (err) {
       if (auth.handleSessionExpired(err)) return;
@@ -72,127 +67,90 @@ Page({
     }
   },
 
-  onPreviewImageError() {
-    const fallbackKey = getDefaultAvatarKey();
-    this.setData({
-      selectedAvatarKey: fallbackKey,
-      customAvatarUrl: '',
-      customAvatarPreviewUrl: '',
-      currentAvatarDisplayUrl: getDefaultAvatarPath(),
-      selectedAvatarDisplayUrl: getDefaultAvatarPath(),
-      error: '旧头像地址已失效，已为你切换到默认头像',
-    });
+  getPreviewUrl() {
+    return this.data.selectedAvatarDisplayUrl || this.data.currentAvatarDisplayUrl || getDefaultAvatarPath();
   },
 
-  runPreviewSpin() {
-    const animation = wx.createAnimation({
-      duration: 820,
-      timingFunction: 'ease-in-out',
+  onPreviewTap() {
+    const current = this.getPreviewUrl();
+    if (!current) return;
+    wx.previewImage({
+      current,
+      urls: [current],
     });
-    animation.rotate(0).step({ duration: 0 });
-    this.setData({ previewAnimation: animation.export() });
-    setTimeout(() => {
-      animation.rotate(1080).step();
-      this.setData({ previewAnimation: animation.export() });
-    }, 20);
-  },
-
-  async onSelectBuiltinAvatar(e) {
-    const { key } = e.currentTarget.dataset;
-    if (!key) return;
-    const displayUrl = await resolveAvatarDisplayUrl(key);
-    this.setData({
-      selectedAvatarKey: key,
-      customAvatarUrl: '',
-      selectedAvatarDisplayUrl: displayUrl,
-      error: null,
-    });
-    this.runPreviewSpin();
   },
 
   onChooseAvatar() {
-    const openAlbum = () => {
-      wx.chooseMedia({
-        count: 1,
-        mediaType: ['image'],
-        sourceType: ['album'],
-        sizeType: ['compressed'],
-        success: async (res) => {
-          const file = (res.tempFiles || [])[0];
-          if (!file) return;
-          const previousState = {
-            selectedAvatarKey: this.data.selectedAvatarKey,
-            customAvatarUrl: this.data.customAvatarUrl,
-            customAvatarPreviewUrl: this.data.customAvatarPreviewUrl,
-            selectedAvatarDisplayUrl: this.data.selectedAvatarDisplayUrl,
-          };
-          try {
-            this.setData({
-              uploading: true,
-              error: null,
-              selectedAvatarDisplayUrl: file.tempFilePath,
-              customAvatarPreviewUrl: file.tempFilePath,
-            });
-            const uploadPath = await compressAvatarImage(file.tempFilePath);
-            const uploadResult = await api.uploadAvatar(uploadPath);
-            this.setData({
-              selectedAvatarKey: uploadResult.url,
-              customAvatarUrl: uploadResult.url,
-              uploading: false,
-            });
-          } catch (err) {
-            if (auth.handleSessionExpired(err)) return;
-            this.setData({
-              uploading: false,
-              selectedAvatarKey: previousState.selectedAvatarKey,
-              customAvatarUrl: previousState.customAvatarUrl,
-              customAvatarPreviewUrl: previousState.customAvatarPreviewUrl,
-              selectedAvatarDisplayUrl: previousState.selectedAvatarDisplayUrl,
-              error: err && err.message ? err.message : '上传头像失败',
-            });
-          }
-        },
-        fail: () => {},
-      });
-    };
+    if (this.data.choosing || this.data.saving) return;
 
-    if (wx.getStorageSync(AVATAR_UPLOAD_NOTICE_KEY)) {
-      openAlbum();
-      return;
-    }
-
-    wx.showModal({
-      title: '提示',
-      content: '将从相册选择图片，用于设置账号头像。',
-      confirmText: '确认',
-      success: (modalRes) => {
-        if (!modalRes.confirm) return;
-        wx.setStorageSync(AVATAR_UPLOAD_NOTICE_KEY, 1);
-        openAlbum();
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: async (res) => {
+        const file = (res.tempFiles || [])[0];
+        if (!file || !file.tempFilePath) return;
+        const previewPath = await compressAvatarImage(file.tempFilePath);
+        this.setData({
+          choosing: true,
+          uploading: true,
+          error: null,
+          selectedAvatarTempPath: file.tempFilePath,
+          selectedAvatarDisplayUrl: previewPath || file.tempFilePath,
+          hasChanged: true,
+        });
+        this.setData({ choosing: false, uploading: false });
+      },
+      fail: () => {
+        wx.showToast({ title: '未选择头像', icon: 'none' });
       },
     });
   },
 
+  onCancel() {
+    wx.navigateBack();
+  },
+
   async onSave() {
-    if (this.data.uploading || this.data.saving) return;
-    const avatarUrl = this.data.selectedAvatarKey || this.data.customAvatarUrl;
-    if (!avatarUrl) {
-      this.setData({ error: '请选择一个头像' });
+    if (this.data.choosing || this.data.saving) return;
+
+    const nextPreview = this.data.selectedAvatarDisplayUrl || this.data.currentAvatarDisplayUrl;
+    if (!this.data.hasChanged && nextPreview === this.data.currentAvatarDisplayUrl) {
+      wx.navigateBack();
       return;
     }
+
     this.setData({ saving: true, error: null });
+
     try {
+      let avatarUrl = this.data.currentAvatarUrl;
+      if (this.data.selectedAvatarTempPath) {
+        const uploadPath = await compressAvatarImage(this.data.selectedAvatarTempPath);
+        const uploadResult = await api.uploadAvatar(uploadPath);
+        avatarUrl = uploadResult.url || avatarUrl;
+      }
+
       await api.updateUserAvatar(avatarUrl);
+      const resolvedDisplayUrl = await resolveAvatarDisplayUrl(avatarUrl);
+      this.setData({
+        currentAvatarUrl: avatarUrl,
+        currentAvatarDisplayUrl: resolvedDisplayUrl || this.data.currentAvatarDisplayUrl,
+        selectedAvatarDisplayUrl: resolvedDisplayUrl || this.data.selectedAvatarDisplayUrl,
+        selectedAvatarTempPath: '',
+        hasChanged: false,
+      });
       wx.showToast({ title: '头像已更新', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 800);
+      return true;
     } catch (err) {
       if (auth.handleSessionExpired(err)) return;
       this.setData({
-        saving: false,
         error: err && err.message ? err.message : '保存头像失败',
       });
-      return;
+      return false;
+    } finally {
+      this.setData({ saving: false });
     }
-    this.setData({ saving: false });
   },
 });

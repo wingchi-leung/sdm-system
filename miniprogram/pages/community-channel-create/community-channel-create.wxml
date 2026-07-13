@@ -81,18 +81,12 @@
   </view>
 
   <view class="footer-bar">
-    <view class="footer-line"></view>
     <button
-      class="submit-btn"
-      disabled="{{submitting || uploading || loadingDetail}}"
+      class="publish-btn {{submitting || uploading || loadingDetail ? 'publish-btn--disabled' : ''}}"
+      hover-class="publish-btn--active"
       bindtap="onSubmit"
-      plain
     >
-      <text class="submit-icon">＋</text>
-      <text class="submit-text">
-        {{submitting ? (editMode ? '保存中…' : '创建中…') : uploading ? '头像上传中…' : submitText}}
-      </text>
+      <text class="publish-btn__text">{{submitting ? (editMode ? '保存中…' : '创建中…') : uploading ? '头像上传中…' : submitText}}</text>
     </button>
-    <view class="footer-line"></view>
   </view>
 </view>

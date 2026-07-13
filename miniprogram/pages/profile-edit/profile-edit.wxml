@@ -1,59 +1,41 @@
 <view class="page">
-  <page-header title="修改个人信息"></page-header>
-  <view class="form-card">
-    <view class="field">
-      <text class="field-label">姓名</text>
-      <input class="input" value="{{form.name}}" bindinput="onNameInput" placeholder="请输入姓名" placeholder-class="input-placeholder" />
-    </view>
+  <page-header title="个人资料"></page-header>
 
-    <view class="field">
-      <text class="field-label">性别</text>
-      <view class="sex-picker">
-        <view
-          class="sex-option {{form.sex === 'male' ? 'is-active' : ''}}"
-          data-value="male"
-          bindtap="onSexChange"
-        >
-          <image class="sex-option-image" src="/assets/icons/man.png" mode="aspectFit" />
-          <text class="sex-option-label">男</text>
-        </view>
-        <view
-          class="sex-option {{form.sex === 'female' ? 'is-active' : ''}}"
-          data-value="female"
-          bindtap="onSexChange"
-        >
-          <image class="sex-option-image" src="/assets/icons/woman.png" mode="aspectFit" />
-          <text class="sex-option-label">女</text>
-        </view>
+  <view wx:if="{{loading}}" class="state-wrap">
+    <view class="loading"></view>
+    <text class="state-text">加载中…</text>
+  </view>
+
+  <view wx:else class="content">
+    <view class="avatar-panel">
+      <view class="avatar-shell" bindtap="showAvatarMenu">
+        <image class="avatar-image" src="{{avatarDisplayUrl || avatarUrl}}" mode="aspectFill" />
       </view>
     </view>
 
-    <view class="field">
-      <text class="field-label">年龄</text>
-      <input class="input" type="number" value="{{form.age}}" bindinput="onAgeInput" placeholder="请输入年龄" placeholder-class="input-placeholder" />
+    <view class="form-card">
+      <view class="field">
+        <text class="field-title">昵称</text>
+        <text class="field-value">{{form.name || '未设置'}}</text>
+        <text class="field-arrow ui-chevron ui-chevron--md">›</text>
+      </view>
     </view>
+  </view>
 
-    <view class="field">
-      <text class="field-label">职业</text>
-      <input class="input" value="{{form.occupation}}" bindinput="onOccupationInput" placeholder="请输入职业" placeholder-class="input-placeholder" />
+  <view wx:if="{{avatarMenuVisible}}" class="mask" bindtap="hideAvatarMenu">
+    <view class="sheet" catchtap="noop">
+      <button class="sheet-action sheet-action-primary" open-type="chooseAvatar" bindchooseavatar="onChooseWechatAvatar" bindtap="onWechatAvatarTap">
+        微信头像
+      </button>
+      <button class="sheet-action" bindtap="chooseAvatarFromAlbum">
+        从相册选择
+      </button>
+      <button class="sheet-action" bindtap="chooseAvatarFromCamera">
+        拍照
+      </button>
+      <button class="sheet-cancel" bindtap="hideAvatarMenu">
+        取消
+      </button>
     </view>
-
-    <view class="field">
-      <text class="field-label">行业</text>
-      <input class="input" value="{{form.industry}}" bindinput="onIndustryInput" placeholder="请输入行业" placeholder-class="input-placeholder" />
-    </view>
-
-    <view class="field">
-      <text class="field-label">邮箱（选填）</text>
-      <input class="input" value="{{form.email}}" bindinput="onEmailInput" placeholder="请输入邮箱" placeholder-class="input-placeholder" />
-    </view>
-
-    <view class="error-box" wx:if="{{error}}">
-      <text class="error-text">{{error}}</text>
-    </view>
-
-    <button class="save-btn" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting}}">
-      <text>{{submitting ? '保存中…' : '保存修改'}}</text>
-    </button>
   </view>
 </view>

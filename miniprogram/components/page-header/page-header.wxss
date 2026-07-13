@@ -6,8 +6,6 @@
   top: 0;
   z-index: 50;
   background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(14rpx);
-  -webkit-backdrop-filter: blur(14rpx);
   border-bottom: none;
 }
 

@@ -1,9 +1,5 @@
 <view class="page">
   <page-header title="我的订单"></page-header>
-  <view class="hero" wx:if="{{!loading && !error}}">
-    <text class="hero-title">我的订单</text>
-    <text class="hero-text">{{orders.length ? summaryText : '这里只展示你的支付记录'}}</text>
-  </view>
 
   <view wx:if="{{loading}}" class="state-wrap">
     <view class="loading"></view>

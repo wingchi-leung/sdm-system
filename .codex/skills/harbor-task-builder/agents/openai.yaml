@@ -1,0 +1,7 @@
+interface:
+  display_name: "Harbor Task Builder"
+  short_description: "从出题、搭建到验证 Harbor 题包的完整工作流"
+  default_prompt: "Use $skill-name to turn a codebase into a Harbor task package from task selection through validated tests and Docker."
+
+policy:
+  allow_implicit_invocation: true

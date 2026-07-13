@@ -7,6 +7,7 @@ from datetime import datetime
 from app.crud import crud_user, crud_tenant, crud_rbac
 from app.crud import crud_credential
 from app.api import deps
+from app.core.display_name import normalize_display_name
 from app.core.pii import mask_email, mask_name, mask_phone
 from app.core.sensitive_field_crypto import (
     SensitiveFieldCryptoError,
@@ -76,7 +77,7 @@ def _normalize_user_response_payload(db_user: User) -> dict:
     """把历史脏数据整理成能通过响应校验的用户详情。"""
     return {
         "id": db_user.id,
-        "name": (db_user.name or "").strip() or DEFAULT_USER_DISPLAY_NAME,
+        "name": normalize_display_name(db_user.name, DEFAULT_USER_DISPLAY_NAME),
         "identity_number": db_user.identity_number,
         "identity_type": db_user.identity_type,
         "phone": db_user.phone,

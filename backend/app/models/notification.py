@@ -35,6 +35,8 @@ class SubscribeConfigResponse(BaseModel):
     refund_failed_template_id: Optional[str] = None
     activity_remind_template_id: Optional[str] = None
     registration_success_template_id: Optional[str] = None
+    registration_received_template_id: Optional[str] = None
+    review_result_template_id: Optional[str] = None
     retry_max: int
     scenes: list[NotificationSceneConfigItem] = Field(default_factory=list)
 

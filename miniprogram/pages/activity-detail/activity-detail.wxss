@@ -142,7 +142,6 @@
 .info-card {
   margin-top: 44rpx;
   padding-top: 28rpx;
-  border-top: 1rpx solid rgba(42, 77, 135, 0.14);
 }
 
 .info-row {
@@ -201,7 +200,6 @@
 .section-block {
   margin-top: 56rpx;
   padding-top: 32rpx;
-  border-top: 1rpx solid rgba(42, 77, 135, 0.14);
 }
 
 .section-headline {

@@ -107,6 +107,13 @@ async def create_participant(
         participant=normalized_participant,
         tenant_id=tenant_id,
     )
+    notification_center.enqueue_registration_received_message(
+        db,
+        tenant_id=tenant_id,
+        user_id=current_user.id,
+        participant=created_participant,
+        activity=activity,
+    )
     notification_center.enqueue_registration_success_message(
         db,
         tenant_id=tenant_id,
@@ -224,4 +231,19 @@ def review_participant(
     record.reviewed_at = datetime.now()
     db.commit()
     db.refresh(record)
+
+    activity = db.query(Activity).filter(
+        Activity.id == record.activity_id,
+        Activity.tenant_id == ctx.tenant_id,
+    ).first()
+    if activity:
+        notification_center.enqueue_review_result_message(
+            db,
+            tenant_id=ctx.tenant_id,
+            user_id=record.user_id,
+            participant=record,
+            activity=activity,
+            approved=payload.action == "approve",
+            review_reason=record.review_reason,
+        )
     return record

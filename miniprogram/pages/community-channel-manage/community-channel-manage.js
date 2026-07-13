@@ -45,6 +45,7 @@ Page({
     showInviteButton: false,
     showEditButton: false,
     showDeleteButton: false,
+    showPageMenu: false,
   },
 
   resolvePageState() {
@@ -53,6 +54,7 @@ Page({
       showInviteButton: canManage,
       showEditButton: canManage,
       showDeleteButton: canManage,
+      showPageMenu: canManage,
     });
   },
 
@@ -215,6 +217,43 @@ Page({
             this.setData({ inviting: false });
           }
         });
+      },
+    });
+  },
+
+  onPageMoreTap() {
+    const itemList = [];
+    const actionMap = [];
+
+    if (this.data.showInviteButton) {
+      itemList.push('邀请成员');
+      actionMap.push('invite');
+    }
+    if (this.data.showEditButton) {
+      itemList.push('编辑社区');
+      actionMap.push('edit');
+    }
+    if (this.data.showDeleteButton) {
+      itemList.push('删除社区');
+      actionMap.push('delete');
+    }
+
+    if (itemList.length === 0) {
+      wx.showToast({ title: '暂无可执行操作', icon: 'none' });
+      return;
+    }
+
+    wx.showActionSheet({
+      itemList,
+      success: (res) => {
+        const action = actionMap[Number(res.tapIndex)];
+        if (action === 'invite') {
+          this.onInviteMembers();
+        } else if (action === 'edit') {
+          this.onEditChannel();
+        } else if (action === 'delete') {
+          this.onDeleteChannel();
+        }
       },
     });
   },

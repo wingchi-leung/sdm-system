@@ -55,6 +55,7 @@ function createPageInstance(config) {
 
 test('选择自定义头像时会先压缩再上传', async () => {
   let uploadedPath = '';
+  let updatedAvatarUrl = '';
   let selectedSourceType = null;
   const pageConfig = loadAvatarPickerPage({
     api: {
@@ -62,6 +63,13 @@ test('选择自定义头像时会先压缩再上传', async () => {
         uploadedPath = filePath;
         return { url: '/uploads/avatars/optimized.jpg' };
       },
+      updateUserAvatar: async (avatarUrl) => {
+        updatedAvatarUrl = avatarUrl;
+      },
+      getUserProfile: async () => ({
+        avatar_url: '',
+        update_time: '2025-01-01T00:00:00.000Z',
+      }),
     },
     wxMock: {
       getStorageSync() {
@@ -75,16 +83,25 @@ test('选择自定义头像时会先压缩再上传', async () => {
         assert.equal(options.src, 'tmp://original.jpg');
         options.success({ tempFilePath: 'tmp://compressed.jpg' });
       },
+      previewImage() {},
+      navigateBack() {},
+      showToast() {},
     },
   });
   const page = createPageInstance(pageConfig);
 
+  await page.loadProfile();
+
   page.onChooseAvatar();
-  await Promise.resolve();
-  await Promise.resolve();
+  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setImmediate(resolve));
+
+  assert.deepEqual(selectedSourceType, ['album', 'camera']);
+  assert.equal(page.data.selectedAvatarTempPath, 'tmp://original.jpg');
+  assert.equal(page.data.selectedAvatarDisplayUrl, 'tmp://compressed.jpg');
+
+  await page.onSave();
 
   assert.equal(uploadedPath, 'tmp://compressed.jpg');
-  assert.deepEqual(selectedSourceType, ['album']);
-  assert.equal(page.data.customAvatarUrl, '/uploads/avatars/optimized.jpg');
-  assert.equal(page.data.uploading, false);
+  assert.equal(updatedAvatarUrl, '/uploads/avatars/optimized.jpg');
 });

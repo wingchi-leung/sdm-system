@@ -32,8 +32,9 @@
     "pages/community-calendar-edit/community-calendar-edit",
     "pages/my-activities/my-activities",
     "pages/my-orders/my-orders",
-    "pages/avatar-picker/avatar-picker",
     "pages/settings/settings",
+    "pages/notification-config/notification-config",
+    "pages/avatar-picker/avatar-picker",
     "pages/profile-edit/profile-edit",
     "pages/agreement-notes/agreement-notes"
   ],

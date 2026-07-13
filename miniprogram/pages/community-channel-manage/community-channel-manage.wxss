@@ -3,11 +3,45 @@
   background: #f7f6f2;
 }
 
+.nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.nav-btn-more {
+  min-width: 72rpx;
+  height: 72rpx;
+  padding: 0 18rpx;
+  border-radius: 999rpx;
+  background: rgba(116, 128, 243, 0.04);
+}
+
+.nav-btn-more:active {
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.nav-icon.more {
+  color: #111111;
+  font-size: 20rpx;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+}
+
 .shell {
   min-height: 100vh;
   padding: 18rpx 48rpx calc(48rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: radial-gradient(circle at top, #ffffff 0%, #ffffff 45%, #ffffff 100%);
+}
+
+.shell-more-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 6rpx;
 }
 
 .content {
@@ -53,12 +87,12 @@
 
 .action-stack {
   display: flex;
-  flex-direction: column;
   gap: 10rpx;
 }
 
 .channel-copy {
   min-width: 0;
+  margin-top: 10px;
 }
 
 .channel-name {
@@ -76,66 +110,6 @@
   color: #8d8d8d;
   font-size: 24rpx;
   line-height: 1;
-}
-
-.invite-btn {
-  position: relative;
-  width: 80rpx;
-  height: 80rpx;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: #e9eafd;
-  box-shadow: inset 0 2rpx 0 rgba(255, 255, 255, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.invite-btn--active {
-  opacity: 0.75;
-}
-
-.invite-icon {
-  width: 40rpx;
-  height: 40rpx;
-}
-
-.action-btn {
-  min-width: 92rpx;
-  height: 80rpx;
-  padding: 0 24rpx;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999rpx;
-  background: #111111;
-  color: #ffffff;
-  font-size: 26rpx;
-  line-height: 1;
-}
-
-.action-btn--compact {
-  min-width: 72rpx;
-  height: 44rpx;
-  padding: 0 16rpx;
-  font-size: 22rpx;
-}
-
-.action-btn--ghost {
-  background: #f0efec;
-  color: #111111;
-}
-
-.action-btn--danger {
-  background: rgba(255, 241, 240, 0.98);
-  color: #d92d20;
-  border: 1rpx solid rgba(217, 45, 32, 0.2);
-}
-
-.divider {
-  margin-top: 54rpx;
-  height: 1rpx;
-  background: rgba(17, 17, 17, 0.09);
 }
 
 .member-list {
@@ -156,7 +130,6 @@
   flex-shrink: 0;
   overflow: hidden;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.38), 0 10rpx 24rpx rgba(17, 17, 17, 0.08);
 }
 
 .member-avatar-image {
@@ -231,24 +204,7 @@
   color: #666666;
   background: #f3f2f0;
 }
-
-.member-more {
-  flex-shrink: 0;
-  width: 70rpx;
-  height: 70rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6rpx;
-}
-
-.member-more-dot {
-  width: 8rpx;
-  height: 8rpx;
-  border-radius: 50%;
-  background: #777777;
-}
-
+ 
 .state-wrap {
   display: flex;
   flex-direction: column;

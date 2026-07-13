@@ -11,18 +11,15 @@
     <view class="content-inner">
       <view class="field">
         <view class="field-head">
-          <text class="field-label">活动海报</text>
-          <text class="field-counter field-counter-inline">选填</text>
         </view>
         <view class="poster-upload" bindtap="onChoosePoster" hover-class="poster-upload--active">
           <image wx:if="{{posterLocalPath || posterUrl}}" class="poster-preview" src="{{posterLocalPath || posterUrl}}" mode="aspectFill" />
           <view wx:else class="poster-placeholder">
             <view class="poster-placeholder-icon">＋</view>
             <text class="poster-placeholder-text">上传活动海报</text>
-            <text class="poster-placeholder-hint">建议使用 16:9 横幅图，发布后会显示在活动详情页</text>
           </view>
           <view wx:if="{{posterLocalPath || posterUrl}}" class="poster-overlay">
-            <text class="poster-overlay-text">{{uploading ? '上传中…' : '点击更换海报'}}</text>
+            <text class="poster-overlay-text">{{uploading ? '上传中…' : ''}}</text>
           </view>
         </view>
         <view wx:if="{{posterLocalPath || posterUrl}}" class="poster-actions">
@@ -33,7 +30,6 @@
             <text>移除海报</text>
           </view>
         </view>
-        <text class="field-hint">不上传时，活动将使用默认背景图</text>
       </view>
 
       <view class="field">
@@ -72,7 +68,7 @@
         <input
           wx:if="{{isSuperAdmin}}"
           class="input input-line input-line-secondary"
-          placeholder="超级管理员可直接输入类型（选填）"
+          placeholder="直接输入类型"
           placeholder-class="input-placeholder"
           value="{{activityTypeName}}"
           bindinput="onActivityTypeInput"

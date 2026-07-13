@@ -525,6 +525,13 @@ async def payment_notify(
                         participant=participant,
                         activity=activity,
                     )
+                    notification_center.enqueue_registration_received_message(
+                        db,
+                        tenant_id=order.tenant_id,
+                        user_id=order.user_id,
+                        participant=participant,
+                        activity=activity,
+                    )
 
             except Exception as e:
                 db.rollback()
@@ -588,6 +595,13 @@ def query_payment_order(
                         ).first()
                         if activity:
                             notification_center.enqueue_registration_success_message(
+                                db,
+                                tenant_id=ctx.tenant_id,
+                                user_id=order.user_id,
+                                participant=participant,
+                                activity=activity,
+                            )
+                            notification_center.enqueue_registration_received_message(
                                 db,
                                 tenant_id=ctx.tenant_id,
                                 user_id=order.user_id,

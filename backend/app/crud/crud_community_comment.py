@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 import json
 
 from app.models.community import CommunityCommentCreate
+from app.core.display_name import normalize_display_name
 from app.schemas import CommunityComment, User
 
 
@@ -73,7 +74,7 @@ def get_comment_detail(
         "activity_id": comment.activity_id,
         "post_id": comment.post_id,
         "user_id": comment.user_id,
-        "user_name": user.name or "学员",
+        "user_name": normalize_display_name(user.name, "学员"),
         "content": comment.content,
         "images": _normalize_images(comment.images),
         "status": comment.status,
@@ -131,7 +132,7 @@ def list_pending_comments(
                 "activity_id": comment.activity_id,
                 "post_id": comment.post_id,
                 "user_id": comment.user_id,
-                "user_name": user.name or "学员",
+                "user_name": normalize_display_name(user.name, "学员"),
                 "content": comment.content,
                 "images": _normalize_images(comment.images),
                 "status": comment.status,
@@ -176,7 +177,7 @@ def get_comments_by_post(
             "activity_id": comment.activity_id,
             "post_id": comment.post_id,
             "user_id": comment.user_id,
-            "user_name": user.name or "学员",
+            "user_name": normalize_display_name(user.name, "学员"),
             "content": comment.content,
             "images": _normalize_images(comment.images),
             "status": comment.status,

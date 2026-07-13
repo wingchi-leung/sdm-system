@@ -931,6 +931,39 @@ function getNotificationConfig() {
   });
 }
 
+/** 获取租户级通知场景配置 */
+function getNotificationSceneConfigs() {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/notifications/scene-configs`,
+      method: 'GET',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode === 200) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
+/** 更新租户级通知场景配置 */
+function updateNotificationSceneConfig(scene, data) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/notifications/scene-configs/${encodeURIComponent(scene)}`,
+      method: 'PUT',
+      header: getHeader(true),
+      data,
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 /** 上报订阅消息授权结果 */
 function recordSubscribeConsent(data) {
   return new Promise((resolve, reject) => {
@@ -1709,6 +1742,7 @@ module.exports = {
   getEnrollmentInfo,
   getMyParticipantActivities,
   getNotificationConfig,
+  getNotificationSceneConfigs,
   recordSubscribeConsent,
   getCommunityPosts,
   getCommunityChannels,
@@ -1754,6 +1788,7 @@ module.exports = {
   updateActivity,
   getActivityNotificationConfig,
   updateActivityNotificationConfig,
+  updateNotificationSceneConfig,
   deleteActivity,
   getActivityParticipants,
   updateActivityStatus,

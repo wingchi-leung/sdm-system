@@ -56,6 +56,8 @@ def get_subscribe_config(
         refund_failed_template_id=scene_map.get(notification_center.SCENE_REFUND_FAILED, {}).get("template_id"),
         activity_remind_template_id=scene_map.get(notification_center.SCENE_ACTIVITY_REMIND_30M, {}).get("template_id"),
         registration_success_template_id=scene_map.get(notification_center.SCENE_REGISTRATION_SUCCESS, {}).get("template_id"),
+        registration_received_template_id=scene_map.get(notification_center.SCENE_REGISTRATION_RECEIVED, {}).get("template_id"),
+        review_result_template_id=scene_map.get(notification_center.SCENE_REVIEW_RESULT, {}).get("template_id"),
         retry_max=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
         scenes=[NotificationSceneConfigItem(**item) for item in scenes],
     )

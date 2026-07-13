@@ -269,11 +269,15 @@ Page({
   },
 
   goAvatarPicker() {
-    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/avatar-picker/avatar-picker') });
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/profile-edit/profile-edit') });
   },
 
   goSettings() {
     wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/settings/settings') });
+  },
+
+  goNotificationConfig() {
+    wx.navigateTo({ url: tenant.appendTenantToUrl('/pages/notification-config/notification-config') });
   },
 
   goAgreementNotes() {

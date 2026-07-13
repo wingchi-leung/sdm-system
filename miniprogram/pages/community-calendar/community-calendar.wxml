@@ -1,12 +1,4 @@
 <view class="page">
-  <page-header title="社区日历" statusBarHeight="{{statusBarHeight}}">
-    <view wx:if="{{showCreateButton}}" slot="actions" class="header-actions">
-      <view class="header-create-btn" bindtap="onCreate">
-        <text class="header-create-btn__text">+ 新建</text>
-      </view>
-    </view>
-  </page-header>
-
   <view wx:if="{{loading}}" class="state-wrap">
     <text class="state-text">加载中…</text>
   </view>

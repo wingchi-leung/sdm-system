@@ -19,6 +19,10 @@ function normalizeText(v) {
   return (v == null ? '' : String(v)).trim();
 }
 
+function isTokenLikeName(value) {
+  return /^[A-Za-z0-9_-]{20,}$/.test(normalizeText(value));
+}
+
 function normalizeActivityType(item) {
   if (item == null) return null;
   if (typeof item === 'string') {
@@ -227,7 +231,7 @@ function saveAdminToken(accessToken, meta = null) {
   } else {
     wx.removeStorageSync(KEY_USER_ID);
   }
-  if (userNameRaw) {
+  if (userNameRaw && !isTokenLikeName(userNameRaw)) {
     wx.setStorageSync(KEY_USER_NAME, userNameRaw);
   } else {
     wx.removeStorageSync(KEY_USER_NAME);
@@ -251,7 +255,7 @@ function saveUserToken({ accessToken, userId, userName }) {
   wx.setStorageSync(KEY_TOKEN, accessToken);
   wx.setStorageSync(KEY_ROLE, 'user');
   wx.setStorageSync(KEY_USER_ID, userId);
-  if (userName) {
+  if (userName && !isTokenLikeName(userName)) {
     wx.setStorageSync(KEY_USER_NAME, userName);
   } else {
     wx.removeStorageSync(KEY_USER_NAME);

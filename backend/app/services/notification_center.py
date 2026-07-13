@@ -22,6 +22,8 @@ SCENE_REFUND_SUCCESS = "refund_success"
 SCENE_REFUND_FAILED = "refund_failed"
 SCENE_ACTIVITY_REMIND_30M = "activity_remind_30m"
 SCENE_REGISTRATION_SUCCESS = "registration_success"
+SCENE_REGISTRATION_RECEIVED = "registration_received"
+SCENE_REVIEW_RESULT = "review_result"
 
 _PLACEHOLDER_PATTERN = re.compile(r"{{\s*([a-zA-Z0-9_]+)\s*}}")
 
@@ -90,6 +92,32 @@ def _build_default_config(scene: str) -> dict[str, Any]:
                 "time3": {"value": "{{start_time}}"},
             },
         },
+        SCENE_REGISTRATION_RECEIVED: {
+            "scene": SCENE_REGISTRATION_RECEIVED,
+            "name": "报名确认通知",
+            "description": "用户首次报名后发送已收到报名的确认通知",
+            "enabled": False,
+            "template_id": None,
+            "page_path": "pages/my-activities/my-activities",
+            "payload_template_json": {
+                "thing1": {"value": "{{activity_name}}"},
+                "phrase2": {"value": "已收到报名"},
+                "thing3": {"value": "我们会尽快完成审核"},
+            },
+        },
+        SCENE_REVIEW_RESULT: {
+            "scene": SCENE_REVIEW_RESULT,
+            "name": "审核结果通知",
+            "description": "报名审核后通知用户审核结果和后续信息",
+            "enabled": False,
+            "template_id": None,
+            "page_path": "pages/my-activities/my-activities",
+            "payload_template_json": {
+                "thing1": {"value": "{{activity_name}}"},
+                "phrase2": {"value": "{{review_result_text}}"},
+                "thing3": {"value": "{{detail_text}}"},
+            },
+        },
     }
     return deepcopy(defaults[scene])
 
@@ -105,6 +133,8 @@ def list_scene_configs(db: Session, tenant_id: int) -> list[dict[str, Any]]:
         SCENE_REFUND_FAILED,
         SCENE_ACTIVITY_REMIND_30M,
         SCENE_REGISTRATION_SUCCESS,
+        SCENE_REGISTRATION_RECEIVED,
+        SCENE_REVIEW_RESULT,
     ]
     merged: list[dict[str, Any]] = []
     for scene in scenes:
@@ -314,6 +344,164 @@ def build_registration_success_context(participant: ActivityParticipant, activit
         "activity_name": activity_name,
         "start_time": start_time,
     }
+
+
+def build_registration_received_context(
+    participant: ActivityParticipant,
+    activity_name: str,
+    participant_name: str,
+) -> dict[str, Any]:
+    return {
+        "participant_id": participant.id,
+        "activity_id": participant.activity_id,
+        "activity_name": activity_name,
+        "participant_name": participant_name,
+    }
+
+
+def build_review_result_context(
+    participant: ActivityParticipant,
+    activity_name: str,
+    approved: bool,
+    review_reason: str | None = None,
+) -> dict[str, Any]:
+    review_result_text = "审核通过" if approved else "审核未通过"
+    detail_text = review_reason.strip() if review_reason and review_reason.strip() else ""
+    if approved and not detail_text:
+        detail_text = "请查看后续通知"
+    return {
+        "participant_id": participant.id,
+        "activity_id": participant.activity_id,
+        "activity_name": activity_name,
+        "review_result_text": review_result_text,
+        "detail_text": detail_text,
+        "review_reason": detail_text,
+    }
+
+
+def is_first_time_participant(
+    db: Session,
+    *,
+    tenant_id: int,
+    user_id: int,
+    participant_id: int | None = None,
+) -> bool:
+    query = db.query(ActivityParticipant).filter(
+        ActivityParticipant.tenant_id == tenant_id,
+        ActivityParticipant.user_id == user_id,
+    )
+    if participant_id is not None:
+        query = query.filter(ActivityParticipant.id != participant_id)
+    return query.count() == 0
+
+
+def _enqueue_rendered_message(
+    db: Session,
+    *,
+    tenant_id: int,
+    scene: str,
+    user_id: int,
+    openid: str,
+    participant_id: int,
+    rendered_message: dict[str, Any],
+) -> None:
+    crud_notification.enqueue_message_task(
+        db,
+        tenant_id=tenant_id,
+        scene=scene,
+        biz_id=participant_id,
+        user_id=user_id,
+        openid=openid,
+        template_id=rendered_message["template_id"],
+        payload=rendered_message["payload"],
+        page_path=rendered_message["page_path"],
+        max_retry=settings.WECHAT_SUBSCRIBE_RETRY_MAX,
+    )
+
+
+def enqueue_registration_received_message(
+    db: Session,
+    *,
+    tenant_id: int,
+    user_id: int | None,
+    participant: ActivityParticipant,
+    activity: Activity,
+) -> None:
+    if not user_id or participant.enroll_status != 1:
+        return
+    if not is_first_time_participant(db, tenant_id=tenant_id, user_id=user_id, participant_id=participant.id):
+        return
+
+    openid = get_user_wechat_openid(db, tenant_id=tenant_id, user_id=user_id)
+    if not openid:
+        return
+
+    rendered_message = render_scene_message(
+        db,
+        tenant_id=tenant_id,
+        scene=SCENE_REGISTRATION_RECEIVED,
+        context=build_registration_received_context(
+            participant,
+            activity.activity_name[:20],
+            participant.participant_name[:20],
+        ),
+        activity_id=activity.id,
+    )
+    if not rendered_message:
+        return
+
+    _enqueue_rendered_message(
+        db,
+        tenant_id=tenant_id,
+        scene=SCENE_REGISTRATION_RECEIVED,
+        user_id=user_id,
+        openid=openid,
+        participant_id=participant.id,
+        rendered_message=rendered_message,
+    )
+
+
+def enqueue_review_result_message(
+    db: Session,
+    *,
+    tenant_id: int,
+    user_id: int | None,
+    participant: ActivityParticipant,
+    activity: Activity,
+    approved: bool,
+    review_reason: str | None = None,
+) -> None:
+    if not user_id:
+        return
+
+    openid = get_user_wechat_openid(db, tenant_id=tenant_id, user_id=user_id)
+    if not openid:
+        return
+
+    rendered_message = render_scene_message(
+        db,
+        tenant_id=tenant_id,
+        scene=SCENE_REVIEW_RESULT,
+        context=build_review_result_context(
+            participant,
+            activity.activity_name[:20],
+            approved=approved,
+            review_reason=review_reason,
+        ),
+        activity_id=activity.id,
+    )
+    if not rendered_message:
+        return
+
+    _enqueue_rendered_message(
+        db,
+        tenant_id=tenant_id,
+        scene=SCENE_REVIEW_RESULT,
+        user_id=user_id,
+        openid=openid,
+        participant_id=participant.id,
+        rendered_message=rendered_message,
+    )
 
 
 def enqueue_registration_success_message(

@@ -4,7 +4,6 @@ const tenant = require('../../utils/tenant');
 const { resolveAvatarDisplayUrl } = require('../../utils/avatar');
 
 const PHONE_PATTERN = /^1[3-9]\d{9}$/;
-const AVATAR_UPLOAD_NOTICE_KEY = 'notice_bind_avatar_upload_ack_v1';
 
 function normalizeAgeValue(value) {
   return String(value == null ? '' : value).replace(/[^\d]/g, '').slice(0, 3);
@@ -78,70 +77,44 @@ Page({
   },
 
   onChooseAvatar() {
-    if (this.data.avatarUploading) return;
+    if (this.data.avatarUploading || this.data.submitting) return;
 
-    const openAlbum = () => {
-      wx.chooseMedia({
-        count: 1,
-        mediaType: ['image'],
-        sourceType: ['album', 'camera'],
-        sizeType: ['compressed'],
-        success: async (res) => {
-          const file = (res.tempFiles || [])[0];
-          if (!file || !file.tempFilePath) return;
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      sourceType: ['album', 'camera'],
+      sizeType: ['compressed'],
+      success: async (res) => {
+        const file = (res.tempFiles || [])[0];
+        if (!file || !file.tempFilePath) return;
 
-          const previousState = {
-            avatarUrl: this.data.avatarUrl,
-            avatarTemp: this.data.avatarTemp,
-            avatarDisplayUrl: this.data.avatarDisplayUrl,
-          };
-
-          try {
-            this.setData({
-              avatarUploading: true,
-              avatarTemp: file.tempFilePath,
-              avatarDisplayUrl: file.tempFilePath,
-              error: null,
-            });
-            const uploadPath = await compressAvatarImage(file.tempFilePath);
-            const uploadResult = await api.uploadAvatar(uploadPath);
-            const avatarDisplayUrl = await resolveAvatarDisplayUrl(uploadResult.url || '');
-            this.setData({
-              avatarUrl: uploadResult.url || '',
-              avatarTemp: uploadResult.url || '',
-              avatarDisplayUrl: avatarDisplayUrl || uploadResult.url || '',
-              avatarUploading: false,
-            });
-          } catch (err) {
-            this.setData({
-              avatarUploading: false,
-              avatarUrl: previousState.avatarUrl,
-              avatarTemp: previousState.avatarTemp,
-              avatarDisplayUrl: previousState.avatarDisplayUrl,
-              error: err && err.message ? err.message : '上传头像失败',
-            });
-          }
-        },
-        fail: () => {
-          wx.showToast({ title: '未选择头像', icon: 'none' });
-        },
-      });
-    };
-
-    if (wx.getStorageSync(AVATAR_UPLOAD_NOTICE_KEY)) {
-      openAlbum();
-      return;
-    }
-
-    wx.showModal({
-      title: '提示',
-      content: '建议先上传一张头像，完善资料后会在个人中心与社区中展示。',
-      confirmText: '去上传',
-      success: (res) => {
-        if (!res.confirm) return;
-        wx.setStorageSync(AVATAR_UPLOAD_NOTICE_KEY, 1);
-        openAlbum();
+        try {
+          const previewPath = await compressAvatarImage(file.tempFilePath);
+          this.setData({
+            avatarTemp: file.tempFilePath,
+            avatarDisplayUrl: previewPath || file.tempFilePath,
+            error: null,
+          });
+        } catch (err) {
+          this.setData({
+            avatarTemp: file.tempFilePath,
+            avatarDisplayUrl: file.tempFilePath,
+            error: err && err.message ? err.message : '预览头像失败',
+          });
+        }
       },
+      fail: () => {
+        wx.showToast({ title: '未选择头像', icon: 'none' });
+      },
+    });
+  },
+
+  onPreviewAvatar() {
+    const current = this.data.avatarDisplayUrl || this.data.avatarUrl;
+    if (!current) return;
+    wx.previewImage({
+      current,
+      urls: [current],
     });
   },
 
@@ -214,18 +187,33 @@ Page({
     return null;
   },
 
+  async uploadSelectedAvatar() {
+    if (!this.data.avatarTemp) {
+      return this.data.avatarUrl || '';
+    }
+    const uploadPath = await compressAvatarImage(this.data.avatarTemp);
+    const uploadResult = await api.uploadAvatar(uploadPath);
+    const avatarDisplayUrl = await resolveAvatarDisplayUrl(uploadResult.url || '');
+    this.setData({
+      avatarUrl: uploadResult.url || '',
+      avatarTemp: uploadResult.url || '',
+      avatarDisplayUrl: avatarDisplayUrl || uploadResult.url || '',
+    });
+    return uploadResult.url || '';
+  },
+
   submit() {
     const error = this.validateForm();
     if (error) {
       this.setData({ error });
-      return;
+      return Promise.resolve(false);
     }
     if (this.data.avatarUploading) {
-      this.setData({ error: '头像上传中，请稍候' });
-      return;
+      this.setData({ error: '头像处理中，请稍候' });
+      return Promise.resolve(false);
     }
 
-    this.setData({ submitting: true, error: null });
+    this.setData({ submitting: true, error: null, avatarUploading: true });
     const formData = this.data.formData;
     const submitData = {
       name: formData.name.trim(),
@@ -235,22 +223,30 @@ Page({
       email: formData.email.trim(),
       industry: formData.industry.trim(),
     };
-    if (this.data.avatarUrl) {
-      submitData.avatar_url = this.data.avatarUrl;
-    }
     if (PHONE_PATTERN.test(formData.phone)) {
       submitData.phone = formData.phone;
     }
 
-    api.bindUserInfo(submitData)
+    return this.uploadSelectedAvatar()
+      .then((avatarUrl) => {
+        if (avatarUrl) {
+          submitData.avatar_url = avatarUrl;
+        }
+        return api.bindUserInfo(submitData);
+      })
       .then(() => {
         auth.clearRequireBindInfo();
         wx.showToast({ title: '绑定成功', icon: 'success' });
         setTimeout(() => { wx.switchTab({ url: '/pages/index/index' }); }, 1000);
+        return true;
       })
       .catch((err) => {
         const msg = err && err.message ? err.message : String(err);
-        this.setData({ submitting: false, error: msg });
+        this.setData({ error: msg });
+        return false;
+      })
+      .finally(() => {
+        this.setData({ submitting: false, avatarUploading: false });
       });
   },
 });

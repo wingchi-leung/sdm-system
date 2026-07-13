@@ -1,5 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const path = require('node:path');
 
 function loadMinePage({
@@ -73,6 +74,15 @@ function createPageInstance(config, initialData = {}) {
 function flushTimers() {
   return new Promise((resolve) => setImmediate(resolve));
 }
+
+test('通知配置入口只出现在管理员管理功能区域', () => {
+  const template = fs.readFileSync(path.resolve(__dirname, '../pages/mine/mine.wxml'), 'utf8');
+  const adminSectionStart = template.indexOf('<view class="service-section" wx:if="{{view === \'admin\'}}">');
+  const notificationEntry = template.indexOf('bindtap="goNotificationConfig"');
+
+  assert.notEqual(adminSectionStart, -1);
+  assert.equal(notificationEntry > adminSectionStart, true);
+});
 
 test('普通用户进入我的页面时会先清空管理员残留视图', async () => {
   let resolveProfile;
@@ -279,7 +289,7 @@ test('我的页未登录时会直接重定向到登录页', () => {
   assert.deepEqual(page.data.myActivities, []);
 });
 
-test('我的页可以跳转到设置和协议说明', () => {
+test('我的页可以跳转到设置、通知配置和协议说明', () => {
   const navUrls = [];
   const pageConfig = loadMinePage({
     tenant: {
@@ -294,9 +304,33 @@ test('我的页可以跳转到设置和协议说明', () => {
   const page = createPageInstance(pageConfig);
 
   page.goSettings();
+  page.goNotificationConfig();
   page.goAgreementNotes();
 
-  assert.deepEqual(navUrls, ['/pages/settings/settings', '/pages/agreement-notes/agreement-notes']);
+  assert.deepEqual(navUrls, [
+    '/pages/settings/settings',
+    '/pages/notification-config/notification-config',
+    '/pages/agreement-notes/agreement-notes',
+  ]);
+});
+
+test('我的页点击头像会进入个人资料页', () => {
+  const navUrls = [];
+  const pageConfig = loadMinePage({
+    tenant: {
+      appendTenantToUrl: (url) => url,
+    },
+    wxMock: {
+      navigateTo({ url }) {
+        navUrls.push(url);
+      },
+    },
+  });
+  const page = createPageInstance(pageConfig);
+
+  page.goAvatarPicker();
+
+  assert.deepEqual(navUrls, ['/pages/profile-edit/profile-edit']);
 });
 
 test('我的页首次进入时不会在 onLoad 和 onShow 重复请求用户资料', async () => {
