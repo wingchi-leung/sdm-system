@@ -1,5 +1,9 @@
 const HTML_TAG_PATTERN = /<\/?(p|div|span|img|br|strong|em|h[1-6]|ul|ol|li|blockquote|a)\b/i;
 
+function removeHtmlComments(value) {
+  return String(value || '').replace(/<!--[\s\S]*?-->/g, '');
+}
+
 function extractImageUrlsFromHtml(html) {
   if (!html) return [];
   const matches = String(html).match(/<img[^>]+src=["']([^"']+)["']/gi) || [];
@@ -13,7 +17,7 @@ function extractImageUrlsFromHtml(html) {
 
 function htmlToText(html) {
   if (!html) return '';
-  return String(html)
+  return removeHtmlComments(html)
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/<script[\s\S]*?<\/script>/gi, '')
     .replace(/<br\s*\/?>/gi, '\n')
@@ -42,7 +46,7 @@ function buildHtmlBlocks(html) {
 }
 
 function parsePostContent(content) {
-  const raw = content == null ? '' : String(content);
+  const raw = removeHtmlComments(content == null ? '' : String(content));
   if (!raw.trim()) {
     return { text: '', blocks: [] };
   }

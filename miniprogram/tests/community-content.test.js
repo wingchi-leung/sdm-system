@@ -21,3 +21,13 @@ test('普通文本帖子保持原样', () => {
     { type: 'text', text: '纯文本内容' },
   ]);
 });
+
+test('Teams 来源 HTML 注释不会显示为帖子正文', () => {
+  const marker = '<!-- teams-source-post:1778798348840;replies:1,2,3 -->';
+
+  assert.deepEqual(contentUtils.parsePostContent(marker), { text: '', blocks: [] });
+  assert.deepEqual(
+    contentUtils.parsePostContent(`<p>正常正文</p>${marker}`),
+    { text: '正常正文', blocks: [{ type: 'text', text: '正常正文' }] },
+  );
+});
