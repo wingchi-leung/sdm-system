@@ -120,12 +120,13 @@ Page({
     } else if (merged.length) {
       normalizedBlocks.push({ type: 'images', images: merged });
     }
-    if (!normalizedBlocks.length && (parsed.text || raw)) {
-      normalizedBlocks.push({ type: 'text', text: (parsed.text || raw).trim() });
+    const parsedText = (parsed.text || '').trim();
+    if (!normalizedBlocks.length && parsedText) {
+      normalizedBlocks.push({ type: 'text', text: parsedText });
     }
 
     return {
-      text: (parsed.text || '').trim() || raw,
+      text: parsedText,
       blocks: normalizedBlocks,
       images: merged,
     };

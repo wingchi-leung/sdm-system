@@ -87,6 +87,30 @@ test('社区动态列表返回页面时会重新拉取帖子', async () => {
   assert.equal(loadCount, 1);
 });
 
+test('社区动态列表不会把已清除的 HTML 注释回退成正文', () => {
+  const pageConfig = loadPage('../pages/community-post-list/community-post-list.js', [
+    ['../../utils/api.js', {}],
+    ['../../utils/auth.js', { isUser: () => true, isAdmin: () => false }],
+    ['../../utils/tenant.js', { applyPageOptions() {}, appendTenantToUrl: (url) => url }],
+    ['../../utils/community-content.js', {
+      parsePostContent: () => ({ text: '', blocks: [] }),
+    }],
+    ['../../utils/avatar.js', {
+      resolveAvatarDisplayUrl: async () => '/avatar.png',
+      getDefaultAvatarPath: () => '/default-avatar.png',
+    }],
+  ]);
+  const page = createPageInstance(pageConfig);
+
+  const parsed = page.parsePostContent(
+    '<!-- teams-source-post:1778798348840;replies:1,2,3 -->',
+    [],
+  );
+
+  assert.equal(parsed.text, '');
+  assert.deepEqual(parsed.blocks, []);
+});
+
 test('社区动态列表在有帖子时不会显示空状态', async () => {
   const pageConfig = loadPage('../pages/community-post-list/community-post-list.js', [
     ['../../utils/api.js', {
