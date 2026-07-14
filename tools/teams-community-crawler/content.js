@@ -271,4 +271,84 @@
       .catch((error) => sendResponse({ ok: false, error: error.message || '抓取失败' }));
     return true;
   });
+
+  function sendRuntimeMessage(payload) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage(payload, (response) => {
+        const error = chrome.runtime.lastError;
+        if (error) {
+          reject(new Error(error.message));
+          return;
+        }
+        resolve(response);
+      });
+    });
+  }
+
+  function mountFloatingPanel() {
+    if (document.querySelector('#teams-community-crawler-panel')) return;
+    const panel = document.createElement('section');
+    panel.id = 'teams-community-crawler-panel';
+    panel.setAttribute('aria-label', 'Teams 社区内容导出器');
+    panel.style.cssText = [
+      'position:fixed',
+      'right:20px',
+      'bottom:20px',
+      'z-index:2147483647',
+      'width:260px',
+      'padding:14px',
+      'border:1px solid #d8d8e5',
+      'border-radius:10px',
+      'box-shadow:0 8px 28px rgba(0,0,0,.18)',
+      'background:#fff',
+      'color:#242424',
+      'font:13px/1.45 Microsoft YaHei,system-ui,sans-serif',
+    ].join(';');
+    panel.innerHTML = `
+      <div style="font-weight:700;font-size:14px;margin-bottom:8px">Teams 社区导出器</div>
+      <div style="color:#616161;margin-bottom:10px">筛选作者名包含 Inc 的主帖和回复</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" data-crawler-action="sample" style="flex:1;padding:8px;border:0;border-radius:6px;background:#5b5fc7;color:#fff;cursor:pointer">导出 2 条样本</button>
+        <button type="button" data-crawler-action="all" style="flex:1;padding:8px;border:1px solid #5b5fc7;border-radius:6px;background:#fff;color:#4549a5;cursor:pointer">导出全部</button>
+      </div>
+      <div data-crawler-status role="status" style="margin-top:9px;color:#616161;word-break:break-word">尚未开始</div>
+    `;
+    document.body.appendChild(panel);
+
+    const buttons = Array.from(panel.querySelectorAll('[data-crawler-action]'));
+    const status = panel.querySelector('[data-crawler-status]');
+    buttons.forEach((button) => {
+      button.addEventListener('click', async () => {
+        const isSample = button.getAttribute('data-crawler-action') === 'sample';
+        buttons.forEach((item) => { item.disabled = true; });
+        status.textContent = isSample
+          ? '正在检查前 2 条主帖及其 Inc 回复……'
+          : '正在检查全部主帖及其 Inc 回复，请保持页面打开……';
+        try {
+          const bundle = await crawl({
+            authorFilter: 'Inc',
+            maxPosts: isSample ? 2 : 0,
+            delayMs: 800,
+          });
+          status.textContent = `已抓取 ${bundle.raw.posts.length} 条主帖、${bundle.raw.replies.length} 条回复，正在下载……`;
+          const response = await sendRuntimeMessage({ type: 'download-export', bundle });
+          if (!response?.ok) throw new Error(response?.error || '下载失败');
+          const summary = response.summary;
+          status.textContent = `完成：${summary.postCount} 条主帖、${summary.replyCount} 条回复、${summary.imageCount - summary.failedImageCount}/${summary.imageCount} 张图片`;
+          status.style.color = summary.failedImageCount ? '#8a4b08' : '#0b6a0b';
+        } catch (error) {
+          status.textContent = error.message || '执行失败，请刷新页面后重试';
+          status.style.color = '#a4262c';
+        } finally {
+          buttons.forEach((item) => { item.disabled = false; });
+        }
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountFloatingPanel, { once: true });
+  } else {
+    mountFloatingPanel();
+  }
 })();
