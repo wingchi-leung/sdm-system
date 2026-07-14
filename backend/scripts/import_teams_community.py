@@ -76,17 +76,24 @@ def parse_source_marker(content: str) -> tuple[str, set[str]] | None:
     return match.group("post_id"), reply_ids
 
 
+def clean_teams_display_text(value: Any) -> str:
+    lines = []
+    for raw_line in str(value or "").splitlines():
+        line = raw_line.strip()
+        if not line or re.fullmatch(r"\+\d+", line):
+            continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def build_post_html(post: dict[str, Any], reply_ids: list[str]) -> str:
     post_id = str(post.get("source_post_id") or "")
     paragraphs = [
         f"<p>{html.escape(line)}</p>"
-        for line in str(post.get("text") or "").splitlines()
+        for line in clean_teams_display_text(post.get("text")).splitlines()
         if line.strip()
     ]
-    author = html.escape(str(post.get("author") or "未知"))
-    published_at = html.escape(str(post.get("published_at") or "未知"))
-    attribution = f"<p>来源：Microsoft Teams｜作者：{author}｜发布时间：{published_at}</p>"
-    return "".join([*paragraphs, attribution, build_source_marker(post_id, reply_ids)])
+    return "".join([*paragraphs, build_source_marker(post_id, reply_ids)])
 
 
 def replace_source_marker(content: str, post_id: str, reply_ids: list[str]) -> str:
@@ -97,7 +104,7 @@ def replace_source_marker(content: str, post_id: str, reply_ids: list[str]) -> s
 
 
 def build_comment_text(reply: dict[str, Any]) -> str:
-    return str(reply.get("text") or "").strip()[:1000]
+    return clean_teams_display_text(reply.get("text"))[:1000]
 
 
 def resolve_entry_images(batch_dir: Path, entry: dict[str, Any]) -> list[Path]:

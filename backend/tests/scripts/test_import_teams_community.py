@@ -7,6 +7,7 @@ from scripts.import_teams_community import (
     build_comment_text,
     build_post_html,
     build_source_marker,
+    clean_teams_display_text,
     load_threads,
     parse_source_marker,
     resolve_entry_images,
@@ -25,6 +26,8 @@ def test_source_marker_round_trip_and_html_escape():
 
     assert "<p>第一段</p>" in content
     assert "第二段&lt;script&gt;" in content
+    assert "Inc." not in content
+    assert "发布时间" not in content
     assert parse_source_marker(content) == ("1001", {"2001", "2002"})
     assert build_source_marker("1001", ["2002", "2001"]).endswith(
         "replies:2001,2002 -->"
@@ -39,6 +42,8 @@ def test_reply_keeps_only_original_text_and_allows_image_only_content():
     }
     assert build_comment_text(reply) == ""
     assert build_comment_text({**reply, "text": " 原回复 "}) == "原回复"
+    assert build_comment_text({**reply, "text": "+3"}) == ""
+    assert clean_teams_display_text("正文\n+2\n下一段") == "正文\n下一段"
     assert len(build_comment_text({"author": "A", "text": "x" * 1200})) == 1000
 
 
