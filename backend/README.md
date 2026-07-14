@@ -44,4 +44,24 @@ python3 -m venv .venv
 
 或用脚本（会检查并安装依赖再启动）：`./run.sh`
 
- 
+
+## Teams 社区归档导入
+
+可将 `tools/teams-community-crawler` 生成的批次目录导入本机社区频道。Teams 主帖会成为频道帖子，筛选出的回复会成为该帖评论，图片复制到本机社区上传目录。命令默认仅校验，提供 `--apply` 才会写入数据库。
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe scripts\import_teams_community.py `
+  "D:\下载\TeamsCommunity\PPP-20260714-130044" `
+  --channel-id 3 `
+  --limit 1
+
+# 确认校验结果后实际导入
+.\.venv\Scripts\python.exe scripts\import_teams_community.py `
+  "D:\下载\TeamsCommunity\PPP-20260714-130044" `
+  --channel-id 3 `
+  --limit 1 `
+  --apply
+```
+
+每个帖子正文带有不可见的 Teams 来源标记，并记录已经导入的回复 ID；同一批次可重复运行，已有帖子和回复不会重复创建。当前命令仅支持 `STORAGE_TYPE=local`。
