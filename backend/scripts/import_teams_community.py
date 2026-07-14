@@ -97,14 +97,7 @@ def replace_source_marker(content: str, post_id: str, reply_ids: list[str]) -> s
 
 
 def build_comment_text(reply: dict[str, Any]) -> str:
-    author = str(reply.get("author") or "未知作者").strip()
-    published_at = str(reply.get("published_at") or "").strip()
-    text = str(reply.get("text") or "").strip() or "图片回复"
-    prefix = f"{author}"
-    if published_at:
-        prefix += f"（{published_at}）"
-    content = f"{prefix}：{text}"
-    return content[:1000]
+    return str(reply.get("text") or "").strip()[:1000]
 
 
 def resolve_entry_images(batch_dir: Path, entry: dict[str, Any]) -> list[Path]:

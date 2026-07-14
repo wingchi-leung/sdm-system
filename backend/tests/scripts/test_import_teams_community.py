@@ -31,13 +31,14 @@ def test_source_marker_round_trip_and_html_escape():
     )
 
 
-def test_image_only_reply_gets_visible_fallback_and_length_limit():
+def test_reply_keeps_only_original_text_and_allows_image_only_content():
     reply = {
         "author": "Inc. ICOACH",
         "published_at": "星期三",
         "text": "",
     }
-    assert build_comment_text(reply) == "Inc. ICOACH（星期三）：图片回复"
+    assert build_comment_text(reply) == ""
+    assert build_comment_text({**reply, "text": " 原回复 "}) == "原回复"
     assert len(build_comment_text({"author": "A", "text": "x" * 1200})) == 1000
 
 
