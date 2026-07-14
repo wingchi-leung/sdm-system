@@ -1261,6 +1261,21 @@ function getCommunityChannelPostDetail(channelId, postId) {
   });
 }
 
+function deleteCommunityChannelPost(channelId, postId) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url: `${baseUrl}/community/channels/${channelId}/posts/${postId}`,
+      method: 'DELETE',
+      header: getHeader(true),
+      success: (res) => {
+        if (res.statusCode >= 200 && res.statusCode < 300) resolve(res.data);
+        else reject(new ApiError(res.statusCode, res.data?.detail || res.data));
+      },
+      fail: (err) => reject(err),
+    });
+  });
+}
+
 function getCommunityChannelComments(channelId, postId, opts = {}) {
   const { skip = 0, limit = 50 } = opts;
   return new Promise((resolve, reject) => {
@@ -1751,6 +1766,7 @@ module.exports = {
   getCommunityChannelPosts,
   createCommunityChannelPost,
   getCommunityChannelPostDetail,
+  deleteCommunityChannelPost,
   getCommunityChannelComments,
   createCommunityChannelComment,
   getCommunityChannelAnnouncements,

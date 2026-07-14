@@ -21,6 +21,9 @@ from app.schemas import (
 )
 
 
+CHANNEL_CONTENT_DELETED_STATUS = -2
+
+
 def _parse_notification_data(raw: str | None) -> dict:
     if not raw:
         return {}
@@ -957,6 +960,7 @@ def update_channel_post_status(
     post = db.query(CommunityChannelPost).filter(
         CommunityChannelPost.tenant_id == tenant_id,
         CommunityChannelPost.id == post_id,
+        CommunityChannelPost.status != CHANNEL_CONTENT_DELETED_STATUS,
     ).first()
     if not post:
         return False
@@ -975,12 +979,44 @@ def update_channel_comment_status(
     comment = db.query(CommunityChannelComment).filter(
         CommunityChannelComment.tenant_id == tenant_id,
         CommunityChannelComment.id == comment_id,
+        CommunityChannelComment.status != CHANNEL_CONTENT_DELETED_STATUS,
     ).first()
     if not comment:
         return False
     comment.status = status
     db.commit()
     return True
+
+
+def delete_channel_post(
+    db: Session,
+    *,
+    tenant_id: int,
+    channel_id: int,
+    post_id: int,
+) -> int | None:
+    """软删除频道帖子及其评论，返回同步删除的评论数。"""
+    post = db.query(CommunityChannelPost).filter(
+        CommunityChannelPost.tenant_id == tenant_id,
+        CommunityChannelPost.channel_id == channel_id,
+        CommunityChannelPost.id == post_id,
+        CommunityChannelPost.status != CHANNEL_CONTENT_DELETED_STATUS,
+    ).first()
+    if not post:
+        return None
+
+    post.status = CHANNEL_CONTENT_DELETED_STATUS
+    deleted_comments = db.query(CommunityChannelComment).filter(
+        CommunityChannelComment.tenant_id == tenant_id,
+        CommunityChannelComment.channel_id == channel_id,
+        CommunityChannelComment.post_id == post_id,
+        CommunityChannelComment.status != CHANNEL_CONTENT_DELETED_STATUS,
+    ).update(
+        {CommunityChannelComment.status: CHANNEL_CONTENT_DELETED_STATUS},
+        synchronize_session=False,
+    )
+    db.commit()
+    return int(deleted_comments or 0)
 
 
 def list_pending_channel_posts(

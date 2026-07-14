@@ -517,6 +517,113 @@ class TestCommunityChannels:
         ).all()
         assert tasks == []
 
+    def test_channel_post_author_can_delete_and_other_member_cannot(
+        self,
+        client,
+        db_session,
+        super_admin_token,
+        sample_user,
+        user_token,
+    ):
+        other_user = self._create_user(
+            db_session,
+            tenant_id=sample_user.tenant_id,
+            phone="13800138112",
+            name="其他频道成员",
+        )
+        other_token = create_access_token(
+            sub=str(other_user.id),
+            role="user",
+            tenant_id=other_user.tenant_id,
+        )
+        create_resp = client.post(
+            "/api/v1/community/channels",
+            headers=auth_headers(super_admin_token),
+            json={"name": "作者删除权限频道"},
+        )
+        assert create_resp.status_code == status.HTTP_200_OK
+        channel_id = create_resp.json()["id"]
+        db_session.add_all([
+            CommunityChannelMember(
+                tenant_id=sample_user.tenant_id,
+                channel_id=channel_id,
+                user_id=sample_user.id,
+                role="member",
+                status="active",
+            ),
+            CommunityChannelMember(
+                tenant_id=other_user.tenant_id,
+                channel_id=channel_id,
+                user_id=other_user.id,
+                role="member",
+                status="active",
+            ),
+        ])
+        db_session.commit()
+
+        post_resp = client.post(
+            f"/api/v1/community/channels/{channel_id}/posts",
+            headers=auth_headers(user_token),
+            json={"title": "作者自己的帖子", "content": "正文", "images": []},
+        )
+        assert post_resp.status_code == status.HTTP_200_OK
+        post_id = post_resp.json()["id"]
+        comment_resp = client.post(
+            f"/api/v1/community/channels/{channel_id}/posts/{post_id}/comments",
+            headers=auth_headers(user_token),
+            json={"content": "随帖子一起删除的评论", "images": []},
+        )
+        assert comment_resp.status_code == status.HTTP_200_OK
+        comment_id = comment_resp.json()["id"]
+
+        forbidden_resp = client.delete(
+            f"/api/v1/community/channels/{channel_id}/posts/{post_id}",
+            headers=auth_headers(other_token),
+        )
+        assert forbidden_resp.status_code == status.HTTP_403_FORBIDDEN
+        assert forbidden_resp.json()["detail"] == "只能删除自己发布的帖子"
+
+        delete_resp = client.delete(
+            f"/api/v1/community/channels/{channel_id}/posts/{post_id}",
+            headers=auth_headers(user_token),
+        )
+        assert delete_resp.status_code == status.HTTP_200_OK
+        assert delete_resp.json() == {
+            "success": True,
+            "post_id": post_id,
+            "deleted_comments": 1,
+        }
+        db_session.expire_all()
+        assert db_session.query(CommunityChannelPost).filter(
+            CommunityChannelPost.id == post_id,
+        ).one().status == -2
+        assert db_session.query(CommunityChannelComment).filter(
+            CommunityChannelComment.id == comment_id,
+        ).one().status == -2
+        review_deleted_resp = client.post(
+            f"/api/v1/community/moderation/channel_post/{post_id}",
+            headers=auth_headers(super_admin_token),
+            json={"action": "approve"},
+        )
+        assert review_deleted_resp.status_code == status.HTTP_404_NOT_FOUND
+        db_session.expire_all()
+        assert db_session.query(CommunityChannelPost).filter(
+            CommunityChannelPost.id == post_id,
+        ).one().status == -2
+
+        admin_delete_post_resp = client.post(
+            f"/api/v1/community/channels/{channel_id}/posts",
+            headers=auth_headers(user_token),
+            json={"title": "管理员可删除", "content": "正文", "images": []},
+        )
+        admin_delete_post_id = admin_delete_post_resp.json()["id"]
+        admin_delete_resp = client.delete(
+            f"/api/v1/community/channels/{channel_id}/posts/{admin_delete_post_id}",
+            headers=auth_headers(super_admin_token),
+        )
+        assert admin_delete_resp.status_code == status.HTTP_200_OK
+        assert admin_delete_resp.json()["success"] is True
+
     def test_admin_can_delete_channel_and_related_posts_comments(self, client, db_session, super_admin_token):
         create_resp = client.post(
             "/api/v1/community/channels",

@@ -952,6 +952,50 @@ def get_channel_post_detail(
     return detail
 
 
+@router.delete("/channels/{channel_id}/posts/{post_id}")
+def delete_channel_post(
+    channel_id: int,
+    post_id: int,
+    db: Session = Depends(deps.get_db),
+    ctx: deps.AuthContext = Depends(deps.get_current_user),
+) -> dict[str, int | bool]:
+    _ensure_channel_exists(db, channel_id=channel_id, tenant_id=ctx.tenant_id)
+    member = _ensure_channel_member(
+        db,
+        channel_id=channel_id,
+        tenant_id=ctx.tenant_id,
+        user_id=ctx.user_id,
+    )
+    detail = crud_community_channel.get_channel_post_detail(
+        db,
+        tenant_id=ctx.tenant_id,
+        post_id=post_id,
+        include_non_public=True,
+    )
+    if (
+        not detail
+        or detail["channel_id"] != channel_id
+        or detail["status"] == crud_community_channel.CHANNEL_CONTENT_DELETED_STATUS
+    ):
+        raise HTTPException(status_code=404, detail="动态不存在")
+    if detail["author_user_id"] != ctx.user_id and member.role != "admin":
+        raise HTTPException(status_code=403, detail="只能删除自己发布的帖子")
+
+    deleted_comments = crud_community_channel.delete_channel_post(
+        db,
+        tenant_id=ctx.tenant_id,
+        channel_id=channel_id,
+        post_id=post_id,
+    )
+    if deleted_comments is None:
+        raise HTTPException(status_code=404, detail="动态不存在")
+    return {
+        "success": True,
+        "post_id": post_id,
+        "deleted_comments": deleted_comments,
+    }
+
+
 @router.get("/channels/{channel_id}/posts/{post_id}/comments", response_model=CommunityChannelCommentListResponse)
 def list_channel_comments(
     channel_id: int,
