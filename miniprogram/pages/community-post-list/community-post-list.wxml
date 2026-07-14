@@ -38,21 +38,22 @@
       <view class="section-head__dash"></view>
     </view>
 
+    <view wx:if="{{showAnnouncementEntry}}" class="announcement-banner" bindtap="onOpenAnnouncementList">
+      <view class="announcement-banner__head">
+        <view class="announcement-icon-wrap announcement-icon-wrap--banner">
+          <image class="announcement-icon" src="/assets/icons/announcement.png" mode="aspectFit" />
+        </view>
+        <text class="announcement-banner__title">公告</text>
+        <text class="announcement-banner__more">全部公告 ›</text>
+      </view>
+      <view class="announcement-banner__line">
+        <text class="announcement-banner__dot">•</text>
+        <text class="announcement-banner__hint">点击进入公告栏</text>
+      </view>
+    </view>
+
     <view wx:if="{{posts.length > 0}}" class="feed-list">
       <view wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" class="feed-card">
-        <view wx:if="{{postIndex === 0 && showAnnouncementEntry}}" class="announcement-meta" bindtap="onOpenAnnouncementList">
-          <view class="announcement-meta__left">
-            <view class="announcement-icon-wrap">
-              <image class="announcement-icon" src="/assets/icons/announcement.png" mode="aspectFit" />
-            </view>
-            <view class="announcement-copy">
-              <text class="announcement-title">公告</text>
-              <text class="announcement-subtitle">共 {{announcementCount}} 条</text>
-            </view>
-          </view>
-          <text class="announcement-date">{{item.create_time_display}}</text>
-        </view>
-
         <text class="feed-title">{{item.title}}</text>
 
         <view class="feed-source">
@@ -114,7 +115,6 @@
           <text class="action-link action-link--expand" data-id="{{item.id}}" bindtap="onToggleContent">
             {{item.content_expanded ? '收起全文' : '展开全文'}}
           </text>
-          <text class="expand-row__arrow">⌄</text>
         </view>
 
         <view class="feed-actions">
@@ -163,7 +163,6 @@
           <text class="action-link" data-id="{{item.id}}" bindtap="onLoadMoreComments">
             {{item.comments_loading ? '加载中…' : '查看更多评论'}}
           </text>
-          <text class="comment-loadmore__arrow">›</text>
         </view>
 
         <view wx:if="{{canComment && item.comment_compose_open}}" class="comment-composer">

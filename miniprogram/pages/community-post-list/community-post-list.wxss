@@ -187,10 +187,70 @@
 }
 
 .feed-list {
-  padding-top: 34rpx;
+  padding-top: 26rpx;
   display: flex;
   flex-direction: column;
   gap: 28rpx;
+}
+
+.announcement-banner {
+  margin-top: 28rpx;
+  padding: 22rpx 24rpx 24rpx;
+  border-radius: 24rpx;
+  background: linear-gradient(135deg, #f4f8ff 0%, #eef4ff 100%);
+  box-shadow: 0 10rpx 28rpx rgba(56, 96, 171, 0.10);
+}
+
+.announcement-banner:active {
+  opacity: 0.78;
+}
+
+.announcement-banner__head,
+.announcement-banner__line {
+  display: flex;
+  align-items: center;
+}
+
+.announcement-banner__head {
+  min-width: 0;
+}
+
+.announcement-icon-wrap--banner {
+  width: 46rpx;
+  height: 46rpx;
+  background: rgba(51, 109, 255, 0.10);
+}
+
+.announcement-banner__title {
+  margin-left: 14rpx;
+  color: #14213a;
+  font-size: 30rpx;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.announcement-banner__more {
+  margin-left: auto;
+  color: #7f8aa3;
+  font-size: 24rpx;
+  line-height: 1.2;
+}
+
+.announcement-banner__line {
+  margin-top: 18rpx;
+  color: #4b5870;
+}
+
+.announcement-banner__dot {
+  margin-right: 14rpx;
+  color: #5c85ff;
+  font-size: 30rpx;
+  line-height: 1;
+}
+
+.announcement-banner__hint {
+  font-size: 28rpx;
+  line-height: 1.45;
 }
 
 .feed-card {
@@ -200,16 +260,6 @@
   border-radius: 26rpx;
   background: #ffffff;
   box-shadow: 0 10rpx 32rpx rgba(34, 53, 82, 0.09);
-}
-
-.announcement-meta,
-.announcement-meta__left {
-  display: flex;
-  align-items: center;
-}
-
-.announcement-meta {
-  justify-content: space-between;
 }
 
 .announcement-icon-wrap {
@@ -226,27 +276,6 @@
   width: 35rpx;
   height: 35rpx;
 }
-
-.announcement-copy {
-  margin-left: 18rpx;
-  display: flex;
-  flex-direction: column;
-}
-
-.announcement-title {
-  color: #14213a;
-  font-size: 28rpx;
-  line-height: 1.2;
-}
-
-.announcement-subtitle,
-.announcement-date {
-  color: #9aa6ba;
-  font-size: 23rpx;
-  line-height: 1.4;
-}
-
-.announcement-subtitle { margin-top: 5rpx; }
 
 .feed-title {
   display: block;
