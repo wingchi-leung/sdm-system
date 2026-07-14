@@ -2,6 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  buildConversationOpenAttempts,
   buildEntryFingerprint,
   buildExportBundle,
   buildThreadCheckpoint,
@@ -11,6 +12,16 @@ const {
   sanitizePathSegment,
   shouldProcessThread,
 } = require('../crawler-core');
+
+test('buildConversationOpenAttempts 为 Teams 对话面板生成递增重试窗口', () => {
+  assert.deepEqual(buildConversationOpenAttempts(800), [
+    { attempt: 1, settleMs: 800, timeoutMs: 15000 },
+    { attempt: 2, settleMs: 1200, timeoutMs: 20000 },
+  ]);
+  assert.deepEqual(buildConversationOpenAttempts(100, 1), [
+    { attempt: 1, settleMs: 300, timeoutMs: 15000 },
+  ]);
+});
 
 test('matchesAuthor 仅保留作者名包含指定文本的帖子', () => {
   assert.equal(matchesAuthor('Inc. ICOACH', 'Inc'), true);

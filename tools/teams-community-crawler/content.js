@@ -168,16 +168,57 @@
     }
   }
 
-  async function crawlRepliesForPost(parentPost, authorFilter, replyMap, delayMs) {
-    const postElement = document.getElementById(`reply-chain-summary-${parentPost.id}`);
-    if (!postElement) return null;
-    const conversationButton = Array.from(postElement.querySelectorAll('button')).find(
-      (button) => getText(button) === '查看对话',
-    );
-    if (!conversationButton) return false;
+  async function openConversationPanel(parentPost, delayMs) {
+    const attempts = core.buildConversationOpenAttempts(delayMs);
+    let lastError = null;
 
-    conversationButton.click();
-    const replyViewport = await waitForElement('[data-tid="channel-replies-viewport"]');
+    for (const attempt of attempts) {
+      try {
+        await ensureListView();
+        const initialPostElement = document.getElementById(`reply-chain-summary-${parentPost.id}`);
+        if (!initialPostElement) return null;
+
+        initialPostElement.scrollIntoView({ block: 'center', inline: 'nearest' });
+        await sleep(attempt.settleMs);
+
+        // Teams 会回收虚拟列表节点，因此滚动后必须重新查找帖子和按钮。
+        const currentPostElement = document.getElementById(`reply-chain-summary-${parentPost.id}`);
+        if (!currentPostElement) {
+          throw new Error('帖子滚动后暂时离开了可见区域');
+        }
+        const conversationButton = Array.from(currentPostElement.querySelectorAll('button')).find(
+          (button) => getText(button) === '查看对话',
+        );
+        if (!conversationButton) return false;
+
+        conversationButton.scrollIntoView({ block: 'center', inline: 'nearest' });
+        conversationButton.focus({ preventScroll: true });
+        conversationButton.click();
+        return await waitForElement('[data-tid="channel-replies-viewport"]', attempt.timeoutMs);
+      } catch (error) {
+        lastError = error;
+        if (attempt.attempt < attempts.length) {
+          updateInlineStatus(
+            `“${parentPost.title || parentPost.id}”打开回复失败，正在进行第 ${attempt.attempt + 1} 次尝试……`,
+            '#8a4b08',
+          );
+        }
+        try {
+          await ensureListView();
+        } catch (_) {
+          // 下一轮会再次检查列表状态；最终失败时由外层记录。
+        }
+        await sleep(attempt.settleMs);
+      }
+    }
+
+    throw new Error(`两次点击“查看对话”后回复面板仍未打开：${lastError?.message || '未知原因'}`);
+  }
+
+  async function crawlRepliesForPost(parentPost, authorFilter, replyMap, delayMs) {
+    const replyViewport = await openConversationPanel(parentPost, delayMs);
+    if (replyViewport === null) return null;
+    if (replyViewport === false) return false;
     await sleep(delayMs);
     replyViewport.scrollTop = 0;
     replyViewport.dispatchEvent(new Event('scroll', { bubbles: true }));

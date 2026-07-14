@@ -107,6 +107,16 @@
       || Number(checkpoint.replyCount || 0) !== Number(post?.replyCount || 0);
   }
 
+  function buildConversationOpenAttempts(delayMs, maxAttempts = 2) {
+    const safeDelay = Math.max(300, Number(delayMs || 800));
+    const safeAttempts = Math.max(1, Math.min(3, Number(maxAttempts || 2)));
+    return Array.from({ length: safeAttempts }, (_, index) => ({
+      attempt: index + 1,
+      settleMs: Math.min(1600, safeDelay + (index * 400)),
+      timeoutMs: 15000 + (index * 5000),
+    }));
+  }
+
   function escapeHtml(value) {
     return cleanText(value)
       .replace(/&/g, '&amp;')
@@ -387,6 +397,7 @@
   }
 
   return {
+    buildConversationOpenAttempts,
     buildEntryFingerprint,
     buildExportBundle,
     buildThreadCheckpoint,
