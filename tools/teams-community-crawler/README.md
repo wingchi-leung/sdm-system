@@ -41,10 +41,19 @@ TeamsCommunity/
     ├── teams-raw.json
     ├── miniprogram-import.json
     ├── README.md
-    ├── images/                 # Inc 主帖图片
-    ├── reply-images/           # Inc 回复图片
+    ├── posts/
+    │   ├── <帖子标题>-<Teams帖子ID>/
+    │   │   ├── content.json
+    │   │   ├── README.md
+    │   │   ├── images/         # Inc 主帖图片
+    │   │   └── replies/
+    │   │       └── <回复ID>/
+    │   │           └── images/ # Inc 回复图片
+    │   └── ...
     └── download-failures.json  # 仅下载失败时生成
 ```
+
+每个主帖使用“帖子标题 + Teams 帖子 ID”作为独立目录名；ID 用于避免同名帖子互相覆盖。即使主帖作者不是 `Inc`，只要其中存在 `Inc` 回复，也会建立该主帖目录并保存父帖上下文和筛选出的回复。
 
 - `teams-raw.json`：保留 Teams 来源字段、主帖与回复层级、原始图片地址和本地图片路径。
 - `miniprogram-import.json`：按 SDM 小程序现有 `title`、`content`、`content_format`、`images` 字段生成的导入草稿。回复会标记为 `entry_type: "reply"` 并保留父帖 ID。

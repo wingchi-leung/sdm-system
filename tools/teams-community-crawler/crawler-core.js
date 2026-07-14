@@ -86,6 +86,12 @@
     ].join('');
   }
 
+  function buildPostFolder(title, postId) {
+    const safeTitle = sanitizePathSegment(title || '无标题').slice(0, 80).replace(/[.\s-]+$/g, '') || '无标题';
+    const safeId = sanitizePathSegment(postId || '未知ID');
+    return `posts/${safeTitle}-${safeId}`;
+  }
+
   function buildMarkdown(raw) {
     const lines = [
       `# ${raw.community_name} Teams 社区导出`,
@@ -139,16 +145,16 @@
     const folderName = `${sanitizePathSegment(communityName)}-${formatTimestampForPath(exportedAt)}`;
     const imageTasks = [];
     const rawPosts = (posts || []).map((post, postIndex) => {
-      const postNumber = String(postIndex + 1).padStart(3, '0');
-      const safeId = sanitizePathSegment(post.id || String(postIndex + 1));
+      const postId = String(post.id || postIndex + 1);
+      const postFolder = buildPostFolder(post.title, postId);
       const localImages = (post.images || []).map((image, imageIndex) => {
         const imageNumber = String(imageIndex + 1).padStart(2, '0');
-        const filename = `images/${postNumber}-${safeId}-${imageNumber}.jpg`;
+        const filename = `${postFolder}/images/${imageNumber}.jpg`;
         imageTasks.push({
           filename,
           originalUrl: cleanText(image.originalUrl),
           displayedUrl: cleanText(image.displayedUrl),
-          postId: String(post.id || ''),
+          postId,
           imageIndex: imageIndex + 1,
         });
         return filename;
@@ -157,7 +163,7 @@
       return {
         source: 'microsoft_teams_community',
         source_url: 'https://teams.live.com/v2/',
-        source_post_id: String(post.id || ''),
+        source_post_id: postId,
         author: cleanText(post.author),
         published_at: cleanText(post.publishedAt),
         displayed_time: cleanText(post.displayedTime),
@@ -165,6 +171,7 @@
         text: cleanText(post.text),
         reply_count: Number(post.replyCount || 0),
         reply_summary: cleanText(post.replySummary),
+        local_folder: postFolder,
         local_images: localImages,
         source_images: (post.images || []).map((image) => ({
           original_url: cleanText(image.originalUrl),
@@ -175,17 +182,19 @@
       };
     });
     const rawReplies = (replies || []).map((reply, replyIndex) => {
-      const replyNumber = String(replyIndex + 1).padStart(3, '0');
-      const safeId = sanitizePathSegment(reply.id || String(replyIndex + 1));
+      const replyId = String(reply.id || replyIndex + 1);
+      const parentPostId = String(reply.parentPostId || '未知ID');
+      const parentFolder = buildPostFolder(reply.parentTitle, parentPostId);
+      const replyFolder = `${parentFolder}/replies/${sanitizePathSegment(replyId)}`;
       const localImages = (reply.images || []).map((image, imageIndex) => {
         const imageNumber = String(imageIndex + 1).padStart(2, '0');
-        const filename = `reply-images/${replyNumber}-${safeId}-${imageNumber}.jpg`;
+        const filename = `${replyFolder}/images/${imageNumber}.jpg`;
         imageTasks.push({
           filename,
           originalUrl: cleanText(image.originalUrl),
           displayedUrl: cleanText(image.displayedUrl),
-          postId: String(reply.parentPostId || ''),
-          replyId: String(reply.id || ''),
+          postId: parentPostId,
+          replyId,
           imageIndex: imageIndex + 1,
         });
         return filename;
@@ -193,14 +202,15 @@
       return {
         source: 'microsoft_teams_community',
         source_url: 'https://teams.live.com/v2/',
-        source_reply_id: String(reply.id || ''),
-        source_parent_post_id: String(reply.parentPostId || ''),
+        source_reply_id: replyId,
+        source_parent_post_id: parentPostId,
         parent_title: cleanText(reply.parentTitle),
         parent_author: cleanText(reply.parentAuthor),
         author: cleanText(reply.author),
         published_at: cleanText(reply.publishedAt),
         displayed_time: cleanText(reply.displayedTime),
         text: cleanText(reply.text),
+        local_folder: replyFolder,
         local_images: localImages,
         source_images: (reply.images || []).map((image) => ({
           original_url: cleanText(image.originalUrl),
@@ -221,6 +231,70 @@
       posts: rawPosts,
       replies: rawReplies,
     };
+
+    const threadMap = new Map();
+    rawPosts.forEach((post) => {
+      threadMap.set(post.source_post_id, {
+        folder: post.local_folder,
+        post,
+        parentContext: null,
+        replies: [],
+      });
+    });
+    rawReplies.forEach((reply) => {
+      if (!threadMap.has(reply.source_parent_post_id)) {
+        threadMap.set(reply.source_parent_post_id, {
+          folder: buildPostFolder(reply.parent_title, reply.source_parent_post_id),
+          post: null,
+          parentContext: {
+            source_post_id: reply.source_parent_post_id,
+            title: reply.parent_title,
+            author: reply.parent_author,
+          },
+          replies: [],
+        });
+      }
+      threadMap.get(reply.source_parent_post_id).replies.push(reply);
+    });
+
+    const itemFiles = [];
+    threadMap.forEach((thread) => {
+      const content = {
+        schema_version: 1,
+        community_name: cleanText(communityName),
+        author_filter: cleanText(authorFilter),
+        exported_at: exportedAt,
+        post: thread.post,
+        parent_context: thread.parentContext,
+        replies: thread.replies,
+      };
+      const title = thread.post?.title || thread.parentContext?.title || '无标题';
+      const author = thread.post?.author || thread.parentContext?.author || '未知';
+      const lines = [
+        `# ${title}`,
+        '',
+        `- 主帖作者：${author}`,
+        `- Teams 帖子 ID：${thread.post?.source_post_id || thread.parentContext?.source_post_id || ''}`,
+        `- 筛选出的 Inc 回复：${thread.replies.length} 条`,
+        '',
+      ];
+      if (thread.post?.text) lines.push(thread.post.text, '');
+      thread.post?.local_images.forEach((imagePath) => lines.push(`![${title}](${imagePath.split('/').pop() === undefined ? imagePath : `images/${imagePath.split('/').pop()}`})`, ''));
+      thread.replies.forEach((reply, index) => {
+        lines.push(`## Inc 回复 ${index + 1}`, '', `- 作者：${reply.author}`, `- 时间：${reply.published_at || '未知'}`, '');
+        if (reply.text) lines.push(reply.text, '');
+      });
+      itemFiles.push({
+        filename: `${thread.folder}/content.json`,
+        mimeType: 'application/json',
+        content: JSON.stringify(content, null, 2),
+      });
+      itemFiles.push({
+        filename: `${thread.folder}/README.md`,
+        mimeType: 'text/markdown',
+        content: lines.join('\n'),
+      });
+    });
 
     const toDraft = (entry, entryType) => {
       const isReply = entryType === 'reply';
@@ -258,6 +332,7 @@
     return {
       folderName,
       imageTasks,
+      itemFiles,
       raw,
       miniprogram,
       markdown: buildMarkdown(raw),

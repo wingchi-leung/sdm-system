@@ -101,6 +101,14 @@ async function downloadExport(bundle) {
   );
   await downloadTextFile(bundle.markdown, 'text/markdown', `${rootFolder}/README.md`);
 
+  for (const file of bundle.itemFiles || []) {
+    await downloadTextFile(
+      file.content,
+      file.mimeType || 'text/plain',
+      `${rootFolder}/${file.filename}`,
+    );
+  }
+
   for (const task of bundle.imageTasks || []) {
     const result = await downloadImage(task, rootFolder);
     if (!result.ok) failures.push(result);

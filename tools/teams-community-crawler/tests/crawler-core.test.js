@@ -92,16 +92,28 @@ test('buildExportBundle 生成原始数据和小程序草稿路径', () => {
 
   assert.equal(result.folderName, 'PPP-社区-20260714-120000');
   assert.equal(result.imageTasks.length, 2);
-  assert.equal(result.imageTasks[0].filename, 'images/001-1001-01.jpg');
-  assert.equal(result.imageTasks[1].filename, 'reply-images/001-2001-01.jpg');
-  assert.deepEqual(result.miniprogram.posts[0].images, ['images/001-1001-01.jpg']);
+  assert.equal(result.imageTasks[0].filename, 'posts/观图启思-1001/images/01.jpg');
+  assert.equal(
+    result.imageTasks[1].filename,
+    'posts/其他作者的主题-9001/replies/2001/images/01.jpg',
+  );
+  assert.deepEqual(result.miniprogram.posts[0].images, ['posts/观图启思-1001/images/01.jpg']);
   assert.match(result.miniprogram.posts[0].content, /正文/);
   assert.equal(result.miniprogram.posts[1].entry_type, 'reply');
   assert.equal(result.miniprogram.posts[1].source_parent_post_id, '9001');
   assert.match(result.miniprogram.posts[1].title, /其他作者的主题/);
-  assert.deepEqual(result.miniprogram.posts[1].images, ['reply-images/001-2001-01.jpg']);
+  assert.deepEqual(
+    result.miniprogram.posts[1].images,
+    ['posts/其他作者的主题-9001/replies/2001/images/01.jpg'],
+  );
   assert.equal(result.raw.posts[0].source_post_id, '1001');
   assert.equal(result.raw.replies[0].source_reply_id, '2001');
+  assert.ok(result.itemFiles.some((file) => file.filename === 'posts/观图启思-1001/content.json'));
+  assert.ok(
+    result.itemFiles.some(
+      (file) => file.filename === 'posts/其他作者的主题-9001/content.json',
+    ),
+  );
 });
 
 test('sanitizePathSegment 移除 Windows 非法路径字符', () => {
