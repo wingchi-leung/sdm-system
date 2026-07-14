@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Teams 社区内容导出器",
+  "version": "0.1.0",
+  "description": "从已登录的 Microsoft Teams 社区导出指定作者的帖子、文字和图片。",
+  "permissions": ["activeTab", "downloads", "tabs"],
+  "host_permissions": [
+    "https://teams.live.com/*",
+    "https://experimental-api.asm.skype.com/*"
+  ],
+  "background": {
+    "service_worker": "service-worker.js"
+  },
+  "action": {
+    "default_title": "导出 Teams 社区内容",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://teams.live.com/v2/*"],
+      "js": ["crawler-core.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
