@@ -60,6 +60,53 @@
     return merged;
   }
 
+  function hashString(value) {
+    let hash = 2166136261;
+    const text = String(value || '');
+    for (let index = 0; index < text.length; index += 1) {
+      hash ^= text.charCodeAt(index);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, '0');
+  }
+
+  function buildEntryFingerprint(entry) {
+    const images = (entry?.images || []).map((image) => ({
+      originalUrl: cleanText(image.originalUrl),
+      displayedUrl: cleanText(image.displayedUrl),
+      naturalWidth: Number(image.naturalWidth || 0),
+      naturalHeight: Number(image.naturalHeight || 0),
+    }));
+    return hashString(JSON.stringify({
+      id: cleanText(entry?.id),
+      author: cleanText(entry?.author),
+      publishedAt: cleanText(entry?.publishedAt),
+      title: cleanText(entry?.title),
+      text: cleanText(entry?.text),
+      images,
+    }));
+  }
+
+  function buildThreadCheckpoint(post, replies) {
+    const replyFingerprints = {};
+    (replies || []).forEach((reply) => {
+      if (!reply?.id) return;
+      replyFingerprints[String(reply.id)] = buildEntryFingerprint(reply);
+    });
+    return {
+      mainFingerprint: buildEntryFingerprint(post),
+      replyCount: Number(post?.replyCount || 0),
+      replyFingerprints,
+      checkedAt: new Date().toISOString(),
+    };
+  }
+
+  function shouldProcessThread(post, checkpoint) {
+    if (!checkpoint) return true;
+    return checkpoint.mainFingerprint !== buildEntryFingerprint(post)
+      || Number(checkpoint.replyCount || 0) !== Number(post?.replyCount || 0);
+  }
+
   function escapeHtml(value) {
     return cleanText(value)
       .replace(/&/g, '&amp;')
@@ -340,10 +387,13 @@
   }
 
   return {
+    buildEntryFingerprint,
     buildExportBundle,
+    buildThreadCheckpoint,
     matchesAuthor,
     mergePost,
     parseReplyCount,
     sanitizePathSegment,
+    shouldProcessThread,
   };
 });

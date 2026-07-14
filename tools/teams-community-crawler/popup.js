@@ -45,11 +45,12 @@ form.addEventListener('submit', async (event) => {
     const authorFilter = document.querySelector('#author-filter').value.trim() || 'Inc';
     const maxPosts = Number(document.querySelector('#max-posts').value || 0);
     const delayMs = Number(document.querySelector('#delay-ms').value || 800);
+    const incremental = document.querySelector('#incremental').checked;
     setStatus('正在逐条打开对话并抓取主帖和回复，请不要切换社区……');
 
     const crawlResponse = await sendTabMessage(tab.id, {
       type: 'crawl-teams-community',
-      options: { authorFilter, maxPosts, delayMs },
+      options: { authorFilter, maxPosts, delayMs, incremental },
     });
     if (!crawlResponse?.ok) {
       throw new Error(crawlResponse?.error || '抓取失败');
@@ -69,6 +70,15 @@ form.addEventListener('submit', async (event) => {
     }
 
     const summary = downloadResponse.summary;
+    if (summary.noExportedEntries) {
+      setStatus(
+        summary.checkedThreadCount
+          ? `已检查 ${summary.checkedThreadCount} 条待处理帖子，本批没有新增 Inc 内容；检查点已保存。`
+          : '没有发现新的或发生变化的帖子。',
+        'success',
+      );
+      return;
+    }
     const suffix = summary.failedImageCount
       ? `，${summary.failedImageCount} 张失败，详见 download-failures.json`
       : '，图片全部下载成功';

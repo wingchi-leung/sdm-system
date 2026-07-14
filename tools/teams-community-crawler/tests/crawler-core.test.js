@@ -2,11 +2,14 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const {
+  buildEntryFingerprint,
   buildExportBundle,
+  buildThreadCheckpoint,
   matchesAuthor,
   mergePost,
   parseReplyCount,
   sanitizePathSegment,
+  shouldProcessThread,
 } = require('../crawler-core');
 
 test('matchesAuthor 仅保留作者名包含指定文本的帖子', () => {
@@ -119,4 +122,36 @@ test('buildExportBundle 生成原始数据和小程序草稿路径', () => {
 test('sanitizePathSegment 移除 Windows 非法路径字符', () => {
   assert.equal(sanitizePathSegment(' PPP / 社区:*? '), 'PPP-社区');
   assert.equal(sanitizePathSegment(''), '未命名社区');
+});
+
+test('shouldProcessThread 跳过未变化帖子并识别新增回复', () => {
+  const post = {
+    id: '1001',
+    author: 'Inc. ICOACH',
+    title: '示例',
+    text: '正文',
+    replyCount: 3,
+    images: [],
+  };
+  const checkpoint = buildThreadCheckpoint(post, []);
+
+  assert.equal(shouldProcessThread(post, checkpoint), false);
+  assert.equal(shouldProcessThread({ ...post, replyCount: 4 }, checkpoint), true);
+  assert.equal(shouldProcessThread({ ...post, text: '正文已修改' }, checkpoint), true);
+  assert.equal(shouldProcessThread(post, null), true);
+});
+
+test('buildThreadCheckpoint 记录 Inc 回复指纹用于增量过滤', () => {
+  const post = { id: '1001', title: '主题', replyCount: 1, images: [] };
+  const reply = {
+    id: '2001',
+    parentPostId: '1001',
+    author: 'Inc. ICOACH',
+    text: '回复内容',
+    images: [],
+  };
+  const checkpoint = buildThreadCheckpoint(post, [reply]);
+
+  assert.equal(checkpoint.replyCount, 1);
+  assert.equal(checkpoint.replyFingerprints['2001'], buildEntryFingerprint(reply));
 });

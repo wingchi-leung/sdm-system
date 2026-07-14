@@ -5,6 +5,19 @@
     return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
+  function readCheckpoint(key) {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get(key, (result) => {
+        const error = chrome.runtime.lastError;
+        if (error) {
+          reject(new Error(`读取增量检查点失败：${error.message}`));
+          return;
+        }
+        resolve(result?.[key] || null);
+      });
+    });
+  }
+
   function getText(element) {
     return element ? String(element.innerText || element.textContent || '').trim() : '';
   }
@@ -200,10 +213,18 @@
     const maxPosts = Math.max(0, Number(options.maxPosts || 0));
     const delayMs = Math.max(300, Number(options.delayMs || 800));
     const maxRounds = Math.max(20, Number(options.maxRounds || 2000));
+    const incremental = options.incremental !== false;
+    const communityName = resolveCommunityName();
+    const checkpointKey = `teams-community-crawler:${location.host}:${communityName}`;
+    const storedCheckpoint = incremental ? await readCheckpoint(checkpointKey) : null;
+    const checkpoint = storedCheckpoint?.version === 1
+      ? JSON.parse(JSON.stringify(storedCheckpoint))
+      : { version: 1, communityName, authorFilter, updatedAt: null, threads: {} };
     const allPostMap = new Map();
     const selectedPostMap = new Map();
     const replyMap = new Map();
     const processedThreadIds = new Set();
+    let checkedThreadCount = 0;
     let stableRounds = 0;
     let previousHeight = -1;
     let previousCount = -1;
@@ -218,22 +239,46 @@
       const visibleIds = collectVisiblePosts(allPostMap);
       for (const postId of visibleIds) {
         if (processedThreadIds.has(postId)) continue;
-        if (maxPosts > 0 && processedThreadIds.size >= maxPosts) break;
         const parentPost = allPostMap.get(postId);
+        const savedThread = checkpoint.threads[postId] || null;
+        if (incremental && !core.shouldProcessThread(parentPost, savedThread)) {
+          processedThreadIds.add(postId);
+          continue;
+        }
+        if (maxPosts > 0 && checkedThreadCount >= maxPosts) break;
+        const currentThreadReplies = new Map();
         let threadResult;
         try {
-          threadResult = await crawlRepliesForPost(parentPost, authorFilter, replyMap, delayMs);
+          threadResult = await crawlRepliesForPost(
+            parentPost,
+            authorFilter,
+            currentThreadReplies,
+            delayMs,
+          );
         } catch (error) {
           throw new Error(`抓取帖子“${parentPost.title || postId}”的回复失败：${error.message}`);
         }
         if (threadResult === null) break;
-        if (core.matchesAuthor(parentPost.author, authorFilter)) {
+        if (
+          core.matchesAuthor(parentPost.author, authorFilter)
+          && (!incremental || savedThread?.mainFingerprint !== core.buildEntryFingerprint(parentPost))
+        ) {
           selectedPostMap.set(postId, core.mergePost(selectedPostMap.get(postId), parentPost));
         }
+        const currentReplies = Array.from(currentThreadReplies.values());
+        currentReplies.forEach((reply) => {
+          const previousFingerprint = savedThread?.replyFingerprints?.[reply.id];
+          const currentFingerprint = core.buildEntryFingerprint(reply);
+          if (!incremental || previousFingerprint !== currentFingerprint) {
+            replyMap.set(reply.id, core.mergePost(replyMap.get(reply.id), reply));
+          }
+        });
+        checkpoint.threads[postId] = core.buildThreadCheckpoint(parentPost, currentReplies);
+        checkedThreadCount += 1;
         processedThreadIds.add(postId);
         viewport = document.querySelector('[data-tid="channel-pane-viewport"]');
       }
-      if (maxPosts > 0 && processedThreadIds.size >= maxPosts) break;
+      if (maxPosts > 0 && checkedThreadCount >= maxPosts) break;
 
       const atBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 8;
       const unchanged = viewport.scrollHeight === previousHeight && processedThreadIds.size === previousCount;
@@ -251,17 +296,25 @@
     collectVisiblePosts(allPostMap);
     const posts = Array.from(selectedPostMap.values());
     const replies = Array.from(replyMap.values());
-    if (!posts.length && !replies.length) {
+    if (!incremental && !posts.length && !replies.length) {
       throw new Error(`没有找到作者名包含“${authorFilter}”的主帖或回复`);
     }
 
-    return core.buildExportBundle({
-      communityName: resolveCommunityName(),
+    checkpoint.updatedAt = new Date().toISOString();
+    const bundle = core.buildExportBundle({
+      communityName,
       authorFilter,
-      exportedAt: new Date().toISOString(),
+      exportedAt: checkpoint.updatedAt,
       posts,
       replies,
     });
+    bundle.checkpointKey = checkpointKey;
+    bundle.checkpoint = checkpoint;
+    bundle.incremental = incremental;
+    bundle.checkedThreadCount = checkedThreadCount;
+    bundle.noChanges = checkedThreadCount === 0;
+    bundle.noExportedEntries = posts.length === 0 && replies.length === 0;
+    return bundle;
   }
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -307,9 +360,10 @@
     panel.innerHTML = `
       <div style="font-weight:700;font-size:14px;margin-bottom:8px">Teams 社区导出器</div>
       <div style="color:#616161;margin-bottom:10px">筛选作者名包含 Inc 的主帖和回复</div>
-      <div style="display:flex;gap:8px">
-        <button type="button" data-crawler-action="sample" style="flex:1;padding:8px;border:0;border-radius:6px;background:#5b5fc7;color:#fff;cursor:pointer">导出 2 条样本</button>
-        <button type="button" data-crawler-action="all" style="flex:1;padding:8px;border:1px solid #5b5fc7;border-radius:6px;background:#fff;color:#4549a5;cursor:pointer">导出全部</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button type="button" data-crawler-action="sample" style="padding:8px;border:1px solid #5b5fc7;border-radius:6px;background:#fff;color:#4549a5;cursor:pointer">增量 2 条</button>
+        <button type="button" data-crawler-action="incremental" style="padding:8px;border:0;border-radius:6px;background:#5b5fc7;color:#fff;cursor:pointer">增量 20 条</button>
+        <button type="button" data-crawler-action="all" style="grid-column:1/-1;padding:8px;border:1px solid #aaa;border-radius:6px;background:#fff;color:#444;cursor:pointer">全量重新导出</button>
       </div>
       <div data-crawler-status role="status" style="margin-top:9px;color:#616161;word-break:break-word">尚未开始</div>
     `;
@@ -319,21 +373,31 @@
     const status = panel.querySelector('[data-crawler-status]');
     buttons.forEach((button) => {
       button.addEventListener('click', async () => {
-        const isSample = button.getAttribute('data-crawler-action') === 'sample';
+        const action = button.getAttribute('data-crawler-action');
+        const isSample = action === 'sample';
+        const isAll = action === 'all';
         buttons.forEach((item) => { item.disabled = true; });
-        status.textContent = isSample
-          ? '正在检查前 2 条主帖及其 Inc 回复……'
-          : '正在检查全部主帖及其 Inc 回复，请保持页面打开……';
+        status.textContent = isAll
+          ? '正在全量检查所有主帖及其 Inc 回复，请保持页面打开……'
+          : `正在增量检查 ${isSample ? 2 : 20} 条待处理主帖……`;
         try {
           const bundle = await crawl({
             authorFilter: 'Inc',
-            maxPosts: isSample ? 2 : 0,
+            maxPosts: isAll ? 0 : (isSample ? 2 : 20),
             delayMs: 800,
+            incremental: !isAll,
           });
           status.textContent = `已抓取 ${bundle.raw.posts.length} 条主帖、${bundle.raw.replies.length} 条回复，正在下载……`;
           const response = await sendRuntimeMessage({ type: 'download-export', bundle });
           if (!response?.ok) throw new Error(response?.error || '下载失败');
           const summary = response.summary;
+          if (summary.noExportedEntries) {
+            status.textContent = summary.checkedThreadCount
+              ? `已检查 ${summary.checkedThreadCount} 条，本批没有新增 Inc 内容；检查点已保存。`
+              : '没有新的或发生变化的帖子。';
+            status.style.color = '#0b6a0b';
+            return;
+          }
           status.textContent = `完成：${summary.postCount} 条主帖、${summary.replyCount} 条回复、${summary.imageCount - summary.failedImageCount}/${summary.imageCount} 张图片`;
           status.style.color = summary.failedImageCount ? '#8a4b08' : '#0b6a0b';
         } catch (error) {

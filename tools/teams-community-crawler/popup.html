@@ -17,13 +17,17 @@
         </label>
         <label>
           最多检查主帖
-          <input id="max-posts" type="number" min="0" value="0" />
+          <input id="max-posts" type="number" min="0" value="20" />
           <small>0 表示全部；每条都会打开对话检查 Inc 回复</small>
         </label>
         <label>
           每次滚动等待
           <input id="delay-ms" type="number" min="300" step="100" value="800" />
           <small>毫秒；网速慢可改为 1200</small>
+        </label>
+        <label class="checkbox-label">
+          <input id="incremental" type="checkbox" checked />
+          增量模式（跳过未变化的已处理帖子）
         </label>
         <button id="start-button" type="submit">开始抓取并下载</button>
       </form>

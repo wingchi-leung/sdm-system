@@ -85,42 +85,60 @@ async function downloadTextFile(content, mimeType, filename) {
   return downloadUrl(dataUrl, filename);
 }
 
+function saveCheckpoint(key, checkpoint) {
+  return new Promise((resolve, reject) => {
+    if (!key || !checkpoint) {
+      resolve();
+      return;
+    }
+    chrome.storage.local.set({ [key]: checkpoint }, () => {
+      const error = chrome.runtime.lastError;
+      if (error) reject(new Error(`保存增量检查点失败：${error.message}`));
+      else resolve();
+    });
+  });
+}
+
 async function downloadExport(bundle) {
   const rootFolder = `TeamsCommunity/${bundle.folderName}`;
   const failures = [];
 
-  await downloadTextFile(
-    JSON.stringify(bundle.raw, null, 2),
-    'application/json',
-    `${rootFolder}/teams-raw.json`,
-  );
-  await downloadTextFile(
-    JSON.stringify(bundle.miniprogram, null, 2),
-    'application/json',
-    `${rootFolder}/miniprogram-import.json`,
-  );
-  await downloadTextFile(bundle.markdown, 'text/markdown', `${rootFolder}/README.md`);
-
-  for (const file of bundle.itemFiles || []) {
+  if (!bundle.noExportedEntries) {
     await downloadTextFile(
-      file.content,
-      file.mimeType || 'text/plain',
-      `${rootFolder}/${file.filename}`,
-    );
-  }
-
-  for (const task of bundle.imageTasks || []) {
-    const result = await downloadImage(task, rootFolder);
-    if (!result.ok) failures.push(result);
-  }
-
-  if (failures.length) {
-    await downloadTextFile(
-      JSON.stringify(failures, null, 2),
+      JSON.stringify(bundle.raw, null, 2),
       'application/json',
-      `${rootFolder}/download-failures.json`,
+      `${rootFolder}/teams-raw.json`,
     );
+    await downloadTextFile(
+      JSON.stringify(bundle.miniprogram, null, 2),
+      'application/json',
+      `${rootFolder}/miniprogram-import.json`,
+    );
+    await downloadTextFile(bundle.markdown, 'text/markdown', `${rootFolder}/README.md`);
+
+    for (const file of bundle.itemFiles || []) {
+      await downloadTextFile(
+        file.content,
+        file.mimeType || 'text/plain',
+        `${rootFolder}/${file.filename}`,
+      );
+    }
+
+    for (const task of bundle.imageTasks || []) {
+      const result = await downloadImage(task, rootFolder);
+      if (!result.ok) failures.push(result);
+    }
+
+    if (failures.length) {
+      await downloadTextFile(
+        JSON.stringify(failures, null, 2),
+        'application/json',
+        `${rootFolder}/download-failures.json`,
+      );
+    }
   }
+
+  await saveCheckpoint(bundle.checkpointKey, bundle.checkpoint);
 
   return {
     rootFolder,
@@ -128,6 +146,8 @@ async function downloadExport(bundle) {
     replyCount: bundle.raw.replies.length,
     imageCount: bundle.imageTasks.length,
     failedImageCount: failures.length,
+    checkedThreadCount: Number(bundle.checkedThreadCount || 0),
+    noExportedEntries: Boolean(bundle.noExportedEntries),
   };
 }
 
