@@ -1,0 +1,48 @@
+{
+  "source": "https://teams.live.com/v2/",
+  "community": "PPP",
+  "author_filter": "Inc",
+  "sample_count": 2,
+  "posts": [
+    {
+      "id": "1778798348840",
+      "author": "Inc. ICOACH",
+      "published_at": "2026年5月15日 6:39",
+      "title": "观图启思⋯⋯",
+      "text": "",
+      "reply_summary": "打开来自 温 建华、Inc. ICOACH、Frances Kong 和 14 个其他的 132 个答复",
+      "images": [
+        {
+          "original_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d8-880ae2f4664e906f71a87ff64ca1ef2e/views/imgpsh_fullsize",
+          "displayed_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d8-880ae2f4664e906f71a87ff64ca1ef2e/views/imgo"
+        }
+      ]
+    },
+    {
+      "id": "1771161302962",
+      "author": "Inc. ICOACH",
+      "published_at": "2026年2月15日 21:15",
+      "title": "理财科不合格不能毕业⋯⋯美国高中新法规！",
+      "text": "",
+      "reply_summary": "打开来自 Inc. ICOACH、梁 宝合、Lee Suki 李顺怡 和 10 个其他的 77 个答复",
+      "images": [
+        {
+          "original_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d11-c8e4cf67261d8f36f84657a98795e2b9/views/imgpsh_fullsize",
+          "displayed_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d11-c8e4cf67261d8f36f84657a98795e2b9/views/imgo"
+        },
+        {
+          "original_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d1-1195b58795e571d6109f503cf6c4fb2c/views/imgpsh_fullsize",
+          "displayed_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d1-1195b58795e571d6109f503cf6c4fb2c/views/imgo"
+        },
+        {
+          "original_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d4-f9970ec991a4f7b4ddef9db3f874bebf/views/imgpsh_fullsize",
+          "displayed_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d4-f9970ec991a4f7b4ddef9db3f874bebf/views/imgo"
+        },
+        {
+          "original_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d12-195e21b1331948eaac8b844853d11220/views/imgpsh_fullsize",
+          "displayed_url": "https://experimental-api.asm.skype.com/v1/00000000-0000-0000-4620-d1740856e9c8/objects/0-ea-d12-195e21b1331948eaac8b844853d11220/views/imgo"
+        }
+      ]
+    }
+  ]
+}
