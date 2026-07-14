@@ -14,43 +14,76 @@
   <view wx:else class="content">
     <view class="toolbar">
       <view class="toolbar-actions">
-        <view wx:if="{{showCalendarButton}}" class="toolbar-btn toolbar-btn--ghost" bindtap="onOpenCalendar">
+        <!-- <view wx:if="{{showCalendarButton}}" class="toolbar-btn" bindtap="onOpenCalendar">
+          <view class="toolbar-calendar" aria-hidden="true">
+            <view class="toolbar-calendar__rings"></view>
+            <view class="toolbar-calendar__dots"></view>
+          </view>
           <text class="toolbar-btn-text">社区日历</text>
           <text class="toolbar-btn-arrow ui-chevron ui-chevron--sm">›</text>
-        </view>
-        <view wx:if="{{showManageButton}}" class="toolbar-btn toolbar-btn--ghost" bindtap="onManageMembers">
+        </view> -->
+        <view wx:if="{{showManageButton}}" class="toolbar-btn" bindtap="onManageMembers">
+          <view class="toolbar-members" aria-hidden="true">
+            <view class="toolbar-members__head toolbar-members__head--left"></view>
+            <view class="toolbar-members__head toolbar-members__head--right"></view>
+            <view class="toolbar-members__body"></view>
+          </view>
           <text class="toolbar-btn-text">社区管理</text>
-          <text class="toolbar-btn-arrow ui-chevron ui-chevron--sm">›</text>
         </view>
       </view>
     </view>
 
-    <view wx:if="{{showAnnouncementEntry}}" class="announcement-section">
+    <view class="section-head">
       <text class="section-label">最新公告</text>
-      <view class="announcement-card" bindtap="onOpenAnnouncementList">
-        <view class="announcement-row">
-          <image class="announcement-icon" src="/assets/icons/announcement.png" mode="aspectFit" />
-          <view class="announcement-copy">
-            <text class="announcement-title">公告</text>
-            <text class="announcement-subtitle">共 {{announcementCount}} 条</text>
-          </view>
-          <text class="announcement-arrow">→</text>
-        </view>
-      </view>
-     
+      <view class="section-head__dash"></view>
     </view>
 
     <view wx:if="{{posts.length > 0}}" class="feed-list">
-      <view wx:for="{{posts}}" wx:key="id" class="feed-card">
-        <view class="feed-author-row">
-          <image class="avatar" src="{{item.author_avatar_display_url}}" mode="aspectFill" />
-          <view class="author-meta">
-            <text class="author-name">{{item.author_name}}</text>
-            <text class="author-date">· {{item.create_time_display}}</text>
+      <view wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" class="feed-card">
+        <view wx:if="{{postIndex === 0 && showAnnouncementEntry}}" class="announcement-meta" bindtap="onOpenAnnouncementList">
+          <view class="announcement-meta__left">
+            <view class="announcement-icon-wrap">
+              <image class="announcement-icon" src="/assets/icons/announcement.png" mode="aspectFit" />
+            </view>
+            <view class="announcement-copy">
+              <text class="announcement-title">公告</text>
+              <text class="announcement-subtitle">共 {{announcementCount}} 条</text>
+            </view>
           </view>
+          <text class="announcement-date">{{item.create_time_display}}</text>
         </view>
 
         <text class="feed-title">{{item.title}}</text>
+
+        <view class="feed-source">
+          <text>来源：社区</text>
+          <text class="feed-source__divider">|</text>
+          <text>作者：{{item.author_name}}</text>
+          <text class="feed-source__divider">|</text>
+          <text>{{item.create_time_display}}</text>
+        </view>
+
+        <view wx:if="{{!item.content_expanded && item.parsed.images && item.parsed.images.length > 0}}" class="feed-grid">
+          <view
+            wx:for="{{item.parsed.images}}"
+            wx:for-item="imageUrl"
+            wx:for-index="imageIndex"
+            wx:key="imageUrl"
+            class="feed-grid-cell"
+          >
+            <image
+              class="feed-grid-image"
+              src="{{imageUrl}}"
+              mode="aspectFill"
+              data-id="{{item.id}}"
+              data-url="{{imageUrl}}"
+              bindtap="onPreviewPostImage"
+            />
+            <view wx:if="{{imageIndex === 2 && item.parsed.images.length > 3}}" class="feed-grid-more">
+              +{{item.parsed.images.length - 3}}
+            </view>
+          </view>
+        </view>
 
         <view wx:if="{{item.content_expanded}}" class="feed-content-expanded">
           <view class="feed-blocks">
@@ -74,35 +107,24 @@
         </view>
 
         <text wx:elif="{{item.content_summary}}" class="feed-summary">
-          {{item.content_summary}}{{item.parsed.text.length > item.content_summary.length ? ' …' : ''}}
+          {{item.content_summary}}{{item.parsed.text.length > item.content_summary.length ? '……' : ''}}
         </text>
 
-        <view wx:if="{{!item.content_expanded && item.parsed.images && item.parsed.images.length > 0}}" class="feed-grid">
-          <image
-            wx:for="{{item.parsed.images}}"
-            wx:for-item="imageUrl"
-            wx:key="imageUrl"
-            class="feed-grid-image"
-            src="{{imageUrl}}"
-            mode="aspectFill"
-            data-id="{{item.id}}"
-            data-url="{{imageUrl}}"
-            bindtap="onPreviewPostImage"
-          />
+        <view class="expand-row">
+          <text class="action-link action-link--expand" data-id="{{item.id}}" bindtap="onToggleContent">
+            {{item.content_expanded ? '收起全文' : '展开全文'}}
+          </text>
+          <text class="expand-row__arrow">⌄</text>
         </view>
 
         <view class="feed-actions">
-          <text class="reply-count"></text>
-          <view class="feed-actions-right">
-            <text class="action-link" data-id="{{item.id}}" bindtap="onToggleContent">
-              {{item.content_expanded ? '收起全文' : '展开全文'}}
-            </text>
-            <text wx:if="{{item.comment_count > 0}}" class="action-link" data-id="{{item.id}}" bindtap="onToggleComments">
-              {{item.comments_collapsed ? '展开评论' : '折叠评论'}}
-            </text>
-            <text wx:if="{{canComment}}" class="action-link" data-id="{{item.id}}" bindtap="onToggleCommentComposer">
-              {{item.comment_compose_open ? '收起评论' : '写评论'}}
-            </text>
+          <view class="reply-count">
+            <view class="reply-icon"></view>
+            <text>{{item.comment_count || 0}} 条评论</text>
+          </view>
+          <view wx:if="{{canComment}}" class="write-comment-btn" data-id="{{item.id}}" bindtap="onToggleCommentComposer">
+            <text class="write-comment-btn__icon">▱</text>
+            <text>{{item.comment_compose_open ? '收起评论' : '写评论'}}</text>
           </view>
         </view>
 
@@ -110,7 +132,10 @@
           <view wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id" class="comment-preview">
             <image class="comment-avatar" src="{{comment.user_avatar_display_url}}" mode="aspectFill" />
             <view class="comment-main">
-              <text class="comment-user">{{comment.user_name}}</text>
+              <view class="comment-meta-row">
+                <text class="comment-user">{{comment.user_name}}</text>
+                <text class="comment-time">· {{comment.create_time_display}}</text>
+              </view>
               <text class="comment-content">{{comment.content}}</text>
               <view wx:if="{{comment.images && comment.images.length > 0}}" class="comment-image-grid">
                 <image
@@ -126,7 +151,6 @@
                   bindtap="onPreviewCommentImage"
                 />
               </view>
-              <text class="comment-time">{{comment.create_time_display}}</text>
             </view>
           </view>
         </view>
@@ -137,8 +161,9 @@
 
         <view wx:if="{{!item.comments_collapsed && !item.comments_loaded_all}}" class="comment-loadmore">
           <text class="action-link" data-id="{{item.id}}" bindtap="onLoadMoreComments">
-            {{item.comments_loading ? '加载中…' : '加载更多评论'}}
+            {{item.comments_loading ? '加载中…' : '查看更多评论'}}
           </text>
+          <text class="comment-loadmore__arrow">›</text>
         </view>
 
         <view wx:if="{{canComment && item.comment_compose_open}}" class="comment-composer">
@@ -178,7 +203,6 @@
       <text class="empty-title">还没有社区动态</text>
       <text class="empty-text">社区成员发布后，会在这里展示。</text>
     </view>
- 
   </view>
 
   <view wx:if="{{showCreateButton}}" class="floating-create-btn" bindtap="onCreatePost" hover-class="floating-create-btn--active">
