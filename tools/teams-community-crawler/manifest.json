@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Teams 社区内容导出器",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "从已登录的 Microsoft Teams 社区导出指定作者的帖子、文字和图片。",
   "permissions": ["activeTab", "downloads", "storage", "tabs"],
   "host_permissions": [

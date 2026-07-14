@@ -102,8 +102,10 @@ function saveCheckpoint(key, checkpoint) {
 async function downloadExport(bundle) {
   const rootFolder = `TeamsCommunity/${bundle.folderName}`;
   const failures = [];
+  const downloadIndex = !bundle.streamMode;
+  const downloadItems = !bundle.indexOnly;
 
-  if (!bundle.noExportedEntries) {
+  if (!bundle.noExportedEntries && downloadIndex) {
     await downloadTextFile(
       JSON.stringify(bundle.raw, null, 2),
       'application/json',
@@ -115,7 +117,9 @@ async function downloadExport(bundle) {
       `${rootFolder}/miniprogram-import.json`,
     );
     await downloadTextFile(bundle.markdown, 'text/markdown', `${rootFolder}/README.md`);
+  }
 
+  if (!bundle.noExportedEntries && downloadItems) {
     for (const file of bundle.itemFiles || []) {
       await downloadTextFile(
         file.content,
@@ -128,14 +132,22 @@ async function downloadExport(bundle) {
       const result = await downloadImage(task, rootFolder);
       if (!result.ok) failures.push(result);
     }
+  }
 
-    if (failures.length) {
-      await downloadTextFile(
-        JSON.stringify(failures, null, 2),
-        'application/json',
-        `${rootFolder}/download-failures.json`,
-      );
-    }
+  if (failures.length) {
+    await downloadTextFile(
+      JSON.stringify(failures, null, 2),
+      'application/json',
+      `${rootFolder}/download-failures.json`,
+    );
+  }
+
+  if (downloadIndex && bundle.crawlFailures?.length) {
+    await downloadTextFile(
+      JSON.stringify(bundle.crawlFailures, null, 2),
+      'application/json',
+      `${rootFolder}/crawl-failures.json`,
+    );
   }
 
   await saveCheckpoint(bundle.checkpointKey, bundle.checkpoint);

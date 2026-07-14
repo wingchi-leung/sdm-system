@@ -18,6 +18,13 @@
     });
   }
 
+  function updateInlineStatus(message, color = '#616161') {
+    const status = document.querySelector('#teams-community-crawler-panel [data-crawler-status]');
+    if (!status) return;
+    status.textContent = message;
+    status.style.color = color;
+  }
+
   function getText(element) {
     return element ? String(element.innerText || element.textContent || '').trim() : '';
   }
@@ -215,6 +222,7 @@
     const maxRounds = Math.max(20, Number(options.maxRounds || 2000));
     const incremental = options.incremental !== false;
     const communityName = resolveCommunityName();
+    const runExportedAt = new Date().toISOString();
     const checkpointKey = `teams-community-crawler:${location.host}:${communityName}`;
     const storedCheckpoint = incremental ? await readCheckpoint(checkpointKey) : null;
     const checkpoint = storedCheckpoint?.version === 1
@@ -224,6 +232,8 @@
     const selectedPostMap = new Map();
     const replyMap = new Map();
     const processedThreadIds = new Set();
+    const crawlFailures = [];
+    const streamSummaries = [];
     let checkedThreadCount = 0;
     let stableRounds = 0;
     let previousHeight = -1;
@@ -247,6 +257,8 @@
         }
         if (maxPosts > 0 && checkedThreadCount >= maxPosts) break;
         const currentThreadReplies = new Map();
+        const changedPosts = [];
+        const changedReplies = [];
         let threadResult;
         try {
           threadResult = await crawlRepliesForPost(
@@ -256,7 +268,19 @@
             delayMs,
           );
         } catch (error) {
-          throw new Error(`抓取帖子“${parentPost.title || postId}”的回复失败：${error.message}`);
+          const failure = {
+            post_id: postId,
+            title: parentPost.title || '',
+            error: error.message || '回复面板打开失败',
+            failed_at: new Date().toISOString(),
+          };
+          crawlFailures.push(failure);
+          threadResult = false;
+          try {
+            await ensureListView();
+          } catch (_) {
+            throw new Error(`帖子“${parentPost.title || postId}”失败后无法返回列表，请刷新页面后重试`);
+          }
         }
         if (threadResult === null) break;
         if (
@@ -264,6 +288,7 @@
           && (!incremental || savedThread?.mainFingerprint !== core.buildEntryFingerprint(parentPost))
         ) {
           selectedPostMap.set(postId, core.mergePost(selectedPostMap.get(postId), parentPost));
+          changedPosts.push(parentPost);
         }
         const currentReplies = Array.from(currentThreadReplies.values());
         currentReplies.forEach((reply) => {
@@ -271,11 +296,37 @@
           const currentFingerprint = core.buildEntryFingerprint(reply);
           if (!incremental || previousFingerprint !== currentFingerprint) {
             replyMap.set(reply.id, core.mergePost(replyMap.get(reply.id), reply));
+            changedReplies.push(reply);
           }
         });
         checkpoint.threads[postId] = core.buildThreadCheckpoint(parentPost, currentReplies);
+        if (threadResult === false && crawlFailures.length) {
+          checkpoint.threads[postId].lastError = crawlFailures[crawlFailures.length - 1];
+        }
+        checkpoint.updatedAt = new Date().toISOString();
         checkedThreadCount += 1;
         processedThreadIds.add(postId);
+        const threadBundle = core.buildExportBundle({
+          communityName,
+          authorFilter,
+          exportedAt: runExportedAt,
+          posts: changedPosts,
+          replies: changedReplies,
+        });
+        threadBundle.checkpointKey = checkpointKey;
+        threadBundle.checkpoint = checkpoint;
+        threadBundle.streamMode = true;
+        threadBundle.checkedThreadCount = 1;
+        threadBundle.noExportedEntries = changedPosts.length === 0 && changedReplies.length === 0;
+        const streamResponse = await sendRuntimeMessage({ type: 'download-export', bundle: threadBundle });
+        if (!streamResponse?.ok) {
+          throw new Error(streamResponse?.error || `帖子“${parentPost.title || postId}”保存失败`);
+        }
+        streamSummaries.push(streamResponse.summary);
+        updateInlineStatus(
+          `已完成 ${checkedThreadCount} 条；刚保存“${parentPost.title || postId}”${crawlFailures.length ? `，失败 ${crawlFailures.length} 条已跳过` : ''}`,
+          crawlFailures.length ? '#8a4b08' : '#0b6a0b',
+        );
         viewport = document.querySelector('[data-tid="channel-pane-viewport"]');
       }
       if (maxPosts > 0 && checkedThreadCount >= maxPosts) break;
@@ -304,7 +355,7 @@
     const bundle = core.buildExportBundle({
       communityName,
       authorFilter,
-      exportedAt: checkpoint.updatedAt,
+      exportedAt: runExportedAt,
       posts,
       replies,
     });
@@ -314,6 +365,24 @@
     bundle.checkedThreadCount = checkedThreadCount;
     bundle.noChanges = checkedThreadCount === 0;
     bundle.noExportedEntries = posts.length === 0 && replies.length === 0;
+    bundle.indexOnly = true;
+    bundle.crawlFailures = crawlFailures;
+    const indexResponse = await sendRuntimeMessage({ type: 'download-export', bundle });
+    if (!indexResponse?.ok) throw new Error(indexResponse?.error || '保存本批索引失败');
+    const totalImageCount = streamSummaries.reduce((sum, item) => sum + Number(item.imageCount || 0), 0);
+    const failedImageCount = streamSummaries.reduce(
+      (sum, item) => sum + Number(item.failedImageCount || 0),
+      0,
+    );
+    bundle.alreadyDownloaded = true;
+    bundle.downloadSummary = {
+      ...indexResponse.summary,
+      checkedThreadCount,
+      imageCount: totalImageCount,
+      failedImageCount,
+      crawlFailureCount: crawlFailures.length,
+      noExportedEntries: bundle.noExportedEntries,
+    };
     return bundle;
   }
 
@@ -387,10 +456,13 @@
             delayMs: 800,
             incremental: !isAll,
           });
-          status.textContent = `已抓取 ${bundle.raw.posts.length} 条主帖、${bundle.raw.replies.length} 条回复，正在下载……`;
-          const response = await sendRuntimeMessage({ type: 'download-export', bundle });
-          if (!response?.ok) throw new Error(response?.error || '下载失败');
-          const summary = response.summary;
+          let summary = bundle.downloadSummary;
+          if (!bundle.alreadyDownloaded) {
+            status.textContent = `已抓取 ${bundle.raw.posts.length} 条主帖、${bundle.raw.replies.length} 条回复，正在下载……`;
+            const response = await sendRuntimeMessage({ type: 'download-export', bundle });
+            if (!response?.ok) throw new Error(response?.error || '下载失败');
+            summary = response.summary;
+          }
           if (summary.noExportedEntries) {
             status.textContent = summary.checkedThreadCount
               ? `已检查 ${summary.checkedThreadCount} 条，本批没有新增 Inc 内容；检查点已保存。`
@@ -398,8 +470,8 @@
             status.style.color = '#0b6a0b';
             return;
           }
-          status.textContent = `完成：${summary.postCount} 条主帖、${summary.replyCount} 条回复、${summary.imageCount - summary.failedImageCount}/${summary.imageCount} 张图片`;
-          status.style.color = summary.failedImageCount ? '#8a4b08' : '#0b6a0b';
+          status.textContent = `完成：${summary.postCount} 条主帖、${summary.replyCount} 条回复、${summary.imageCount - summary.failedImageCount}/${summary.imageCount} 张图片${summary.crawlFailureCount ? `；跳过 ${summary.crawlFailureCount} 条打不开的帖子` : ''}`;
+          status.style.color = summary.failedImageCount || summary.crawlFailureCount ? '#8a4b08' : '#0b6a0b';
         } catch (error) {
           status.textContent = error.message || '执行失败，请刷新页面后重试';
           status.style.color = '#a4262c';

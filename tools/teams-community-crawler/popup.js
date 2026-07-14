@@ -59,17 +59,16 @@ form.addEventListener('submit', async (event) => {
     const postCount = crawlResponse.bundle.raw.posts.length;
     const replyCount = crawlResponse.bundle.raw.replies.length;
     const imageCount = crawlResponse.bundle.imageTasks.length;
-    setStatus(`已抓取 ${postCount} 条主帖、${replyCount} 条回复、${imageCount} 张图片，正在下载……`);
-
-    const downloadResponse = await sendRuntimeMessage({
-      type: 'download-export',
-      bundle: crawlResponse.bundle,
-    });
-    if (!downloadResponse?.ok) {
-      throw new Error(downloadResponse?.error || '下载失败');
+    let summary = crawlResponse.bundle.downloadSummary;
+    if (!crawlResponse.bundle.alreadyDownloaded) {
+      setStatus(`已抓取 ${postCount} 条主帖、${replyCount} 条回复、${imageCount} 张图片，正在下载……`);
+      const downloadResponse = await sendRuntimeMessage({
+        type: 'download-export',
+        bundle: crawlResponse.bundle,
+      });
+      if (!downloadResponse?.ok) throw new Error(downloadResponse?.error || '下载失败');
+      summary = downloadResponse.summary;
     }
-
-    const summary = downloadResponse.summary;
     if (summary.noExportedEntries) {
       setStatus(
         summary.checkedThreadCount
@@ -82,7 +81,13 @@ form.addEventListener('submit', async (event) => {
     const suffix = summary.failedImageCount
       ? `，${summary.failedImageCount} 张失败，详见 download-failures.json`
       : '，图片全部下载成功';
-    setStatus(`完成：${summary.rootFolder}${suffix}`, summary.failedImageCount ? 'warning' : 'success');
+    const crawlSuffix = summary.crawlFailureCount
+      ? `；${summary.crawlFailureCount} 条帖子打不开，已跳过并记录`
+      : '';
+    setStatus(
+      `完成：${summary.rootFolder}${suffix}${crawlSuffix}`,
+      summary.failedImageCount || summary.crawlFailureCount ? 'warning' : 'success',
+    );
   } catch (error) {
     setStatus(error.message || '执行失败，请刷新 Teams 页面后重试', 'error');
   } finally {
