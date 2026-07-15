@@ -6,7 +6,6 @@ const { resolveAvatarDisplayUrl, getDefaultAvatarPath } = require('../../utils/a
 
 const PAGE_SIZE = 10;
 const COMMENT_PAGE_SIZE = 20;
-
 function decodeDisplayText(value) {
   const text = value == null ? '' : String(value);
   if (!text) return '';
@@ -142,6 +141,9 @@ Page({
     const previewComments = await Promise.all(
       (item.preview_comments || []).map((comment) => this.normalizeComment(comment)),
     );
+    const commentCount = Number(item.comment_count || 0);
+    const contentSummary = parsed.text.slice(0, 96);
+    const canExpandContent = this.canExpandPostContent(parsed, contentSummary);
 
     return {
       ...item,
@@ -151,12 +153,13 @@ Page({
       extra_image_count: Math.max(0, parsed.images.length - 1),
       create_time_display: this.formatDate(item.create_time),
       publish_time_ago: this.formatRelativeTime(item.create_time),
-      content_summary: parsed.text.slice(0, 96),
+      content_summary: contentSummary,
+      can_expand_content: canExpandContent,
       content_expanded: false,
-      comments_collapsed: false,
+      comments_collapsed: commentCount > 0 && previewComments.length === 0,
       comments_loading: false,
       comments: previewComments,
-      comments_loaded_all: previewComments.length >= Number(item.comment_count || 0),
+      comments_loaded_all: previewComments.length >= commentCount,
       comment_compose_open: false,
       commentContent: '',
       commentImageLocalPaths: [],
@@ -223,6 +226,24 @@ Page({
     };
   },
 
+  canExpandPostContent(parsed, contentSummary) {
+    const blocks = parsed && Array.isArray(parsed.blocks) ? parsed.blocks : [];
+    const images = parsed && Array.isArray(parsed.images) ? parsed.images : [];
+    const text = parsed && parsed.text ? String(parsed.text) : '';
+    const summary = contentSummary == null ? '' : String(contentSummary);
+
+    if (text.length > summary.length) return true;
+    if (images.length > 3) return true;
+
+    const textBlockCount = blocks.filter((block) => block && block.type === 'text').length;
+    const imageBlockCount = blocks.filter((block) => block && block.type === 'images').length;
+
+    if (textBlockCount > 1 || imageBlockCount > 1) return true;
+    if (blocks.length > 2) return true;
+
+    return false;
+  },
+
   formatDate(iso) {
     if (!iso) return '';
     const date = new Date(iso);
@@ -273,10 +294,17 @@ Page({
   onToggleComments(e) {
     const postId = Number(e.currentTarget.dataset.id);
     if (!postId) return;
+    const target = (this.data.posts || []).find((post) => post.id === postId);
+    if (!target) return;
+    const nextCollapsed = !target.comments_collapsed;
     this.updatePostById(postId, (post) => ({
       ...post,
-      comments_collapsed: !post.comments_collapsed,
+      comments_collapsed: nextCollapsed,
     }));
+    if (nextCollapsed) return;
+    if ((target.comments || []).length === 0 && Number(target.comment_count || 0) > 0) {
+      this.loadMoreComments(postId);
+    }
   },
 
   onToggleCommentComposer(e) {
@@ -415,7 +443,7 @@ Page({
           ...post,
           comments: nextComments,
           comment_count: nextCommentCount,
-          comments_loaded_all: Boolean(post.comments_loaded_all),
+          comments_loaded_all: nextComments.length >= nextCommentCount,
           comment_compose_open: false,
           commentContent: '',
           commentImageLocalPaths: [],
@@ -433,9 +461,7 @@ Page({
     }
   },
 
-  async onLoadMoreComments(e) {
-    const postId = Number(e.currentTarget.dataset.id);
-    if (!postId) return;
+  async loadMoreComments(postId) {
     const target = (this.data.posts || []).find((post) => post.id === postId);
     if (!target || target.comments_loading || target.comments_loaded_all) return;
 
@@ -451,6 +477,7 @@ Page({
         return {
           ...post,
           comments,
+          comments_collapsed: false,
           comments_loading: false,
           comments_loaded_all: comments.length >= Number(result.total || post.comment_count || 0),
         };
@@ -459,6 +486,30 @@ Page({
       this.updatePostById(postId, (post) => ({ ...post, comments_loading: false }));
       wx.showToast({ title: err.message || '加载评论失败', icon: 'none' });
     }
+  },
+
+  async onLoadMoreComments(e) {
+    const postId = Number(e.currentTarget.dataset.id);
+    if (!postId) return;
+    this.loadMoreComments(postId);
+  },
+
+  onCollapseComments(e) {
+    const postId = Number(e.currentTarget.dataset.id || 0);
+    if (!postId) return;
+    const collapse = () => {
+      this.updatePostById(postId, (post) => ({
+        ...post,
+        comments_collapsed: true,
+      }));
+    };
+
+    // 先定位再收起，避免内容高度骤减后滚动值被钳制到页面底部。
+    wx.pageScrollTo({
+      selector: `#post-card-${postId}`,
+      duration: 0,
+      complete: collapse,
+    });
   },
 
   onPreviewPostImage(e) {

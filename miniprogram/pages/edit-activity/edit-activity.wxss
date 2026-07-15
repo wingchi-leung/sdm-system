@@ -22,6 +22,13 @@
   border-bottom: none;
 }
 
+.field-head {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-bottom: 16rpx;
+}
+
 .field-label {
   display: block;
   margin-bottom: 16rpx;
@@ -29,6 +36,16 @@
   font-size: 28rpx;
   line-height: 1.4;
   font-weight: 500;
+}
+
+.field-head .field-label {
+  margin-bottom: 0;
+}
+
+.field-required {
+  color: #e5483b;
+  font-size: 24rpx;
+  line-height: 1;
 }
 
 .input {
@@ -52,23 +69,49 @@
   color: #bbbbbb;
 }
 
+.datetime-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 28rpx;
+}
+
 .datetime-row {
   display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.datetime-label {
+  flex-shrink: 0;
+  width: 64rpx;
+  color: #525866;
+  font-size: 26rpx;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.datetime-pickers {
+  flex: 1;
+  display: flex;
+  align-items: center;
   gap: 16rpx;
 }
 
-.datetime-row picker {
+.datetime-pickers picker {
   flex: 1;
 }
 
-.picker-value {
+.time-chip {
+  min-width: 0;
+  height: 88rpx;
+  padding: 0 20rpx;
   display: flex;
   align-items: center;
-  height: 84rpx;
-  padding: 0 0 12rpx;
-  font-size: 28rpx;
-  color: #111111;
-  border-bottom: 1rpx solid var(--divider);
+  justify-content: space-between;
+  border: 1rpx solid #e4e7ec;
+  border-radius: 18rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 18rpx rgba(15, 23, 42, 0.03);
   box-sizing: border-box;
 }
 

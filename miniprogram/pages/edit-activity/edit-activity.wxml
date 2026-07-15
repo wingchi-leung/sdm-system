@@ -50,26 +50,61 @@
     </view>
 
     <view class="field">
-      <text class="field-label">开始时间</text>
-      <view class="datetime-row">
-        <picker mode="date" value="{{startDate}}" start="2020-01-01" end="2030-12-31" bindchange="onStartDateChange">
-          <view class="picker-value">{{startDate || '选择日期'}}</view>
-        </picker>
-        <picker mode="time" value="{{startTime}}" start="00:00" end="23:59" bindchange="onStartTimeChange">
-          <view class="picker-value">{{startTime || '选择时间'}}</view>
-        </picker>
+      <view class="field-head">
+        <text class="field-label">活动时间</text>
+        <text class="field-required">*</text>
       </view>
-    </view>
-
-    <view class="field">
-      <text class="field-label optional">结束时间</text>
-      <view class="datetime-row">
-        <picker mode="date" value="{{endDate}}" start="2020-01-01" end="2030-12-31" bindchange="onEndDateChange">
-          <view class="picker-value">{{endDate || '选择日期'}}</view>
-        </picker>
-        <picker mode="time" value="{{endTime}}" start="00:00" end="23:59" bindchange="onEndTimeChange">
-          <view class="picker-value">{{endTime || '选择时间'}}</view>
-        </picker>
+      <view class="datetime-stack">
+        <view class="datetime-row">
+          <text class="datetime-label">开始</text>
+          <view class="datetime-pickers">
+            <picker mode="date" value="{{startDate}}" start="2020-01-01" end="2030-12-31" bindchange="onStartDateChange">
+              <view class="time-chip">
+                <view class="time-chip-icon time-chip-icon-calendar">
+                  <view class="time-chip-icon-calendar-ring"></view>
+                  <view class="time-chip-icon-calendar-line"></view>
+                </view>
+                <text class="time-chip-text">{{startDate || '选择日期'}}</text>
+                <text class="time-chip-arrow ui-chevron ui-chevron--sm">⌄</text>
+              </view>
+            </picker>
+            <picker mode="time" value="{{startTime}}" start="00:00" end="23:59" bindchange="onStartTimeChange">
+              <view class="time-chip">
+                <view class="time-chip-icon time-chip-icon-clock">
+                  <view class="time-chip-icon-clock-hand time-chip-icon-clock-hand-hour"></view>
+                  <view class="time-chip-icon-clock-hand time-chip-icon-clock-hand-minute"></view>
+                </view>
+                <text class="time-chip-text">{{startTime || '选择时间'}}</text>
+                <text class="time-chip-arrow ui-chevron ui-chevron--sm">⌄</text>
+              </view>
+            </picker>
+          </view>
+        </view>
+        <view class="datetime-row">
+          <text class="datetime-label">结束</text>
+          <view class="datetime-pickers">
+            <picker mode="date" value="{{endDate}}" start="2020-01-01" end="2030-12-31" bindchange="onEndDateChange">
+              <view class="time-chip">
+                <view class="time-chip-icon time-chip-icon-calendar">
+                  <view class="time-chip-icon-calendar-ring"></view>
+                  <view class="time-chip-icon-calendar-line"></view>
+                </view>
+                <text class="time-chip-text">{{endDate || '选择日期'}}</text>
+                <text class="time-chip-arrow ui-chevron ui-chevron--sm">⌄</text>
+              </view>
+            </picker>
+            <picker mode="time" value="{{endTime}}" start="00:00" end="23:59" bindchange="onEndTimeChange">
+              <view class="time-chip">
+                <view class="time-chip-icon time-chip-icon-clock">
+                  <view class="time-chip-icon-clock-hand time-chip-icon-clock-hand-hour"></view>
+                  <view class="time-chip-icon-clock-hand time-chip-icon-clock-hand-minute"></view>
+                </view>
+                <text class="time-chip-text">{{endTime || '选择时间'}}</text>
+                <text class="time-chip-arrow ui-chevron ui-chevron--sm">⌄</text>
+              </view>
+            </picker>
+          </view>
+        </view>
       </view>
     </view>
 

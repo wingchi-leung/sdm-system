@@ -259,7 +259,7 @@
 .datetime-stack {
   display: flex;
   flex-direction: column;
-  gap: 32rpx;
+  gap: 28rpx;
 }
 
 .datetime-row {
@@ -270,48 +270,107 @@
 
 .datetime-label {
   flex-shrink: 0;
-  width: 52rpx;
-  color: #666666;
-  font-size: 24rpx;
+  width: 64rpx;
+  color: #525866;
+  font-size: 26rpx;
   line-height: 1.4;
+  font-weight: 500;
 }
 
 .datetime-pickers {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 22rpx;
+  gap: 16rpx;
 }
 
 .time-chip {
   min-width: 0;
   flex: 1;
-  height: 84rpx;
-  padding: 0 0 12rpx;
+  height: 88rpx;
+  padding: 0 20rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1rpx solid var(--divider);
-  border-radius: 0;
-  background: transparent;
+  border: 1rpx solid #e4e7ec;
+  border-radius: 18rpx;
+  background: #ffffff;
+  box-shadow: 0 8rpx 18rpx rgba(15, 23, 42, 0.03);
   color: #111111;
   font-size: 26rpx;
   box-sizing: border-box;
 }
 
+.time-chip-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 14rpx;
+  box-sizing: border-box;
+}
+
+.time-chip-icon-calendar {
+  border: 2rpx solid #98a2b3;
+  border-radius: 8rpx;
+}
+
+.time-chip-icon-calendar-ring {
+  position: absolute;
+  left: 4rpx;
+  right: 4rpx;
+  top: -4rpx;
+  height: 6rpx;
+  border-top: 2rpx solid #98a2b3;
+}
+
+.time-chip-icon-calendar-line {
+  position: absolute;
+  left: 4rpx;
+  right: 4rpx;
+  top: 10rpx;
+  height: 2rpx;
+  background: #98a2b3;
+}
+
+.time-chip-icon-clock {
+  border: 2rpx solid #98a2b3;
+  border-radius: 50%;
+}
+
+.time-chip-icon-clock-hand {
+  position: absolute;
+  left: 13rpx;
+  top: 13rpx;
+  width: 2rpx;
+  transform-origin: center top;
+  background: #98a2b3;
+  border-radius: 999rpx;
+}
+
+.time-chip-icon-clock-hand-hour {
+  height: 8rpx;
+  transform: rotate(0deg);
+}
+
+.time-chip-icon-clock-hand-minute {
+  height: 10rpx;
+  transform: rotate(55deg);
+}
+
 .time-chip-text {
   flex: 1;
   min-width: 0;
-  color: #111111;
+  color: #344054;
   font-size: 26rpx;
   line-height: 1;
 }
 
 .time-chip-arrow {
-  color: #9a9a9a;
+  color: #98a2b3;
   font-size: 20rpx;
   line-height: 1;
-  margin-left: 10rpx;
+  margin-left: 12rpx;
 }
 
 .field-hint {

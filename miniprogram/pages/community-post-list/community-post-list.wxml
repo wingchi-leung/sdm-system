@@ -23,37 +23,27 @@
           <text class="toolbar-btn-arrow ui-chevron ui-chevron--sm">›</text>
         </view> -->
         <view wx:if="{{showManageButton}}" class="toolbar-btn" bindtap="onManageMembers">
-          <view class="toolbar-members" aria-hidden="true">
-            <view class="toolbar-members__head toolbar-members__head--left"></view>
-            <view class="toolbar-members__head toolbar-members__head--right"></view>
-            <view class="toolbar-members__body"></view>
-          </view>
+          <image class="toolbar-btn-icon" src="/assets/icons/users.png" mode="aspectFit" />
           <text class="toolbar-btn-text">社区管理</text>
         </view>
       </view>
     </view>
 
-    <view class="section-head">
-      <text class="section-label">最新公告</text>
-      <view class="section-head__dash"></view>
-    </view>
 
     <view wx:if="{{showAnnouncementEntry}}" class="announcement-banner" bindtap="onOpenAnnouncementList">
       <view class="announcement-banner__head">
         <view class="announcement-icon-wrap announcement-icon-wrap--banner">
           <image class="announcement-icon" src="/assets/icons/announcement.png" mode="aspectFit" />
         </view>
-        <text class="announcement-banner__title">公告</text>
-        <text class="announcement-banner__more">全部公告 ›</text>
+        <text class="announcement-banner__title">公告栏</text>
       </view>
       <view class="announcement-banner__line">
-        <text class="announcement-banner__dot">•</text>
         <text class="announcement-banner__hint">点击进入公告栏</text>
       </view>
     </view>
 
     <view wx:if="{{posts.length > 0}}" class="feed-list">
-      <view wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" class="feed-card">
+      <view id="post-card-{{item.id}}" wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" class="feed-card">
         <text class="feed-title">{{item.title}}</text>
 
         <view class="feed-source">
@@ -86,7 +76,7 @@
           </view>
         </view>
 
-        <view wx:if="{{item.content_expanded}}" class="feed-content-expanded">
+        <view wx:if="{{item.can_expand_content && item.content_expanded}}" class="feed-content-expanded">
           <view class="feed-blocks">
             <view wx:for="{{item.parsed.blocks}}" wx:for-item="block" wx:key="index">
               <text wx:if="{{block.type === 'text'}}" class="feed-summary">{{block.text}}</text>
@@ -111,7 +101,7 @@
           {{item.content_summary}}{{item.parsed.text.length > item.content_summary.length ? '……' : ''}}
         </text>
 
-        <view class="expand-row">
+        <view wx:if="{{item.can_expand_content}}" class="expand-row">
           <text class="action-link action-link--expand" data-id="{{item.id}}" bindtap="onToggleContent">
             {{item.content_expanded ? '收起全文' : '展开全文'}}
           </text>
@@ -119,15 +109,13 @@
 
         <view class="feed-actions">
           <view class="reply-count">
-            <view class="reply-icon"></view>
             <text>{{item.comment_count || 0}} 条评论</text>
           </view>
           <view wx:if="{{canComment}}" class="write-comment-btn" data-id="{{item.id}}" bindtap="onToggleCommentComposer">
-            <text class="write-comment-btn__icon">▱</text>
-            <text>{{item.comment_compose_open ? '收起评论' : '写评论'}}</text>
+            <image class="write-comment-btn__icon" src="/assets/icons/comment.png" mode="aspectFit" />
+            <text>写评论</text>
           </view>
         </view>
-
         <view wx:if="{{!item.comments_collapsed && item.comments.length > 0}}" class="comment-preview-list">
           <view wx:for="{{item.comments}}" wx:for-item="comment" wx:key="id" class="comment-preview">
             <image class="comment-avatar" src="{{comment.user_avatar_display_url}}" mode="aspectFill" />
@@ -153,16 +141,22 @@
               </view>
             </view>
           </view>
+
+          <view class="comment-loadmore comment-actions-row">
+            <text class="action-link" data-id="{{item.id}}" bindtap="onCollapseComments">收起评论</text>
+            <text
+              wx:if="{{item.comment_count > item.comments.length}}"
+              class="action-link"
+              data-id="{{item.id}}"
+              bindtap="onLoadMoreComments"
+            >
+              {{item.comments_loading ? '加载中…' : '查看更多评论'}}
+            </text>
+          </view>
         </view>
 
-        <view wx:elif="{{item.comment_count > 0}}" class="comment-empty-line">
-          <text class="comment-empty-text">评论 {{item.comment_count}}</text>
-        </view>
-
-        <view wx:if="{{!item.comments_collapsed && !item.comments_loaded_all}}" class="comment-loadmore">
-          <text class="action-link" data-id="{{item.id}}" bindtap="onLoadMoreComments">
-            {{item.comments_loading ? '加载中…' : '查看更多评论'}}
-          </text>
+        <view wx:elif="{{item.comments_collapsed && item.comment_count > 0}}" class="comment-empty-line">
+          <text class="action-link" data-id="{{item.id}}" bindtap="onToggleComments">展开评论（{{item.comment_count}}）</text>
         </view>
 
         <view wx:if="{{canComment && item.comment_compose_open}}" class="comment-composer">
